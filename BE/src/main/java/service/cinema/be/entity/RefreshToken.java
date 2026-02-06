@@ -1,33 +1,30 @@
 package service.cinema.be.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
 
-import java.io.Serializable;
-
-@Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "refresh_token")
-public class RefreshToken extends PrimaryEntity implements Serializable {
-    @Column(name = "refresh_token", length = 8000)
+@AllArgsConstructor
+@Entity
+@Table(name = "token_lam_moi")
+public class RefreshToken extends PrimaryEntity {
+
+    @Column(name = "token_lam_moi", length = 8000)
     private String refreshToken;
 
-    @Column(name = "expired_at")
+    @Column(name = "thoi_gian_het_han")
     private Long expiredAt;
 
-    @Column(name = "user_id")
+    @Column(name = "id_tai_khoan")
     private String userId;
 
-    @Column(name = "revoked_at")
+    @Column(name = "thoi_gian_thu_hoi")
     private Long revokedAt;
 
 }

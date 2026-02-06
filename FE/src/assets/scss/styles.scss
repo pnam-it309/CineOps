@@ -1,0 +1,63 @@
+// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "bootstrap/scss/functions";
+
+// 2. Include any default variable overrides here
+$enable-responsive-font-sizes: true;
+
+// 3. Include remainder of required Bootstrap stylesheets
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/root";
+
+// 4. Include optional Bootstrap components as needed
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/images";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/helpers";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/card";
+@import "bootstrap/scss/forms";
+@import "bootstrap/scss/transitions";
+@import "bootstrap/scss/dropdown";
+@import "bootstrap/scss/button-group";
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/navbar";
+@import "bootstrap/scss/placeholders";
+
+// 5. Add Bootstrap API (utilities)
+@import "bootstrap/scss/utilities/api";
+
+// 6. Custom Responsive Overrides (Senior UI/UX)
+// Ensure consistent experience across 13" (approx 1280-1440px) and 15" (1536-1920px)
+// We use a fluid container with logical max-width restrictions and responsive padding
+.container-responsive {
+  @extend .container-fluid;
+  max-width: 1920px; // Cap at HD+ to prevent stretching on 4K overly much
+  margin: 0 auto;
+  
+  // Default padding for mobile
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  // Laptops/Tablets (MD/LG/XL)
+  @include media-breakpoint-up(md) {
+    padding-left: 2rem; // 32px
+    padding-right: 2rem;
+  }
+  
+  // Larger Laptops / Desktops
+  @include media-breakpoint-up(xl) {
+    padding-left: 5vw; // Use viewport width percentage for consistent "feel"
+    padding-right: 5vw;
+  }
+}
+
+// Enhance Grid consistency
+.card-img-top {
+  object-fit: cover;
+}

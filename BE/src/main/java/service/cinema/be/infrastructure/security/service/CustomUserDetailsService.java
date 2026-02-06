@@ -1,54 +1,56 @@
 package service.cinema.be.infrastructure.security.service;
 
-
-// import service.cinema.be.entity.NhanVien;
-// import service.cinema.be.infrastructure.constant.EntityStatus;
-// import service.cinema.be.infrastructure.security.repository.NhanVienAuthRepository;
-
-import service.cinema.be.infrastructure.security.user.UserPrincipal;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import service.cinema.be.entity.KhachHang;
+import service.cinema.be.infrastructure.security.user.UserPrincipal;
+import service.cinema.be.repository.UserRepository;
 
-// import java.util.Optional;
+import java.util.Optional;
 
 @Service("customUserDetailsService")
 @RequiredArgsConstructor
+@Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
-
-    // private final NhanVienAuthRepository nhanVienAuthRepository;
-    private final HttpSession httpSession;
+    private final UserRepository userRepository;
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        System.out.println("EMAIL: " + email);
-        String role = (String) httpSession.getAttribute("role");
-        if ("ADMIN".equals(role)) {
-            // TODO: Restore NhanVien logic when entity is available
-            // Optional<NhanVien> existingNhanVien = nhanVienAuthRepository.findByEmailAndStatus(email, EntityStatus.ACTIVE);
-            // if (existingNhanVien.isPresent()) {
-            //     NhanVien nhanVien = existingNhanVien.get();
-            //     System.out.println("loadUserByNhanVien: " + nhanVien);
-            //     return UserPrincipal.createFromNhanVien(nhanVien);
-            // }
-        } else if ("USER".equals(role)) {
+        log.debug("Loading customer by email: {}", email);
 
-//            Optional<KhachHang> existingUser = userAuthRepository.findByEmailAndStatus(email, EntityStatus.ACTIVE);
-//            if (existingUser.isPresent()) {
-//                KhachHang user = existingUser.get();
-//                System.out.println("loadUserByKhachHang: " + user);
-//                return UserPrincipal.createFromKhachHang(user);
-//            }
+        // Find customer with account and role eagerly loaded
+        Optional<KhachHang> khachHangOptional = userRepository.findByEmailWithRoles(email);
+
+        if (khachHangOptional.isEmpty()) {
+            log.error("Customer not found with email: {}", email);
+            throw new UsernameNotFoundException("Customer not found with email: " + email);
         }
-//
-//        throw new UsernameNotFoundException("User not found with email: " + email);
-//    }
-        return null;
+
+        KhachHang khachHang = khachHangOptional.get();
+        
+        // Check if customer has account
+        if (khachHang.getTaiKhoan() == null) {
+            log.error("Customer {} has no account", email);
+            throw new UsernameNotFoundException("Customer has no account: " + email);
+        }
+
+        // Check if account has role
+        if (khachHang.getTaiKhoan().getPhanQuyen() == null) {
+            log.error("Customer {} has no role assigned", email);
+            throw new UsernameNotFoundException("Customer has no role assigned: " + email);
+        }
+
+        log.debug("Successfully loaded customer: {} with role: {}", 
+                email, khachHang.getTaiKhoan().getPhanQuyen().getTenVaiTro());
+
+        return UserPrincipal.createFromKhachHang(khachHang);
     }
+
 }

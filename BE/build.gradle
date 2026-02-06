@@ -36,7 +36,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    // implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -66,7 +66,9 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // ===== Cloudinary =====
-    implementation 'com.cloudinary:cloudinary-http44:1.36.0'
+    implementation('com.cloudinary:cloudinary-http44:1.36.0') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
 
     // ===== Dev =====
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

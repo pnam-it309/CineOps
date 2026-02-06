@@ -1,7 +1,12 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import router from './routes'
-import './assets/main.css'
+// Import Bootstrap JS
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+// Import Bootstrap Icons
+import 'bootstrap-icons/font/bootstrap-icons.css'
+// Import Global Styles (Bootstrap SCSS)
+import './assets/scss/styles.scss'
 import App from './App.vue'
 
 const app = createApp(App)

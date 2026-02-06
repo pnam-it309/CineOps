@@ -1,8 +1,9 @@
 import axios from 'axios';
 import router from '@/routes';
+import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 
 const instance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8888/api/v1',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8888',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -25,10 +26,17 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 401) {
-            // Token expired or invalid
-            localStorage.removeItem('token');
-            router.push({ name: 'Login' });
+        if (error.response) {
+            if (error.response.status === 401) {
+                // Token expired or invalid -> Redirect to Login or Unauthorized
+                localStorage.removeItem('token');
+                router.push({ name: ROUTES_CONSTANTS.ERROR.UNAUTHORIZED.name }); 
+            } else if (error.response.status === 403) {
+                // Forbidden -> Redirect to Forbidden page
+                router.push({ name: ROUTES_CONSTANTS.ERROR.FORBIDDEN.name });
+            } else if (error.response.status === 404) {
+                 // Resource not found
+            }
         }
         return Promise.reject(error);
     }

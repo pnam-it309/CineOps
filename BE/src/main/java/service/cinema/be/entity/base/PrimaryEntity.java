@@ -24,14 +24,14 @@ public abstract class PrimaryEntity extends AuditEntity implements IsIdentified 
     @Column(length = EntityProperties.LENGTH_ID, updatable = false)
     private String id;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.ORDINAL)
-    private EntityStatus status;
+//    @Column(name = "status")
+//    @Enumerated(EnumType.ORDINAL)
+//    private EntityStatus status;
 
-    @Column(name = "ma")
-    private String ma;
+    // @Column(name = "ma")
+    // private String ma;
 
-    @Column(name = "ten")
-    private String ten;
+    // @Column(name = "ten")
+    // private String ten;
 
 }

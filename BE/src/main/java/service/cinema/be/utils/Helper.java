@@ -22,35 +22,36 @@ public class Helper {
     }
 
     public static Pageable createPageable(PageableRequest request, String defaultSortBy) {
-        return PageRequest.of(
-                request.getPage() - 1,
-                request.getSize() == 0 ? PaginationConstant.DEFAULT_SIZE : request.getSize(),
-                Sort.by(
-                        (Sort.Direction.fromString(
-                                request.getOrderBy()) == Sort.Direction.DESC ||
-                                request.getOrderBy() == null
-                        ) ? Sort.Direction.DESC : Sort.Direction.ASC,
-                        (request.getSortBy() == null
-                                || request.getSortBy().isEmpty()
-                        ) ? defaultSortBy : request.getSortBy()
-                ));
+        return createPageable(request, defaultSortBy, PaginationConstant.DEFAULT_ORDER_BY);
     }
 
     public static Pageable createPageable(PageableRequest request, String defaultSortBy, String defaultOrderBy) {
-        int page = request.getPage() - 1;
-        int size = request.getSize() == 0 ? PaginationConstant.DEFAULT_SIZE : request.getSize();
-        Sort.Direction direction = request.getOrderBy() == null || request.getOrderBy().isEmpty()
-                ? Sort.Direction.fromString(defaultOrderBy)
-                : Sort.Direction.fromString(request.getOrderBy());
-        String sortBy = request.getSortBy();
-        if (sortBy == null || sortBy.isEmpty()) {
-            sortBy = defaultSortBy;
+        int page = (request.getPage() != null && request.getPage() > 0)
+                ? request.getPage() - 1
+                : PaginationConstant.DEFAULT_PAGE;
+
+        int size = (request.getSize() != null && request.getSize() > 0)
+                ? request.getSize()
+                : PaginationConstant.DEFAULT_SIZE;
+
+        Sort.Direction direction = Sort.Direction.DESC;
+        String orderBy = request.getOrderBy() != null && !request.getOrderBy().isEmpty()
+                ? request.getOrderBy()
+                : defaultOrderBy;
+
+        if ("ASC".equalsIgnoreCase(orderBy)) {
+            direction = Sort.Direction.ASC;
         }
+
+        String sortBy = (request.getSortBy() != null && !request.getSortBy().isEmpty())
+                ? request.getSortBy()
+                : defaultSortBy;
+
         return PageRequest.of(page, size, Sort.by(direction, sortBy));
     }
 
     public static Pageable createPageable(PageableRequest request) {
-        return createPageable(request, "created_date", "DESC");
+        return createPageable(request, PaginationConstant.DEFAULT_SORT_BY, PaginationConstant.DEFAULT_ORDER_BY);
     }
 
 
@@ -182,14 +183,6 @@ public class Helper {
         return parts[parts.length - 1];
     }
 
-    public static String generateCodeMauSac() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("MS%04d", number);
-
-        return code;
-    }
-
     public static String generateCodeKhachHang() {
         // Random 3 chữ cái A-Z
         String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -215,93 +208,5 @@ public class Helper {
         return code;
     }
 
-    public static String generateCodeSanPham() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("SP%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeVoucher() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("PGG%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeSanPhamChiTiet() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("SPCT%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeLoaiDe() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("LD%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeHoaDon() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("HD%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeHoaDonCT() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("HDCT%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeDotGiamGia() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("DGG%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeDotGiamGiaChiTiet() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("DGGCT%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeDotGiamGiaCT() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("DGGCT%04d", number);
-
-        return code;
-    }
-
-    public static String generateCodeLoaiGiay() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("DM%04d", number);
-
-        return code;
-    }
-
-
-    public static String generateCodeChatLieu() {
-        Random random = new Random();
-        int number = random.nextInt(10000);
-        String code = String.format("CL%04d", number);
-
-        return code;
-    }
 
 }

@@ -1,6 +1,5 @@
 package service.cinema.be.infrastructure.security.filter;
 
-import service.cinema.be.infrastructure.security.service.TokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,16 +8,14 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import service.cinema.be.infrastructure.security.service.TokenProvider;
+import service.cinema.be.infrastructure.security.user.UserPrincipal;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 @Slf4j
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
@@ -35,13 +32,22 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+                String userId = tokenProvider.getUserIdFromToken(jwt);
                 String email = tokenProvider.getEmailFromToken(jwt);
                 String role = tokenProvider.getRoleFromToken(jwt);
 
-                List<GrantedAuthority> authorities = getAuthorities(role);
+                // Create UserPrincipal with user information
+                // This will be available in @PreAuthorize as authentication.principal
+                UserPrincipal userPrincipal = UserPrincipal.createWithRole(
+                        userId,
+                        email,
+                        email, // Use email as fullName temporarily (will be loaded from DB if needed)
+                        null,  // Password not needed for token auth
+                        role
+                );
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        email, null, authorities);
+                UsernamePasswordAuthenticationToken authentication = 
+                        new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
@@ -60,12 +66,5 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7);
         }
         return null;
-    }
-
-    private List<GrantedAuthority> getAuthorities(String role) {
-        if (role != null && !role.isEmpty()) {
-            return Collections.singletonList(new SimpleGrantedAuthority(role));
-        }
-        return Collections.emptyList();
     }
 }

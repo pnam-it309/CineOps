@@ -11,7 +11,9 @@ public enum Role {
 
     ADMIN("ADMIN"),
 
-    USERS("USERS");
+    STAFF("STAFF"),
+
+    CUSTOMER("CUSTOMER");
 
     private final String nameInVietnamese;
 

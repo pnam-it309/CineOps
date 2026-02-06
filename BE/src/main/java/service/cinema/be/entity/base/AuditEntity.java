@@ -18,8 +18,16 @@ public abstract class AuditEntity {
     @Column(name = "created_date", updatable = false)
     private Long createdDate;
 
+    @org.springframework.data.annotation.CreatedBy
+    @Column(name = "created_by", length = 100, updatable = false)
+    private String createdBy;
+
     @org.springframework.data.annotation.LastModifiedDate
     @Column(name = "last_modified_date")
     private Long lastModifiedDate;
+
+    @org.springframework.data.annotation.LastModifiedBy
+    @Column(name = "last_modified_by", length = 100)
+    private String lastModifiedBy;
 
 }

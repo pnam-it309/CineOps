@@ -14,7 +14,9 @@ public class OAuth2Constant {
 
     public static final String ROLE_ADMIN = "ADMIN";
 
-    public static final String ROLE_USER = "USERS";
+    public static final String ROLE_STAFF = "STAFF";
+
+    public static final String ROLE_CUSTOMER = "CUSTOMER";
 
 
 }
