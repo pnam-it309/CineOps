@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import ElementPlus from 'unplugin-element-plus/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -10,12 +12,17 @@ export default defineConfig({
     vue(),
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia'],
+      resolvers: [ElementPlusResolver()],
       dts: 'auto-imports.d.ts',
     }),
     Components({
       dirs: ['src/components'],
       extensions: ['vue'],
+      resolvers: [ElementPlusResolver()],
       dts: 'components.d.ts',
+    }),
+    ElementPlus({
+      // Auto import styles
     }),
   ],
   resolve: {

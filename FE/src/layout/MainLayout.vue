@@ -29,7 +29,10 @@
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                   Xin chào, {{ authStore.user?.username || 'User' }}
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                   <li v-if="authStore.isAdmin"><router-link :to="{ name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name }" class="dropdown-item fw-bold text-primary">Quản trị Hệ thống</router-link></li>
+                   <li v-if="authStore.isStaff || authStore.isAdmin"><router-link :to="{ name: ROUTES_CONSTANTS.STAFF.children.DASHBOARD.name }" class="dropdown-item fw-bold text-success">Giao diện Bán vé</router-link></li>
+                   <li v-if="authStore.isAdmin || authStore.isStaff"><hr class="dropdown-divider"></li>
                    <li><router-link :to="{ name: 'CustomerProfile' }" class="dropdown-item">Hồ sơ cá nhân</router-link></li>
                    <li><router-link :to="{ name: 'CustomerTickets' }" class="dropdown-item">Vé của tôi</router-link></li>
                    <li><hr class="dropdown-divider"></li>
@@ -67,6 +70,7 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 
 const authStore = useAuthStore();
 const router = useRouter();

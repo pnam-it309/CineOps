@@ -1,24 +1,227 @@
 <template>
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Movie Management</h2>
-    <button class="btn btn-success"><i class="bi bi-plus-lg"></i> Add Movie</button>
-  </div>
-  
-  <div class="row g-4">
-    <div class="col-md-3" v-for="i in 4" :key="i">
-      <div class="card h-100">
-        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 300px;">
-          Poster
-        </div>
-        <div class="card-body">
-          <h5 class="card-title">Movie Title {{ i }}</h5>
-          <p class="card-text text-muted">Action, 2h 15m</p>
-        </div>
-        <div class="card-footer bg-white border-top-0">
-          <button class="btn btn-sm btn-outline-primary w-100">Edit Details</button>
-        </div>
+  <div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+      <div>
+        <h2 class="mb-2 fs-3 fw-bold text-dark">Movie Management</h2>
+        <p class="text-secondary mb-0 small">Manage movie catalog and details</p>
+      </div>
+      <el-button type="success" :icon="Plus" @click="dialogVisible = true">
+        Add New Movie
+      </el-button>
+    </div>
+
+    <!-- View Toggle and Search -->
+    <el-card shadow="never" class="mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <el-input
+          v-model="searchQuery"
+          placeholder="Search movies..."
+          :prefix-icon="Search"
+          style="width: 300px"
+          class="w-100 w-sm-auto"
+          clearable
+        />
+        <el-radio-group v-model="viewMode">
+          <el-radio-button label="grid">
+            <el-icon><Grid /></el-icon>
+            Grid
+          </el-radio-button>
+          <el-radio-button label="list">
+            <el-icon><List /></el-icon>
+            List
+          </el-radio-button>
+        </el-radio-group>
+      </div>
+    </el-card>
+
+    <!-- Grid View -->
+    <div class="row g-4" v-if="viewMode === 'grid'">
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-for="movie in movies" :key="movie.id">
+        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect" :body-style="{ padding: '1rem' }">
+          <div class="position-relative mb-3 rounded overflow-hidden" style="padding-top: 150%;">
+            <img :src="movie.poster" :alt="movie.title" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover" />
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center gap-2 opacity-0 hover-opacity-100 transition-opacity">
+              <el-button type="primary" circle :icon="Edit" @click="handleEdit(movie)" />
+              <el-button type="danger" circle :icon="Delete" @click="handleDelete(movie)" />
+            </div>
+          </div>
+          <div>
+            <h3 class="fs-6 fw-bold mb-1 text-truncate" :title="movie.title">{{ movie.title }}</h3>
+            <p class="text-muted small mb-2">{{ movie.genre }} • {{ movie.duration }}</p>
+            <el-tag :type="movie.status === 'showing' ? 'success' : 'info'" size="small">
+              {{ movie.status }}
+            </el-tag>
+          </div>
+        </el-card>
       </div>
     </div>
+
+    <!-- List View -->
+    <el-card shadow="never" v-else class="border-0 shadow-sm">
+      <el-table :data="movies" style="width: 100%">
+        <el-table-column prop="title" label="Movie Title" min-width="200" />
+        <el-table-column prop="genre" label="Genre" width="150" />
+        <el-table-column prop="duration" label="Duration" width="120" />
+        <el-table-column prop="releaseDate" label="Release Date" width="150" />
+        <el-table-column prop="status" label="Status" width="120">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'showing' ? 'success' : 'info'">
+              {{ row.status }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="Actions" width="150" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" :icon="Edit" size="small" link @click="handleEdit(row)">
+              Edit
+            </el-button>
+            <el-button type="danger" :icon="Delete" size="small" link @click="handleDelete(row)">
+              Delete
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
+    <!-- Add/Edit Movie Dialog -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="Add New Movie"
+      width="600px"
+    >
+      <el-form :model="movieForm" label-width="120px">
+        <el-form-item label="Movie Title">
+          <el-input v-model="movieForm.title" placeholder="Enter movie title" />
+        </el-form-item>
+        
+        <el-form-item label="Genre">
+          <el-input v-model="movieForm.genre" placeholder="e.g., Action, Drama" />
+        </el-form-item>
+        
+        <el-form-item label="Duration">
+          <el-input v-model="movieForm.duration" placeholder="e.g., 2h 15m" />
+        </el-form-item>
+        
+        <el-form-item label="Release Date">
+          <el-date-picker
+            v-model="movieForm.releaseDate"
+            type="date"
+            placeholder="Select date"
+            style="width: 100%"
+          />
+        </el-form-item>
+        
+        <el-form-item label="Status">
+          <el-select v-model="movieForm.status" style="width: 100%">
+            <el-option label="Now Showing" value="showing" />
+            <el-option label="Coming Soon" value="coming-soon" />
+            <el-option label="Ended" value="ended" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button @click="dialogVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="handleSave">Save</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
-<script setup></script>
+
+<script setup>
+import { ref } from 'vue';
+import { Plus, Search, Grid, List, Edit, Delete } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+
+const searchQuery = ref('');
+const viewMode = ref('grid');
+const dialogVisible = ref(false);
+
+const movieForm = ref({
+  title: '',
+  genre: '',
+  duration: '',
+  releaseDate: '',
+  status: 'showing'
+});
+
+// Mock movie data
+const movies = ref([
+  {
+    id: 1,
+    title: 'Avatar: The Way of Water',
+    genre: 'Action, Sci-Fi',
+    duration: '3h 12m',
+    releaseDate: '2024-01-15',
+    status: 'showing',
+    poster: 'https://via.placeholder.com/300x450/667eea/ffffff?text=Avatar'
+  },
+  {
+    id: 2,
+    title: 'Top Gun: Maverick',
+    genre: 'Action, Drama',
+    duration: '2h 10m',
+    releaseDate: '2024-01-20',
+    status: 'showing',
+    poster: 'https://via.placeholder.com/300x450/764ba2/ffffff?text=TopGun'
+  },
+  {
+    id: 3,
+    title: 'The Batman',
+    genre: 'Action, Crime',
+    duration: '2h 56m',
+    releaseDate: '2024-02-01',
+    status: 'showing',
+    poster: 'https://via.placeholder.com/300x450/f093fb/ffffff?text=Batman'
+  },
+  {
+    id: 4,
+    title: 'Spider-Man: No Way Home',
+    genre: 'Action, Adventure',
+    duration: '2h 28m',
+    releaseDate: '2023-12-15',
+    status: 'ended',
+    poster: 'https://via.placeholder.com/300x450/f5576c/ffffff?text=SpiderMan'
+  }
+]);
+
+const handleEdit = (movie) => {
+  ElMessage.info(`Edit movie: ${movie.title}`);
+};
+
+const handleDelete = (movie) => {
+  ElMessageBox.confirm(
+    `Delete movie "${movie.title}"?`,
+    'Confirm Delete',
+    {
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      type: 'warning'
+    }
+  ).then(() => {
+    ElMessage.success('Movie deleted');
+  });
+};
+
+const handleSave = () => {
+  ElMessage.success('Movie saved successfully');
+  dialogVisible.value = false;
+};
+</script>
+
+<style scoped>
+.hover-opacity-100:hover {
+  opacity: 1 !important;
+}
+.transition-opacity {
+  transition: opacity 0.3s ease;
+}
+.object-fit-cover {
+  object-fit: cover;
+}
+.w-sm-auto {
+  @media (min-width: 576px) {
+    width: auto !important;
+  }
+}
+</style>

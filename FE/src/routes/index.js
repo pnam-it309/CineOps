@@ -8,7 +8,7 @@ const StaffLayout = () => import('@/layout/StaffLayout.vue');
 const MainLayout = () => import('@/layout/MainLayout.vue');
 
 // Pages
-const Home = () => import('@/pages/HomePage.vue');
+const Home = () => import('@/pages/customer/HomePage.vue');
 const Login = () => import('@/pages/LoginPage.vue');
 
 const routes = [
@@ -23,14 +23,83 @@ const routes = [
                 component: Home,
             },
             {
+                path: ROUTES_CONSTANTS.MOVIE_DETAILS.path,
+                name: ROUTES_CONSTANTS.MOVIE_DETAILS.name,
+                component: () => import('@/pages/customer/MovieDetails.vue'),
+            },
+            {
                 path: ROUTES_CONSTANTS.LOGIN.path,
                 name: ROUTES_CONSTANTS.LOGIN.name,
                 component: Login,
                 meta: { guestOnly: true }
             },
             {
+                path: ROUTES_CONSTANTS.REGISTER.path,
+                name: ROUTES_CONSTANTS.REGISTER.name,
+                component: () => import('@/pages/RegisterPage.vue'),
+                meta: { guestOnly: true }
+            },
+            {
+                path: ROUTES_CONSTANTS.FORGOT_PASSWORD.path,
+                name: ROUTES_CONSTANTS.FORGOT_PASSWORD.name,
+                component: () => import('@/pages/ForgotPasswordPage.vue'),
+                meta: { guestOnly: true }
+            },
+            {
+                path: ROUTES_CONSTANTS.BOOKING.path,
+                name: ROUTES_CONSTANTS.BOOKING.name,
+                children: [
+                    {
+                        path: ROUTES_CONSTANTS.BOOKING.children.STEP1.path,
+                        name: ROUTES_CONSTANTS.BOOKING.children.STEP1.name,
+                        component: () => import('@/pages/booking/SelectShowtime.vue'),
+                    },
+                    {
+                        path: ROUTES_CONSTANTS.BOOKING.children.STEP2.path,
+                        name: ROUTES_CONSTANTS.BOOKING.children.STEP2.name,
+                        component: () => import('@/pages/booking/SelectSeats.vue'),
+                    },
+                    {
+                        path: ROUTES_CONSTANTS.BOOKING.children.STEP3.path,
+                        name: ROUTES_CONSTANTS.BOOKING.children.STEP3.name,
+                        component: () => import('@/pages/booking/SelectFood.vue'),
+                    },
+                    {
+                        path: ROUTES_CONSTANTS.BOOKING.children.STEP4.path,
+                        name: ROUTES_CONSTANTS.BOOKING.children.STEP4.name,
+                        component: () => import('@/pages/booking/PaymentPage.vue'),
+                        meta: { requiresAuth: true }
+                    },
+                    {
+                        path: ROUTES_CONSTANTS.BOOKING.children.RESULT.path,
+                        name: ROUTES_CONSTANTS.BOOKING.children.RESULT.name,
+                        component: () => import('@/pages/booking/BookingResult.vue'),
+                        meta: { requiresAuth: true }
+                    }
+                ]
+            },
+            {
+                path: ROUTES_CONSTANTS.NEWS.path,
+                children: [
+                    {
+                        path: ROUTES_CONSTANTS.NEWS.children.LIST.path,
+                        name: ROUTES_CONSTANTS.NEWS.children.LIST.name,
+                        component: () => import('@/pages/news/NewsList.vue'),
+                    },
+                    {
+                        path: ROUTES_CONSTANTS.NEWS.children.DETAIL.path,
+                        name: ROUTES_CONSTANTS.NEWS.children.DETAIL.name,
+                        component: () => import('@/pages/news/NewsDetail.vue'),
+                    }
+                ]
+            },
+            {
                 path: ROUTES_CONSTANTS.CUSTOMER.path, // /customer
                 children: [
+                    {
+                        path: '', // /customer -> redirect to homepage for now
+                        redirect: '/'
+                    },
                     {
                         path: ROUTES_CONSTANTS.CUSTOMER.children.PROFILE.path,
                         name: ROUTES_CONSTANTS.CUSTOMER.children.PROFILE.name,
@@ -80,20 +149,60 @@ const routes = [
                 component: () => import('@/pages/admin/AdminDashboard.vue'),
             },
             {
-                path: ROUTES_CONSTANTS.ADMIN.children.USERS.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.USERS.name,
+                path: ROUTES_CONSTANTS.ADMIN.children.MOVIES.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.MOVIES.name,
+                component: () => import('@/pages/admin/AdminMovies.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.ROOMS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.ROOMS.name,
+                component: () => import('@/pages/admin/AdminRooms.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.name,
+                component: () => import('@/pages/admin/AdminShowtimes.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.PRICING.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.PRICING.name,
+                component: () => import('@/pages/admin/AdminPricing.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.FOOD.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.FOOD.name,
+                component: () => import('@/pages/admin/AdminFood.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.name,
+                component: () => import('@/pages/admin/AdminVouchers.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.BANNERS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.BANNERS.name,
+                component: () => import('@/pages/admin/AdminBanners.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.STAFF.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.STAFF.name,
                 component: () => import('@/pages/admin/AdminUsers.vue'),
             },
             {
-                path: ROUTES_CONSTANTS.ADMIN.children.ROLES.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.ROLES.name,
-                component: () => import('@/pages/admin/AdminRoles.vue'),
+                path: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.name,
+                component: () => import('@/pages/admin/AdminCustomers.vue'),
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.REPORTS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.REPORTS.name,
                 component: () => import('@/pages/admin/AdminReports.vue'),
-            }
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.REVIEWS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.REVIEWS.name,
+                component: () => import('@/pages/admin/AdminReviews.vue'),
+            },
         ]
     },
 
@@ -105,23 +214,33 @@ const routes = [
         children: [
              {
                 path: '',
-                redirect: { name: ROUTES_CONSTANTS.STAFF.children.BOOKINGS.name }
+                redirect: { name: ROUTES_CONSTANTS.STAFF.children.DASHBOARD.name }
             },
             {
-                path: ROUTES_CONSTANTS.STAFF.children.BOOKINGS.path,
-                name: ROUTES_CONSTANTS.STAFF.children.BOOKINGS.name,
-                component: () => import('@/pages/staff/StaffBookings.vue'),
+                path: ROUTES_CONSTANTS.STAFF.children.DASHBOARD.path,
+                name: ROUTES_CONSTANTS.STAFF.children.DASHBOARD.name,
+                component: () => import('@/pages/staff/StaffDashboard.vue'),
             },
             {
-                path: ROUTES_CONSTANTS.STAFF.children.MOVIES.path,
-                name: ROUTES_CONSTANTS.STAFF.children.MOVIES.name,
-                component: () => import('@/pages/staff/StaffMovies.vue'),
+                path: ROUTES_CONSTANTS.STAFF.children.SALES.path,
+                name: ROUTES_CONSTANTS.STAFF.children.SALES.name,
+                component: () => import('@/pages/staff/StaffSales.vue'),
             },
             {
-                path: ROUTES_CONSTANTS.STAFF.children.SHOWTIMES.path,
-                name: ROUTES_CONSTANTS.STAFF.children.SHOWTIMES.name,
-                component: () => import('@/pages/staff/StaffShowtimes.vue'),
-            }
+                path: ROUTES_CONSTANTS.STAFF.children.CHECKIN.path,
+                name: ROUTES_CONSTANTS.STAFF.children.CHECKIN.name,
+                component: () => import('@/pages/staff/StaffCheckin.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.STAFF.children.INVOICES.path,
+                name: ROUTES_CONSTANTS.STAFF.children.INVOICES.name,
+                component: () => import('@/pages/staff/StaffInvoices.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.STAFF.children.SHIFT.path,
+                name: ROUTES_CONSTANTS.STAFF.children.SHIFT.name,
+                component: () => import('@/pages/staff/StaffShift.vue'),
+            },
         ]
     },
 
@@ -173,6 +292,11 @@ router.beforeEach(async (to, from, next) => {
 
     // 4. Check guestOnly (e.g. Login page)
     if (to.meta.guestOnly && isAuthenticated) {
+        if (authStore.isAdmin) {
+            return next({ name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name });
+        } else if (authStore.isStaff) {
+            return next({ name: ROUTES_CONSTANTS.STAFF.children.DASHBOARD.name });
+        }
         return next({ name: ROUTES_CONSTANTS.HOME.name });
     }
 

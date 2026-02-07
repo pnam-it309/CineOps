@@ -4,9 +4,40 @@ export const ROUTES_CONSTANTS = {
     path: '/',
     name: 'Home'
   },
+  MOVIE_DETAILS: {
+    path: '/movie/:id',
+    name: 'MovieDetails'
+  },
   LOGIN: {
     path: '/login',
     name: 'Login'
+  },
+  REGISTER: {
+    path: '/register',
+    name: 'Register'
+  },
+  FORGOT_PASSWORD: {
+    path: '/forgot-password',
+    name: 'ForgotPassword'
+  },
+  BOOKING: {
+    path: '/booking',
+    name: 'Booking',
+    children: {
+      STEP1: { path: 'step1/:movieId?', name: 'SelectShowtime' },
+      STEP2: { path: 'step2/:showtimeId', name: 'SelectSeats' },
+      STEP3: { path: 'step3', name: 'SelectFood' },
+      STEP4: { path: 'step4', name: 'Payment' },
+      RESULT: { path: 'result', name: 'BookingResult' }
+    }
+  },
+  NEWS: {
+    path: '/news',
+    name: 'News',
+    children: {
+      LIST: { path: '', name: 'NewsList' },
+      DETAIL: { path: ':id', name: 'NewsDetail' }
+    }
   },
 
   // ERROR PAGES
@@ -35,9 +66,17 @@ export const ROUTES_CONSTANTS = {
     name: 'Admin',
     children: {
       DASHBOARD: { path: 'dashboard', name: 'AdminDashboard' },
-      USERS: { path: 'users', name: 'AdminUsers' },
-      ROLES: { path: 'roles', name: 'AdminRoles' },
-      REPORTS: { path: 'reports', name: 'AdminReports' }
+      MOVIES: { path: 'movies', name: 'AdminMovies' },
+      ROOMS: { path: 'rooms', name: 'AdminRooms' },
+      SHOWTIMES: { path: 'showtimes', name: 'AdminShowtimes' },
+      PRICING: { path: 'pricing', name: 'AdminPricing' },
+      FOOD: { path: 'food', name: 'AdminFood' },
+      VOUCHERS: { path: 'vouchers', name: 'AdminVouchers' },
+      BANNERS: { path: 'banners', name: 'AdminBanners' },
+      STAFF: { path: 'staff', name: 'AdminStaff' },
+      CUSTOMERS: { path: 'customers', name: 'AdminCustomers' },
+      REPORTS: { path: 'reports', name: 'AdminReports' },
+      REVIEWS: { path: 'reviews', name: 'AdminReviews' }
     }
   },
 
@@ -46,11 +85,11 @@ export const ROUTES_CONSTANTS = {
     path: '/staff',
     name: 'Staff',
     children: {
-      BOOKINGS: { path: 'bookings', name: 'StaffBookings' },
-      MOVIES: { path: 'movies', name: 'StaffMovies' },
-      SHOWTIMES: { path: 'showtimes', name: 'StaffShowtimes' },
-      ROOMS: { path: 'rooms', name: 'StaffRooms' },
-      FOOD: { path: 'food', name: 'StaffFood' }
+      DASHBOARD: { path: 'dashboard', name: 'StaffDashboard' },
+      SALES: { path: 'sales', name: 'StaffSales' },
+      CHECKIN: { path: 'checkin', name: 'StaffCheckin' },
+      INVOICES: { path: 'invoices', name: 'StaffInvoices' },
+      SHIFT: { path: 'shift', name: 'StaffShift' }
     }
   },
 
