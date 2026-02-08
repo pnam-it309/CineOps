@@ -32,36 +32,36 @@ onUnmounted(() => {
             <!-- Header Status -->
             <div class="bg-success py-5 text-center text-white">
               <el-icon size="80" class="mb-3 animate-bounce"><CircleCheck /></el-icon>
-              <h2 class="fw-bold mb-1">Booking Successful!</h2>
-              <p class="opacity-75 mb-0">Invoice #CO-{{ Math.floor(Math.random() * 900000) + 100000 }}</p>
+              <h2 class="fw-bold mb-1">Đặt vé thành công!</h2>
+              <p class="opacity-75 mb-0">Mã giao dịch #CO-{{ Math.floor(Math.random() * 900000) + 100000 }}</p>
             </div>
 
             <div class="p-4 p-md-5 bg-white">
               <!-- QR Section -->
               <div class="qr-container bg-light rounded-4 p-4 text-center mb-5 border-dashed">
-                <p class="small text-secondary fw-bold text-uppercase mb-3">Your Digital Ticket QR</p>
+                <p class="small text-secondary fw-bold text-uppercase mb-3">Mã QR Vé Của Bạn</p>
                 <div class="qr-placeholder mx-auto p-3 bg-white rounded-3 shadow-sm" style="width: 180px; height: 180px;">
                   <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=CineOpsMockTicket-12345" class="img-fluid" alt="QR Code">
                 </div>
-                <p class="mt-3 small text-secondary mb-0">Show this QR code at the cinema counter <br>to pick up your tickets.</p>
+                <p class="mt-3 small text-secondary mb-0">Vui lòng xuất trình mã QR này tại quầy rạp <br>để nhận vé.</p>
               </div>
 
               <!-- Booking Details -->
               <div class="row g-4 mb-5">
                 <div class="col-6">
-                  <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Movie</span>
+                  <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Phim</span>
                   <span class="fw-bold fs-5">{{ bookingStore.movieTitle }}</span>
                 </div>
                 <div class="col-6 text-end">
-                  <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Cinema</span>
+                  <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Rạp</span>
                   <span class="fw-bold">{{ bookingStore.cinemaName }}</span>
                 </div>
                 <div class="col-6">
-                  <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Date & Time</span>
-                  <span class="fw-semibold">Sunday, Feb 8, 2026 • {{ bookingStore.showtimeTime }}</span>
+                  <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Ngày & Giờ</span>
+                  <span class="fw-semibold">Chủ Nhật, 8 Th2, 2026 • {{ bookingStore.showtimeTime }}</span>
                 </div>
                 <div class="col-6 text-end">
-                  <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Seats</span>
+                  <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Ghế</span>
                   <span class="fw-bold text-primary">{{ bookingStore.selectedSeats.map(s => s.id).join(', ') }}</span>
                 </div>
               </div>
@@ -69,17 +69,17 @@ onUnmounted(() => {
               <!-- Actions -->
               <div class="d-grid gap-3">
                 <button @click="goToTickets" class="btn btn-primary py-3 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
-                  <el-icon><Ticket /></el-icon> View My Tickets
+                  <el-icon><Ticket /></el-icon> Xem vé của tôi
                 </button>
                 <button @click="goToHome" class="btn btn-outline-secondary py-3 border-0 rounded-3 text-secondary d-flex align-items-center justify-content-center gap-2">
-                  <el-icon><HomeFilled /></el-icon> Back to Homepage
+                  <el-icon><HomeFilled /></el-icon> Quay lại trang chủ
                 </button>
               </div>
             </div>
 
             <!-- Footer Note -->
             <div class="bg-light p-3 text-center border-top">
-              <p class="small text-secondary mb-0">A confirmation email has been sent to your registered address.</p>
+              <p class="small text-secondary mb-0">Email xác nhận đã được gửi đến địa chỉ đăng ký của bạn.</p>
             </div>
           </div>
         </div>

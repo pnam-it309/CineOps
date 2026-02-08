@@ -9,6 +9,8 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 // Import Global Styles (Bootstrap SCSS)
 import './assets/scss/styles.scss'
+// Import Theme Variables
+import './theme/variables.css'
 import App from './App.vue'
 
 const app = createApp(App)

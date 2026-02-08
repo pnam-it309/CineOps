@@ -8,6 +8,18 @@ export const ROUTES_CONSTANTS = {
     path: '/movie/:id',
     name: 'MovieDetails'
   },
+  SHOWTIMES: {
+    path: '/showtimes',
+    name: 'Showtimes'
+  },
+  PROMOTIONS: {
+    path: '/promotions',
+    name: 'Promotions'
+  },
+  CINEMAS: {
+    path: '/cinemas',
+    name: 'CinemaInfo'
+  },
   LOGIN: {
     path: '/login',
     name: 'Login'

@@ -30,116 +30,123 @@ const handleEdit = (rule) => {
 };
 
 const formatPrice = (p) => p.toLocaleString() + 'đ';
+import BaseTable from '@/components/common/BaseTable.vue';
+
+const tableColumns = [
+  { label: 'Tên cấu hình', key: 'name' },
+  { label: 'Ngày áp dụng', key: 'type' },
+  { label: 'Khung giờ', key: 'timeRange' },
+  { label: 'Ghế Thường', key: 'regular' },
+  { label: 'Ghế VIP', key: 'vip' },
+  { label: 'Ghế Đôi', key: 'couple' }
+];
+
+const currentPage = ref(1);
+const pageSize = 10;
 </script>
 
 <template>
-  <div class="admin-pricing container-fluid p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-2">
+  <div class="admin-pricing w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
+    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Pricing Rules Matrix</h2>
-        <p class="text-secondary small mb-0">Configure ticket prices based on day of week, time of day, and seat type.</p>
+        <h2 class="fs-2 fw-bold text-dark mb-1">Ma trận Cấu hình Giá</h2>
       </div>
-      <el-button type="primary" size="large" :icon="Plus" round @click="dialogVisible = true">Create Rule</el-button>
+      <el-button type="primary" size="default" :icon="Plus" round @click="dialogVisible = true">Tạo cấu hình mới</el-button>
     </div>
 
-    <div class="row g-4 mb-4">
+    <div class="row g-3 mb-3 flex-shrink-0">
       <!-- Quick Reference Summary -->
       <div class="col-md-3">
-        <el-card shadow="never" class="border-0 shadow-sm rounded-4 h-100 bg-primary bg-opacity-10 text-primary">
-          <div class="d-flex align-items-center gap-3">
-            <div class="p-3 bg-white rounded-circle shadow-sm">
-              <el-icon :size="24"><PriceTag /></el-icon>
+        <el-card shadow="never" class="border-black shadow-sm rounded-4 h-100 bg-primary bg-opacity-10 text-primary">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 bg-white rounded-circle shadow-sm">
+              <el-icon :size="20"><PriceTag /></el-icon>
             </div>
             <div>
-              <div class="small fw-bold opacity-75">Base Rate</div>
-              <div class="fw-bold fs-4">85,000đ</div>
+              <div class="small fw-bold opacity-75 x-small">Giá cơ bản</div>
+              <div class="fw-bold fs-6">85,000đ</div>
             </div>
           </div>
         </el-card>
       </div>
       <div class="col-md-3">
-        <el-card shadow="never" class="border-0 shadow-sm rounded-4 h-100">
-          <div class="d-flex align-items-center gap-3">
-            <div class="p-3 bg-light rounded-circle">
-              <el-icon :size="24" class="text-warning"><Clock /></el-icon>
+        <el-card shadow="never" class="border-black shadow-sm rounded-4 h-100">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 bg-light rounded-circle">
+              <el-icon :size="20" class="text-warning"><Clock /></el-icon>
             </div>
             <div>
-              <div class="small text-secondary fw-bold">Active Rules</div>
-              <div class="fw-bold fs-4">{{ priceRules.length }}</div>
+              <div class="small text-secondary fw-bold x-small">Quy tắc đang áp dụng</div>
+              <div class="fw-bold fs-6">{{ priceRules.length }}</div>
             </div>
           </div>
         </el-card>
       </div>
     </div>
 
-    <!-- Pricing Matrix Table -->
-    <el-card shadow="never" class="border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-secondary small text-uppercase">
-            <tr>
-              <th class="ps-3">Rule Name</th>
-              <th>Applicable Days</th>
-              <th>Time Range</th>
-              <th class="text-center">Regular Seat</th>
-              <th class="text-center">VIP Seat</th>
-              <th class="text-center">Couple Seat</th>
-              <th class="text-end pe-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="rule in priceRules" :key="rule.id">
-              <td class="ps-3 fw-bold">{{ rule.name }}</td>
-              <td>
-                <el-tag round :type="rule.type === 'Weekday' ? 'info' : 'warning'" effect="plain">
-                  {{ rule.type }}
-                </el-tag>
-              </td>
-              <td>
-                <div class="d-flex align-items-center gap-2 small">
-                  <el-icon><Clock /></el-icon>
-                  {{ rule.timeFrom }} - {{ rule.timeTo }}
-                </div>
-              </td>
-              <td class="text-center fw-bold">{{ formatPrice(rule.regular) }}</td>
-              <td class="text-center fw-bold text-warning">{{ formatPrice(rule.vip) }}</td>
-              <td class="text-center fw-bold text-danger">{{ formatPrice(rule.couple) }}</td>
-              <td class="text-end pe-3">
-                <el-button-group>
-                  <el-button :icon="Edit" size="small" @click="handleEdit(rule)" />
-                  <el-button :icon="Delete" size="small" type="danger" plain />
-                </el-button-group>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </el-card>
+    <!-- Pricing Matrix Table Container -->
+    <div class="flex-grow-1 overflow-auto no-scroll">
+      <BaseTable
+        :data="priceRules"
+        :columns="tableColumns"
+        :total="priceRules.length"
+        v-model:currentPage="currentPage"
+        :page-size="pageSize"
+        @edit="handleEdit"
+        @delete="(r) => ElMessage.warning('Delete not implemented for proto')"
+      >
+        <template #cell-type="{ row }">
+          <el-tag round :type="row.type === 'Weekday' ? 'info' : 'warning'" effect="plain" size="small">
+            {{ row.type }}
+          </el-tag>
+        </template>
+
+        <template #cell-timeRange="{ row }">
+          <div class="d-flex align-items-center justify-content-center gap-2 small">
+            <el-icon><Clock /></el-icon>
+            {{ row.timeFrom }} - {{ row.timeTo }}
+          </div>
+        </template>
+
+        <template #cell-regular="{ row }">
+          <span class="fw-bold">{{ formatPrice(row.regular) }}</span>
+        </template>
+
+        <template #cell-vip="{ row }">
+          <span class="fw-bold text-warning">{{ formatPrice(row.vip) }}</span>
+        </template>
+
+        <template #cell-couple="{ row }">
+          <span class="fw-bold text-danger">{{ formatPrice(row.couple) }}</span>
+        </template>
+      </BaseTable>
+    </div>
+
 
     <!-- Rule Config Dialog -->
-    <el-dialog v-model="dialogVisible" :title="editingRule ? 'Edit Pricing Rule' : 'New Pricing Rule'" width="500px" class="rounded-4">
+    <el-dialog v-model="dialogVisible" :title="editingRule ? 'Chỉnh sửa quy tắc giá' : 'Tạo quy tắc giá mới'" width="500px" class="rounded-4">
       <el-form :model="ruleForm" label-position="top">
-        <el-form-item label="Rule Name" required>
-          <el-input v-model="ruleForm.name" placeholder="e.g. Weekend Afternoon Peak" />
+        <el-form-item label="Tên quy tắc" required>
+          <el-input v-model="ruleForm.name" placeholder="VD: Cuối tuần giờ cao điểm" />
         </el-form-item>
         
         <div class="row g-2">
           <div class="col-md-12">
-            <el-form-item label="Applied Days">
+            <el-form-item label="Ngày áp dụng">
               <el-radio-group v-model="ruleForm.type" class="w-100">
-                <el-radio-button label="Weekday" />
-                <el-radio-button label="Weekend/Holiday" />
-                <el-radio-button label="All Days" />
+                <el-radio-button label="Ngày thường" value="Weekday" />
+                <el-radio-button label="Cuối tuần/Lễ" value="Weekend/Holiday" />
+                <el-radio-button label="Tất cả các ngày" value="All Days" />
               </el-radio-group>
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Time From">
+            <el-form-item label="Từ giờ">
               <el-input v-model="ruleForm.timeFrom" placeholder="00:00" />
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Time To">
+            <el-form-item label="Đến giờ">
               <el-input v-model="ruleForm.timeTo" placeholder="23:59" />
             </el-form-item>
           </div>
@@ -147,17 +154,17 @@ const formatPrice = (p) => p.toLocaleString() + 'đ';
           <div class="col-12 mt-2"><hr class="my-2 opacity-10"></div>
           
           <div class="col-md-4">
-            <el-form-item label="Regular">
+            <el-form-item label="Ghế Thường">
               <el-input-number v-model="ruleForm.regular" class="w-100" />
             </el-form-item>
           </div>
           <div class="col-md-4">
-            <el-form-item label="VIP">
+            <el-form-item label="Ghế VIP">
               <el-input-number v-model="ruleForm.vip" class="w-100" />
             </el-form-item>
           </div>
           <div class="col-md-4">
-            <el-form-item label="Couple">
+            <el-form-item label="Ghế Đôi">
               <el-input-number v-model="ruleForm.couple" class="w-100" />
             </el-form-item>
           </div>
@@ -165,8 +172,8 @@ const formatPrice = (p) => p.toLocaleString() + 'đ';
       </el-form>
       <template #footer>
         <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false">Cancel</el-button>
-          <el-button type="primary" class="px-4" @click="dialogVisible = false">Save Configuration</el-button>
+          <el-button @click="dialogVisible = false">Hủy</el-button>
+          <el-button type="primary" class="px-4" @click="dialogVisible = false">Lưu cấu hình</el-button>
         </div>
       </template>
     </el-dialog>
@@ -174,10 +181,38 @@ const formatPrice = (p) => p.toLocaleString() + 'đ';
 </template>
 
 <style scoped>
+.admin-pricing {
+  height: calc(100vh - 84px);
+}
+
+:deep(.el-card) {
+  border: 1px solid #000 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
 .table thead th {
   border-bottom: none;
 }
 .badge {
   font-weight: 500;
+}
+
+.no-scroll {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow: hidden !important;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+.overflow-auto.no-scroll {
+  overflow-y: auto !important;
+}
+
+.x-small {
+  font-size: 0.65rem;
 }
 </style>

@@ -2,11 +2,11 @@
   <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
       <div>
-        <h2 class="mb-2 fs-3 fw-bold text-dark">Bookings & Tickets</h2>
-        <p class="text-secondary mb-0 small">Manage customer bookings and ticket sales</p>
+        <h2 class="mb-2 fs-3 fw-bold text-dark">Đặt vé & Vé đã bán</h2>
+        <p class="text-secondary mb-0 small">Quản lý các lượt đặt vé và bán vé của khách hàng</p>
       </div>
       <el-button type="primary" :icon="Plus">
-        New Booking
+        Đặt vé mới
       </el-button>
     </div>
 
@@ -16,29 +16,29 @@
         <el-col :xs="24" :sm="12" :md="10" class="mb-2 mb-md-0">
           <el-input
             v-model="searchQuery"
-            placeholder="Search by booking code, phone, or email..."
+            placeholder="Tìm theo mã đặt vé, số điện thoại hoặc email..."
             :prefix-icon="Search"
             clearable
           />
         </el-col>
         <el-col :xs="24" :sm="12" :md="6" class="mb-2 mb-md-0">
-          <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 100%">
-            <el-option label="All Status" value="" />
-            <el-option label="Confirmed" value="confirmed" />
-            <el-option label="Pending" value="pending" />
-            <el-option label="Cancelled" value="cancelled" />
+          <el-select v-model="statusFilter" placeholder="Lọc theo trạng thái" clearable style="width: 100%">
+            <el-option label="Tất cả trạng thái" value="" />
+            <el-option label="Đã xác nhận" value="confirmed" />
+            <el-option label="Đang chờ" value="pending" />
+            <el-option label="Đã hủy" value="cancelled" />
           </el-select>
         </el-col>
         <el-col :xs="24" :sm="12" :md="4" class="mb-2 mb-sm-0">
           <el-date-picker
             v-model="dateFilter"
             type="date"
-            placeholder="Filter by date"
+            placeholder="Lọc theo ngày"
             style="width: 100%"
           />
         </el-col>
         <el-col :xs="24" :sm="12" :md="4">
-          <el-button type="primary" :icon="Search" style="width: 100%">Search</el-button>
+          <el-button type="primary" :icon="Search" style="width: 100%">Tìm kiếm</el-button>
         </el-col>
       </el-row>
     </el-card>
@@ -46,46 +46,46 @@
     <!-- Bookings Table -->
     <el-card shadow="never" class="border-0 shadow-sm" :body-style="{ padding: '0' }">
       <el-table :data="bookings" style="width: 100%" stripe>
-        <el-table-column prop="bookingCode" label="Booking Code" width="150" />
+        <el-table-column prop="bookingCode" label="Mã Đặt vé" width="150" />
         
-        <el-table-column prop="customerName" label="Customer" min-width="150" />
+        <el-table-column prop="customerName" label="Khách hàng" min-width="150" />
         
-        <el-table-column prop="movieTitle" label="Movie" min-width="200" />
+        <el-table-column prop="movieTitle" label="Tên phim" min-width="200" />
         
-        <el-table-column prop="showDate" label="Show Date" width="120" />
+        <el-table-column prop="showDate" label="Ngày chiếu" width="120" />
         
-        <el-table-column prop="showTime" label="Show Time" width="100" />
+        <el-table-column prop="showTime" label="Suất chiếu" width="100" />
         
-        <el-table-column prop="seats" label="Seats" width="120">
+        <el-table-column prop="seats" label="Chỗ ngồi" width="120">
           <template #default="{ row }">
-            <el-tag size="small">{{ row.seats.length }} seats</el-tag>
+            <el-tag size="small">{{ row.seats.length }} ghế</el-tag>
           </template>
         </el-table-column>
         
-        <el-table-column prop="totalPrice" label="Amount" width="100">
+        <el-table-column prop="totalPrice" label="Tổng tiền" width="120">
           <template #default="{ row }">
-            ${{ row.totalPrice }}
+            {{ (row.totalPrice * 25000).toLocaleString() }}đ
           </template>
         </el-table-column>
         
-        <el-table-column prop="status" label="Status" width="120">
+        <el-table-column prop="status" label="Trạng thái" width="150">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
-              {{ row.status }}
+              {{ row.status === 'confirmed' ? 'Đã xác nhận' : row.status === 'pending' ? 'Đang chờ' : 'Đã hủy' }}
             </el-tag>
           </template>
         </el-table-column>
         
-        <el-table-column label="Actions" width="200" fixed="right">
+        <el-table-column label="Hành động" width="200" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" :icon="View" size="small" link>
-              View
+              Xem
             </el-button>
             <el-button type="success" :icon="Printer" size="small" link>
-              Print
+              In vé
             </el-button>
             <el-button type="danger" :icon="Delete" size="small" link v-if="row.status !== 'cancelled'">
-              Cancel
+              Hủy vé
             </el-button>
           </template>
         </el-table-column>

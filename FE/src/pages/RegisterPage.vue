@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { isValidEmail, isValidPhone, validatePassword } from '@/utils/validators';
 
 const router = useRouter();
 const name = ref('');
@@ -12,8 +13,28 @@ const confirmPassword = ref('');
 const loading = ref(false);
 
 const handleRegister = async () => {
+  // Validate email
+  if (!isValidEmail(email.value)) {
+    ElMessage.error('Email không hợp lệ');
+    return;
+  }
+  
+  // Validate phone
+  if (!isValidPhone(phone.value)) {
+    ElMessage.error('Số điện thoại không hợp lệ');
+    return;
+  }
+  
+  // Validate password
+  const passwordValidation = validatePassword(password.value);
+  if (!passwordValidation.isValid) {
+    ElMessage.error(passwordValidation.errors[0]);
+    return;
+  }
+  
+  // Check password match
   if (password.value !== confirmPassword.value) {
-    ElMessage.error('Passwords do not match');
+    ElMessage.error('Mật khẩu không khớp');
     return;
   }
   
@@ -21,10 +42,10 @@ const handleRegister = async () => {
   try {
     // Mock registration
     await new Promise(resolve => setTimeout(resolve, 1500));
-    ElMessage.success('Registration successful! Please login.');
+    ElMessage.success('Đăng ký thành công! Vui lòng đăng nhập.');
     router.push('/login');
   } catch (err) {
-    ElMessage.error('Registration failed. Please try again.');
+    ElMessage.error('Đăng ký thất bại. Vui lòng thử lại.');
   } finally {
     loading.value = false;
   }
@@ -34,7 +55,7 @@ const handleRegister = async () => {
 <template>
   <div class="login-container d-flex align-items-center justify-content-center min-vh-100">
     <div class="glass-card p-4 p-md-5 bg-white bg-opacity-10 border border-white border-opacity-25 shadow-lg rounded-4 m-3 w-100" style="max-width: 500px;">
-      <h2 class="display-5 fw-bold mb-4 text-center text-white">Register</h2>
+      <h2 class="display-5 fw-bold mb-4 text-center text-white">Đăng ký</h2>
       
       <form @submit.prevent="handleRegister">
         <div class="row g-3 mb-3">
@@ -42,7 +63,7 @@ const handleRegister = async () => {
             <input 
               type="text" 
               class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-              placeholder="Full Name" 
+              placeholder="Họ và tên" 
               v-model="name" 
               required
             >
@@ -51,7 +72,7 @@ const handleRegister = async () => {
             <input 
               type="email" 
               class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-              placeholder="Email Address" 
+              placeholder="Địa chỉ Email" 
               v-model="email" 
               required
             >
@@ -60,7 +81,7 @@ const handleRegister = async () => {
             <input 
               type="tel" 
               class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-              placeholder="Phone Number" 
+              placeholder="Số điện thoại" 
               v-model="phone" 
               required
             >
@@ -69,7 +90,7 @@ const handleRegister = async () => {
             <input 
               type="password" 
               class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-              placeholder="Password" 
+              placeholder="Mật khẩu" 
               v-model="password" 
               required
             >
@@ -78,7 +99,7 @@ const handleRegister = async () => {
             <input 
               type="password" 
               class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-              placeholder="Confirm Password" 
+              placeholder="Xác nhận mật khẩu" 
               v-model="confirmPassword" 
               required
             >
@@ -88,7 +109,7 @@ const handleRegister = async () => {
         <div class="form-check mb-4 text-white small ms-2">
           <input class="form-check-input bg-transparent border-white" type="checkbox" id="terms" required>
           <label class="form-check-label" for="terms">
-            I agree to the <a href="#" class="text-white fw-bold text-decoration-none">Terms & Conditions</a>
+            Tôi đồng ý với các <a href="#" class="text-white fw-bold text-decoration-none">Điều khoản & Điều kiện</a>
           </label>
         </div>
 
@@ -97,12 +118,12 @@ const handleRegister = async () => {
           class="btn btn-light w-100 rounded-pill py-2 fw-semibold mb-4 border-0 shadow-sm hover-lift" 
           :disabled="loading"
         >
-          {{ loading ? '...' : 'Create Account' }}
+          {{ loading ? '...' : 'Tạo tài khoản' }}
         </button>
 
         <div class="text-center text-white">
-          <span class="opacity-75">Already have an account? </span>
-          <router-link to="/login" class="text-white fw-bold text-decoration-none hover-underline">Login</router-link>
+          <span class="opacity-75">Đã có tài khoản? </span>
+          <router-link to="/login" class="text-white fw-bold text-decoration-none hover-underline">Đăng nhập</router-link>
         </div>
       </form>
     </div>

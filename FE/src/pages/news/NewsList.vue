@@ -12,7 +12,7 @@ const mockNews = ref([
     category: "Promotion",
     date: "Feb 5, 2026",
     summary: "Enjoy 20% off on all movie tickets this weekend at any CineOps location. Book now and use code CINE20!",
-    image: "https://via.placeholder.com/600x400/10b981/ffffff?text=Promo+Weekend",
+    image: "https://dummyimage.com/600x400/10b981/ffffff?text=Promo+Weekend",
     content: "Full content about weekend special discount..."
   },
   {
@@ -21,7 +21,7 @@ const mockNews = ref([
     category: "Event",
     date: "Feb 1, 2026",
     summary: "The heroes of our childhood are back. Join our fan event on March 15 to get exclusive merchandise and see it first!",
-    image: "https://via.placeholder.com/600x400/3b82f6/ffffff?text=F4+Event",
+    image: "https://dummyimage.com/600x400/3b82f6/ffffff?text=F4+Event",
     content: "Full content about Marvel event..."
   },
   {
@@ -30,7 +30,7 @@ const mockNews = ref([
     category: "News",
     date: "Jan 28, 2026",
     summary: "From Caramel Popcorn to Cheese fries, check out our updated concessions menu. More flavors, more fun!",
-    image: "https://via.placeholder.com/600x400/f59e0b/ffffff?text=New+Menu",
+    image: "https://dummyimage.com/600x400/f59e0b/ffffff?text=New+Menu",
     content: "Full content about new menu..."
   }
 ]);
@@ -44,13 +44,13 @@ const goToDetail = (id) => {
   <div class="news-list container py-5">
     <div class="d-flex justify-content-between align-items-center mb-5">
       <div>
-        <h1 class="fw-bold mb-1">News & Events</h1>
-        <p class="text-secondary mb-0">Stay updated with the latest promotions and cinema news.</p>
+        <h1 class="fw-bold mb-1">Tin tức & Sự kiện</h1>
+        <p class="text-secondary mb-0">Cập nhật những khuyến mãi và tin tức điện ảnh mới nhất.</p>
       </div>
       <div class="d-none d-md-flex gap-2">
-        <el-tag size="large" type="primary" class="cursor-pointer">All</el-tag>
-        <el-tag size="large" type="info" class="cursor-pointer">Promotions</el-tag>
-        <el-tag size="large" type="info" class="cursor-pointer">Events</el-tag>
+        <el-tag size="large" type="primary" class="cursor-pointer">Tất cả</el-tag>
+        <el-tag size="large" type="info" class="cursor-pointer">Khuyến mãi</el-tag>
+        <el-tag size="large" type="info" class="cursor-pointer">Sự kiện</el-tag>
       </div>
     </div>
 

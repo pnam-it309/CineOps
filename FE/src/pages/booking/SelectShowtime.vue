@@ -29,9 +29,9 @@ const dates = computed(() => {
     const date = new Date();
     date.setDate(date.getDate() + i);
     d.push({
-      day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      day: date.toLocaleDateString('vi-VN', { weekday: 'short' }),
       date: date.getDate(),
-      month: date.toLocaleDateString('en-US', { month: 'short' }),
+      month: date.toLocaleDateString('vi-VN', { month: 'short' }),
       full: date
     });
   }
@@ -64,7 +64,7 @@ onMounted(() => {
             <p class="text-secondary mb-3">{{ movie?.genre }}</p>
             <div class="d-flex gap-2">
               <span class="badge bg-light text-dark px-3">{{ movie?.rating }}</span>
-              <span class="badge bg-light text-dark px-3">{{ movie?.duration }} min</span>
+              <span class="badge bg-light text-dark px-3">{{ movie?.duration }} phút</span>
             </div>
           </div>
         </el-card>
@@ -72,12 +72,12 @@ onMounted(() => {
 
       <!-- Showtime Selection Column -->
       <div class="col-lg-8">
-        <h2 class="fw-bold mb-4">Select Showtime</h2>
+        <h2 class="fw-bold mb-4">Chọn Suất Chiếu</h2>
 
         <!-- Step 1: Date Selection -->
         <div class="mb-5">
           <label class="form-label fw-semibold text-secondary mb-3">
-            <el-icon class="me-1"><Calendar /></el-icon> Choose Date
+            <el-icon class="me-1"><Calendar /></el-icon> Chọn Ngày
           </label>
           <div class="d-flex gap-2 overflow-auto pb-2 scrollbar-hide">
             <div 
@@ -98,9 +98,9 @@ onMounted(() => {
         <!-- Step 2: Cinema Selection -->
         <div class="mb-5">
           <label class="form-label fw-semibold text-secondary mb-3">
-            <el-icon class="me-1"><Location /></el-icon> Choose Cinema
+            <el-icon class="me-1"><Location /></el-icon> Chọn Rạp
           </label>
-          <el-select v-model="selectedCinemaId" placeholder="Select Cinema" size="large" class="w-100">
+          <el-select v-model="selectedCinemaId" placeholder="Chọn rạp" size="large" class="w-100">
             <el-option
               v-for="cinema in mockCinemas"
               :key="cinema.id"
@@ -113,7 +113,7 @@ onMounted(() => {
         <!-- Step 3: Available Showtimes -->
         <div class="mb-4">
           <label class="form-label fw-semibold text-secondary mb-3">
-            <el-icon class="me-1"><Timer /></el-icon> Available Showtimes
+            <el-icon class="me-1"><Timer /></el-icon> Suất Chiếu Hiện Có
           </label>
           
           <div v-if="filteredShowtimes.length > 0">
@@ -137,7 +137,7 @@ onMounted(() => {
             </div>
           </div>
           
-          <el-empty v-else description="No showtimes available for the selected criteria." />
+          <el-empty v-else description="Không có suất chiếu nào phù hợp." />
         </div>
       </div>
     </div>

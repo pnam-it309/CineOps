@@ -81,137 +81,141 @@ const saveMovie = () => {
 const getStatusType = (status) => {
   return status === 'NOW_SHOWING' ? 'success' : 'info';
 };
+
+import BaseTable from '@/components/common/BaseTable.vue';
+
+// Columns for BaseTable
+const tableColumns = [
+  { label: 'Ảnh poster', key: 'poster', width: '120px' },
+  { label: 'Thông tin phim', key: 'title' },
+  { label: 'Thể loại', key: 'genre' },
+  { label: 'Thời lượng', key: 'duration' },
+  { label: 'Trạng thái', key: 'status' }
+];
+
+// Pagination State
+const currentPage = ref(1);
+const pageSize = ref(10);
 </script>
 
 <template>
-  <div class="movie-management container-fluid p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-2">
+  <div class="movie-management w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Movie Management</h2>
-        <p class="text-secondary small mb-0">Browse and manage your digital movie catalog.</p>
+        <h2 class="fs-2 fw-bold text-dark mb-1">Quản lý Phim</h2>
       </div>
       <el-button type="primary" size="large" :icon="Plus" round @click="handleAdd">
-        Add New Movie
+        Thêm phim mới
       </el-button>
     </div>
 
     <!-- Filter Bar -->
-    <el-card shadow="never" class="border-0 shadow-sm rounded-4 mb-4">
-      <div class="row g-3 align-items-center">
+    <el-card shadow="never" class="border-black shadow-sm rounded-4 mb-3 flex-shrink-0">
+      <div class="row g-2 align-items-center">
         <div class="col-md-6 col-lg-4">
           <el-input
             v-model="searchQuery"
-            placeholder="Search by title..."
+            placeholder="Tìm theo tên phim..."
             :prefix-icon="Search"
-            size="large"
+            size="default"
             clearable
           />
         </div>
         <div class="col-md-4 col-lg-3">
-          <el-select v-model="statusFilter" placeholder="Filter by Status" size="large" class="w-100">
-            <el-option label="All Statuses" value="all" />
-            <el-option label="Now Showing" value="NOW_SHOWING" />
-            <el-option label="Coming Soon" value="COMING_SOON" />
+          <el-select v-model="statusFilter" placeholder="Lọc theo trạng thái" size="default" class="w-100">
+            <el-option label="Tất cả trạng thái" value="all" />
+            <el-option label="Đang chiếu" value="NOW_SHOWING" />
+            <el-option label="Sắp chiếu" value="COMING_SOON" />
           </el-select>
         </div>
       </div>
     </el-card>
 
-    <!-- Movies Table -->
-    <el-card shadow="never" class="border-0 shadow-sm rounded-4">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-secondary small text-uppercase">
-            <tr>
-              <th style="width: 80px;">Poster</th>
-              <th>Movie Details</th>
-              <th>Genre</th>
-              <th>Duration</th>
-              <th>Status</th>
-              <th class="text-end" style="width: 150px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="movie in filteredMovies" :key="movie.id">
-              <td>
-                <img :src="movie.poster" class="rounded object-fit-cover shadow-sm" style="width: 60px; height: 85px;">
-              </td>
-              <td>
-                <div class="fw-bold fs-6 mb-1">{{ movie.title }}</div>
-                <div class="small text-secondary">{{ movie.rating }} / 10</div>
-              </td>
-              <td>{{ movie.genre }}</td>
-              <td class="text-secondary small">{{ movie.duration }}m</td>
-              <td>
-                <el-tag :type="getStatusType(movie.status)" effect="light">
-                  {{ movie.status.replace('_', ' ') }}
-                </el-tag>
-              </td>
-              <td class="text-end">
-                <el-button-group>
-                  <el-button :icon="Edit" size="small" @click="handleEdit(movie)" />
-                  <el-button :icon="Delete" size="small" type="danger" plain @click="handleDelete(movie)" />
-                </el-button-group>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div v-if="filteredMovies.length === 0" class="py-5 text-center">
-        <el-empty description="No movies match your search." />
-      </div>
-    </el-card>
+    <!-- Table Container -->
+    <div class="flex-grow-1 overflow-auto no-scroll">
+      <BaseTable 
+        :data="filteredMovies"
+        :columns="tableColumns"
+        :total="filteredMovies.length"
+        v-model:currentPage="currentPage"
+        v-model:pageSize="pageSize"
+        @edit="handleEdit"
+        @delete="handleDelete"
+      >
+        <template #cell-poster="{ row }">
+          <img :src="row.poster" class="rounded object-fit-cover shadow-sm" style="width: 45px; height: 65px;">
+        </template>
+
+        <template #cell-title="{ row }">
+          <div class="fw-bold fs-6 mb-0 text-start ps-3">{{ row.title }}</div>
+          <div class="small text-secondary text-start ps-3">{{ row.rating }} / 10</div>
+        </template>
+
+        <template #cell-duration="{ row }">
+          <span class="text-secondary small">{{ row.duration }}m</span>
+        </template>
+
+        <template #cell-status="{ row }">
+          <el-tag :type="getStatusType(row.status)" effect="light" size="small">
+            {{ row.status.replace('_', ' ') }}
+          </el-tag>
+        </template>
+      </BaseTable>
+    </div>
+
+    <!-- ... rest of the file ... -->
+
 
     <!-- Add/Edit Dialog -->
     <el-dialog
       v-model="dialogVisible"
-      :title="editingMovie ? 'Edit Movie' : 'Add New Movie'"
+      :title="editingMovie ? 'Chỉnh sửa phim' : 'Thêm phim mới'"
       width="600px"
       class="rounded-4"
     >
       <el-form :model="movieForm" label-position="top">
         <div class="row g-3">
           <div class="col-md-12">
-            <el-form-item label="Movie Title" required>
-              <el-input v-model="movieForm.title" placeholder="e.g. Avatar: The Way of Water" />
+            <el-form-item label="Tên phim" required>
+              <el-input v-model="movieForm.title" placeholder="VD: Avatar: Dòng chảy của nước" />
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Genre">
-              <el-input v-model="movieForm.genre" placeholder="Action, Sci-Fi" />
+            <el-form-item label="Thể loại">
+              <el-input v-model="movieForm.genre" placeholder="Hành động, Viễn tưởng" />
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Status">
+            <el-form-item label="Trạng thái">
               <el-select v-model="movieForm.status" class="w-100">
-                <el-option label="Now Showing" value="NOW_SHOWING" />
-                <el-option label="Coming Soon" value="COMING_SOON" />
+                <el-option label="Đang chiếu" value="NOW_SHOWING" />
+                <el-option label="Sắp chiếu" value="COMING_SOON" />
               </el-select>
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Duration (minutes)">
+            <el-form-item label="Thời lượng (phút)">
               <el-input-number v-model="movieForm.duration" :min="1" class="w-100" />
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Rating">
+            <el-form-item label="Điểm IMDb">
               <el-input v-model="movieForm.rating" />
             </el-form-item>
           </div>
           <div class="col-md-12">
-            <el-form-item label="Poster URL">
+            <el-form-item label="Link ảnh Poster">
               <el-input v-model="movieForm.poster" placeholder="https://..." />
             </el-form-item>
           </div>
           <div class="col-md-12">
-            <el-form-item label="Backdrop URL">
+            <el-form-item label="Link ảnh Backdrop">
               <el-input v-model="movieForm.backdrop" placeholder="https://..." />
             </el-form-item>
           </div>
           <div class="col-md-12">
-            <el-form-item label="Description">
+            <el-form-item label="Mô tả nội dung">
               <el-input v-model="movieForm.description" type="textarea" :rows="3" />
             </el-form-item>
           </div>
@@ -219,8 +223,8 @@ const getStatusType = (status) => {
       </el-form>
       <template #footer>
         <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="saveMovie" class="px-4">Save Movie</el-button>
+          <el-button @click="dialogVisible = false">Hủy</el-button>
+          <el-button type="primary" @click="saveMovie" class="px-4">Lưu lại</el-button>
         </div>
       </template>
     </el-dialog>
@@ -233,5 +237,29 @@ const getStatusType = (status) => {
 }
 .table thead th {
   border-bottom: none;
+}
+
+.movie-management {
+  height: calc(100vh - 84px);
+}
+
+:deep(.el-card) {
+  border: 1px solid #000 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.no-scroll {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow: hidden !important;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+.overflow-auto.no-scroll {
+  overflow-y: auto !important;
 }
 </style>

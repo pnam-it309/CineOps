@@ -30,20 +30,20 @@
               <span class="badge bg-secondary fs-6">{{ movie?.duration }} min</span>
             </div>
 
-            <p class="mb-3"><strong>Genre:</strong> {{ movie?.genre }}</p>
-            <p class="mb-3"><strong>Director:</strong> {{ movie?.director }}</p>
-            <p class="mb-3"><strong>Release Date:</strong> {{ formatDate(movie?.releaseDate) }}</p>
+            <p class="mb-3"><strong>Thể loại:</strong> {{ movie?.genre }}</p>
+            <p class="mb-3"><strong>Đạo diễn:</strong> {{ movie?.director }}</p>
+            <p class="mb-3"><strong>Ngày khởi chiếu:</strong> {{ formatDate(movie?.releaseDate) }}</p>
             
-            <p class="lead mb-4">{{ movie?.synopsis }}</p>
+            <p class="lead mb-4 lh-base opacity-90">{{ movie?.synopsis }}</p>
 
             <div class="d-flex gap-3">
-              <el-button type="primary" size="large" @click="bookNow">
+              <el-button type="primary" size="large" @click="bookNow" class="px-4 py-3 fs-6 shadow-sm" round>
                 <el-icon><Tickets /></el-icon>
-                <span class="ms-2">Book Tickets</span>
+                <span class="ms-2">Đặt vé ngay</span>
               </el-button>
-              <el-button type="default" size="large" @click="playTrailer">
+              <el-button type="default" size="large" @click="playTrailer" class="px-4 py-3 fs-6 shadow-sm" round>
                 <el-icon><VideoPlay /></el-icon>
-                <span class="ms-2">Watch Trailer</span>
+                <span class="ms-2">Xem Trailer</span>
               </el-button>
             </div>
           </div>
@@ -54,8 +54,8 @@
     <!-- Cast Section -->
     <section class="cast-section bg-light py-5">
       <div class="container-xl">
-        <h2 class="fs-3 fw-bold mb-4">Cast & Crew</h2>
-        <el-row :gutter="20">
+        <h2 class="fs-3 fw-bold mb-5 tracking-tight">Diễn viên <span class="text-primary">& Đoàn làm phim</span></h2>
+        <el-row :gutter="25">
           <el-col 
             :xs="12" 
             :sm="6" 
@@ -65,12 +65,13 @@
             :key="index"
             class="mb-4"
           >
-            <el-card shadow="hover" class="text-center h-100">
-              <el-avatar :size="80" class="mb-3">
-                <el-icon><User /></el-icon>
+            <div class="cast-card text-center p-4 bg-white rounded-4 shadow-sm border border-light h-100 transition-all">
+              <el-avatar :size="90" class="mb-3 cast-avatar shadow-sm">
+                <el-icon :size="40"><User /></el-icon>
               </el-avatar>
-              <h6 class="fw-bold mb-0">{{ actor }}</h6>
-            </el-card>
+              <h6 class="fw-bold text-dark mb-1">{{ actor }}</h6>
+              <span class="text-secondary x-small text-uppercase tracking-wider">Diễn viên</span>
+            </div>
           </el-col>
         </el-row>
       </div>
@@ -79,56 +80,70 @@
     <!-- Reviews Section -->
     <section class="reviews-section py-5">
       <div class="container-xl">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fs-3 fw-bold mb-0">Customer Reviews</h2>
-          <el-button type="primary" @click="reviewDialogVisible = true">
-            <el-icon><Edit /></el-icon>
-            <span class="ms-2">Write Review</span>
-          </el-button>
+        <div class="row mb-5">
+          <div class="col-md-4">
+            <h2 class="fs-2 fw-bold mb-3 tracking-tight">Đánh giá <span class="text-primary">từ khán giả</span></h2>
+            <div class="rating-summary-card p-4 bg-light rounded-4 border text-center mb-4">
+              <div class="display-3 fw-bold text-dark mb-1">4.8</div>
+              <el-rate :model-value="4.8" disabled show-score text-color="#ff9900" class="mb-2" />
+              <div class="text-secondary small">(1,248 nhận xét)</div>
+            </div>
+          </div>
+          <div class="col-md-8 d-flex align-items-end justify-content-md-end">
+            <el-button type="primary" size="large" @click="reviewDialogVisible = true" round class="px-4 shadow-sm">
+              <el-icon class="me-2"><Edit /></el-icon>
+              Viết đánh giá của bạn
+            </el-button>
+          </div>
         </div>
 
         <!-- Reviews List -->
-        <div class="row">
-          <div class="col-md-6 mb-4" v-for="review in mockReviews" :key="review.id">
-            <el-card shadow="hover">
+        <div class="row g-4">
+          <div class="col-md-6" v-for="review in mockReviews" :key="review.id">
+            <el-card shadow="never" class="h-100 border-0 bg-light rounded-4 review-item-card">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div class="d-flex align-items-center gap-3">
-                  <el-avatar :size="40">{{ review.userName.charAt(0) }}</el-avatar>
+                  <el-avatar :size="48" class="bg-primary text-white fs-5 fw-bold shadow-sm">
+                    {{ review.userName.charAt(0) }}
+                  </el-avatar>
                   <div>
-                    <h6 class="fw-bold mb-1">{{ review.userName }}</h6>
-                    <el-rate v-model="review.rating" disabled show-score text-color="#ff9900" />
+                    <h6 class="fw-bold text-dark mb-1 fs-6">{{ review.userName }}</h6>
+                    <el-rate v-model="review.rating" disabled text-color="#ff9900" />
                   </div>
                 </div>
-                <span class="text-secondary small">{{ formatDate(review.date) }}</span>
+                <span class="text-secondary-light small mt-1">{{ formatDate(review.date) }}</span>
               </div>
-              <p class="mb-0">{{ review.comment }}</p>
+              <p class="text-dark-subtle lh-lg mb-0 font-italic">"{{ review.comment }}"</p>
             </el-card>
           </div>
         </div>
 
         <!-- Empty State -->
-        <el-empty v-if="mockReviews.length === 0" description="No reviews yet. Be the first to review!" />
+        <el-empty v-if="mockReviews.length === 0" description="Chưa có đánh giá nào. Hãy là người đầu tiên!" />
       </div>
     </section>
 
     <!-- Review Dialog -->
-    <el-dialog v-model="reviewDialogVisible" title="Write a Review" width="600px">
+    <el-dialog v-model="reviewDialogVisible" title="Cảm nhận của bạn về bộ phim" width="600px" custom-class="custom-review-dialog" round>
       <el-form :model="reviewForm" label-position="top">
-        <el-form-item label="Rating">
-          <el-rate v-model="reviewForm.rating" show-text />
+        <el-form-item label="Điểm số của bạn">
+          <el-rate v-model="reviewForm.rating" show-text :texts="['Tệ', 'Trung bình', 'Khá', 'Tốt', 'Tuyệt vời']" />
         </el-form-item>
-        <el-form-item label="Your Review">
+        <el-form-item label="Bình luận">
           <el-input 
             v-model="reviewForm.comment" 
             type="textarea" 
-            :rows="4" 
-            placeholder="Share your thoughts about the movie..."
+            :rows="5" 
+            placeholder="Bạn thấy bộ phim này thế nào? Chia sẻ cùng mọi người nhé..."
+            class="custom-textarea"
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="reviewDialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="submitReview">Submit Review</el-button>
+        <div class="d-flex gap-2 justify-content-end">
+          <el-button @click="reviewDialogVisible = false" round>Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitReview" round class="px-4">Gửi đánh giá</el-button>
+        </div>
       </template>
     </el-dialog>
 
@@ -264,10 +279,36 @@ onMounted(() => {
 }
 
 .hero-overlay {
-  background: linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.6), rgba(0,0,0,0.3));
+  background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.4) 100%);
 }
 
 .movie-details {
   background-color: #fff;
+}
+
+.cast-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--el-color-primary-light-7) !important;
+}
+
+.review-item-card {
+  transition: all 0.3s ease;
+}
+
+.review-item-card:hover {
+  background-color: #f1f5f9 !important;
+  transform: scale(1.02);
+}
+
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-wider { letter-spacing: 0.05em; }
+.x-small { font-size: 0.7rem; }
+.opacity-90 { opacity: 0.9; }
+.transition-all { transition: all 0.3s ease; }
+
+:deep(.custom-textarea .el-textarea__inner) {
+  border-radius: 12px;
+  padding: 15px;
+  background-color: #f8fafc;
 }
 </style>

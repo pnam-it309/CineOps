@@ -32,11 +32,10 @@ const getStatusType = (status) => {
   <div class="admin-reviews container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 pt-2">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Review Moderation</h2>
-        <p class="text-secondary small mb-0">Monitor and moderate movie reviews submitted by customers.</p>
+        <h2 class="fs-2 fw-bold text-dark mb-1">Kiểm duyệt Đánh giá</h2>
       </div>
       <div class="d-flex gap-2">
-        <el-button type="success" :icon="Check" plain round>Approve All</el-button>
+        <el-button type="success" :icon="Check" plain round>Phê duyệt tất cả</el-button>
       </div>
     </div>
 
@@ -60,8 +59,8 @@ const getStatusType = (status) => {
             </div>
             
             <div class="d-flex gap-2 justify-content-end border-top pt-3 mt-auto">
-              <el-button v-if="r.status !== 'Approved'" type="success" :icon="Check" size="small" @click="handleApprove(r.id)">Approve</el-button>
-              <el-button v-if="r.status !== 'Rejected'" type="danger" :icon="Close" size="small" plain @click="handleReject(r.id)">Hide</el-button>
+              <el-button v-if="r.status !== 'Approved'" type="success" :icon="Check" size="small" @click="handleApprove(r.id)">Phê duyệt</el-button>
+              <el-button v-if="r.status !== 'Rejected'" type="danger" :icon="Close" size="small" plain @click="handleReject(r.id)">Ẩn đi</el-button>
             </div>
           </div>
         </el-card>

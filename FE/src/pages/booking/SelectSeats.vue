@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBookingStore } from '@/stores/booking';
 import { mockMovies, mockShowtimes } from '@/mock/movies';
+import { formatCurrency } from '@/utils/formatters';
+import { SEAT_TYPES, SEAT_PRICES } from '@/utils/constants';
 
 const route = useRoute();
 const router = useRouter();
@@ -23,17 +25,17 @@ const generateSeats = () => {
     for (let col = 1; col <= cols; col++) {
       // Mock some sold seats
       const isSold = Math.random() < 0.2; 
-      // Different types/prices
-      let type = 'regular';
-      let price = showtime.value?.price || 85000;
+      // Determine seat type using constants
+      let type = SEAT_TYPES.STANDARD;
       
       if (rowIndex >= 6) {
-        type = 'couple';
-        price = price * 2 - 20000; // Couple seat discount
+        type = SEAT_TYPES.COUPLE;
       } else if (rowIndex >= 4) {
-        type = 'vip';
-        price += 20000;
+        type = SEAT_TYPES.VIP;
       }
+      
+      // Use seat prices from constants
+      const price = SEAT_PRICES[type];
 
       seats.push({
         id: `${row}${col}`,
@@ -95,7 +97,7 @@ onMounted(() => {
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
           <div class="screen-indicator mb-5">
             <div class="screen-box mx-auto mb-2"></div>
-            <p class="text-center text-secondary small">SCREEN</p>
+            <p class="text-center text-secondary small">MÀN HÌNH</p>
           </div>
 
           <div class="seat-grid d-flex flex-column gap-2 mb-5">
@@ -119,15 +121,15 @@ onMounted(() => {
           <div class="d-flex justify-content-center gap-4 flex-wrap border-top pt-4">
             <div class="d-flex align-items-center gap-2">
               <div class="seat available sm"></div>
-              <span class="small text-secondary">Available</span>
+              <span class="small text-secondary">Ghế trống</span>
             </div>
             <div class="d-flex align-items-center gap-2">
               <div class="seat selected sm"></div>
-              <span class="small text-secondary">Selected</span>
+              <span class="small text-secondary">Đang chọn</span>
             </div>
             <div class="d-flex align-items-center gap-2">
               <div class="seat sold sm"></div>
-              <span class="small text-secondary">Sold</span>
+              <span class="small text-secondary">Đã bán</span>
             </div>
             <div class="d-flex align-items-center gap-2">
               <div class="seat vip available sm"></div>
@@ -135,7 +137,7 @@ onMounted(() => {
             </div>
             <div class="d-flex align-items-center gap-2">
               <div class="seat couple available sm"></div>
-              <span class="small text-secondary">Couple</span>
+              <span class="small text-secondary">Ghế đôi</span>
             </div>
           </div>
         </div>
@@ -151,7 +153,7 @@ onMounted(() => {
           
           <div class="p-4 bg-white">
             <div class="mb-4">
-              <label class="small text-secondary fw-bold text-uppercase mb-2 d-block">Selected Seats</label>
+              <label class="small text-secondary fw-bold text-uppercase mb-2 d-block">Ghế đang chọn</label>
               <div v-if="bookingStore.selectedSeats.length > 0" class="d-flex flex-wrap gap-2">
                 <span 
                   v-for="seat in bookingStore.selectedSeats" 
@@ -161,13 +163,13 @@ onMounted(() => {
                   {{ seat.id }}
                 </span>
               </div>
-              <p v-else class="text-secondary small italic mb-0">No seats selected yet.</p>
+              <p v-else class="text-secondary small italic mb-0">Chưa có ghế nào được chọn.</p>
             </div>
 
             <div class="border-top mb-4"></div>
 
             <div class="d-flex justify-content-between align-items-center mb-4">
-              <span class="fw-bold">Total Price</span>
+              <span class="fw-bold">Tổng cộng</span>
               <span class="fs-4 fw-bold text-primary">{{ bookingStore.seatsTotal.toLocaleString() }}đ</span>
             </div>
 
@@ -176,11 +178,11 @@ onMounted(() => {
               :disabled="bookingStore.selectedSeats.length === 0"
               @click="goToNextStep"
             >
-              Continue to Food
+              Tiếp tục chọn bắp nước
             </button>
             <p class="text-center mt-3 mb-0">
               <router-link :to="{ name: 'SelectShowtime', params: { movieId: movie?.id }}" class="text-secondary small">
-                Back to Showtimes
+                Quay lại xem lịch chiếu
               </router-link>
             </p>
           </div>

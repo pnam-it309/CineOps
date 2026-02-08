@@ -9,29 +9,29 @@ const id = ref(route.params.id);
 // Mock detail data
 const article = ref({
   id: 1,
-  title: "Weekend Special: 20% Discount",
-  category: "Promotion",
-  date: "Feb 5, 2026",
-  author: "CineOps Team",
-  image: "https://via.placeholder.com/1200x600/10b981/ffffff?text=Promo+Weekend",
+  title: "Ưu đãi cuối tuần: Giảm giá 20%",
+  category: "Khuyến mãi",
+  date: "5 Th2, 2026",
+  author: "Đội ngũ CineOps",
+  image: "https://images.unsplash.com/photo-1542204172-3c35b6999679?auto=format&fit=crop&w=1200",
   content: `
-    <h3>Enjoy a magical weekend at CineOps</h3>
-    <p>We are excited to announce a special promotion for all our movie lovers. This weekend, from Friday to Sunday, get 20% off on every ticket booked through our website or mobile app.</p>
-    <p>Whether you're excited about the latest blockbuster or a touching family drama, now is the perfect time to visit your nearest CineOps location.</p>
+    <h3>Tận hưởng cuối tuần kỳ ảo tại CineOps</h3>
+    <p>Chúng tôi rất vui mừng thông báo chương trình khuyến mãi đặc biệt dành cho tất cả những người yêu điện ảnh. Cuối tuần này, từ Thứ Sáu đến Chủ Nhật, nhận ngay ưu đãi giảm giá 20% cho mỗi vé đặt qua website hoặc ứng dụng di động của chúng tôi.</p>
+    <p>Cho dù bạn đang mong đợi một bom tấn hành động hay một bộ phim tâm lý gia đình cảm động, đây là thời điểm hoàn hảo để ghé thăm rạp CineOps gần nhất.</p>
     
-    <h4>Terms & Conditions:</h4>
+    <h4>Điều khoản & Điều kiện:</h4>
     <ul>
-      <li>Offer is valid for online bookings only.</li>
-      <li>Use discount code <strong>CINE20</strong> at checkout.</li>
-      <li>Each user can apply the code multiple times during the promotion period.</li>
-      <li>Not valid in conjunction with other promotions or vouchers.</li>
+      <li>Ưu đãi chỉ áp dụng cho đặt vé trực tuyến.</li>
+      <li>Sử dụng mã giảm giá <strong>CINE20</strong> khi thanh toán.</li>
+      <li>Mỗi người dùng có thể áp dụng mã nhiều lần trong thời gian khuyến mãi.</li>
+      <li>Không áp dụng đồng thời với các chương trình khuyến mãi hoặc voucher khác.</li>
     </ul>
 
-    <p>Don't miss out on this golden opportunity. Grab your seats today and enjoy the best cinema experience with CineOps!</p>
+    <p>Đừng bỏ lỡ cơ hội vàng này. Hãy đặt chỗ ngay hôm nay và tận hưởng trải nghiệm điện ảnh tốt nhất cùng CineOps!</p>
   `,
   relatedNews: [
-    { id: 2, title: "Fantastic Four Fan Event", date: "Feb 1, 2026" },
-    { id: 3, title: "Check Out Our New Menu", date: "Jan 28, 2026" }
+    { id: 2, title: "Sự kiện Fan: Fantastic Four", date: "1 Th2, 2026" },
+    { id: 3, title: "Khám phá Thực đơn Mới của chúng tôi", date: "28 Th1, 2026" }
   ]
 });
 
@@ -46,7 +46,7 @@ onMounted(() => {
       <div class="row justify-content-center">
         <div class="col-lg-10">
           <router-link to="/news" class="btn btn-link text-secondary text-decoration-none p-0 mb-4 d-flex align-items-center gap-2">
-            <el-icon><ArrowLeft /></el-icon> Back to All news
+            <el-icon><ArrowLeft /></el-icon> Quay lại danh sách tin
           </router-link>
 
           <header class="mb-5">
@@ -72,7 +72,7 @@ onMounted(() => {
           </div>
 
           <div class="related-section border-top pt-5">
-            <h4 class="fw-bold mb-4">You might also be interested in</h4>
+            <h4 class="fw-bold mb-4">Có thể bạn quan tâm</h4>
             <div class="row g-4">
               <div v-for="related in article.relatedNews" :key="related.id" class="col-md-6">
                 <el-card shadow="hover" class="rounded-4 border-light cursor-pointer" @click="$router.push(`/news/${related.id}`)">

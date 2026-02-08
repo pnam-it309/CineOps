@@ -31,12 +31,12 @@ const staffForm = ref({
   <div class="admin-staff container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 pt-2">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Staff & Permissions</h2>
-        <p class="text-secondary small mb-0">Manage administrative accounts and define access control roles.</p>
+        <h2 class="fs-2 fw-bold text-dark mb-1">Nhân viên & Quyền hạn</h2>
+        <p class="text-secondary small mb-0">Quản lý tài khoản quản trị và định nghĩa các vai trò truy cập.</p>
       </div>
       <div class="d-flex gap-2">
-        <el-button type="info" :icon="ShieldCheck" round @click="roleDialogVisible = true">Roles & Permissions</el-button>
-        <el-button type="primary" :icon="Plus" round @click="dialogVisible = true">Invite Staff</el-button>
+        <el-button type="info" :icon="ShieldCheck" round @click="roleDialogVisible = true">Vai trò & Quyền</el-button>
+        <el-button type="primary" :icon="Plus" round @click="dialogVisible = true">Mời nhân viên</el-button>
       </div>
     </div>
 
@@ -46,11 +46,11 @@ const staffForm = ref({
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-secondary small text-uppercase">
             <tr>
-              <th class="ps-3">Staff Member</th>
-              <th>Username</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th class="text-end pe-3">Actions</th>
+              <th class="ps-3">Nhân viên</th>
+              <th>Tên đăng nhập</th>
+              <th>Vai trò</th>
+              <th>Trạng thái</th>
+              <th class="text-end pe-3">Hành động</th>
             </tr>
           </thead>
           <tbody>
@@ -100,22 +100,22 @@ const staffForm = ref({
     </div>
 
     <!-- Invite Staff Dialog -->
-    <el-dialog v-model="dialogVisible" title="Invite New Staff Member" width="450px" class="rounded-4">
+    <el-dialog v-model="dialogVisible" title="Mời nhân viên mới" width="450px" class="rounded-4">
       <el-form :model="staffForm" label-position="top">
-        <el-form-item label="Full Name" required>
-          <el-input v-model="staffForm.name" placeholder="John Doe" />
+        <el-form-item label="Họ và tên" required>
+          <el-input v-model="staffForm.name" placeholder="VD: Nguyễn Văn A" />
         </el-form-item>
-        <el-form-item label="Email Address" required>
-          <el-input v-model="staffForm.email" placeholder="john@cineops.com" />
+        <el-form-item label="Địa chỉ Email" required>
+          <el-input v-model="staffForm.email" placeholder="vanna@cineops.com" />
         </el-form-item>
         <div class="row g-2">
           <div class="col-6">
-            <el-form-item label="Username">
-              <el-input v-model="staffForm.username" placeholder="johndoe" />
+            <el-form-item label="Tên đăng nhập">
+              <el-input v-model="staffForm.username" placeholder="vanna123" />
             </el-form-item>
           </div>
           <div class="col-6">
-            <el-form-item label="Role">
+            <el-form-item label="Vai trò">
               <el-select v-model="staffForm.role" class="w-100">
                 <el-option v-for="r in roles" :key="r.name" :label="r.name" :value="r.name" />
               </el-select>
@@ -125,8 +125,8 @@ const staffForm = ref({
       </el-form>
       <template #footer>
         <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false">Cancel</el-button>
-          <el-button type="primary" class="px-4" @click="dialogVisible = false">Send Invite</el-button>
+          <el-button @click="dialogVisible = false">Hủy</el-button>
+          <el-button type="primary" class="px-4" @click="dialogVisible = false">Gửi lời mời</el-button>
         </div>
       </template>
     </el-dialog>

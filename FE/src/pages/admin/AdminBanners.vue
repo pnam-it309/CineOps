@@ -4,9 +4,9 @@ import { Plus, Picture, Delete, Edit, Rank, Check, View } from '@element-plus/ic
 import { ElMessage } from 'element-plus';
 
 const banners = ref([
-  { id: 1, title: 'Avatar: The Way of Water', image: 'https://via.placeholder.com/1200x400?text=Avatar+Banner', link: '/movie/1', order: 1, status: true },
-  { id: 2, title: 'Popcorn Combo Special', image: 'https://via.placeholder.com/1200x400?text=Food+Banner', link: '/news/1', order: 2, status: true },
-  { id: 3, title: 'New Member Offer', image: 'https://via.placeholder.com/1200x400?text=Membership+Banner', link: '/register', order: 3, status: false }
+  { id: 1, title: 'Avatar: The Way of Water', image: 'https://dummyimage.com/1200x400?text=Avatar+Banner', link: '/movie/1', order: 1, status: true },
+  { id: 2, title: 'Popcorn Combo Special', image: 'https://dummyimage.com/1200x400?text=Food+Banner', link: '/news/1', order: 2, status: true },
+  { id: 3, title: 'New Member Offer', image: 'https://dummyimage.com/1200x400?text=Membership+Banner', link: '/register', order: 3, status: false }
 ]);
 
 const handleStatusChange = (banner) => {
@@ -18,10 +18,9 @@ const handleStatusChange = (banner) => {
   <div class="admin-banners container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 pt-2">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Banner Management</h2>
-        <p class="text-secondary small mb-0">Manage homepage hero banners and advertisements.</p>
+        <h2 class="fs-2 fw-bold text-dark mb-1">Quản lý Banners</h2>
       </div>
-      <el-button type="primary" size="large" :icon="Plus" round>Add Banner</el-button>
+      <el-button type="primary" size="large" :icon="Plus" round>Thêm Banner</el-button>
     </div>
 
     <div class="row g-4">
@@ -33,9 +32,9 @@ const handleStatusChange = (banner) => {
             </div>
             <div class="col-md-5 p-4">
               <div class="d-flex align-items-center gap-2 mb-2">
-                <el-tag size="small" effect="dark" type="info">Order #{{ banner.order }}</el-tag>
-                <el-tag v-if="banner.status" size="small" type="success">Active</el-tag>
-                <el-tag v-else size="small" type="danger">Hidden</el-tag>
+                <el-tag size="small" effect="dark" type="info">Thứ tự #{{ banner.order }}</el-tag>
+                <el-tag v-if="banner.status" size="small" type="success">Đang hiển thị</el-tag>
+                <el-tag v-else size="small" type="danger">Đang ẩn</el-tag>
               </div>
               <h5 class="fw-bold mb-1">{{ banner.title }}</h5>
               <p class="text-secondary small mb-0">{{ banner.link }}</p>
@@ -43,7 +42,7 @@ const handleStatusChange = (banner) => {
             <div class="col-md-3 p-4 border-start text-center">
               <div class="d-flex flex-column gap-2">
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
-                  <span class="small text-secondary fw-bold">Active:</span>
+                  <span class="small text-secondary fw-bold">Trạng thái:</span>
                   <el-switch v-model="banner.status" @change="handleStatusChange(banner)" />
                 </div>
                 <div class="d-flex gap-2 justify-content-center">
@@ -57,11 +56,13 @@ const handleStatusChange = (banner) => {
         </el-card>
       </div>
     </div>
-    
+
     <div class="mt-4 p-4 border border-2 border-dashed rounded-4 text-center bg-light cursor-pointer">
-      <el-icon :size="48" class="text-secondary mb-2"><Plus /></el-icon>
-      <div class="fw-bold">Upload New Banner Image</div>
-      <div class="text-secondary small">Recommended size: 1920x600px</div>
+      <el-icon :size="48" class="text-secondary mb-2">
+        <Plus />
+      </el-icon>
+      <div class="fw-bold">Tải lên ảnh Banner mới</div>
+      <div class="text-secondary small">Kích thước khuyến nghị: 1920x600px</div>
     </div>
   </div>
 </template>
@@ -70,6 +71,7 @@ const handleStatusChange = (banner) => {
 .object-fit-cover {
   object-fit: cover;
 }
+
 .cursor-pointer {
   cursor: pointer;
 }

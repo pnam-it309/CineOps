@@ -1,130 +1,141 @@
 export const mockMovies = [
+  // --- PHIM ĐANG CHIẾU (NOW SHOWING) ---
   {
     id: 1,
-    title: "Avatar: The Way of Water",
+    title: "Dune: Part Two",
+    vietnameseTitle: "Dune: Hành Tinh Cát - Phần Hai",
     genre: "Sci-Fi, Adventure",
-    duration: 192,
-    rating: "PG-13",
-    imdbRating: 7.8,
-    releaseDate: "2022-12-16",
-    poster: "https://via.placeholder.com/300x450/0ea5e9/ffffff?text=Avatar+2",
-    backdrop: "https://via.placeholder.com/1920x1080/0ea5e9/ffffff?text=Avatar+Backdrop",
-    trailer: "https://www.youtube.com/watch?v=d9MyW72ELq0",
-    synopsis: "Set more than a decade after the events of the first film, Avatar: The Way of Water begins to tell the story of the Sully family, the trouble that follows them, the lengths they go to keep each other safe, the battles they fight to stay alive, and the tragedies they endure.",
-    director: "James Cameron",
-    cast: ["Sam Worthington", "Zoe Saldana", "Sigourney Weaver", "Stephen Lang"],
+    duration: 166,
+    rating: "T16",
+    imdbRating: 8.9,
+    releaseDate: "2024-03-01",
+    poster: "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+    trailer: "https://www.youtube.com/watch?v=Way9Dexny3w",
+    synopsis: "Hành trình huyền thoại của Paul Atreides tiếp tục khi anh hợp tác với Chani và người Fremen để trả thù những kẻ đã hủy hoại gia đình mình.",
+    director: "Denis Villeneuve",
+    cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson"],
     status: "now-showing"
   },
   {
     id: 2,
-    title: "Top Gun: Maverick",
-    genre: "Action, Drama",
-    duration: 130,
-    rating: "PG-13",
-    imdbRating: 8.3,
-    releaseDate: "2022-05-27",
-    poster: "https://via.placeholder.com/300x450/ef4444/ffffff?text=Top+Gun",
-    backdrop: "https://via.placeholder.com/1920x1080/ef4444/ffffff?text=TopGun+Backdrop",
-    trailer: "https://www.youtube.com/watch?v=giXco2jaZ_4",
-    synopsis: "After more than thirty years of service as one of the Navy's top aviators, Pete 'Maverick' Mitchell is where he belongs, pushing the envelope as a courageous test pilot and dodging the advancement in rank that would ground him.",
-    director: "Joseph Kosinski",
-    cast: ["Tom Cruise", "Miles Teller", "Jennifer Connelly", "Jon Hamm"],
+    title: "Kung Fu Panda 4",
+    vietnameseTitle: "Kung Fu Panda 4",
+    genre: "Animation, Action, Comedy",
+    duration: 94,
+    rating: "P",
+    imdbRating: 7.6,
+    releaseDate: "2024-03-08",
+    poster: "https://image.tmdb.org/t/p/w500/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/1XDDXPXGiI8id7MrUxK36ke7gkX.jpg",
+    trailer: "https://www.youtube.com/watch?v=_inKs4eeHiI",
+    synopsis: "Sau khi Po được chọn trở thành Thủ lĩnh tinh thần của Thung lũng Bình Yên, anh cần tìm và huấn luyện một Chiến binh Rồng mới.",
+    director: "Mike Mitchell",
+    cast: ["Jack Black", "Awkwafina", "Viola Davis"],
     status: "now-showing"
   },
   {
     id: 3,
-    title: "The Batman",
-    genre: "Action, Crime, Drama",
-    duration: 176,
-    rating: "PG-13",
-    imdbRating: 7.9,
-    releaseDate: "2022-03-04",
-    poster: "https://via.placeholder.com/300x450/1f2937/ffffff?text=The+Batman",
-    backdrop: "https://via.placeholder.com/1920x1080/1f2937/ffffff?text=Batman+Backdrop",
-    trailer: "https://www.youtube.com/watch?v=mqqft2x_Aa4",
-    synopsis: "When the Riddler, a sadistic serial killer, begins murdering key political figures in Gotham, Batman is forced to investigate the city's hidden corruption and question his family's involvement.",
-    director: "Matt Reeves",
-    cast: ["Robert Pattinson", "Zoë Kravitz", "Paul Dano", "Jeffrey Wright"],
+    title: "Godzilla x Kong: The New Empire",
+    vietnameseTitle: "Godzilla x Kong: Đế Chế Mới",
+    genre: "Action, Sci-Fi, Monster",
+    duration: 115,
+    rating: "K",
+    imdbRating: 7.2,
+    releaseDate: "2024-03-29",
+    poster: "https://image.tmdb.org/t/p/w500/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/j3Z3XktmWB1VqkS8i40mwZBD39m.jpg",
+    trailer: "https://www.youtube.com/watch?v=lV1OOlGwExM",
+    synopsis: "Hai titan cổ đại Godzilla và Kong đụng độ trong một trận chiến hoành tráng khi con người khám phá nguồn gốc bí ẩn của chúng.",
+    director: "Adam Wingard",
+    cast: ["Rebecca Hall", "Brian Tyree Henry", "Dan Stevens"],
     status: "now-showing"
   },
   {
     id: 4,
-    title: "Spider-Man: No Way Home",
-    genre: "Action, Adventure, Fantasy",
-    duration: 148,
-    rating: "PG-13",
-    imdbRating: 8.2,
-    releaseDate: "2021-12-17",
-    poster: "https://via.placeholder.com/300x450/dc2626/ffffff?text=Spider-Man",
-    backdrop: "https://via.placeholder.com/1920x1080/dc2626/ffffff?text=SpiderMan+Backdrop",
-    trailer: "https://www.youtube.com/watch?v=JfVOs4VSpmA",
-    synopsis: "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.",
-    director: "Jon Watts",
-    cast: ["Tom Holland", "Zendaya", "Benedict Cumberbatch", "Jacob Batalon"],
+    title: "Mai",
+    vietnameseTitle: "Mai",
+    genre: "Romance, Drama",
+    duration: 131,
+    rating: "T18",
+    imdbRating: 7.3,
+    releaseDate: "2024-02-10",
+    poster: "https://image.tmdb.org/t/p/w500/vi428Q22Z07YkO9C6Wwb0n7eJ7.jpg", // Poster phim Việt
+    backdrop: "https://image.tmdb.org/t/p/original/47e4c6W83g6d2K7E4w1Z8k6.jpg", // Thay bằng ảnh hợp lý nếu link chết
+    trailer: "https://www.youtube.com/watch?v=5ZnWpYJ_WKQ",
+    synopsis: "Câu chuyện về cuộc đời của người phụ nữ tên Mai và mối tình chị em đầy sóng gió với Dương.",
+    director: "Trấn Thành",
+    cast: ["Phương Anh Đào", "Tuấn Trần", "Trấn Thành"],
     status: "now-showing"
   },
+
+  // --- PHIM SẮP CHIẾU (COMING SOON) ---
   {
     id: 5,
-    title: "Dune: Part Two",
-    genre: "Sci-Fi, Adventure",
-    duration: 166,
-    rating: "PG-13",
-    imdbRating: 8.5,
-    releaseDate: "2024-03-01",
-    poster: "https://via.placeholder.com/300x450/f97316/ffffff?text=Dune+2",
-    backdrop: "https://via.placeholder.com/1920x1080/f97316/ffffff?text=Dune+Backdrop",
-    trailer: "https://www.youtube.com/watch?v=Way9Dexny3w",
-    synopsis: "Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the universe, he must prevent a terrible future only he can foresee.",
-    director: "Denis Villeneuve",
-    cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson", "Josh Brolin"],
+    title: "Deadpool & Wolverine",
+    vietnameseTitle: "Deadpool Và Wolverine",
+    genre: "Action, Comedy, Superhero",
+    duration: 120, // Dự kiến
+    rating: "T18",
+    imdbRating: 0, // Chưa chiếu
+    releaseDate: "2024-07-26",
+    poster: "https://image.tmdb.org/t/p/w500/jBWpWd74542QG4J6Jc63k5J.jpg", // Placeholder đẹp
+    backdrop: "https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg",
+    trailer: "https://www.youtube.com/watch?v=uJMCNJP2ipI",
+    synopsis: "Wolverine đang phục hồi chấn thương thì gặp gỡ Deadpool lắm mồm. Họ lập team để đánh bại kẻ thù chung.",
+    director: "Shawn Levy",
+    cast: ["Ryan Reynolds", "Hugh Jackman", "Emma Corrin"],
     status: "coming-soon"
   },
   {
     id: 6,
-    title: "Oppenheimer",
-    genre: "Biography, Drama, History",
-    duration: 180,
-    rating: "R",
-    imdbRating: 8.4,
-    releaseDate: "2024-07-21",
-    poster: "https://via.placeholder.com/300x450/eab308/ffffff?text=Oppenheimer",
-    backdrop: "https://via.placeholder.com/1920x1080/eab308/ffffff?text=Oppenheimer+Backdrop",
-    trailer: "https://www.youtube.com/watch?v=uYPbbksJxIg",
-    synopsis: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.",
-    director: "Christopher Nolan",
-    cast: ["Cillian Murphy", "Emily Blunt", "Matt Damon", "Robert Downey Jr."],
+    title: "Inside Out 2",
+    vietnameseTitle: "Những Mảnh Ghép Cảm Xúc 2",
+    genre: "Animation, Family, Fantasy",
+    duration: 100,
+    rating: "P",
+    imdbRating: 0,
+    releaseDate: "2024-06-14",
+    poster: "https://image.tmdb.org/t/p/w500/kxX7s1r4Q8Mg6V.jpg", // Cần thay link thật nếu die
+    backdrop: "https://image.tmdb.org/t/p/original/pWsD91G2R1Da3MPS6KNJySTyrDr.jpg",
+    trailer: "https://www.youtube.com/watch?v=LEjhY15eCx0",
+    synopsis: "Riley bước vào tuổi dậy thì, và trụ sở cảm xúc đón chào những thành viên mới: Lo Âu, Ghen Tị...",
+    director: "Kelsey Mann",
+    cast: ["Amy Poehler", "Maya Hawke", "Lewis Black"],
     status: "coming-soon"
   },
   {
     id: 7,
-    title: "Barbie",
-    genre: "Adventure, Comedy, Fantasy",
-    duration: 114,
-    rating: "PG-13",
-    imdbRating: 7.1,
-    releaseDate: "2024-07-21",
-    poster: "https://via.placeholder.com/300x450/ec4899/ffffff?text=Barbie",
-    backdrop: "https://via.placeholder.com/1920x1080/ec4899/ffffff?text=Barbie+Backdrop",
-    trailer: "https://www.youtube.com/watch?v=pBk4NYhWNMM",
-    synopsis: "Barbie and Ken are having the time of their lives in the colorful and seemingly perfect world of Barbie Land. However, when they get a chance to go to the real world, they soon discover the joys and perils of living among humans.",
-    director: "Greta Gerwig",
-    cast: ["Margot Robbie", "Ryan Gosling", "America Ferrera", "Kate McKinnon"],
+    title: "Joker: Folie à Deux",
+    vietnameseTitle: "Joker: Điên Có Đôi",
+    genre: "Crime, Drama, Musical",
+    duration: 135,
+    rating: "T18",
+    imdbRating: 0,
+    releaseDate: "2024-10-04",
+    poster: "https://image.tmdb.org/t/p/w500/kZJ1Z8k.jpg", // Placeholder
+    backdrop: "https://image.tmdb.org/t/p/original/5Eip60UDiPLASyKjmHCOchhC4.jpg", // Placeholder
+    trailer: "https://www.youtube.com/watch?v=xy8aJw1vYHo",
+    synopsis: "Phần tiếp theo của Joker (2019), khám phá mối quan hệ điên loạn giữa Arthur Fleck và Harley Quinn.",
+    director: "Todd Phillips",
+    cast: ["Joaquin Phoenix", "Lady Gaga", "Zazie Beetz"],
     status: "coming-soon"
   },
   {
     id: 8,
-    title: "Mission: Impossible - Dead Reckoning",
-    genre: "Action, Adventure, Thriller",
-    duration: 163,
-    rating: "PG-13",
-    imdbRating: 7.7,
-    releaseDate: "2024-07-12",
-    poster: "https://via.placeholder.com/300x450/6366f1/ffffff?text=MI+7",
-    backdrop: "https://via.placeholder.com/1920x1080/6366f1/ffffff?text=MI+Backdrop",
-    trailer: "https://www.youtube.com/watch?v=avz06PDqDbM",
-    synopsis: "Ethan Hunt and his IMF team must track down a terrifying new weapon that threatens all of humanity if it falls into the wrong hands.",
-    director: "Christopher McQuarrie",
-    cast: ["Tom Cruise", "Hayley Atwell", "Ving Rhames", "Simon Pegg"],
+    title: "Despicable Me 4",
+    vietnameseTitle: "Kẻ Trộm Mặt Trăng 4",
+    genre: "Animation, Comedy, Family",
+    duration: 95,
+    rating: "P",
+    imdbRating: 0,
+    releaseDate: "2024-07-03",
+    poster: "https://image.tmdb.org/t/p/w500/3w84hCFJATpiCO5g8hpdWVPBbmq.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/fDmci71SMkfZM8RnCuXfZDPqD74.jpg",
+    trailer: "https://www.youtube.com/watch?v=qQdBZXy15GU",
+    synopsis: "Gru quay trở lại với những phi vụ mới cùng bầy Minions quậy phá.",
+    director: "Chris Renaud",
+    cast: ["Steve Carell", "Kristen Wiig", "Will Ferrell"],
     status: "coming-soon"
   }
 ];
@@ -132,50 +143,50 @@ export const mockMovies = [
 export const mockBanners = [
   {
     id: 1,
-    image: "https://via.placeholder.com/1920x600/667eea/ffffff?text=Banner+1+-+Avatar",
-    title: "Avatar: The Way of Water",
-    subtitle: "Now Showing",
-    movieId: 1
+    title: "Avatar: Dòng Chảy Của Nước",
+    subtitle: "Đang Chiếu Tại Rạp",
+    movieId: 1,
+    image: "https://images.unsplash.com/photo-1542204172-3c35b6999679?auto=format&fit=crop&w=1920&q=80"
   },
   {
     id: 2,
-    image: "https://via.placeholder.com/1920x600/764ba2/ffffff?text=Banner+2+-+Dune",
-    title: "Dune: Part Two",
-    subtitle: "Coming Soon",
-    movieId: 5
+    title: "Dune: Hành Tinh Cát - Phần 2",
+    subtitle: "Sắp Ra Mắt",
+    movieId: 5,
+    image: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=1920&q=80"
   },
   {
     id: 3,
-    image: "https://via.placeholder.com/1920x600/f093fb/ffffff?text=Banner+3+-+Special+Offer",
-    title: "Weekend Special - 20% OFF",
-    subtitle: "Book Now",
-    movieId: null
+    title: "Ưu Đãi Đặc Biệt - Giảm 20%",
+    subtitle: "Đặt Vé Ngay Hôm Nay",
+    movieId: null,
+    image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed0083c?auto=format&fit=crop&w=1920&q=80"
   }
 ];
 
 export const mockPromotions = [
   {
     id: 1,
-    title: "Weekend Special",
-    description: "Get 20% off on all weekend bookings",
-    image: "https://via.placeholder.com/400x200/10b981/ffffff?text=Weekend+Deal",
-    validUntil: "2024-02-28",
+    title: "Ưu Đãi Cuối Tuần",
+    description: "Giảm ngay 20% cho tất cả các vé đặt vào cuối tuần",
+    image: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=600",
+    validUntil: "2026-02-28",
     code: "WEEKEND20"
   },
   {
     id: 2,
-    title: "Student Discount",
-    description: "Students get 15% off with valid ID",
-    image: "https://via.placeholder.com/400x200/3b82f6/ffffff?text=Student+Discount",
-    validUntil: "2024-12-31",
+    title: "Ưu Đãi Sinh Viên",
+    description: "Sinh viên được giảm 15% khi xuất trình thẻ sinh viên",
+    image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed0083c?auto=format&fit=crop&w=600",
+    validUntil: "2026-12-31",
     code: "STUDENT15"
   },
   {
     id: 3,
-    title: "Early Bird Offer",
-    description: "Book before 12 PM and save 10%",
-    image: "https://via.placeholder.com/400x200/f59e0b/ffffff?text=Early+Bird",
-    validUntil: "2024-03-31",
+    title: "Đặt Sớm Nhận Ưu Đãi",
+    description: "Đặt trước 12 giờ trưa và tiết kiệm 10% giá vé",
+    image: "https://images.unsplash.com/photo-1542204172-3c35b6999679?auto=format&fit=crop&w=600",
+    validUntil: "2026-03-31",
     code: "EARLY10"
   }
 ];
@@ -204,28 +215,28 @@ export const mockFood = [
     name: "Classic Combo", 
     description: "1 Large Popcorn + 1 Large Soda", 
     price: 95000, 
-    image: "https://via.placeholder.com/200x150/f59e0b/ffffff?text=Classic+Combo"
+    image: "https://dummyimage.com/200x150/f59e0b/ffffff?text=Classic+Combo"
   },
   { 
     id: 2, 
     name: "Couple Combo", 
     description: "1 Large Popcorn + 2 Regular Sodas", 
     price: 125000, 
-    image: "https://via.placeholder.com/200x150/ec4899/ffffff?text=Couple+Combo"
+    image: "https://dummyimage.com/200x150/ec4899/ffffff?text=Couple+Combo"
   },
   { 
     id: 3, 
     name: "Family Deal", 
     description: "2 Large Popcorns + 4 Soft Drinks", 
     price: 245000, 
-    image: "https://via.placeholder.com/200x150/3b82f6/ffffff?text=Family+Deal"
+    image: "https://dummyimage.com/200x150/3b82f6/ffffff?text=Family+Deal"
   },
   { 
     id: 4, 
     name: "Single Popcorn", 
     description: "Large Sweet/Salty Popcorn", 
     price: 65000, 
-    image: "https://via.placeholder.com/200x150/10b981/ffffff?text=Popcorn"
+    image: "https://dummyimage.com/200x150/10b981/ffffff?text=Popcorn"
   }
 ];
 

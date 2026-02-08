@@ -2,11 +2,11 @@
   <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
       <div>
-        <h2 class="mb-2 fs-3 fw-bold text-dark">Role Management</h2>
-        <p class="text-secondary mb-0 small">Manage user roles and permissions</p>
+        <h2 class="mb-2 fs-3 fw-bold text-dark">Quản lý Vai trò</h2>
+        <p class="text-secondary mb-0 small">Quản lý các chức vụ và quyền hạn trong hệ thống</p>
       </div>
       <el-button type="primary" :icon="Plus" @click="handleAddRole">
-        Add New Role
+        Thêm vai trò mới
       </el-button>
     </div>
 
@@ -27,11 +27,11 @@
                   <el-dropdown-menu>
                     <el-dropdown-item command="edit">
                       <el-icon><Edit /></el-icon>
-                      Edit
+                      Chỉnh sửa
                     </el-dropdown-item>
                     <el-dropdown-item command="delete" divided>
                       <el-icon><Delete /></el-icon>
-                      Delete
+                      Xóa vai trò
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -45,14 +45,14 @@
             <div class="mb-3">
               <div class="d-flex align-items-center gap-2 text-secondary small">
                 <el-icon><User /></el-icon>
-                <span>{{ role.userCount }} users</span>
+                <span>{{ role.userCount }} nhân viên</span>
               </div>
             </div>
             
             <el-divider class="my-3"/>
             
             <div>
-              <h4 class="mb-2 fs-6 fw-bold text-dark">Permissions</h4>
+              <h4 class="mb-2 fs-6 fw-bold text-dark">Quyền hạn</h4>
               <div class="d-flex flex-wrap gap-2">
                 <el-tag
                   v-for="permission in role.permissions"

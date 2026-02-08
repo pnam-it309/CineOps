@@ -10,88 +10,119 @@ const customers = ref([
 ]);
 
 const getLevelColor = (level) => {
-  switch(level) {
+  switch (level) {
     case 'Platinum': return 'danger';
     case 'Gold': return 'warning';
     default: return 'info';
   }
 };
+import BaseTable from '@/components/common/BaseTable.vue';
+
+const tableColumns = [
+  { label: 'Thông tin khách hàng', key: 'name' },
+  { label: 'Liên hệ', key: 'contact' },
+  { label: 'Hạng thành viên', key: 'level' },
+  { label: 'Điểm tích lũy', key: 'points' },
+  { label: 'Tổng số vé', key: 'tickets' },
+  { label: 'Ngày đăng ký', key: 'joinDate' }
+];
+
+const currentPage = ref(1);
+const pageSize = 10;
 </script>
 
 <template>
-  <div class="admin-customers container-fluid p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-2">
+  <div class="admin-customers w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
+    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Customer Database</h2>
-        <p class="text-secondary small mb-0">View customer loyalty points, spending habits, and member tiers.</p>
+        <h2 class="fs-2 fw-bold text-dark mb-1">Cơ sở dữ liệu Khách hàng</h2>
       </div>
     </div>
 
-    <el-card shadow="never" class="border-0 shadow-sm rounded-4 mb-4">
-      <div class="row g-3 align-items-center">
+    <el-card shadow="never" class="border-black shadow-sm rounded-4 mb-3 flex-shrink-0">
+      <div class="row g-2 align-items-center">
         <div class="col-md-6 col-lg-8">
-          <el-input placeholder="Search customers by name, email or phone..." :prefix-icon="Search" size="large" clearable />
+          <el-input placeholder="Tìm kiếm khách hàng..." :prefix-icon="Search" size="default" clearable />
         </div>
         <div class="col-md-6 col-lg-4">
-          <el-select placeholder="Filter by Member Level" size="large" class="w-100">
-            <el-option label="All Levels" value="all" />
-            <el-option label="Platinum" value="platinum" />
-            <el-option label="Gold" value="gold" />
-            <el-option label="Silver" value="silver" />
+          <el-select placeholder="Lọc theo hạng" size="default" class="w-100">
+            <el-option label="Tất cả các hạng" value="all" />
+            <el-option label="Bạch kim (Platinum)" value="platinum" />
+            <el-option label="Vàng (Gold)" value="gold" />
+            <el-option label="Bạc (Silver)" value="silver" />
           </el-select>
         </div>
       </div>
     </el-card>
 
-    <el-card shadow="never" class="border-0 shadow-sm rounded-4 overflow-hidden">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-secondary small text-uppercase">
-            <tr>
-              <th class="ps-3">Customer Info</th>
-              <th>Contact</th>
-              <th>Member Tier</th>
-              <th class="text-center">Loyalty Points</th>
-              <th class="text-center">Total Tickets</th>
-              <th>Join Date</th>
-              <th class="text-end pe-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in customers" :key="c.id">
-              <td class="ps-3">
-                <div class="d-flex align-items-center gap-3">
-                  <el-avatar :size="32" class="bg-primary">{{ c.name.charAt(0) }}</el-avatar>
-                  <div class="fw-bold fs-6">{{ c.name }}</div>
-                </div>
-              </td>
-              <td>
-                <div class="small">{{ c.email }}</div>
-                <div class="text-secondary small">{{ c.phone }}</div>
-              </td>
-              <td>
-                <el-tag :type="getLevelColor(c.level)" effect="dark" size="small">{{ c.level }}</el-tag>
-              </td>
-              <td class="text-center fw-bold text-primary">
-                {{ c.points.toLocaleString() }}
-              </td>
-              <td class="text-center">
-                <span class="badge bg-light text-dark px-2 rounded-pill">{{ c.tickets }}</span>
-              </td>
-              <td class="text-secondary small">{{ c.joinDate }}</td>
-              <td class="text-end pe-3">
-                <el-button :icon="View" size="small" round>Details</el-button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </el-card>
+    <!-- Customers Table Container -->
+    <div class="flex-grow-1 overflow-auto no-scroll">
+      <BaseTable :data="customers" :columns="tableColumns" :total="customers.length" v-model:currentPage="currentPage"
+        :page-size="pageSize" @view="(c) => ElMessage.info('Detail view not implemented')">
+        <template #cell-name="{ row }">
+          <div class="d-flex align-items-center justify-content-center gap-2">
+            <el-avatar :size="28" class="bg-primary small">{{ row.name.charAt(0) }}</el-avatar>
+            <div class="fw-bold small">{{ row.name }}</div>
+          </div>
+        </template>
+
+        <template #cell-contact="{ row }">
+          <div class="x-small">{{ row.email }}</div>
+          <div class="text-secondary x-small">{{ row.phone }}</div>
+        </template>
+
+        <template #cell-level="{ row }">
+          <el-tag :type="getLevelColor(row.level)" effect="dark" size="small">{{ row.level }}</el-tag>
+        </template>
+
+        <template #cell-points="{ row }">
+          <span class="fw-bold text-primary">{{ row.points.toLocaleString() }}</span>
+        </template>
+
+        <template #cell-tickets="{ row }">
+          <span class="badge bg-light text-dark px-2 rounded-pill">{{ row.tickets }}</span>
+        </template>
+
+        <template #actions="{ row }">
+          <button class="btn btn-action-icon" title="View Details" @click="ElMessage.info('Details for ' + row.name)">
+            <i class="bi bi-eye"></i>
+          </button>
+        </template>
+      </BaseTable>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.admin-customers {
+  height: calc(100vh - 84px);
+}
+
+:deep(.el-card) {
+  border: 1px solid #000 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
 .table thead th {
   border-bottom: none;
+}
+
+.no-scroll {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow: hidden !important;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+.overflow-auto.no-scroll {
+  overflow-y: auto !important;
+}
+
+.x-small {
+  font-size: 0.65rem;
 }
 </style>

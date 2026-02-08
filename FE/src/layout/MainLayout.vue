@@ -1,82 +1,82 @@
 <template>
-  <div class="d-flex min-vh-100 flex-column">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-      <div class="container-responsive">
-        <router-link :to="{ name: 'Home' }" class="navbar-brand fw-bold">
-          <i class="bi bi-film me-2"></i>CineOps
-        </router-link>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="navbarContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <router-link :to="{ name: 'Home' }" class="nav-link">Phim</router-link>
-            </li>
-            <li class="nav-item">
-              <router-link to="/showtimes" class="nav-link">Lịch Chiếu</router-link>
-            </li>
-            <li class="nav-item">
-              <router-link to="/promotions" class="nav-link">Khuyến Mãi</router-link>
-            </li>
-          </ul>
-          
-          <ul class="navbar-nav ms-auto">
-            <template v-if="authStore.isAuthenticated">
-               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                  Xin chào, {{ authStore.user?.username || 'User' }}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                   <li v-if="authStore.isAdmin"><router-link :to="{ name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name }" class="dropdown-item fw-bold text-primary">Quản trị Hệ thống</router-link></li>
-                   <li v-if="authStore.isStaff || authStore.isAdmin"><router-link :to="{ name: ROUTES_CONSTANTS.STAFF.children.DASHBOARD.name }" class="dropdown-item fw-bold text-success">Giao diện Bán vé</router-link></li>
-                   <li v-if="authStore.isAdmin || authStore.isStaff"><hr class="dropdown-divider"></li>
-                   <li><router-link :to="{ name: 'CustomerProfile' }" class="dropdown-item">Hồ sơ cá nhân</router-link></li>
-                   <li><router-link :to="{ name: 'CustomerTickets' }" class="dropdown-item">Vé của tôi</router-link></li>
-                   <li><hr class="dropdown-divider"></li>
-                   <li><a class="dropdown-item" href="#" @click.prevent="handleLogout">Đăng xuất</a></li>
-                </ul>
-              </li>
-            </template>
-            <template v-else>
-              <li class="nav-item">
-                <router-link :to="{ name: 'Login' }" class="btn btn-outline-light btn-sm me-2">Đăng Nhập</router-link>
-              </li>
-              <li class="nav-item">
-                <router-link to="/register" class="btn btn-primary btn-sm">Đăng Ký</router-link>
-              </li>
-            </template>
-          </ul>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="flex-grow-1">
-      <router-view></router-view>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-auto">
-      <div class="container-responsive text-center">
-        <p class="mb-0">&copy; 2026 CineOps. All rights reserved.</p>
-      </div>
-    </footer>
-  </div>
+  <el-config-provider :locale="vi">
+    <div class="cineops-app-shell">
+      <!-- Đây là nơi các Layout con (Admin, Customer, Staff) sẽ được render vào -->
+      <slot>
+        <router-view v-if="!$slots.default" />
+      </slot>
+      
+      <!-- Các thành phần toàn cục luôn hiện diện -->
+      <el-backtop :right="20" :bottom="20" />
+    </div>
+  </el-config-provider>
 </template>
 
 <script setup>
 import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
-import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
+import { onMounted } from 'vue';
+import vi from 'element-plus/dist/locale/vi.mjs';
 
 const authStore = useAuthStore();
-const router = useRouter();
 
-const handleLogout = async () => {
-  await authStore.logout();
-  router.push({ name: 'Login' });
-};
+onMounted(() => {
+  // Logic khởi tạo ứng dụng toàn cục (ví dụ: check token, load config từ server)
+  if (authStore.isAuthenticated && !authStore.user) {
+    authStore.fetchUserProfile();
+  }
+});
 </script>
+
+<style>
+/* CSS Dùng chung cho toàn bộ hệ thống */
+:root {
+  --cineops-primary: #667eea;
+  --cineops-secondary: #764ba2;
+  --cineops-dark: #1a1a1a;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+}
+
+.cineops-app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Các hiệu ứng chuyển cảnh trang toàn cục */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Tùy chỉnh thanh cuộn đẹp hơn cho toàn hệ thống */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>
+

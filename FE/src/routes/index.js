@@ -5,17 +5,20 @@ import { useAuthStore } from '@/stores/auth';
 // Layouts
 const AdminLayout = () => import('@/layout/AdminLayout.vue');
 const StaffLayout = () => import('@/layout/StaffLayout.vue');
-const MainLayout = () => import('@/layout/MainLayout.vue');
+const CustomerLayout = () => import('@/layout/CustomerLayout.vue');
 
 // Pages
 const Home = () => import('@/pages/customer/HomePage.vue');
 const Login = () => import('@/pages/LoginPage.vue');
+const Showtimes = () => import('@/pages/customer/ShowtimesPage.vue');
+const Promotions = () => import('@/pages/customer/PromotionsPage.vue');
+const CinemaInfo = () => import('@/pages/customer/CinemaInfoPage.vue');
 
 const routes = [
     // PUBLIC / CUSTOMER LAYOUT
     {
         path: '/',
-        component: MainLayout,
+        component: CustomerLayout,
         children: [
             {
                 path: '',
@@ -26,6 +29,21 @@ const routes = [
                 path: ROUTES_CONSTANTS.MOVIE_DETAILS.path,
                 name: ROUTES_CONSTANTS.MOVIE_DETAILS.name,
                 component: () => import('@/pages/customer/MovieDetails.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.SHOWTIMES.path,
+                name: ROUTES_CONSTANTS.SHOWTIMES.name,
+                component: Showtimes,
+            },
+            {
+                path: ROUTES_CONSTANTS.PROMOTIONS.path,
+                name: ROUTES_CONSTANTS.PROMOTIONS.name,
+                component: Promotions,
+            },
+            {
+                path: ROUTES_CONSTANTS.CINEMAS.path,
+                name: ROUTES_CONSTANTS.CINEMAS.name,
+                component: CinemaInfo,
             },
             {
                 path: ROUTES_CONSTANTS.LOGIN.path,

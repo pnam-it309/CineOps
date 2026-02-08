@@ -2,21 +2,21 @@
   <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
       <div>
-        <h2 class="mb-2 fs-2 fw-bold text-dark">Transaction History</h2>
-        <p class="text-secondary mb-0">View all your movie ticket bookings and concessions.</p>
+        <h2 class="mb-2 fs-2 fw-bold text-dark tracking-tight">Lịch sử <span class="text-primary">Giao dịch</span></h2>
+        <p class="text-secondary mb-0 small">Quản lý và xem lại tất cả vé xem phim của bạn.</p>
       </div>
-      <el-button type="primary" size="large" round @click="$router.push('/')">
-        Book New Movie
+      <el-button type="primary" size="large" round @click="$router.push('/')" class="shadow-sm">
+        Đặt thêm vé mới
       </el-button>
     </div>
 
     <!-- Filter Bar -->
-    <el-card shadow="never" class="mb-4">
-      <el-radio-group v-model="statusFilter" size="default">
-        <el-radio-button label="">All Tickets</el-radio-button>
-        <el-radio-button label="upcoming">Upcoming</el-radio-button>
-        <el-radio-button label="past">Past</el-radio-button>
-        <el-radio-button label="cancelled">Cancelled</el-radio-button>
+    <el-card shadow="never" class="mb-5 border-0 bg-transparent">
+      <el-radio-group v-model="statusFilter" size="large" class="modern-toggle">
+        <el-radio-button value="">Tất cả vé</el-radio-button>
+        <el-radio-button value="upcoming">Sắp chiếu</el-radio-button>
+        <el-radio-button value="past">Lịch sử xem</el-radio-button>
+        <el-radio-button value="cancelled">Đã hủy</el-radio-button>
       </el-radio-group>
     </el-card>
 
@@ -25,8 +25,8 @@
       <el-col :xs="24" :md="12" :lg="8" v-for="ticket in filteredTickets" :key="ticket.id" class="mb-4">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect" :class="{'opacity-75': ticket.status === 'cancelled'}">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <el-tag :type="getStatusType(ticket.status)" effect="dark">
-              {{ ticket.status.toUpperCase() }}
+            <el-tag :type="getStatusType(ticket.status)" effect="dark" round class="px-3 border-0">
+              {{ getStatusLabel(ticket.status) }}
             </el-tag>
             <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, ticket)">
               <el-icon class="cursor-pointer fs-5 text-secondary hover-primary"><MoreFilled /></el-icon>
@@ -34,15 +34,15 @@
                 <el-dropdown-menu>
                   <el-dropdown-item command="view">
                     <el-icon><View /></el-icon>
-                    View Details
+                    Xem chi tiết
                   </el-dropdown-item>
                   <el-dropdown-item command="download" v-if="ticket.status !== 'cancelled'">
                     <el-icon><Download /></el-icon>
-                    Download
+                    Tải vé (PDF)
                   </el-dropdown-item>
-                  <el-dropdown-item command="cancel" divided v-if="ticket.status === 'upcoming'">
+                  <el-dropdown-item command="cancel" divided v-if="ticket.status === 'upcoming'" class="text-danger">
                     <el-icon><Delete /></el-icon>
-                    Cancel Ticket
+                    Hủy vé này
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -67,32 +67,34 @@
                 <span>{{ ticket.showTime }}</span>
               </div>
               
-              <div class="d-flex align-items-center gap-2 mb-2 small text-secondary">
+              <div class="d-flex align-items-center gap-2 mb-2 small text-secondary-dark">
                 <el-icon><Location /></el-icon>
-                <span>{{ ticket.cinema }} - Hall {{ ticket.hall }}</span>
+                <span>Rạp: {{ ticket.cinema }} - Phòng {{ ticket.hall }}</span>
               </div>
               
-              <div class="d-flex align-items-center gap-2 small text-secondary">
+              <div class="d-flex align-items-center gap-2 small text-secondary-dark">
                 <el-icon><Tickets /></el-icon>
-                <span>Seats: {{ ticket.seats.join(', ') }}</span>
+                <span>Ghế: <strong class="text-dark">{{ ticket.seats.join(', ') }}</strong></span>
               </div>
             </div>
           </div>
 
-          <el-divider class="my-3"/>
+          <el-divider class="my-4 border-light-subtle"/>
 
           <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex flex-column">
-              <span class="text-secondary small mb-1">Total Amount</span>
-              <span class="fs-5 fw-bold text-primary">${{ ticket.totalPrice }}</span>
+              <span class="text-secondary-light x-small text-uppercase fw-bold mb-1">Tổng tiền vé</span>
+              <span class="fs-4 fw-bold text-primary">{{ ticket.totalPrice.toLocaleString('vi-VN') }}đ</span>
             </div>
             <el-button
               v-if="ticket.status === 'upcoming'"
               type="primary"
-              size="small"
+              size="default"
               @click="handleViewQR(ticket)"
+              round
+              class="px-3"
             >
-              Show QR Code
+              Hiện mã QR
             </el-button>
           </div>
         </el-card>
@@ -100,9 +102,9 @@
     </el-row>
 
     <!-- Empty State -->
-    <el-empty v-if="filteredTickets.length === 0" description="No tickets found">
-      <el-button type="primary" @click="$router.push('/showtimes')">
-        Book Your First Ticket
+    <el-empty v-if="filteredTickets.length === 0" description="Bạn chưa có vé nào trong mục này.">
+      <el-button type="primary" @click="$router.push('/')" round class="px-4">
+        Đặt vé ngay
       </el-button>
     </el-empty>
 
@@ -161,7 +163,7 @@ const tickets = ref([
   {
     id: 1,
     movieTitle: 'Avatar: The Way of Water',
-    poster: 'https://via.placeholder.com/200x300/667eea/ffffff?text=Avatar',
+    poster: 'https://dummyimage.com/200x300/667eea/ffffff?text=Avatar',
     showDate: '2024-02-15',
     showTime: '19:30',
     cinema: 'CineOps Central',
@@ -174,7 +176,7 @@ const tickets = ref([
   {
     id: 2,
     movieTitle: 'Top Gun: Maverick',
-    poster: 'https://via.placeholder.com/200x300/764ba2/ffffff?text=TopGun',
+    poster: 'https://dummyimage.com/200x300/764ba2/ffffff?text=TopGun',
     showDate: '2024-01-28',
     showTime: '21:00',
     cinema: 'CineOps Downtown',
@@ -187,7 +189,7 @@ const tickets = ref([
   {
     id: 3,
     movieTitle: 'The Batman',
-    poster: 'https://via.placeholder.com/200x300/f093fb/ffffff?text=Batman',
+    poster: 'https://dummyimage.com/200x300/f093fb/ffffff?text=Batman',
     showDate: '2024-02-20',
     showTime: '18:00',
     cinema: 'CineOps Mall',
@@ -200,7 +202,7 @@ const tickets = ref([
   {
     id: 4,
     movieTitle: 'Spider-Man: No Way Home',
-    poster: 'https://via.placeholder.com/200x300/f5576c/ffffff?text=SpiderMan',
+    poster: 'https://dummyimage.com/200x300/f5576c/ffffff?text=SpiderMan',
     showDate: '2024-01-15',
     showTime: '20:30',
     cinema: 'CineOps Central',
@@ -224,6 +226,15 @@ const getStatusType = (status) => {
     cancelled: 'danger'
   };
   return types[status] || 'info';
+};
+
+const getStatusLabel = (status) => {
+  const labels = {
+    upcoming: 'Sắp chiếu',
+    past: 'Đã xem',
+    cancelled: 'Đã hủy'
+  };
+  return labels[status] || status;
 };
 
 const handleCommand = (command, ticket) => {
@@ -263,13 +274,30 @@ const handleCancelTicket = (ticket) => {
   transition: transform 0.3s ease;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
-.hover-primary:hover {
-  color: var(--el-color-primary) !important;
-}
 .cursor-pointer {
   cursor: pointer;
 }
 .object-fit-cover {
   object-fit: cover;
 }
+
+.modern-toggle :deep(.el-radio-button__inner) {
+  border-radius: 50px !important;
+  margin: 0 5px;
+  border: 1px solid #e2e8f0 !important;
+  font-weight: 600;
+  background-color: #fff;
+  color: #64748b;
+}
+
+.modern-toggle :deep(.el-radio-button__orig-radio:checked + .el-radio-button__inner) {
+  background-color: var(--el-color-primary);
+  color: #fff;
+  border-color: var(--el-color-primary) !important;
+}
+
+.tracking-tight { letter-spacing: -0.025em; }
+.x-small { font-size: 0.7rem; }
+.text-secondary-light { color: #94a3b8; }
+.text-secondary-dark { color: #64748b; }
 </style>

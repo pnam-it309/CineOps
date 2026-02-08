@@ -2,8 +2,7 @@
   <div class="container-fluid p-4">
     <!-- Page Header -->
     <div class="mb-4">
-      <h2 class="mb-2 fs-3 fw-bold text-dark">Dashboard Overview</h2>
-      <p class="text-secondary mb-0 small">Welcome back! Here's what's happening today.</p>
+      <h2 class="mb-2 fs-3 fw-bold text-dark">Tổng quan Bảng điều khiển</h2>
     </div>
 
     <!-- Statistics Cards -->
@@ -15,11 +14,11 @@
               <el-icon :size="40"><User /></el-icon>
             </div>
             <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">Total Users</p>
+              <p class="text-secondary small mb-1">Tổng người dùng</p>
               <h3 class="fs-4 fw-bold text-dark mb-1">{{ stats.totalUsers }}</h3>
               <p class="small mb-0 text-success d-flex align-items-center gap-1">
                 <el-icon><CaretTop /></el-icon>
-                12% from last month
+                12% so với tháng trước
               </p>
             </div>
           </div>
@@ -33,11 +32,11 @@
               <el-icon :size="40"><Money /></el-icon>
             </div>
             <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">Revenue (Today)</p>
+              <p class="text-secondary small mb-1">Doanh thu (Hôm nay)</p>
               <h3 class="fs-4 fw-bold text-dark mb-1">${{ stats.revenue }}</h3>
               <p class="small mb-0 text-success d-flex align-items-center gap-1">
                 <el-icon><CaretTop /></el-icon>
-                8% from yesterday
+                8% so với hôm qua
               </p>
             </div>
           </div>
@@ -51,11 +50,11 @@
               <el-icon :size="40"><Ticket /></el-icon>
             </div>
             <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">Pending Tickets</p>
+              <p class="text-secondary small mb-1">Vé đang chờ</p>
               <h3 class="fs-4 fw-bold text-dark mb-1">{{ stats.pendingTickets }}</h3>
               <p class="small mb-0 text-warning d-flex align-items-center gap-1">
                 <el-icon><CaretBottom /></el-icon>
-                3 need attention
+                3 mục cần chú ý
               </p>
             </div>
           </div>
@@ -69,10 +68,10 @@
               <el-icon :size="40"><Warning /></el-icon>
             </div>
             <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">System Issues</p>
+              <p class="text-secondary small mb-1">Vấn đề hệ thống</p>
               <h3 class="fs-4 fw-bold text-dark mb-1">{{ stats.issues }}</h3>
               <p class="small mb-0 text-danger">
-                Requires immediate action
+                Yêu cầu xử lý ngay
               </p>
             </div>
           </div>
@@ -110,21 +109,21 @@
           <template #header>
             <span class="d-flex align-items-center gap-2 fw-bold fs-6">
               <el-icon><Lightning /></el-icon>
-              Quick Actions
+              Thao tác nhanh
             </span>
           </template>
           <div class="d-flex flex-column gap-3">
             <el-button type="primary" :icon="VideoPlay" size="large" class="w-100 justify-content-start" @click="handleAction('movie')">
-              Add New Movie
+              Thêm phim mới
             </el-button>
             <el-button type="success" :icon="Document" size="large" class="w-100 justify-content-start" @click="handleAction('report')">
-              Generate Report
+              Xuất báo cáo
             </el-button>
             <el-button type="info" :icon="User" size="large" class="w-100 justify-content-start" @click="handleAction('user')">
-              Manage Users
+              Quản lý tài khoản
             </el-button>
             <el-button type="warning" :icon="Setting" size="large" class="w-100 justify-content-start" @click="handleAction('settings')">
-              System Settings
+              Cấu hình hệ thống
             </el-button>
           </div>
         </el-card>
@@ -137,10 +136,10 @@
         <el-card shadow="hover" class="h-100 border-0 shadow-sm rounded-4">
           <template #header>
             <div class="d-flex justify-content-between align-items-center">
-              <span class="fw-bold fs-5">Revenue Analytics</span>
+              <span class="fw-bold fs-5">Phân tích Doanh thu</span>
               <el-radio-group v-model="activeTab" size="small">
-                <el-radio-button label="week">Week</el-radio-button>
-                <el-radio-button label="month">Month</el-radio-button>
+                <el-radio-button label="Tuần" value="week" />
+                <el-radio-button label="Tháng" value="month" />
               </el-radio-group>
             </div>
           </template>
@@ -163,7 +162,7 @@
         <el-card shadow="hover" class="h-100 border-0 shadow-sm rounded-4">
           <template #header>
             <div class="d-flex justify-content-between align-items-center">
-              <span class="fw-bold fs-5">Room Occupancy</span>
+              <span class="fw-bold fs-5">Tỉ lệ lấp đầy phòng</span>
               <div class="p-2 bg-light rounded-2 small text-primary fw-bold">Live</div>
             </div>
           </template>
@@ -177,7 +176,7 @@
             </div>
           </div>
           <div class="mt-4 pt-4 border-top">
-            <p class="small text-secondary mb-0">Average occupancy is up <strong>12%</strong> compared to last week.</p>
+            <p class="small text-secondary mb-0">Tỉ lệ lấp đầy trung bình tăng <strong>12%</strong> so với tuần trước.</p>
           </div>
         </el-card>
       </el-col>
@@ -188,15 +187,15 @@
       <el-col :xs="24" :lg="12" class="mb-4 mb-lg-0">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm rounded-4 overflow-hidden">
           <template #header>
-            <span class="fw-bold fs-5">Top Movies This Month</span>
+            <span class="fw-bold fs-5">Phim Hot tháng này</span>
           </template>
           <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
               <thead class="bg-light text-secondary small text-uppercase">
                 <tr>
-                  <th class="ps-3 border-0">Movie</th>
-                  <th class="text-center border-0">Tickets</th>
-                  <th class="text-end pe-3 border-0">Revenue</th>
+                  <th class="ps-3 border-0">Phim</th>
+                  <th class="text-center border-0">Số vé</th>
+                  <th class="text-end pe-3 border-0">Doanh thu</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,7 +218,7 @@
       <el-col :xs="24" :lg="12">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm rounded-4">
           <template #header>
-            <span class="fw-bold fs-5">Recent Transactions</span>
+            <span class="fw-bold fs-5">Giao dịch gần đây</span>
           </template>
           <div class="list-group list-group-flush">
             <div v-for="tx in recentTransactions" :key="tx.id" class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 py-3 border-bottom border-light">

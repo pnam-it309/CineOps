@@ -2,11 +2,11 @@
   <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
       <div>
-        <h2 class="mb-2 fs-3 fw-bold text-dark">Movie Management</h2>
-        <p class="text-secondary mb-0 small">Manage movie catalog and details</p>
+        <h2 class="mb-2 fs-3 fw-bold text-dark">Quản lý Phim</h2>
+        <p class="text-secondary mb-0 small">Quản lý danh mục và chi tiết các bộ phim</p>
       </div>
       <el-button type="success" :icon="Plus" @click="dialogVisible = true">
-        Add New Movie
+        Thêm phim mới
       </el-button>
     </div>
 
@@ -15,20 +15,20 @@
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <el-input
           v-model="searchQuery"
-          placeholder="Search movies..."
+          placeholder="Tìm phim theo tên..."
           :prefix-icon="Search"
           style="width: 300px"
           class="w-100 w-sm-auto"
           clearable
         />
         <el-radio-group v-model="viewMode">
-          <el-radio-button label="grid">
+          <el-radio-button value="grid">
             <el-icon><Grid /></el-icon>
-            Grid
+            Lưới
           </el-radio-button>
-          <el-radio-button label="list">
+          <el-radio-button value="list">
             <el-icon><List /></el-icon>
-            List
+            Danh sách
           </el-radio-button>
         </el-radio-group>
       </div>
@@ -49,7 +49,7 @@
             <h3 class="fs-6 fw-bold mb-1 text-truncate" :title="movie.title">{{ movie.title }}</h3>
             <p class="text-muted small mb-2">{{ movie.genre }} • {{ movie.duration }}</p>
             <el-tag :type="movie.status === 'showing' ? 'success' : 'info'" size="small">
-              {{ movie.status }}
+              {{ movie.status === 'showing' ? 'Đang chiếu' : movie.status === 'ended' ? 'Đã kết thúc' : 'Sắp chiếu' }}
             </el-tag>
           </div>
         </el-card>
@@ -59,24 +59,24 @@
     <!-- List View -->
     <el-card shadow="never" v-else class="border-0 shadow-sm">
       <el-table :data="movies" style="width: 100%">
-        <el-table-column prop="title" label="Movie Title" min-width="200" />
-        <el-table-column prop="genre" label="Genre" width="150" />
-        <el-table-column prop="duration" label="Duration" width="120" />
-        <el-table-column prop="releaseDate" label="Release Date" width="150" />
-        <el-table-column prop="status" label="Status" width="120">
+        <el-table-column prop="title" label="Tên phim" min-width="200" />
+        <el-table-column prop="genre" label="Thể loại" width="150" />
+        <el-table-column prop="duration" label="Thời lượng" width="120" />
+        <el-table-column prop="releaseDate" label="Ngày phát hành" width="150" />
+        <el-table-column prop="status" label="Trạng thái" width="120">
           <template #default="{ row }">
             <el-tag :type="row.status === 'showing' ? 'success' : 'info'">
-              {{ row.status }}
+              {{ row.status === 'showing' ? 'Đang chiếu' : row.status === 'ended' ? 'Đã kết thúc' : 'Sắp chiếu' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Actions" width="150" fixed="right">
+        <el-table-column label="Hành động" width="150" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" :icon="Edit" size="small" link @click="handleEdit(row)">
-              Edit
+              Sửa
             </el-button>
             <el-button type="danger" :icon="Delete" size="small" link @click="handleDelete(row)">
-              Delete
+              Xóa
             </el-button>
           </template>
         </el-table-column>
@@ -86,43 +86,43 @@
     <!-- Add/Edit Movie Dialog -->
     <el-dialog
       v-model="dialogVisible"
-      title="Add New Movie"
+      :title="movieForm.id ? 'Chỉnh sửa phim' : 'Thêm phim mới'"
       width="600px"
     >
       <el-form :model="movieForm" label-width="120px">
-        <el-form-item label="Movie Title">
-          <el-input v-model="movieForm.title" placeholder="Enter movie title" />
+        <el-form-item label="Tên phim">
+          <el-input v-model="movieForm.title" placeholder="Nhập tên phim" />
         </el-form-item>
         
-        <el-form-item label="Genre">
-          <el-input v-model="movieForm.genre" placeholder="e.g., Action, Drama" />
+        <el-form-item label="Thể loại">
+          <el-input v-model="movieForm.genre" placeholder="VD: Hành động, Tâm lý" />
         </el-form-item>
         
-        <el-form-item label="Duration">
-          <el-input v-model="movieForm.duration" placeholder="e.g., 2h 15m" />
+        <el-form-item label="Thời lượng">
+          <el-input v-model="movieForm.duration" placeholder="VD: 2 giờ 15 phút" />
         </el-form-item>
         
-        <el-form-item label="Release Date">
+        <el-form-item label="Ngày phát hành">
           <el-date-picker
             v-model="movieForm.releaseDate"
             type="date"
-            placeholder="Select date"
+            placeholder="Chọn ngày"
             style="width: 100%"
           />
         </el-form-item>
         
-        <el-form-item label="Status">
+        <el-form-item label="Trạng thái">
           <el-select v-model="movieForm.status" style="width: 100%">
-            <el-option label="Now Showing" value="showing" />
-            <el-option label="Coming Soon" value="coming-soon" />
-            <el-option label="Ended" value="ended" />
+            <el-option label="Đang chiếu" value="showing" />
+            <el-option label="Sắp chiếu" value="coming-soon" />
+            <el-option label="Đã kết thúc" value="ended" />
           </el-select>
         </el-form-item>
       </el-form>
       
       <template #footer>
-        <el-button @click="dialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="handleSave">Save</el-button>
+        <el-button @click="dialogVisible = false">Hủy</el-button>
+        <el-button type="primary" @click="handleSave">Lưu phim</el-button>
       </template>
     </el-dialog>
   </div>
@@ -154,7 +154,7 @@ const movies = ref([
     duration: '3h 12m',
     releaseDate: '2024-01-15',
     status: 'showing',
-    poster: 'https://via.placeholder.com/300x450/667eea/ffffff?text=Avatar'
+    poster: 'https://dummyimage.com/300x450/667eea/ffffff?text=Avatar'
   },
   {
     id: 2,
@@ -163,7 +163,7 @@ const movies = ref([
     duration: '2h 10m',
     releaseDate: '2024-01-20',
     status: 'showing',
-    poster: 'https://via.placeholder.com/300x450/764ba2/ffffff?text=TopGun'
+    poster: 'https://dummyimage.com/300x450/764ba2/ffffff?text=TopGun'
   },
   {
     id: 3,
@@ -172,7 +172,7 @@ const movies = ref([
     duration: '2h 56m',
     releaseDate: '2024-02-01',
     status: 'showing',
-    poster: 'https://via.placeholder.com/300x450/f093fb/ffffff?text=Batman'
+    poster: 'https://dummyimage.com/300x450/f093fb/ffffff?text=Batman'
   },
   {
     id: 4,
@@ -181,7 +181,7 @@ const movies = ref([
     duration: '2h 28m',
     releaseDate: '2023-12-15',
     status: 'ended',
-    poster: 'https://via.placeholder.com/300x450/f5576c/ffffff?text=SpiderMan'
+    poster: 'https://dummyimage.com/300x450/f5576c/ffffff?text=SpiderMan'
   }
 ]);
 

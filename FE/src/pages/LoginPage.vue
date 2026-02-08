@@ -27,7 +27,7 @@ const handleLogin = async () => {
       router.push({ name: ROUTES_CONSTANTS.HOME.name });
     }
   } catch (err) {
-    error.value = 'Login failed. Please check your credentials.';
+    error.value = 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
     console.error(err);
   } finally {
     loading.value = false;
@@ -39,14 +39,14 @@ const handleLogin = async () => {
   <div class="login-container d-flex align-items-center justify-content-center min-vh-100">
     <!-- Glass Card with Bootstrap utilities -->
     <div class="glass-card p-4 p-md-5 bg-white bg-opacity-10 border border-white border-opacity-25 shadow-lg rounded-4 m-3 w-100" style="max-width: 420px;">
-      <h2 class="display-5 fw-bold mb-4 text-center text-white">Login</h2>
+      <h2 class="display-5 fw-bold mb-4 text-center text-white">Đăng nhập</h2>
       
       <form @submit.prevent="handleLogin">
         <div class="mb-3">
           <input 
             type="text" 
             class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-            placeholder="Username" 
+            placeholder="Tên đăng nhập" 
             v-model="username" 
             required
           >
@@ -56,7 +56,7 @@ const handleLogin = async () => {
           <input 
             type="password" 
             class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-            placeholder="Password" 
+            placeholder="Mật khẩu" 
             v-model="password" 
             required
           >
@@ -65,9 +65,9 @@ const handleLogin = async () => {
         <div class="d-flex justify-content-between align-items-center mb-4 text-white small px-1">
           <div class="form-check m-0">
             <input class="form-check-input bg-transparent border-white" type="checkbox" id="rememberMe">
-            <label class="form-check-label" for="rememberMe">Remember me</label>
+            <label class="form-check-label" for="rememberMe">Ghi nhớ tôi</label>
           </div>
-          <a href="#" class="text-white text-decoration-none hover-underline">Forgot password?</a>
+          <a href="#" class="text-white text-decoration-none hover-underline">Quên mật khẩu?</a>
         </div>
 
         <div v-if="error" class="alert alert-danger py-2 mb-3 small opacity-90">{{ error }}</div>
@@ -77,12 +77,12 @@ const handleLogin = async () => {
           class="btn btn-light w-100 rounded-pill py-2 fw-semibold mb-4 border-0 shadow-sm hover-lift" 
           :disabled="loading"
         >
-          {{ loading ? '...' : 'Login' }}
+          {{ loading ? '...' : 'Đăng nhập' }}
         </button>
 
         <div class="text-center text-white">
-          <span class="opacity-75">Don't have an account? </span>
-          <router-link to="/register" class="text-white fw-bold text-decoration-none hover-underline">Register</router-link>
+          <span class="opacity-75">Chưa có tài khoản? </span>
+          <router-link to="/register" class="text-white fw-bold text-decoration-none hover-underline">Đăng ký</router-link>
         </div>
       </form>
     </div>

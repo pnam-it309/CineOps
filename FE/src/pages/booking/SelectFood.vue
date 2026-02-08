@@ -3,6 +3,8 @@ import { useRouter } from 'vue-router';
 import { Minus, Plus, ShoppingCart } from '@element-plus/icons-vue';
 import { useBookingStore } from '@/stores/booking';
 import { mockFood } from '@/mock/movies';
+import { formatCurrency } from '@/utils/formatters';
+import { calculateTotal } from '@/utils/helpers';
 
 const router = useRouter();
 const bookingStore = useBookingStore();
@@ -26,7 +28,7 @@ const goToPrevStep = () => {
     <div class="row">
       <!-- Food List -->
       <div class="col-lg-8">
-        <h2 class="fw-bold mb-4">Popcorn & Drinks</h2>
+        <h2 class="fw-bold mb-4">Bắp & Nước</h2>
         
         <div class="row g-4">
           <div v-for="item in mockFood" :key="item.id" class="col-md-6">
@@ -38,7 +40,7 @@ const goToPrevStep = () => {
                   <p class="text-secondary small mb-3">{{ item.description }}</p>
                   
                   <div class="mt-auto d-flex justify-content-between align-items-center">
-                    <span class="fw-bold text-primary">{{ item.price.toLocaleString() }}đ</span>
+                    <span class="fw-bold text-primary">{{ formatCurrency(item.price) }}</span>
                     
                     <div class="d-flex align-items-center gap-2">
                       <el-button 
@@ -67,7 +69,7 @@ const goToPrevStep = () => {
         <!-- Note about policy -->
         <div class="alert alert-info border-0 rounded-4 mt-5 d-flex align-items-center gap-3">
           <el-icon size="24"><InfoFilled /></el-icon>
-          <span class="small">Popcorn and drinks are only applicable for the selected cinema and showtime. Please pick up your combos at the counter after successful payment.</span>
+          <span class="small">Bắp và nước chỉ áp dụng cho rạp và suất chiếu đã chọn. Vui lòng nhận combo tại quầy sau khi thanh toán thành công.</span>
         </div>
       </div>
 
@@ -75,35 +77,35 @@ const goToPrevStep = () => {
       <div class="col-lg-4 mt-4 mt-lg-0">
         <div class="card border-0 shadow-lg rounded-4 sticky-top" style="top: 100px;">
           <div class="p-4 border-bottom bg-light rounded-top-4">
-            <h5 class="fw-bold mb-0">Order Summary</h5>
+            <h5 class="fw-bold mb-0">Tóm tắt đơn hàng</h5>
           </div>
           
           <div class="p-4 bg-white">
             <div class="mb-4">
               <div class="d-flex justify-content-between mb-2">
-                <span class="text-secondary">Seats ({{ bookingStore.seatsCount }})</span>
-                <span class="fw-semibold">{{ bookingStore.seatsTotal.toLocaleString() }}đ</span>
+                <span class="text-secondary">Ghế ({{ bookingStore.seatsCount }})</span>
+                <span class="fw-semibold">{{ formatCurrency(bookingStore.seatsTotal) }}</span>
               </div>
               <div v-for="seat in bookingStore.selectedSeats" :key="seat.id" class="small text-secondary ps-2 mb-1">
-                Seat {{ seat.id }} ({{ seat.type.toUpperCase() }})
+                Ghế {{ seat.id }} ({{ seat.type.toUpperCase() }})
               </div>
             </div>
 
             <div v-if="bookingStore.selectedFood.length > 0" class="mb-4 border-top pt-3">
               <div class="d-flex justify-content-between mb-2">
-                <span class="text-secondary">Concessions</span>
-                <span class="fw-semibold">{{ bookingStore.foodTotal.toLocaleString() }}đ</span>
+                <span class="text-secondary">Bắp nước</span>
+                <span class="fw-semibold">{{ formatCurrency(bookingStore.foodTotal) }}</span>
               </div>
               <div v-for="food in bookingStore.selectedFood" :key="food.id" class="small text-secondary ps-2 mb-1 d-flex justify-content-between">
                 <span>{{ food.name }} x{{ food.quantity }}</span>
-                <span>{{ (food.price * food.quantity).toLocaleString() }}đ</span>
+                <span>{{ formatCurrency(food.price * food.quantity) }}</span>
               </div>
             </div>
 
             <div class="border-top mb-4 pt-4">
               <div class="d-flex justify-content-between align-items-center">
-                <span class="fs-5 fw-bold">Total</span>
-                <span class="fs-4 fw-bold text-primary">{{ bookingStore.finalTotal.toLocaleString() }}đ</span>
+                <span class="fs-5 fw-bold">Tổng cộng</span>
+                <span class="fs-4 fw-bold text-primary">{{ formatCurrency(bookingStore.finalTotal) }}</span>
               </div>
             </div>
 
@@ -112,10 +114,10 @@ const goToPrevStep = () => {
                 class="btn btn-primary py-3 rounded-3 fw-bold shadow-sm"
                 @click="goToNextStep"
               >
-                Go to Payment
+                Tiến hành thanh toán
               </button>
               <button class="btn btn-outline-secondary py-2 border-0" @click="goToPrevStep">
-                Back to Seats
+                Quay lại chọn ghế
               </button>
             </div>
           </div>

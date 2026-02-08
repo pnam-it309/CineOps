@@ -1,163 +1,16 @@
-<template>
-  <div class="container-fluid p-4">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-      <div>
-        <h2 class="mb-2 fs-3 fw-bold text-dark">User Management</h2>
-        <p class="text-secondary mb-0 small">Manage system users and their permissions</p>
-      </div>
-      <el-button type="primary" :icon="Plus" @click="dialogVisible = true">
-        Add New User
-      </el-button>
-    </div>
-
-    <!-- Filter and Search Bar -->
-    <el-card shadow="never" class="mb-4">
-      <el-row :gutter="20">
-        <el-col :xs="24" :sm="12" :md="8" class="mb-2 mb-md-0">
-          <el-input
-            v-model="searchQuery"
-            placeholder="Search users..."
-            :prefix-icon="Search"
-            clearable
-            @input="handleSearch"
-          />
-        </el-col>
-        <el-col :xs="24" :sm="12" :md="6" class="mb-2 mb-md-0">
-          <el-select v-model="roleFilter" placeholder="Filter by role" clearable style="width: 100%">
-            <el-option label="All Roles" value="" />
-            <el-option label="Admin" value="admin" />
-            <el-option label="Staff" value="staff" />
-            <el-option label="Customer" value="customer" />
-          </el-select>
-        </el-col>
-        <el-col :xs="24" :sm="12" :md="6" class="mb-2 mb-sm-0">
-          <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 100%">
-            <el-option label="All Status" value="" />
-            <el-option label="Active" value="active" />
-            <el-option label="Inactive" value="inactive" />
-          </el-select>
-        </el-col>
-        <el-col :xs="24" :sm="12" :md="4">
-          <el-button type="default" :icon="Refresh" @click="handleRefresh" class="w-100">Refresh</el-button>
-        </el-col>
-      </el-row>
-    </el-card>
-
-    <!-- Users Table -->
-    <el-card shadow="never" class="border-0 shadow-sm" :body-style="{ padding: '0' }">
-      <el-table
-        :data="displayedUsers"
-        style="width: 100%"
-        stripe
-        v-loading="loading"
-      >
-        <el-table-column type="index" width="60" label="#" />
-        
-        <el-table-column prop="username" label="Username" min-width="150">
-          <template #default="{ row }">
-            <div class="d-flex align-items-center gap-2">
-              <el-avatar :size="32" :src="row.avatar" />
-              <span class="fw-medium">{{ row.username }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="email" label="Email" min-width="200" />
-        
-        <el-table-column prop="role" label="Role" width="120">
-          <template #default="{ row }">
-            <el-tag :type="getRoleType(row.role)" effect="light">
-              {{ row.role }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="status" label="Status" width="120">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'info'" effect="plain">
-              {{ row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="created" label="Joined Date" width="150" />
-        
-        <el-table-column label="Actions" width="180" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" :icon="Edit" size="small" link @click="handleEdit(row)">
-              Edit
-            </el-button>
-            <el-button type="danger" :icon="Delete" size="small" link @click="handleDelete(row)">
-              Delete
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <!-- Pagination -->
-      <div class="p-4 d-flex justify-content-end border-top">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="filteredUsers.length"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
-      </div>
-    </el-card>
-
-    <!-- Add/Edit User Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="editingUser ? 'Edit User' : 'Add New User'"
-      width="500px"
-      @close="resetForm"
-    >
-      <el-form :model="userForm" label-width="100px">
-        <el-form-item label="Username">
-          <el-input v-model="userForm.username" placeholder="Enter username" />
-        </el-form-item>
-        
-        <el-form-item label="Email">
-          <el-input v-model="userForm.email" type="email" placeholder="Enter email" />
-        </el-form-item>
-        
-        <el-form-item label="Role">
-          <el-select v-model="userForm.role" placeholder="Select role" style="width: 100%">
-            <el-option label="Admin" value="admin" />
-            <el-option label="Staff" value="staff" />
-            <el-option label="Customer" value="customer" />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="Status">
-          <el-switch
-            v-model="userForm.status"
-            active-text="Active"
-            inactive-text="Inactive"
-            active-value="active"
-            inactive-value="inactive"
-          />
-        </el-form-item>
-      </el-form>
-      
-      <template #footer>
-        <el-button @click="dialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="handleSave">
-          {{ editingUser ? 'Update' : 'Create' }}
-        </el-button>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-
 <script setup>
 import { ref, computed } from 'vue';
 import { Plus, Search, Refresh, Edit, Delete } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import BaseTable from '@/components/common/BaseTable.vue';
+
+const tableColumns = [
+  { label: 'Tên đăng nhập', key: 'username' },
+  { label: 'Email', key: 'email' },
+  { label: 'Vai trò', key: 'role' },
+  { label: 'Trạng thái', key: 'status' },
+  { label: 'Ngày đăng ký', key: 'created' }
+];
 
 const loading = ref(false);
 const searchQuery = ref('');
@@ -267,15 +120,6 @@ const handleRefresh = () => {
   }, 500);
 };
 
-const handleSizeChange = (val) => {
-  pageSize.value = val;
-  currentPage.value = 1;
-};
-
-const handlePageChange = (val) => {
-  currentPage.value = val;
-};
-
 const handleEdit = (row) => {
   editingUser.value = row;
   userForm.value = { ...row };
@@ -336,3 +180,153 @@ const resetForm = () => {
   };
 };
 </script>
+
+<template>
+  <div class="user-management w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3 w-100 flex-shrink-0 pt-2">
+      <div>
+        <h2 class="mb-2 fs-2 fw-bold text-dark">Quản lý Người dùng</h2>
+      </div>
+      <el-button type="primary" size="default" :icon="Plus" round @click="dialogVisible = true">
+        Thêm người dùng mới
+      </el-button>
+    </div>
+
+    <!-- Filter and Search Bar -->
+    <el-card shadow="never" class="border-black shadow-sm rounded-4 mb-3 flex-shrink-0">
+      <el-row :gutter="10">
+        <el-col :xs="24" :sm="12" :md="8" class="mb-1 mb-md-0">
+          <el-input
+            v-model="searchQuery"
+            placeholder="Tìm theo tên hoặc email..."
+            :prefix-icon="Search"
+            size="default"
+            clearable
+            @input="handleSearch"
+          />
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" class="mb-1 mb-md-0">
+          <el-select v-model="roleFilter" placeholder="Lọc theo vai trò" size="default" clearable style="width: 100%">
+            <el-option label="Tất cả vai trò" value="" />
+            <el-option label="Quản trị viên" value="admin" />
+            <el-option label="Nhân viên" value="staff" />
+            <el-option label="Khách hàng" value="customer" />
+          </el-select>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" class="mb-1 mb-sm-0">
+          <el-select v-model="statusFilter" placeholder="Lọc trạng thái" size="default" clearable style="width: 100%">
+            <el-option label="Tất cả trạng thái" value="" />
+            <el-option label="Đang hoạt động" value="active" />
+            <el-option label="Bị khóa" value="inactive" />
+          </el-select>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="4">
+          <el-button type="default" size="default" :icon="Refresh" @click="handleRefresh" class="w-100">Làm mới</el-button>
+        </el-col>
+      </el-row>
+    </el-card>
+
+    <!-- Users Table Container -->
+    <div class="flex-grow-1 overflow-auto no-scroll">
+      <BaseTable
+        :data="displayedUsers"
+        :columns="tableColumns"
+        :total="filteredUsers.length"
+        v-model:currentPage="currentPage"
+        :page-size="pageSize"
+        @edit="handleEdit"
+        @delete="handleDelete"
+      >
+        <template #cell-username="{ row }">
+          <div class="d-flex align-items-center justify-content-center gap-2">
+            <el-avatar :size="28" :src="row.avatar" />
+            <span class="fw-medium small">{{ row.username }}</span>
+          </div>
+        </template>
+
+        <template #cell-role="{ row }">
+          <el-tag :type="getRoleType(row.role)" effect="light" size="small">
+            {{ row.role }}
+          </el-tag>
+        </template>
+
+        <template #cell-status="{ row }">
+          <el-tag :type="row.status === 'active' ? 'success' : 'info'" effect="plain" size="small">
+            {{ row.status }}
+          </el-tag>
+        </template>
+      </BaseTable>
+    </div>
+
+    <!-- Add/Edit User Dialog -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="editingUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'"
+      width="500px"
+      @close="resetForm"
+    >
+      <el-form :model="userForm" label-width="120px">
+        <el-form-item label="Tên đăng nhập">
+          <el-input v-model="userForm.username" placeholder="Nhập tên đăng nhập" />
+        </el-form-item>
+        
+        <el-form-item label="Địa chỉ Email">
+          <el-input v-model="userForm.email" type="email" placeholder="email@example.com" />
+        </el-form-item>
+        
+        <el-form-item label="Vai trò">
+          <el-select v-model="userForm.role" placeholder="Chọn vai trò" style="width: 100%">
+            <el-option label="Quản trị viên" value="admin" />
+            <el-option label="Nhân viên" value="staff" />
+            <el-option label="Khách hàng" value="customer" />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="Trạng thái">
+          <el-switch
+            v-model="userForm.status"
+            active-text="Hoạt động"
+            inactive-text="Bị khóa"
+            active-value="active"
+            inactive-value="inactive"
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button @click="dialogVisible = false">Hủy</el-button>
+        <el-button type="primary" @click="handleSave" class="px-4">
+          {{ editingUser ? 'Cập nhật' : 'Tạo mới' }}
+        </el-button>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<style scoped>
+.user-management {
+  height: calc(100vh - 84px);
+}
+
+:deep(.el-card) {
+  border: 1px solid #000 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.no-scroll {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow: hidden !important;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+.overflow-auto.no-scroll {
+  overflow-y: auto !important;
+}
+</style>
+

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { ShoppingCart, VideoPlay, Menu, User, Money, Check, ArrowRight, Delete } from '@element-plus/icons-vue';
+import { ShoppingCart, VideoPlay, Menu, User, Money, Check, ArrowRight, ArrowLeft, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { mockMovies } from '@/mock/movies';
 
@@ -38,8 +38,35 @@ const handleAddCombo = (combo) => {
   }
 };
 
+// Pagination for Concessions
+const concessionPageSize = 4;
+const concessionPage = ref(1);
+
+const totalConcessionPages = computed(() => Math.ceil(combos.length / concessionPageSize));
+
+const paginatedCombos = computed(() => {
+  const start = (concessionPage.value - 1) * concessionPageSize;
+  const end = start + concessionPageSize;
+  const currentItems = combos.slice(start, end);
+
+  // Fill with empty slots to always have 4
+  const slotsNeeded = concessionPageSize - currentItems.length;
+  const slots = [...currentItems];
+  for (let i = 0; i < slotsNeeded; i++) {
+    slots.push({ id: `empty-${i}`, isPlaceholder: true });
+  }
+  return slots;
+});
+
+const handleConcessionPageChange = (delta) => {
+  const newPage = concessionPage.value + delta;
+  if (newPage >= 1 && newPage <= totalConcessionPages.value) {
+    concessionPage.value = newPage;
+  }
+};
+
 const handleCheckout = () => {
-  ElMessage.success('Order completed successfully! Printing tickets...');
+  ElMessage.success('Đơn hàng đã hoàn tất! Đang in vé...');
   // Reset
   selectedSeats.value = [];
   selectedCombos.value = [];
@@ -47,69 +74,93 @@ const handleCheckout = () => {
 </script>
 
 <template>
-  <div class="staff-sales container-fluid p-4 h-100 overflow-hidden d-flex flex-column">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2 class="fs-4 fw-bold mb-0">Sales Counter</h2>
-      <div class="text-secondary small">Operator: <strong>Staff_01</strong></div>
+  <div class="staff-sales w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
+    <!-- Header: Gọn hơn -->
+    <div class="d-flex justify-content-between align-items-center mb-1 flex-shrink-0">
+      <h2 class="fs-6 fw-bold mb-0">Quầy bán vé</h2>
+      <div class="text-secondary small" style="font-size: 0.7rem;">NV: Staff_01</div>
     </div>
 
-    <div class="row g-3 flex-grow-1 overflow-hidden">
+    <!-- Main Content Grid -->
+    <div class="row g-2 flex-grow-1 overflow-hidden no-scroll">
       <!-- Left: Selection Panel -->
-      <div class="col-lg-8 overflow-auto h-100 d-flex flex-column gap-3">
-        
-        <!-- Section 1: Movie & Showtime -->
-        <el-card shadow="never" class="border-0 shadow-sm rounded-3">
-          <div class="row g-3">
-            <div class="col-md-7">
-              <label class="small fw-bold text-secondary text-uppercase mb-2 d-block">1. Select Movie</label>
-              <el-select v-model="selectedMovie" value-key="id" class="w-100" size="large">
+      <div class="col-lg-8 h-100 d-flex flex-column gap-2 overflow-hidden">
+
+        <!-- Section 1: Movie & Showtime (Fix Height) -->
+        <el-card shadow="never" class="border-0 shadow-sm rounded-4 compact-card flex-shrink-0">
+          <div class="row g-2">
+            <div class="col-7">
+              <label class="x-small fw-bold text-secondary text-uppercase mb-1 d-block scale-text">1. Chọn phim</label>
+              <el-select v-model="selectedMovie" value-key="id" class="w-100" size="small">
                 <el-option v-for="m in mockMovies" :key="m.id" :label="m.title" :value="m" />
               </el-select>
             </div>
-            <div class="col-md-5">
-              <label class="small fw-bold text-secondary text-uppercase mb-2 d-block">2. Showtime</label>
-              <el-select v-model="selectedShowtime" value-key="id" class="w-100" size="large">
+            <div class="col-5">
+              <label class="x-small fw-bold text-secondary text-uppercase mb-1 d-block scale-text">2. Suất chiếu</label>
+              <el-select v-model="selectedShowtime" value-key="id" class="w-100" size="small">
                 <el-option v-for="s in showtimes" :key="s.id" :label="`${s.time} - ${s.room}`" :value="s" />
               </el-select>
             </div>
           </div>
         </el-card>
 
-        <!-- Section 2: Seats -->
-        <el-card shadow="never" class="border-0 shadow-sm rounded-3 flex-grow-1">
-          <label class="small fw-bold text-secondary text-uppercase mb-3 d-block">3. Select Seats</label>
-          <div class="text-center mb-4">
-            <div class="bg-secondary bg-opacity-10 py-1 rounded-pill small w-50 mx-auto text-secondary fw-bold">SCREEN</div>
+        <!-- Section 2: Seats (UI label 3) -->
+        <el-card shadow="never"
+          class="border-0 shadow-sm rounded-4 d-flex flex-column overflow-hidden compact-card flex-shrink-0">
+          <label class="x-small fw-bold text-secondary text-uppercase mb-1 d-block scale-text">3. Chọn chỗ ngồi</label>
+          <div class="text-center mb-1">
+            <div
+              class="bg-secondary bg-opacity-10 py-1 rounded-pill x-small w-50 mx-auto text-secondary fw-bold scale-text">
+              MÀN HÌNH</div>
           </div>
-          <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
-            <div 
-              v-for="i in 40" 
-              :key="i" 
-              class="rounded-1 d-flex align-items-center justify-content-center cursor-pointer border shadow-none"
-              style="width: 32px; height: 32px; font-size: 0.7rem;"
-              :class="i % 7 === 0 ? 'bg-secondary bg-opacity-25 border-0' : (i < 5 ? 'bg-primary text-white border-primary' : 'bg-light')"
-            >
-              {{ i }}
+          <div class="d-flex align-items-center justify-content-center overflow-hidden py-1">
+            <div class="d-flex flex-wrap justify-content-center gap-1" style="max-width: 400px;">
+              <div v-for="i in 40" :key="i"
+                class="rounded-1 d-flex align-items-center justify-content-center cursor-pointer border seat-box"
+                :class="i % 7 === 0 ? 'bg-secondary bg-opacity-25 border-0 text-white text-opacity-0' : (i < 5 ? 'bg-primary text-white border-primary' : 'bg-light')">
+                {{ i }}
+              </div>
             </div>
           </div>
-          <div class="d-flex justify-content-center gap-4 small text-secondary">
-            <div class="d-flex align-items-center gap-1"><span class="d-inline-block bg-primary rounded-1" style="width: 12px; height: 12px;"></span> Selected</div>
-            <div class="d-flex align-items-center gap-1"><span class="d-inline-block bg-light border rounded-1" style="width: 12px; height: 12px;"></span> Available</div>
-            <div class="d-flex align-items-center gap-1"><span class="d-inline-block bg-secondary bg-opacity-25 rounded-1" style="width: 12px; height: 12px;"></span> Sold</div>
+          <div class="d-flex justify-content-center gap-3 x-small text-secondary mt-1 scale-text">
+            <div class="d-flex align-items-center gap-1"><span class="d-inline-block bg-primary rounded-1"
+                style="width: 8px; height: 8px;"></span> Đang chọn</div>
+            <div class="d-flex align-items-center gap-1"><span class="d-inline-block bg-light border rounded-1"
+                style="width: 8px; height: 8px;"></span> Trống</div>
+            <div class="d-flex align-items-center gap-1"><span
+                class="d-inline-block bg-secondary bg-opacity-25 rounded-1" style="width: 8px; height: 8px;"></span>
+              Đã bán</div>
           </div>
         </el-card>
 
-        <!-- Section 3: Concessions -->
-        <el-card shadow="never" class="border-0 shadow-sm rounded-3">
-          <label class="small fw-bold text-secondary text-uppercase mb-3 d-block">4. Concessions</label>
+        <!-- Section 3: Concessions (UI label 4) -->
+        <el-card shadow="never" class="border-0 shadow-sm rounded-4 compact-card flex-shrink-0">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="x-small fw-bold text-secondary text-uppercase scale-text mb-0">4. Bắp nước & Combo</label>
+            <div v-if="totalConcessionPages > 1" class="d-flex gap-1">
+              <el-button :icon="ArrowLeft" size="small" circle @click="handleConcessionPageChange(-1)"
+                :disabled="concessionPage === 1" />
+              <el-button :icon="ArrowRight" size="small" circle @click="handleConcessionPageChange(1)"
+                :disabled="concessionPage === totalConcessionPages" />
+            </div>
+          </div>
           <div class="row g-2">
-            <div v-for="c in combos" :key="c.id" class="col-md-6">
-              <div class="p-2 border rounded-3 d-flex justify-content-between align-items-center hover-bg" @click="handleAddCombo(c)">
-                <div>
-                  <div class="fw-bold small">{{ c.name }}</div>
+            <div v-for="c in paginatedCombos" :key="c.id" class="col-6">
+              <!-- Actual Item -->
+              <div v-if="!c.isPlaceholder"
+                class="p-2 border rounded-3 d-flex justify-content-between align-items-center hover-bg concession-item"
+                @click="handleAddCombo(c)">
+                <div class="overflow-hidden">
+                  <div class="fw-bold small text-truncate">{{ c.name }}</div>
+                  <div class="text-secondary x-small text-truncate mb-1">{{ c.desc }}</div>
                   <div class="text-primary fw-bold">{{ c.price.toLocaleString() }}đ</div>
                 </div>
-                <el-button :icon="ShoppingCart" size="small" circle />
+                <el-button :icon="ShoppingCart" size="default" circle />
+              </div>
+              <!-- Placeholder Item -->
+              <div v-else
+                class="p-2 border rounded-3 border-dashed d-flex align-items-center justify-content-center text-secondary x-small opacity-25 concession-item">
+                Khuyến mãi sắp có
               </div>
             </div>
           </div>
@@ -117,44 +168,51 @@ const handleCheckout = () => {
       </div>
 
       <!-- Right: Order Summary & Payment -->
-      <div class="col-lg-4 h-100">
-        <el-card shadow="never" class="border-0 shadow-sm rounded-3 h-100 d-flex flex-column p-0">
-          <div class="bg-light p-3 border-bottom">
-            <h6 class="fw-bold mb-0">Order Summary</h6>
+      <div class="col-lg-4 h-100 overflow-hidden d-flex flex-column">
+        <el-card shadow="never"
+          class="border-0 shadow-sm rounded-4 d-flex flex-column p-0 overflow-hidden compact-card mb-auto">
+          <div class="bg-light p-2 px-3 border-bottom flex-shrink-0">
+            <h6 class="fw-bold mb-0 x-small scale-text">Chi tiết đơn hàng</h6>
           </div>
-          <div class="p-3 flex-grow-1 overflow-auto">
-            <div class="mb-3">
-              <div class="fw-bold">{{ selectedMovie.title }}</div>
-              <div class="small text-secondary">{{ selectedShowtime.time }} | {{ selectedShowtime.room }}</div>
+
+          <div class="p-2 d-flex flex-column overflow-hidden">
+            <div class="mb-1">
+              <div class="fw-bold x-small text-truncate">{{ selectedMovie.title }}</div>
+              <div class="x-small text-secondary" style="font-size: 0.65rem;">{{ selectedShowtime.time }} | {{
+                selectedShowtime.room }}</div>
             </div>
-            
-            <div class="border-top pt-3 mb-3">
-              <div class="d-flex justify-content-between small mb-2">
-                <span>Tickets ({{ selectedSeats.length }})</span>
+
+            <div class="border-top pt-1 mb-1  overflow-hidden">
+              <div class="d-flex justify-content-between x-small mb-1 scale-text">
+                <span>Vé xem phim ({{ selectedSeats.length }})</span>
                 <span class="fw-bold">{{ (selectedSeats.length * 95000).toLocaleString() }}đ</span>
               </div>
-              <div v-for="c in selectedCombos" :key="c.id" class="d-flex justify-content-between small mb-2">
-                <span>{{ c.name }} x{{ c.qty }}</span>
-                <span class="fw-bold">{{ (c.price * c.qty).toLocaleString() }}đ</span>
+              <div class="item-list-container no-scrollbar" style="min-height: 230px;">
+                <div v-for="c in selectedCombos" :key="c.id"
+                  class="d-flex justify-content-between x-small mb-1 scale-text">
+                  <span class="text-truncate" style="max-width: 120px;">{{ c.name }} x{{ c.qty }}</span>
+                  <span class="fw-bold">{{ (c.price * c.qty).toLocaleString() }}đ</span>
+                </div>
               </div>
             </div>
 
-            <div class="border-top border-dark border-2 pt-3">
+            <div class="border-top border-dark border-1 pt-2 flex-shrink-0 mt-2">
               <div class="d-flex justify-content-between align-items-center">
-                <span class="fw-bold">TOTAL</span>
-                <span class="fs-4 fw-bold text-primary">{{ totalPrice.toLocaleString() }}đ</span>
+                <span class="fw-bold x-small scale-text">TỔNG CỘNG</span>
+                <span class="fs-6 fw-bold text-primary">{{ totalPrice.toLocaleString() }}đ</span>
               </div>
             </div>
           </div>
 
-          <div class="p-3 bg-light border-top mt-auto">
-            <label class="small fw-bold text-secondary text-uppercase mb-3 d-block">Payment Method</label>
-            <div class="d-flex gap-2 mb-3">
-              <el-button type="primary" class="flex-grow-1" size="large">CASH</el-button>
-              <el-button class="flex-grow-1" size="large">CARD</el-button>
+          <div class="p-2 px-3 bg-light border-top flex-shrink-0">
+            <label
+              class="x-small fw-bold text-secondary text-uppercase mb-1 d-block text-center scale-text">Thanh toán</label>
+            <div class="d-flex gap-2 mb-1">
+              <el-button type="primary" class="flex-grow-1" size="small" plain>TIỀN MẶT</el-button>
+              <el-button class="flex-grow-1" size="small" plain>THẺ / CHUYỂN KHOẢN</el-button>
             </div>
-            <el-button type="success" class="w-100 py-3 fw-bold" size="large" @click="handleCheckout">
-              CONFIRM ORDER
+            <el-button type="success" class="w-100 py-2 fw-bold rounded-3" size="small" @click="handleCheckout">
+              XÁC NHẬN
             </el-button>
           </div>
         </el-card>
@@ -164,7 +222,92 @@ const handleCheckout = () => {
 </template>
 
 <style scoped>
-.hover-bg { cursor: pointer; transition: background 0.2s; }
-.hover-bg:hover { background-color: #f8f9fa; }
-.staff-sales { max-height: calc(100vh - 80px); }
+.hover-bg {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.hover-bg:hover {
+  background-color: #f8f9fa;
+}
+
+/* Ép toàn bộ container vừa khít el-main và KHÔNG scroll */
+.staff-sales {
+  height: 100%;
+  max-height: calc(100vh - 84px);
+  position: relative;
+  overflow: hidden !important;
+}
+
+/* Ép Card body không bao giờ tự mở rộng gây scroll */
+:deep(.el-card) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 12px !important;
+  border: 1px solid #000000 !important;
+  /* Đường viền màu đen */
+}
+
+.concession-item {
+  height: 75px;
+}
+
+:deep(.el-card__body) {
+  flex: 1 !important;
+  padding: 8px 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Seat box nhỏ lại để khít màn hình */
+.seat-box {
+  width: 40px;
+  height: 40px;
+  font-size: 0.75rem;
+}
+
+.x-small {
+  font-size: 0.7rem;
+}
+
+/* Ẩn mọi loại scrollbar trong component này */
+.no-scroll {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.no-scroll::-webkit-scrollbar,
+.staff-sales::-webkit-scrollbar,
+.el-card__body::-webkit-scrollbar,
+.item-list-container::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Ngăn nội dung bị đẩy xuống khi zoom */
+.flex-shrink-0 {
+  flex-shrink: 0 !important;
+}
+
+.scale-text {
+  transform-origin: left top;
+  white-space: nowrap;
+}
+
+.item-list-container {
+  max-height: 60px;
+  overflow: hidden;
+}
+
+@media screen and (max-height: 700px) {
+  .seat-box {
+    width: 26px;
+    height: 26px;
+  }
+
+  .fs-6 {
+    font-size: 0.9rem !important;
+  }
+}
 </style>
