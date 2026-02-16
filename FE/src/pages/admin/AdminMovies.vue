@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { Search, Plus, Edit, Delete, Filter, Picture } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { mockMovies } from '@/mock/movies';
+import { mockMovies } from '@/mock';
 
 // State
 const searchQuery = ref('');

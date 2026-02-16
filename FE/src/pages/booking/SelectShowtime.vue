@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Location, Calendar, Timer } from '@element-plus/icons-vue';
-import { mockMovies, mockCinemas, mockShowtimes } from '@/mock/movies';
+import { mockMovies, mockCinemas, mockShowtimes } from '@/mock';
 
 const route = useRoute();
 const router = useRouter();
@@ -95,20 +95,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Step 2: Cinema Selection -->
-        <div class="mb-5">
-          <label class="form-label fw-semibold text-secondary mb-3">
-            <el-icon class="me-1"><Location /></el-icon> Chọn Rạp
-          </label>
-          <el-select v-model="selectedCinemaId" placeholder="Chọn rạp" size="large" class="w-100">
-            <el-option
-              v-for="cinema in mockCinemas"
-              :key="cinema.id"
-              :label="cinema.name + ' - ' + cinema.location"
-              :value="cinema.id"
-            />
-          </el-select>
-        </div>
+
 
         <!-- Step 3: Available Showtimes -->
         <div class="mb-4">

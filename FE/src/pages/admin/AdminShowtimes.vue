@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { Plus, Calendar, Clock, Filter, Location, ArrowLeft, ArrowRight, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { mockMovies } from '@/mock/movies';
+import { mockMovies } from '@/mock';
 
 const weekDays = ['Mon 01', 'Tue 02', 'Wed 03', 'Thu 04', 'Fri 05', 'Sat 06', 'Sun 07'];
 const timeSlots = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '00:00'];

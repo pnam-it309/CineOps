@@ -4,10 +4,9 @@ import { Plus, Edit, Delete, Location, House, Setting, View } from '@element-plu
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 // Mock Cinemas
+// Mock Cinemas
 const cinemas = ref([
-  { id: 1, name: 'CineOps Central', address: 'District 1, HCM', rooms: 4 },
-  { id: 2, name: 'CineOps East Side', address: 'District 2, HCM', rooms: 6 },
-  { id: 3, name: 'CineOps West Park', address: 'Tan Binh, HCM', rooms: 8 }
+  { id: 1, name: 'CineOps Central', address: 'District 1, HCM', rooms: 4 }
 ]);
 
 const selectedCinema = ref(cinemas.value[0]);
@@ -88,9 +87,6 @@ const pageSize = 10;
         <h2 class="fs-2 fw-bold text-dark mb-1">Cụm Rạp & Phòng Chiếu</h2>
       </div>
       <div class="d-flex gap-2">
-        <el-select v-model="selectedCinema" value-key="id" size="default" class="cinema-select">
-          <el-option v-for="c in cinemas" :key="c.id" :label="c.name" :value="c" />
-        </el-select>
         <el-button type="primary" size="default" :icon="Plus" round @click="openDesigner()">Thêm phòng</el-button>
       </div>
     </div>

@@ -23,25 +23,34 @@
     <!-- Tickets List -->
     <el-row :gutter="20">
       <el-col :xs="24" :md="12" :lg="8" v-for="ticket in filteredTickets" :key="ticket.id" class="mb-4">
-        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect" :class="{'opacity-75': ticket.status === 'cancelled'}">
+        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect"
+          :class="{ 'opacity-75': ticket.status === 'cancelled' }">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <el-tag :type="getStatusType(ticket.status)" effect="dark" round class="px-3 border-0">
               {{ getStatusLabel(ticket.status) }}
             </el-tag>
             <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, ticket)">
-              <el-icon class="cursor-pointer fs-5 text-secondary hover-primary"><MoreFilled /></el-icon>
+              <el-icon class="cursor-pointer fs-5 text-secondary hover-primary">
+                <MoreFilled />
+              </el-icon>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="view">
-                    <el-icon><View /></el-icon>
+                    <el-icon>
+                      <View />
+                    </el-icon>
                     Xem chi tiết
                   </el-dropdown-item>
                   <el-dropdown-item command="download" v-if="ticket.status !== 'cancelled'">
-                    <el-icon><Download /></el-icon>
+                    <el-icon>
+                      <Download />
+                    </el-icon>
                     Tải vé (PDF)
                   </el-dropdown-item>
                   <el-dropdown-item command="cancel" divided v-if="ticket.status === 'upcoming'" class="text-danger">
-                    <el-icon><Delete /></el-icon>
+                    <el-icon>
+                      <Delete />
+                    </el-icon>
                     Hủy vé này
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -56,44 +65,46 @@
 
             <div class="flex-grow-1">
               <h3 class="fs-6 fw-bold text-dark mb-2">{{ ticket.movieTitle }}</h3>
-              
+
               <div class="d-flex align-items-center gap-2 mb-2 small text-secondary">
-                <el-icon><Calendar /></el-icon>
+                <el-icon>
+                  <Calendar />
+                </el-icon>
                 <span>{{ ticket.showDate }}</span>
               </div>
-              
+
               <div class="d-flex align-items-center gap-2 mb-2 small text-secondary">
-                <el-icon><Clock /></el-icon>
+                <el-icon>
+                  <Clock />
+                </el-icon>
                 <span>{{ ticket.showTime }}</span>
               </div>
-              
+
               <div class="d-flex align-items-center gap-2 mb-2 small text-secondary-dark">
-                <el-icon><Location /></el-icon>
+                <el-icon>
+                  <Location />
+                </el-icon>
                 <span>Rạp: {{ ticket.cinema }} - Phòng {{ ticket.hall }}</span>
               </div>
-              
+
               <div class="d-flex align-items-center gap-2 small text-secondary-dark">
-                <el-icon><Tickets /></el-icon>
+                <el-icon>
+                  <Tickets />
+                </el-icon>
                 <span>Ghế: <strong class="text-dark">{{ ticket.seats.join(', ') }}</strong></span>
               </div>
             </div>
           </div>
 
-          <el-divider class="my-4 border-light-subtle"/>
+          <el-divider class="my-4 border-light-subtle" />
 
           <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex flex-column">
               <span class="text-secondary-light x-small text-uppercase fw-bold mb-1">Tổng tiền vé</span>
               <span class="fs-4 fw-bold text-primary">{{ ticket.totalPrice.toLocaleString('vi-VN') }}đ</span>
             </div>
-            <el-button
-              v-if="ticket.status === 'upcoming'"
-              type="primary"
-              size="default"
-              @click="handleViewQR(ticket)"
-              round
-              class="px-3"
-            >
+            <el-button v-if="ticket.status === 'upcoming'" type="primary" size="default" @click="handleViewQR(ticket)"
+              round class="px-3">
               Hiện mã QR
             </el-button>
           </div>
@@ -110,19 +121,17 @@
 
     <!-- Pagination -->
     <div class="p-4 d-flex justify-content-center" v-if="filteredTickets.length > 0">
-      <el-pagination
-        v-model:current-page="currentPage"
-        :page-size="pageSize"
-        layout="prev, pager, next"
-        :total="filteredTickets.length"
-      />
+      <el-pagination v-model:current-page="currentPage" :page-size="pageSize" layout="prev, pager, next"
+        :total="filteredTickets.length" />
     </div>
 
     <!-- QR Code Dialog -->
     <el-dialog v-model="qrDialogVisible" title="Your Ticket QR Code" width="400px">
       <div>
         <div class="d-flex justify-content-center p-4 bg-light rounded mb-3">
-          <el-icon :size="120" class="text-secondary"><Postcard /></el-icon>
+          <el-icon :size="120" class="text-secondary">
+            <Postcard />
+          </el-icon>
         </div>
         <p class="text-center text-secondary mb-3 small">Show this QR code at the cinema entrance</p>
         <el-descriptions :column="1" border>
@@ -274,9 +283,11 @@ const handleCancelTicket = (ticket) => {
   transition: transform 0.3s ease;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
+
 .cursor-pointer {
   cursor: pointer;
 }
+
 .object-fit-cover {
   object-fit: cover;
 }
@@ -296,8 +307,19 @@ const handleCancelTicket = (ticket) => {
   border-color: var(--el-color-primary) !important;
 }
 
-.tracking-tight { letter-spacing: -0.025em; }
-.x-small { font-size: 0.7rem; }
-.text-secondary-light { color: #94a3b8; }
-.text-secondary-dark { color: #64748b; }
+.tracking-tight {
+  letter-spacing: -0.025em;
+}
+
+.x-small {
+  font-size: 0.7rem;
+}
+
+.text-secondary-light {
+  color: #94a3b8;
+}
+
+.text-secondary-dark {
+  color: #64748b;
+}
 </style>

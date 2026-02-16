@@ -1,17 +1,18 @@
 <template>
   <div class="d-flex flex-column h-100 bg-dark text-white">
     <div
-      class="d-flex align-items-center justify-content-center p-3 text-white fw-bold fs-4 border-bottom border-light border-opacity-10"
+      class="d-flex align-items-center justify-content-center gap-2 p-3 text-white fw-bold fs-4 border-bottom border-light border-opacity-10 staff-header"
       style="height: 60px;">
+      <img v-if="!isCollapse" src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" class="sidebar-logo" />
       <transition name="fade">
         <span v-if="!isCollapse" class="text-nowrap">Nhân Viên CineOps</span>
-        <span v-else class="fs-4">NV</span>
+        <span v-else class="fs-5">NV</span>
       </transition>
     </div>
 
     <el-menu :default-active="activeMenu" :collapse="isCollapse" :collapse-transition="false" background-color="#212529"
-      text-color="#adb5bd" active-text-color="#0d6efd" class="flex-grow-1 border-0 overflow-auto"
-      style="--el-menu-bg-color: #212529; --el-menu-text-color: #adb5bd; --el-menu-active-color: #0d6efd;" router
+      text-color="#adb5bd" active-text-color="#E31E24" class="flex-grow-1 border-0 overflow-auto"
+      style="--el-menu-bg-color: #212529; --el-menu-text-color: #adb5bd; --el-menu-active-color: #E31E24;" router
       menu-trigger="hover">
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.STAFF.children.DASHBOARD)">
         <el-icon>
@@ -148,5 +149,16 @@ const handleCommand = (command) => {
 .el-menu::-webkit-scrollbar {
   display: none;
   /* Chrome, Safari, Edge */
+}
+
+.sidebar-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.staff-header {
+  background: linear-gradient(90deg, #A51C1C 0%, #E31E24 40%, #F37021 70%, #FFBA00 100%);
 }
 </style>

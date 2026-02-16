@@ -1,179 +1,218 @@
-<template>
-  <div class="homepage">
-    <!-- Banner Slider -->
-    <section class="banner-section">
-      <el-carousel :interval="5000" arrow="always" height="500px" class="banner-carousel">
-        <el-carousel-item v-for="banner in banners" :key="banner.id">
-          <div 
-            class="banner-slide d-flex align-items-center justify-content-center position-relative"
-            :style="{ backgroundImage: `url(${banner.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
-          >
-            <div class="banner-overlay position-absolute top-0 start-0 w-100 h-100"></div>
-            <div class="banner-content position-relative text-center text-white px-4">
-              <h1 class="display-3 fw-bold mb-3">{{ banner.title }}</h1>
-              <p class="fs-4 mb-4">{{ banner.subtitle }}</p>
-              <el-button 
-                v-if="banner.movieId" 
-                type="primary" 
-                size="large" 
-                @click="goToMovie(banner.movieId)"
-              >
-                Đặt Vé Ngay
-              </el-button>
+﻿<template>
+  <div class="homepage bg-dark-primary">
+    <!-- Hero Bento Section -->
+    <section class="hero-bento-section container-xl py-5" ref="bentoSectionRef">
+      <!-- Animated Background Orbs -->
+      <div class="hero-bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+      </div>
+
+      <!-- Row 1: Hero (2x2) + Stats (1x1 each) -->
+      <div class="row g-4">
+        <!-- Hero Card — auto-rotating featured movie -->
+        <div class="col-lg-8 hero-fade-in" :class="{ 'auto-glow': activeGlowIndex === 0 }">
+          <div class="bento-card bento-card--hero p-5 h-100 d-flex flex-column justify-content-end position-relative overflow-hidden">
+            <transition name="hero-img" mode="out-in">
+              <img :src="currentHero.backdrop || currentHero.poster" :alt="currentHero.title" class="featured-bg" :key="'bg-' + currentHero.id">
+            </transition>
+            <div class="featured-overlay-gradient"></div>
+            <div class="featured-overlay-vignette"></div>
+
+            <!-- Slide indicator dots -->
+            <div class="hero-dots position-absolute z-3">
+              <span v-for="(m, i) in featuredMovies" :key="m.id"
+                class="hero-dot" :class="{ active: i === heroIndex }"
+                @click="heroIndex = i"></span>
+            </div>
+
+            <transition name="hero-text" mode="out-in">
+              <div class="position-relative z-3" :key="'txt-' + currentHero.id">
+                <span class="bento-badge bento-badge--featured mb-3 d-inline-block">⚡ Featured</span>
+                <h1 class="display-3 fw-bold text-white mb-2 hero-title">{{ currentHero.title }}</h1>
+                <p class="small text-white-50 mb-1">{{ currentHero.vietnameseTitle }}</p>
+                <div class="d-flex gap-3 align-items-center mb-3 flex-wrap">
+                  <span class="badge bg-warning text-dark" v-if="currentHero.imdbRating">★ {{ currentHero.imdbRating }}</span>
+                  <span class="text-secondary small">{{ currentHero.genre }}</span>
+                  <span class="text-secondary small">{{ currentHero.duration }} phút</span>
+                  <span class="badge bg-secondary">{{ currentHero.rating }}</span>
+                </div>
+                <p class="fs-6 text-white-75 mb-4 hero-synopsis">{{ currentHero.synopsis }}</p>
+                <button class="bento-btn-book" @click="goToMovie(currentHero)">
+                  <span class="bento-btn-book__icon">▶</span>
+                  Đặt Vé Ngay
+                </button>
+              </div>
+            </transition>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="row g-4 h-100">
+            <!-- Stat Card 1 -->
+            <div class="col-12 hero-fade-in" style="animation-delay: 0.2s" :class="{ 'auto-glow': activeGlowIndex === 1 }">
+              <div class="bento-card bento-card--stat h-100 d-flex flex-column align-items-center justify-content-center text-center p-4">
+                <div class="accent-dot-pulse mb-3"></div>
+                <h2 class="display-3 fw-bold text-gradient-animated mb-2">{{ displayTickets }}</h2>
+                <p class="text-secondary mb-0 fw-medium">Phim Đang Chiếu</p>
+              </div>
+            </div>
+
+            <!-- Stat Card 2 -->
+            <div class="col-12 hero-fade-in" style="animation-delay: 0.3s" :class="{ 'auto-glow': activeGlowIndex === 2 }">
+              <div class="bento-card bento-card--stat h-100 d-flex flex-column align-items-center justify-content-center text-center p-4">
+                <div class="accent-dot-pulse mb-3"></div>
+                <h2 class="display-3 fw-bold text-gradient-animated mb-2">{{ displayUsers }}</h2>
+                <p class="text-secondary mb-0 fw-medium">Khách Hàng Hài Lòng</p>
+              </div>
             </div>
           </div>
-        </el-carousel-item>
-      </el-carousel>
-    </section>
-
-    <!-- Quick Booking Widget -->
-    <section class="quick-booking-section container-xl position-relative">
-      <div class="quick-booking-container bg-white shadow-lg rounded-4 p-4 p-md-3 d-flex flex-column flex-md-row gap-3 align-items-end justify-content-between">
-        <div class="flex-fill d-flex flex-column gap-2 w-100">
-          <label class="x-small fw-bold text-uppercase text-secondary tracking-wider ms-1">Chọn Phim</label>
-          <el-select v-model="quickBooking.movie" placeholder="Chọn phim" size="large" class="w-100 custom-quick-select" filterable>
-            <el-option v-for="movie in movies" :key="movie.id" :label="movie.title" :value="movie.id" />
-          </el-select>
         </div>
-        
-        <div class="flex-fill d-flex flex-column gap-2 w-100">
-          <label class="x-small fw-bold text-uppercase text-secondary tracking-wider ms-1">Chọn Rạp</label>
-          <el-select v-model="quickBooking.cinema" placeholder="Chọn rạp" size="large" class="w-100 custom-quick-select" :disabled="!quickBooking.movie">
-            <el-option label="CineOps Central" value="1" />
-            <el-option label="CineOps Downtown" value="2" />
-            <el-option label="CineOps Mall" value="3" />
-          </el-select>
-        </div>
+      </div>
 
-        <div class="flex-fill d-flex flex-column gap-2 w-100">
-          <label class="x-small fw-bold text-uppercase text-secondary tracking-wider ms-1">Chọn Ngày</label>
-          <el-date-picker
-            v-model="quickBooking.date"
-            type="date"
-            placeholder="Chọn ngày"
-            size="large"
-            class="w-100 custom-quick-select"
-            :disabled="!quickBooking.cinema"
-            format="DD/MM/YYYY"
-          />
+      <!-- Row 2: Trending (2x1) + Promo (1x1) -->
+      <div class="row g-4 mt-0">
+        <!-- Trending Card — auto-rotating -->
+        <div class="col-lg-8 hero-fade-in" style="animation-delay: 0.4s" :class="{ 'auto-glow': activeGlowIndex === 3 }">
+          <div class="bento-card bento-card--trending p-4 h-100 d-flex align-items-center gap-4">
+            <transition name="trending-img" mode="out-in">
+              <div class="trending-img-wrapper flex-shrink-0" :key="'timg-' + currentTrending.id">
+                <img :src="currentTrending.poster" :alt="currentTrending.title" class="rounded-4 hover-scale-img" style="width: 120px; height: 180px; object-fit: cover;">
+              </div>
+            </transition>
+            <transition name="hero-text" mode="out-in">
+              <div class="flex-grow-1" :key="'ttxt-' + currentTrending.id">
+                <span class="bento-badge bento-badge--trending mb-2 d-inline-block">🔥 Trending</span>
+                <h3 class="h4 fw-bold text-white mb-1">{{ currentTrending.title }}</h3>
+                <p class="small text-white-50 mb-2">{{ currentTrending.vietnameseTitle }}</p>
+                <p class="text-secondary small mb-3 lh-base line-clamp-2">{{ currentTrending.synopsis }}</p>
+                <div class="d-flex gap-3 align-items-center">
+                  <div class="d-flex align-items-center gap-1" v-if="currentTrending.imdbRating">
+                    <span style="color: #FFBA00;">★</span>
+                    <span class="text-white fw-bold">{{ currentTrending.imdbRating }}</span>
+                  </div>
+                  <span class="text-secondary">|</span>
+                  <span class="text-secondary small">{{ currentTrending.genre }}</span>
+                </div>
+              </div>
+            </transition>
+            <button class="bento-btn-outline d-none d-md-block" @click="goToMovie(currentTrending)">Chi tiết</button>
+          </div>
         </div>
 
-        <div class="flex-fill d-flex flex-column gap-2 w-100">
-          <label class="x-small fw-bold text-uppercase text-secondary tracking-wider ms-1">Suất Chiếu</label>
-          <el-select v-model="quickBooking.showtime" placeholder="Suất chiếu" size="large" class="w-100 custom-quick-select" :disabled="!quickBooking.date">
-            <el-option label="18:00 - 2D" value="1" />
-            <el-option label="20:30 - 2D" value="2" />
-            <el-option label="22:45 - 2D" value="3" />
-          </el-select>
+        <!-- Promo Square Card -->
+        <div class="col-lg-4 hero-fade-in" style="animation-delay: 0.5s" :class="{ 'auto-glow': activeGlowIndex === 4 }">
+          <div class="bento-card bento-card--promo h-100 d-flex flex-column align-items-center justify-content-center text-center p-4 position-relative overflow-hidden">
+            <div class="promo-shimmer"></div>
+            <div class="position-relative z-2">
+              <span class="promo-emoji">🍿</span>
+              <h4 class="fw-bold text-white mb-2">Combo Bắp Nước</h4>
+              <p class="text-secondary small mb-3">Giảm 30% khi mua combo cùng vé xem phim</p>
+              <button class="bento-btn-promo">Xem ngay</button>
+            </div>
+          </div>
         </div>
-
-        <el-button type="primary" size="large" class="px-5 fs-6 fw-bold shadow-sm buy-now-btn" :disabled="!quickBooking.showtime" @click="handleQuickBuy">
-          MUA VÉ NGAY
-        </el-button>
       </div>
     </section>
 
-    <!-- Movies Section -->
-    <section class="movies-section container-xl py-5">
-      <!-- Section Header -->
-      <div class="d-flex justify-content-between align-items-center mb-5 mt-4">
+    <!-- Movies Grid Section -->
+    <section class="movies-section py-5">
+      <div class="container-xl d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 class="fs-1 fw-bold mb-1 tracking-tight">Phim <span class="text-primary">Đang Chiếu</span></h2>
-          <p class="text-secondary small mb-0">Khám phá thế giới điện ảnh đầy màu sắc</p>
+          <h2 class="fs-1 fw-bold text-white mb-1">
+            Phim <span class="text-gradient">Đang Chiếu</span>
+          </h2>
+          <div class="accent-line" style="width: 80px;"></div>
         </div>
-        
-        <!-- Tab Switcher -->
-        <el-radio-group v-model="activeTab" size="large" class="modern-toggle">
+
+        <el-radio-group v-model="activeTab" size="large" class="dark-toggle">
           <el-radio-button value="now-showing">Đang Chiếu</el-radio-button>
           <el-radio-button value="coming-soon">Sắp Chiếu</el-radio-button>
         </el-radio-group>
       </div>
 
-      <!-- Movies Grid -->
+      <swiper
+        :key="activeTab"
+        :modules="[Autoplay, Navigation]"
+        :slides-per-view="1.8"
+        :space-between="10"
+        :autoplay="{ delay: 1200, disableOnInteraction: false, pauseOnMouseEnter: true }"
+        :speed="600"
+        :loop="true"
+        :observer="true"
+        :observe-parents="true"
+        :breakpoints="{
+          480: { slidesPerView: 2.5, spaceBetween: 10 },
+          576: { slidesPerView: 3.3, spaceBetween: 12 },
+          768: { slidesPerView: 4.3, spaceBetween: 12 },
+          992: { slidesPerView: 5.3, spaceBetween: 14 },
+          1200: { slidesPerView: 6.3, spaceBetween: 14 },
+          1400: { slidesPerView: 7.3, spaceBetween: 14 }
+        }"
+        navigation
+        class="movie-swiper pb-4"
+        v-if="filteredMovies.length > 0"
+      >
+        <swiper-slide v-for="movie in filteredMovies" :key="movie.id" class="h-auto">
+          <MovieCard :movie="movie" class="h-100" @click="goToMovie" />
+        </swiper-slide>
+      </swiper>
+
+      <el-empty v-if="filteredMovies.length === 0" description="Không có phim nào khả dụng" class="text-white" />
+    </section>
+
+    <!-- Promotions Bento Section -->
+    <section class="promotions-section container-xl py-5">
+      <div class="mb-5">
+        <h2 class="fs-1 fw-bold text-white mb-1">
+          Ưu Đãi <span class="text-gradient">Đặc Biệt</span>
+        </h2>
+        <div class="accent-line" style="width: 100px;"></div>
+      </div>
+
       <el-row :gutter="20">
-        <el-col 
-          :xs="12" 
-          :sm="8" 
-          :md="6" 
-          :lg="4" 
-          v-for="movie in filteredMovies" 
-          :key="movie.id"
-          class="mb-4"
-        >
-          <el-card 
-            shadow="hover" 
-            :body-style="{ padding: '0px' }"
-            class="movie-card h-100 cursor-pointer"
-            @click="goToMovie(movie.id)"
-          >
-            <div class="movie-poster position-relative">
-              <img :src="movie.poster" :alt="movie.title" class="w-100" style="aspect-ratio: 2/3; object-fit: cover;" />
-              <div class="movie-rating position-absolute top-0 end-0 m-2 bg-dark text-white px-2 py-1 rounded">
-                <el-icon><Star /></el-icon>
-                <span class="ms-1 small fw-bold">{{ movie.imdbRating }}</span>
-              </div>
-            </div>
+        <el-col :xs="24" :md="8" v-for="promo in promotions" :key="promo.id" class="mb-4">
+          <div class="promo-card dark-card h-100 hover-lift cursor-pointer">
+            <img :src="promo.image" :alt="promo.title" class="w-100 rounded-3 mb-3" style="height: 200px; object-fit: cover;" />
             <div class="p-3">
-              <h5 class="movie-title mb-2 fw-bold text-truncate">{{ movie.title }}</h5>
-              <p class="text-secondary small mb-2">{{ movie.genre }}</p>
+              <h4 class="fw-bold text-white mb-2">{{ promo.title }}</h4>
+              <p class="text-secondary small mb-3">{{ promo.description }}</p>
               <div class="d-flex justify-content-between align-items-center">
-                <span class="badge bg-light text-dark">{{ movie.rating }}</span>
-                <span class="text-secondary small">{{ movie.duration }} phút</span>
+                <el-tag class="btn-gradient">{{ promo.code }}</el-tag>
+                <span class="text-tertiary small">Đến {{ formatDate(promo.validUntil) }}</span>
               </div>
             </div>
-          </el-card>
+          </div>
         </el-col>
       </el-row>
-
-      <!-- Empty State -->
-      <el-empty v-if="filteredMovies.length === 0" description="Không có phim nào khả dụng" />
     </section>
 
-    <!-- Promotions Section -->
-    <section class="promotions-section bg-light py-5">
-      <div class="container-xl">
-        <h2 class="fs-2 fw-bold mb-4">Ưu Đãi Đặc Biệt</h2>
-        
-        <el-row :gutter="20">
-          <el-col :xs="24" :md="8" v-for="promo in promotions" :key="promo.id" class="mb-4">
-            <el-card shadow="hover" class="h-100 promo-card">
-              <img :src="promo.image" :alt="promo.title" class="w-100 rounded mb-3" style="height: 150px; object-fit: cover;" />
-              <h4 class="fw-bold mb-2">{{ promo.title }}</h4>
-              <p class="text-secondary mb-3">{{ promo.description }}</p>
-              <div class="d-flex justify-content-between align-items-center">
-                <el-tag type="success">{{ promo.code }}</el-tag>
-                <span class="text-secondary small">Có hiệu lực đến {{ formatDate(promo.validUntil) }}</span>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
-    </section>
-    
     <!-- News Section -->
     <section class="news-section container-xl py-5">
-      <div class="d-flex justify-content-between align-items-end mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 class="fs-2 fw-bold mb-1">Tin Tức <span class="text-primary">& Sự Kiện</span></h2>
-          <p class="text-secondary small mb-0">Cập nhật những thông tin mới nhất từ CineOps</p>
+          <h2 class="fs-1 fw-bold text-white mb-1">
+            Tin Tức & <span class="text-gradient">Sự Kiện</span>
+          </h2>
+          <div class="accent-line" style="width: 100px;"></div>
         </div>
-        <el-button type="primary" link @click="router.push('/news')" class="mb-1">
-          Xem tất cả <el-icon class="ms-1"><ArrowRight /></el-icon>
+        <el-button type="primary" class="btn-gradient-outline" @click="router.push('/news')">
+          Xem tất cả
+          <el-icon class="ms-1"><ArrowRight /></el-icon>
         </el-button>
       </div>
 
       <el-row :gutter="20">
         <el-col :xs="24" :sm="12" :lg="8" v-for="news in latestNews" :key="news.id" class="mb-4">
-          <div class="news-horizontal-card d-flex gap-3 align-items-center cursor-pointer" @click="router.push(`/news/${news.id}`)">
-            <img :src="news.image" class="rounded-3" style="width: 100px; height: 100px; object-fit: cover;">
-            <div>
-              <div class="d-flex align-items-center gap-1 text-secondary x-small mb-1">
-                <el-icon><Calendar /></el-icon>
-                <span>{{ news.date }}</span>
-              </div>
-              <h6 class="fw-bold mb-1 line-clamp-2">{{ news.title }}</h6>
-              <p class="text-secondary x-small mb-0 line-clamp-2">{{ news.summary }}</p>
+          <div class="news-card glass p-4 h-100 hover-lift cursor-pointer" @click="router.push(`/news/${news.id}`)">
+            <img :src="news.image" class="w-100 rounded-3 mb-3" style="height: 160px; object-fit: cover;">
+            <div class="d-flex align-items-center gap-2 text-secondary small mb-2">
+              <el-icon><Calendar /></el-icon>
+              <span>{{ news.date }}</span>
             </div>
+            <h5 class="fw-bold text-white mb-2 line-clamp-2">{{ news.title }}</h5>
+            <p class="text-secondary small mb-0 line-clamp-3">{{ news.summary }}</p>
           </div>
         </el-col>
       </el-row>
@@ -182,185 +221,527 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Star, Calendar, ArrowRight } from '@element-plus/icons-vue';
-import { mockMovies, mockBanners, mockPromotions } from '@/mock/movies';
+import { Calendar, ArrowRight } from '@element-plus/icons-vue';
+import MovieCard from '@/components/common/MovieCard.vue';
+import { mockMovies, mockPromotions } from '@/mock';
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import { Autoplay, Navigation } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 const router = useRouter();
 const activeTab = ref('now-showing');
 
-// Mock data
 const movies = ref(mockMovies);
-const banners = ref(mockBanners);
 const promotions = ref(mockPromotions);
 const latestNews = ref([
-  {
-    id: 1,
-    title: "Ưu đãi cuối tuần: Giảm giá 20%",
-    date: "5 Th2, 2026",
-    summary: "Nhận ngay ưu đãi giảm giá 20% cho mỗi vé đặt qua website hoặc ứng dụng di động...",
-    image: "https://images.unsplash.com/photo-1542204172-3c35b6999679?auto=format&fit=crop&w=600"
-  },
-  {
-    id: 2,
-    title: "Sự kiện Fan: Fantastic Four",
-    date: "1 Th2, 2026",
-    summary: "Những siêu anh hùng tuổi thơ đã trở lại. Tham gia sự kiện fan ngày 15/3 để nhận quà độc quyền!",
-    image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed0083c?auto=format&fit=crop&w=600"
-  },
-  {
-    id: 3,
-    title: "Khám phá Thực đơn Mới",
-    date: "28 Th1, 2026",
-    summary: "Từ Bắp Caramel đến Khoai tây chiên phô mai, hãy xem thực đơn bắp nước mới cập nhật của chúng tôi.",
-    image: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=600"
-  }
+  { id: 1, title: "Ưu đãi cuối tuần: Giảm giá 20%", date: "14 Th2, 2026", summary: "Nhận ngay ưu đãi giảm giá 20% cho mỗi vé đặt qua website hoặc ứng dụng di động. Áp dụng cho tất cả các suất chiếu từ thứ 6 đến chủ nhật.", image: "https://images.unsplash.com/photo-1542204172-3c35b6999679?auto=format&fit=crop&w=600" },
+  { id: 2, title: "Sự kiện Fan: Fantastic Four Premiere", date: "12 Th2, 2026", summary: "Tham gia sự kiện ra mắt phim Fantastic Four với các diễn viên và đạo diễn. Nhận quà tặng độc quyền và cơ hội chụp ảnh cùng dàn cast.", image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed0083c?auto=format&fit=crop&w=600" },
+  { id: 3, title: "Thực đơn mới: Combo Sweet Valentine", date: "10 Th2, 2026", summary: "Khám phá combo bắp nước mới đặc biệt dành cho mùa Valentine với nhiều hương vị độc đáo và giá ưu đãi.", image: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=600" }
 ]);
 
-const quickBooking = ref({
-  movie: '',
-  cinema: '',
-  date: '',
-  showtime: ''
+// ── Data-driven hero & trending from mockMovies ──
+const nowShowingMovies = computed(() => movies.value.filter(m => m.status === 'now-showing'));
+
+// Featured: top-rated now-showing movies (for hero slider)
+const featuredMovies = computed(() =>
+  [...nowShowingMovies.value]
+    .sort((a, b) => (b.imdbRating || 0) - (a.imdbRating || 0))
+    .slice(0, 6)
+);
+
+// Trending: remaining now-showing movies (for trending slider)
+const trendingMovies = computed(() => {
+  const featuredIds = new Set(featuredMovies.value.map(m => m.id));
+  const remaining = nowShowingMovies.value.filter(m => !featuredIds.has(m.id));
+  return remaining.length > 0 ? remaining : nowShowingMovies.value.slice(0, 5);
 });
 
-const handleQuickBuy = () => {
-  router.push({ 
-    name: 'SelectSeats', 
-    params: { showtimeId: quickBooking.value.showtime } 
-  });
-};
+// ── Hero auto-rotate ──
+const heroIndex = ref(0);
+let heroInterval = null;
+const currentHero = computed(() => featuredMovies.value[heroIndex.value] || featuredMovies.value[0]);
 
-// Filtered movies based on active tab
-const filteredMovies = computed(() => {
-  return movies.value.filter(movie => movie.status === activeTab.value);
+function startHeroRotation() {
+  heroInterval = setInterval(() => {
+    heroIndex.value = (heroIndex.value + 1) % featuredMovies.value.length;
+  }, 5000);
+}
+
+function stopHeroRotation() {
+  if (heroInterval) { clearInterval(heroInterval); heroInterval = null; }
+}
+
+// Reset timer when user clicks a dot
+watch(heroIndex, () => {
+  stopHeroRotation();
+  startHeroRotation();
 });
 
-// Navigate to movie details
-const goToMovie = (movieId) => {
-  router.push({ name: 'MovieDetails', params: { id: movieId } });
+// ── Trending auto-rotate ──
+const trendingIndex = ref(0);
+let trendingInterval = null;
+const currentTrending = computed(() => trendingMovies.value[trendingIndex.value] || trendingMovies.value[0]);
+
+function startTrendingRotation() {
+  trendingInterval = setInterval(() => {
+    trendingIndex.value = (trendingIndex.value + 1) % trendingMovies.value.length;
+  }, 4000);
+}
+
+function stopTrendingRotation() {
+  if (trendingInterval) { clearInterval(trendingInterval); trendingInterval = null; }
+}
+
+// ── Filtered movies for swiper ──
+const filteredMovies = computed(() => movies.value.filter(m => m.status === activeTab.value));
+
+const goToMovie = (movie) => {
+  router.push({ name: 'MovieDetails', params: { id: movie.id } });
 };
 
-// Format date
 const formatDate = (dateStr) => {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric', year: 'numeric' });
+  return date.toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' });
 };
+
+// ── Animated Counters ──
+const ticketsSold = ref(0);
+const activeUsers = ref(0);
+const TICKET_TARGET = computed(() => nowShowingMovies.value.length);
+const USER_TARGET = 1000;
+
+const displayTickets = computed(() => ticketsSold.value + '+');
+const displayUsers = computed(() => activeUsers.value + '+');
+
+function animateCounter(targetVal, refVal, duration = 2000) {
+  const startTime = performance.now();
+  const step = (now) => {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    refVal.value = Math.floor(eased * targetVal);
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// ── Auto-Pulse Logic ──
+const activeGlowIndex = ref(-1);
+let pulseInterval = null;
+const CARD_COUNT = 5;
+
+function startAutoPulse() {
+  pulseInterval = setInterval(() => {
+    const idx = Math.floor(Math.random() * CARD_COUNT);
+    activeGlowIndex.value = idx;
+    setTimeout(() => { activeGlowIndex.value = -1; }, 1500);
+  }, 3000);
+}
+
+function stopAutoPulse() {
+  if (pulseInterval) { clearInterval(pulseInterval); pulseInterval = null; }
+}
+
+// ── Intersection Observer ──
+const bentoSectionRef = ref(null);
+let observer = null;
+let hasAnimated = false;
+
+onMounted(() => {
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting && !hasAnimated) {
+        hasAnimated = true;
+        animateCounter(TICKET_TARGET.value, ticketsSold);
+        animateCounter(USER_TARGET, activeUsers);
+        startAutoPulse();
+        startHeroRotation();
+        startTrendingRotation();
+      }
+    },
+    { threshold: 0.2 }
+  );
+  if (bentoSectionRef.value) observer.observe(bentoSectionRef.value);
+});
+
+onUnmounted(() => {
+  stopAutoPulse();
+  stopHeroRotation();
+  stopTrendingRotation();
+  if (observer) observer.disconnect();
+});
 </script>
 
 <style scoped>
-.homepage {
-  min-height: 100vh;
-}
+.homepage { min-height: 100vh; }
 
-.banner-section {
-  width: 100%;
-}
-
-.banner-slide {
-  height: 500px;
-}
-
-.banner-overlay {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
-}
-
-.banner-content {
-  z-index: 2;
-  max-width: 800px;
-}
-
-.movie-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.movie-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-}
-
-.movie-poster {
-  overflow: hidden;
-}
-
-.movie-rating {
+/* ── Base Bento Card ── */
+.bento-card {
+  background: #1E1E1E;
+  border-radius: 24px;
+  border: 2px solid transparent;
+  position: relative;
   backdrop-filter: blur(10px);
-  background-color: rgba(0, 0, 0, 0.7) !important;
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.movie-title {
-  font-size: 1rem;
-  line-height: 1.3;
+.bento-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 26px;
+  background: linear-gradient(90deg, #A51C1C 0%, #E31E24 40%, #F37021 70%, #FFBA00 100%);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.4s ease;
 }
 
-.cursor-pointer {
-  cursor: pointer;
+.col-lg-8:hover .bento-card,
+.col-lg-4:hover .bento-card,
+.col-12:hover .bento-card {
+  transform: translateY(-10px);
+  box-shadow: 0 0 40px rgba(243, 112, 33, 0.45), 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
-.promo-card {
-  transition: transform 0.3s ease;
+.col-lg-8:hover .bento-card::before,
+.col-lg-4:hover .bento-card::before,
+.col-12:hover .bento-card::before {
+  opacity: 1;
 }
 
-.promo-card:hover {
-  transform: translateY(-4px);
+/* ── Auto-Pulse ── */
+.auto-glow .bento-card { animation: autoGlow 1.5s ease-in-out; }
+
+@keyframes autoGlow {
+  0%   { transform: scale(1); box-shadow: 0 0 0 rgba(243, 112, 33, 0); }
+  50%  { transform: scale(1.02); box-shadow: 0 0 30px rgba(243, 112, 33, 0.4); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(243, 112, 33, 0); }
 }
 
-/* Quick Booking Widget */
-.quick-booking-section {
-  margin-top: -60px;
-  z-index: 10;
+/* ── Hero Card ── */
+.bento-card--hero { min-height: 480px; }
+
+.featured-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 0;
 }
 
-.quick-booking-container {
-  border: 1px solid rgba(0,0,0,0.05);
-  backdrop-filter: blur(20px);
+.featured-overlay-gradient {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to top, rgba(18,18,18,0.98) 0%, rgba(18,18,18,0.7) 40%, rgba(165,28,28,0.1) 70%, transparent 100%);
+  z-index: 1;
 }
 
-.custom-quick-select :deep(.el-input__wrapper) {
-  border-radius: 12px;
-  background-color: #f8fafc;
-  box-shadow: none !important;
-  border: 1px solid #e2e8f0;
+.featured-overlay-vignette {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+  z-index: 2;
 }
 
-.buy-now-btn {
-  height: 54px;
-  border-radius: 12px;
-  letter-spacing: 0.5px;
+.hero-title {
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5), 0 0 30px rgba(255,186,0,0.2);
+  letter-spacing: -0.02em;
 }
 
-.modern-toggle :deep(.el-radio-button__inner) {
-  border-radius: 50px !important;
-  margin: 0 5px;
-  border: 1px solid #e2e8f0 !important;
-  font-weight: 600;
-}
-
-.modern-toggle :deep(.el-radio-button:first-child .el-radio-button__inner) {
-  border-left: 1px solid #e2e8f0 !important;
-}
-
-/* Utilities */
-.tracking-tight { letter-spacing: -0.025em; }
-.tracking-wider { letter-spacing: 0.05em; }
-.x-small { font-size: 0.7rem; }
-
-.news-horizontal-card {
-  transition: all 0.2s ease;
-}
-.news-horizontal-card:hover {
-  transform: translateX(5px);
-}
-.news-horizontal-card:hover h6 {
-  color: var(--el-color-primary);
-}
-.line-clamp-2 {
+.hero-synopsis {
+  max-width: 500px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-</style>
 
+/* Hero slide indicators */
+.hero-dots {
+  top: 20px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+}
+
+.hero-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hero-dot.active {
+  background: linear-gradient(90deg, #F37021, #FFBA00);
+  transform: scale(1.3);
+  box-shadow: 0 0 8px rgba(243,112,33,0.6);
+}
+
+/* Hero transition animations */
+.hero-img-enter-active, .hero-img-leave-active {
+  transition: opacity 0.8s ease;
+}
+.hero-img-enter-from, .hero-img-leave-to { opacity: 0; }
+
+.hero-text-enter-active {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
+}
+.hero-text-leave-active {
+  transition: all 0.3s ease;
+}
+.hero-text-enter-from { opacity: 0; transform: translateY(20px); }
+.hero-text-leave-to { opacity: 0; transform: translateY(-10px); }
+
+.trending-img-enter-active, .trending-img-leave-active {
+  transition: all 0.5s ease;
+}
+.trending-img-enter-from { opacity: 0; transform: scale(0.9); }
+.trending-img-leave-to { opacity: 0; transform: scale(1.1); }
+
+/* ── Stat Cards ── */
+.bento-card--stat { overflow: hidden; }
+
+.bento-card--stat::after {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,186,0,0.08), transparent);
+  transition: left 0.6s ease;
+}
+
+.col-12:hover .bento-card--stat::after { left: 100%; }
+
+/* ── Trending Card ── */
+.bento-card--trending { overflow: hidden; }
+
+.hover-scale-img { transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.trending-img-wrapper:hover .hover-scale-img { transform: scale(1.05); }
+
+/* ── Promo Card ── */
+.bento-card--promo { overflow: hidden; }
+
+.promo-shimmer {
+  position: absolute; top: 0; left: -100%;
+  width: 200%; height: 100%;
+  background: linear-gradient(110deg, transparent 25%, rgba(243,112,33,0.06) 35%, rgba(255,186,0,0.1) 50%, rgba(243,112,33,0.06) 65%, transparent 75%);
+  animation: shimmerSlide 4s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes shimmerSlide {
+  0%   { transform: translateX(-30%); }
+  100% { transform: translateX(30%); }
+}
+
+.promo-emoji {
+  font-size: 3rem; display: block; margin-bottom: 0.75rem;
+  animation: promoBounce 2s ease-in-out infinite;
+}
+
+@keyframes promoBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* ── Badges ── */
+.bento-badge { padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.bento-badge--featured { background: linear-gradient(90deg, #A51C1C, #E31E24); color: white; }
+.bento-badge--trending { background: linear-gradient(90deg, #F37021, #FFBA00); color: #121212; }
+
+/* ── Buttons ── */
+.bento-btn-book {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 32px; border: none; border-radius: 14px;
+  background: linear-gradient(90deg, #A51C1C 0%, #E31E24 50%, #F37021 75%, #FFBA00 100%);
+  color: white; font-size: 1rem; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 15px rgba(227,30,36,0.4);
+  animation: btnPulse 2s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.bento-btn-book:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(227,30,36,0.6);
+}
+
+.bento-btn-book__icon { font-size: 0.85rem; }
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 4px 15px rgba(227,30,36,0.4); }
+  50%      { box-shadow: 0 4px 25px rgba(255,186,0,0.6); }
+}
+
+.bento-btn-outline {
+  padding: 10px 24px; border: 2px solid rgba(255,255,255,0.2); border-radius: 12px;
+  background: transparent; color: white; font-weight: 600; cursor: pointer;
+  transition: all 0.3s ease; white-space: nowrap;
+}
+
+.bento-btn-outline:hover {
+  border-color: #F37021; background: rgba(243,112,33,0.1); color: #FFBA00;
+}
+
+.bento-btn-promo {
+  padding: 10px 28px; border: none; border-radius: 12px;
+  background: linear-gradient(90deg, #F37021, #FFBA00);
+  color: #121212; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bento-btn-promo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(243,112,33,0.5);
+}
+
+/* ── Accent Dot ── */
+.accent-dot-pulse {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: linear-gradient(135deg, #E31E24, #FFBA00);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.2); opacity: 0.7; }
+}
+
+/* ── Gradient Animated Text ── */
+.text-gradient-animated {
+  background: linear-gradient(90deg, #A51C1C 0%, #E31E24 25%, #F37021 50%, #FFBA00 75%, #E31E24 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 3s linear infinite;
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── Entrance Animations ── */
+.hero-fade-in { animation: heroFadeIn 0.8s ease-out forwards; }
+
+@keyframes heroFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-slide-up { animation: heroSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+@keyframes heroSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Background Orbs ── */
+.hero-bento-section { position: relative; overflow: clip; }
+
+.hero-bg-orbs {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%; z-index: 0;
+  overflow: hidden; pointer-events: none;
+}
+
+.orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.15;
+  animation: orbFloat 20s ease-in-out infinite;
+}
+
+.orb-1 { width: 400px; height: 400px; background: linear-gradient(135deg, #A51C1C, #E31E24); top: -100px; left: -100px; animation-duration: 25s; }
+.orb-2 { width: 500px; height: 500px; background: linear-gradient(225deg, #F37021, #FFBA00); bottom: -150px; right: -150px; animation-duration: 30s; animation-delay: 5s; }
+.orb-3 { width: 300px; height: 300px; background: linear-gradient(180deg, #FFBA00, #A51C1C); top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 35s; animation-delay: 10s; opacity: 0.08; }
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%      { transform: translate(50px, -50px) scale(1.1); }
+  50%      { transform: translate(-30px, 30px) scale(0.9); }
+  75%      { transform: translate(20px, -20px) scale(1.05); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 992px) {
+  .bento-card--hero { min-height: 380px; }
+}
+
+@media (max-width: 768px) {
+  .bento-card--hero { min-height: 320px; }
+  .bento-card--trending .d-flex { flex-direction: column; text-align: center; }
+  .hero-title { font-size: 2.5rem !important; }
+  .orb { filter: blur(60px); opacity: 0.1; }
+  .bento-btn-book { animation: none; }
+}
+
+/* ── Dark Toggle ── */
+.dark-toggle :deep(.el-radio-button__inner) {
+  background: var(--dark-bg-elevated); border: 1px solid var(--border-color);
+  color: var(--text-secondary); border-radius: 8px; margin: 0 4px;
+  transition: all var(--transition-fast);
+}
+
+.dark-toggle :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  background: var(--brand-gradient); border-color: transparent;
+  color: white; box-shadow: var(--shadow-gradient);
+}
+
+.dark-toggle :deep(.el-radio-button:first-child .el-radio-button__inner) {
+  border-left: 1px solid var(--border-color);
+}
+
+/* ── Section Cards ── */
+.promo-card { border-radius: 16px; overflow: hidden; transition: all var(--transition-normal); }
+.promo-card:hover { border-color: var(--border-color-strong); }
+
+.news-card { border-radius: 16px; transition: all var(--transition-normal); }
+.news-card:hover { border-color: var(--glass-border); }
+
+/* ── Utilities ── */
+.cursor-pointer { cursor: pointer; }
+
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ── Swiper Controls ── */
+:deep(.movie-swiper) { overflow: hidden; position: relative; max-width: 100%; }
+
+:deep(.swiper-button-next),
+:deep(.swiper-button-prev) {
+  color: white; background: rgba(255,255,255,0.1);
+  width: 50px; height: 50px; border-radius: 50%;
+  backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s ease; top: 50%; margin-top: 0;
+  transform: translateY(-50%); z-index: 10;
+}
+
+:deep(.swiper-button-prev) { left: 10px; }
+:deep(.swiper-button-next) { right: 10px; }
+
+:deep(.swiper-button-next:hover),
+:deep(.swiper-button-prev:hover) {
+  background: var(--brand-gradient); border-color: transparent;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 0 15px rgba(227,30,36,0.5);
+}
+
+:deep(.swiper-button-next::after),
+:deep(.swiper-button-prev::after) { font-size: 22px; font-weight: bold; }
+
+:deep(.swiper-slide) { height: auto; padding-bottom: 20px; }
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade-in, .hero-slide-up, .bento-btn-book,
+  .accent-dot-pulse, .text-gradient-animated,
+  .orb, .promo-shimmer, .promo-emoji,
+  .auto-glow .bento-card {
+    animation: none !important; opacity: 1 !important; transform: none !important;
+  }
+  .hover-scale-img, .bento-card { transition: none !important; }
+}
+</style>

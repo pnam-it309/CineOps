@@ -166,7 +166,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Star, Tickets, VideoPlay, User, Edit } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { mockMovies } from '@/mock/movies';
+import { mockMovies } from '@/mock';
 
 const route = useRoute();
 const router = useRouter();

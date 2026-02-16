@@ -91,7 +91,7 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-container {
-  background: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
+  background: linear-gradient(135deg, #1a1c2c 0%, #A51C1C 50%, #4a192c 100%);
   background-attachment: fixed;
 }
 

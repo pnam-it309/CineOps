@@ -41,12 +41,22 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: #f8fafc;
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  width: 100%;
+  overscroll-behavior-x: none;
+}
+
+html {
+  overflow-x: clip;
+  overscroll-behavior-x: none;
 }
 
 .cineops-app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
+  max-width: 100vw;
 }
 
 /* Các hiệu ứng chuyển cảnh trang toàn cục */
@@ -63,7 +73,7 @@ body {
 /* Tùy chỉnh thanh cuộn đẹp hơn cho toàn hệ thống */
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px;
+  height: 0;
 }
 
 ::-webkit-scrollbar-track {

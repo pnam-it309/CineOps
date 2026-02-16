@@ -53,33 +53,135 @@ export const mockMovies = [
   },
   {
     id: 4,
-    title: "Mai",
-    vietnameseTitle: "Mai",
-    genre: "Romance, Drama",
+    title: "Exhuma",
+    vietnameseTitle: "Quật Mộ Trùng Ma",
+    genre: "Horror, Thriller, Mystery",
+    duration: 134,
+    rating: "T18",
+    imdbRating: 7.4,
+    releaseDate: "2024-03-15",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Exhuma",
+    backdrop: "https://image.tmdb.org/t/p/original/5Eip60UDiPLASyKjmHCOchhC4.jpg", 
+    trailer: "https://www.youtube.com/watch?v=M9p4DqN9Fp8",
+    synopsis: "Hai pháp sư, một thầy phong thủy và một người làm nghề mai táng hợp lực khai quật ngôi mộ của một gia đình giàu có để cứu đứa trẻ mới sinh khỏi thế lực bí ẩn.",
+    director: "Jang Jae-hyun",
+    cast: ["Choi Min-sik", "Kim Go-eun", "Lee Do-hyun"],
+    status: "now-showing"
+  },
+  {
+    id: 5,
+    title: "Civil War",
+    vietnameseTitle: "Ngày Tàn Của Đế Quốc",
+    genre: "Action, Thriller",
+    duration: 109,
+    rating: "T18",
+    imdbRating: 7.5,
+    releaseDate: "2024-04-12",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Civil+War",
+    backdrop: "https://image.tmdb.org/t/p/original/z121dSTR7PY9KxKuvwiIFSYW8cf.jpg",
+    trailer: "https://www.youtube.com/watch?v=aDyQxtgKW-k",
+    synopsis: "Một cuộc hành trình xuyên khắp nước Mỹ trong tương lai gần, khi một nhóm phóng viên cố gắng đến Washington D.C. trước khi các phe phái nổi loạn tấn công Nhà Trắng.",
+    director: "Alex Garland",
+    cast: ["Kirsten Dunst", "Wagner Moura", "Cailee Spaeny"],
+    status: "now-showing"
+  },
+  {
+    id: 6,
+    title: "The Fall Guy",
+    vietnameseTitle: "Kẻ Thế Thân",
+    genre: "Action, Comedy",
+    duration: 126,
+    rating: "T13",
+    imdbRating: 7.1,
+    releaseDate: "2024-05-03",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=The+Fall+Guy",
+    backdrop: "https://image.tmdb.org/t/p/original/H5HjE7Xb9N09rbWn1zBfHGd14k.jpg",
+    trailer: "https://www.youtube.com/watch?v=j7jE-46Zcn0",
+    synopsis: "Một diễn viên đóng thế đã giải nghệ phải quay lại nghề cũ để tìm kiếm ngôi sao điện ảnh bị mất tích và cứu bộ phim đầu tay của người yêu cũ.",
+    director: "David Leitch",
+    cast: ["Ryan Gosling", "Emily Blunt", "Aaron Taylor-Johnson"],
+    status: "now-showing"
+  },
+  {
+    id: 7,
+    title: "Kingdom of the Planet of the Apes",
+    vietnameseTitle: "Hành Tinh Khỉ: Vương Quốc Mới",
+    genre: "Sci-Fi, Action",
+    duration: 145,
+    rating: "T13",
+    imdbRating: 7.2,
+    releaseDate: "2024-05-10",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Kingdom+of+Apes",
+    backdrop: "https://image.tmdb.org/t/p/original/fqv8v6AycXKsivp1T5yKtLbGXce.jpg",
+    trailer: "https://www.youtube.com/watch?v=XtFI7SNtVpY",
+    synopsis: "Nhiều năm sau triều đại của Caesar, một chú khỉ trẻ bắt đầu hành trình gian nan, khiến cậu đặt câu hỏi về mọi thứ đã được dạy và đưa ra lựa chọn định hình tương lai cho cả khỉ và loài người.",
+    director: "Wes Ball",
+    cast: ["Owen Teague", "Freya Allan", "Kevin Durand"],
+    status: "now-showing"
+  },
+   {
+    id: 8,
+    title: "Challengers",
+    vietnameseTitle: "Những Kẻ Thách Đấu",
+    genre: "Drama, Romance, Sport",
     duration: 131,
     rating: "T18",
-    imdbRating: 7.3,
-    releaseDate: "2024-02-10",
-    poster: "https://image.tmdb.org/t/p/w500/vi428Q22Z07YkO9C6Wwb0n7eJ7.jpg", // Poster phim Việt
-    backdrop: "https://image.tmdb.org/t/p/original/47e4c6W83g6d2K7E4w1Z8k6.jpg", // Thay bằng ảnh hợp lý nếu link chết
-    trailer: "https://www.youtube.com/watch?v=5ZnWpYJ_WKQ",
-    synopsis: "Câu chuyện về cuộc đời của người phụ nữ tên Mai và mối tình chị em đầy sóng gió với Dương.",
-    director: "Trấn Thành",
-    cast: ["Phương Anh Đào", "Tuấn Trần", "Trấn Thành"],
+    imdbRating: 7.4,
+    releaseDate: "2024-04-26",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Challengers",
+    backdrop: "https://image.tmdb.org/t/p/original/lrP1TQf3stZveNEyviikkZWdQkZ.jpg",
+    trailer: "https://www.youtube.com/watch?v=VobTZ-VbLpy",
+    synopsis: "Tashi, một cựu thần đồng tennis trở thành huấn luyện viên, biến chồng mình thành nhà vô địch Grand Slam. Nhưng chuỗi thua cuộc buộc anh phải đối đầu với bạn thân cũ và cũng là bạn trai cũ của Tashi.",
+    director: "Luca Guadagnino",
+    cast: ["Zendaya", "Josh O'Connor", "Mike Faist"],
+    status: "now-showing"
+  },
+  {
+    id: 9,
+    title: "Ghostbusters: Frozen Empire",
+    vietnameseTitle: "Biệt Đội Săn Ma: Kỷ Nguyên Băng Giá",
+    genre: "Fantasy, Adventure, Comedy",
+    duration: 115,
+    rating: "K",
+    imdbRating: 6.4,
+    releaseDate: "2024-03-22",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Ghostbusters",
+    backdrop: "https://image.tmdb.org/t/p/original/14Fufx92L4YjE4ZH1f4m.jpg",
+    trailer: "https://www.youtube.com/watch?v=HpOBXHqW.jpg",
+    synopsis: "Gia đình Spengler quay trở lại nơi mọi thứ bắt đầu - trạm cứu hỏa mang tính biểu tượng của New York - để hợp tác với các Ghostbusters ban đầu nhằm bảo vệ ngôi nhà của họ và cứu thế giới khỏi kỷ băng hà thứ hai.",
+    director: "Gil Kenan",
+    cast: ["Paul Rudd", "Carrie Coon", "Finn Wolfhard"],
     status: "now-showing"
   },
 
   // --- PHIM SẮP CHIẾU (COMING SOON) ---
   {
-    id: 5,
+    id: 10,
+    title: "Gladiator II",
+    vietnameseTitle: "Võ Sĩ Giác Đấu II",
+    genre: "Action, Adventure, Drama",
+    duration: 150,
+    rating: "T18",
+    imdbRating: 0,
+    releaseDate: "2024-11-22",
+    poster: "https://image.tmdb.org/t/p/original/x2RS3uTcsJJ9IfjNPcgDmukoEcQ.jpg", // Kept original as user seemed happy with it
+    backdrop: "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+    trailer: "https://www.youtube.com/watch?v=4rgIUHD3-yA",
+    synopsis: "Tiếp nối thiên sử thi về quyền lực, âm mưu và sự trả thù lấy bối cảnh La Mã Cổ đại. Nhiều năm sau cái chết của Maximus, Lucius buộc phải bước vào Đấu trường Coliseum sau khi quê nhà bị những kẻ bạo chúa xâm chiếm.",
+    director: "Ridley Scott",
+    cast: ["Paul Mescal", "Pedro Pascal", "Denzel Washington"],
+    status: "coming-soon"
+  },
+  {
+    id: 11,
     title: "Deadpool & Wolverine",
     vietnameseTitle: "Deadpool Và Wolverine",
     genre: "Action, Comedy, Superhero",
-    duration: 120, // Dự kiến
+    duration: 120,
     rating: "T18",
-    imdbRating: 0, // Chưa chiếu
+    imdbRating: 0,
     releaseDate: "2024-07-26",
-    poster: "https://image.tmdb.org/t/p/w500/jBWpWd74542QG4J6Jc63k5J.jpg", // Placeholder đẹp
+    poster: "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg", // This looked valid
     backdrop: "https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg",
     trailer: "https://www.youtube.com/watch?v=uJMCNJP2ipI",
     synopsis: "Wolverine đang phục hồi chấn thương thì gặp gỡ Deadpool lắm mồm. Họ lập team để đánh bại kẻ thù chung.",
@@ -88,7 +190,7 @@ export const mockMovies = [
     status: "coming-soon"
   },
   {
-    id: 6,
+    id: 12,
     title: "Inside Out 2",
     vietnameseTitle: "Những Mảnh Ghép Cảm Xúc 2",
     genre: "Animation, Family, Fantasy",
@@ -96,7 +198,7 @@ export const mockMovies = [
     rating: "P",
     imdbRating: 0,
     releaseDate: "2024-06-14",
-    poster: "https://image.tmdb.org/t/p/w500/kxX7s1r4Q8Mg6V.jpg", // Cần thay link thật nếu die
+    poster: "https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg", // This looked valid
     backdrop: "https://image.tmdb.org/t/p/original/pWsD91G2R1Da3MPS6KNJySTyrDr.jpg",
     trailer: "https://www.youtube.com/watch?v=LEjhY15eCx0",
     synopsis: "Riley bước vào tuổi dậy thì, và trụ sở cảm xúc đón chào những thành viên mới: Lo Âu, Ghen Tị...",
@@ -105,7 +207,24 @@ export const mockMovies = [
     status: "coming-soon"
   },
   {
-    id: 7,
+    id: 13,
+    title: "Furiosa: A Mad Max Saga",
+    vietnameseTitle: "Furiosa: Câu Chuyện Từ Max Điên",
+    genre: "Action, Sci-Fi, Adventure",
+    duration: 148,
+    rating: "T18",
+    imdbRating: 0,
+    releaseDate: "2024-05-24",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Furiosa",
+    backdrop: "https://image.tmdb.org/t/p/original/wNAhuOz3Zf84jCIhrcI6JhgmK5q.jpg",
+    trailer: "https://www.youtube.com/watch?v=XJMuhwVlca4",
+    synopsis: "Khi thế giới sụp đổ, Furiosa trẻ tuổi bị bắt cóc khỏi Vùng Xanh của Nhiều Bà Mẹ và rơi vào tay đám Biker Horde do Dementus cầm đầu. Cô phải vượt qua Vùng Đất Hoang để tìm đường về nhà.",
+    director: "George Miller",
+    cast: ["Anya Taylor-Joy", "Chris Hemsworth", "Tom Burke"],
+    status: "coming-soon"
+  },
+  {
+    id: 14,
     title: "Joker: Folie à Deux",
     vietnameseTitle: "Joker: Điên Có Đôi",
     genre: "Crime, Drama, Musical",
@@ -113,16 +232,16 @@ export const mockMovies = [
     rating: "T18",
     imdbRating: 0,
     releaseDate: "2024-10-04",
-    poster: "https://image.tmdb.org/t/p/w500/kZJ1Z8k.jpg", // Placeholder
-    backdrop: "https://image.tmdb.org/t/p/original/5Eip60UDiPLASyKjmHCOchhC4.jpg", // Placeholder
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Joker+2",
+    backdrop: "https://image.tmdb.org/t/p/original/5Eip60UDiPLASyKjmHCOchhC4.jpg",
     trailer: "https://www.youtube.com/watch?v=xy8aJw1vYHo",
-    synopsis: "Phần tiếp theo của Joker (2019), khám phá mối quan hệ điên loạn giữa Arthur Fleck và Harley Quinn.",
+    synopsis: "Phần tiếp theo của Joker (2019), khám phá mối quan hệ điên loạn giữa Arthur Fleck và Harley Quinn trong viện tâm thần Arkham.",
     director: "Todd Phillips",
     cast: ["Joaquin Phoenix", "Lady Gaga", "Zazie Beetz"],
     status: "coming-soon"
   },
   {
-    id: 8,
+    id: 15,
     title: "Despicable Me 4",
     vietnameseTitle: "Kẻ Trộm Mặt Trăng 4",
     genre: "Animation, Comedy, Family",
@@ -130,114 +249,269 @@ export const mockMovies = [
     rating: "P",
     imdbRating: 0,
     releaseDate: "2024-07-03",
-    poster: "https://image.tmdb.org/t/p/w500/3w84hCFJATpiCO5g8hpdWVPBbmq.jpg",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Despicable+Me+4",
     backdrop: "https://image.tmdb.org/t/p/original/fDmci71SMkfZM8RnCuXfZDPqD74.jpg",
     trailer: "https://www.youtube.com/watch?v=qQdBZXy15GU",
-    synopsis: "Gru quay trở lại với những phi vụ mới cùng bầy Minions quậy phá.",
+    synopsis: "Gru quay trở lại với những phi vụ mới cùng bầy Minions quậy phá và đối mặt với kẻ thù mới Maxime Le Mal.",
     director: "Chris Renaud",
     cast: ["Steve Carell", "Kristen Wiig", "Will Ferrell"],
     status: "coming-soon"
+  },
+  {
+    id: 16,
+    title: "Borderlands",
+    vietnameseTitle: "Borderlands: Trở Lại Pandora",
+    genre: "Action, Sci-Fi, Adventure",
+    duration: 110,
+    rating: "T13",
+    imdbRating: 0,
+    releaseDate: "2024-08-09",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Borderlands",
+    backdrop: "https://image.tmdb.org/t/p/original/borderlands_bg.jpg",
+    trailer: "https://www.youtube.com/watch?v=lU_NKNZljoQ",
+    synopsis: "Lilith, một thợ săn tiền thưởng khét tiếng, trở về hành tinh quê hương Pandora để tìm kiếm cô con gái mất tích của Atlas.",
+    director: "Eli Roth",
+    cast: ["Cate Blanchett", "Kevin Hart", "Jack Black"],
+    status: "coming-soon"
+  },
+  {
+    id: 17,
+    title: "Kraven the Hunter",
+    vietnameseTitle: "Kraven: Thợ Săn Thủ Lĩnh",
+    genre: "Action, Adventure, Sci-Fi",
+    duration: 120,
+    rating: "T18",
+    imdbRating: 0,
+    releaseDate: "2024-12-13",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Kraven",
+    backdrop: "https://image.tmdb.org/t/p/original/kraven_bg.jpg",
+    trailer: "https://www.youtube.com/watch?v=rze8QYbLDjM",
+    synopsis: "Câu chuyện nguồn gốc của một trong những kẻ phản diện mang tính biểu tượng nhất của Marvel - Kraven Thợ Săn.",
+    director: "J.C. Chandor",
+    cast: ["Aaron Taylor-Johnson", "Ariana DeBose", "Russell Crowe"],
+    status: "coming-soon"
+  },
+  {
+    id: 18,
+    title: "Venom: The Last Dance",
+    vietnameseTitle: "Venom: Kèo Cuối",
+    genre: "Action, Sci-Fi, Thriller",
+    duration: 110,
+    rating: "T13",
+    imdbRating: 0,
+    releaseDate: "2024-10-25",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Venom+3",
+    backdrop: "https://image.tmdb.org/t/p/original/venom3_bg.jpg",
+    trailer: "https://www.youtube.com/watch?v=__2tjk", // Placeholder
+    synopsis: "Eddie và Venom đang chạy trốn. Bị săn đuổi bởi cả hai thế giới của họ, bộ đôi buộc phải đưa ra một quyết định tàn khốc.",
+    director: "Kelly Marcel",
+    cast: ["Tom Hardy", "Juno Temple", "Chiwetel Ejiofor"],
+    status: "coming-soon"
+  },
+  {
+    id: 19,
+    title: "Mufasa: The Lion King",
+    vietnameseTitle: "Mufasa: Vua Sư Tử",
+    genre: "Animation, Adventure, Drama",
+    duration: 100,
+    rating: "P",
+    imdbRating: 0,
+    releaseDate: "2024-12-20",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Mufasa",
+    backdrop: "https://image.tmdb.org/t/p/original/mufasa_bg.jpg",
+    trailer: "https://www.youtube.com/watch?v=o17MFC9KOwk",
+    synopsis: "Kể về câu chuyện nguồn gốc của Mufasa, từ một chú sư tử mồ côi trở thành vị vua vĩ đại của Pride Lands.",
+    director: "Barry Jenkins",
+    cast: ["Aaron Pierre", "Kelvin Harrison Jr.", "Seth Rogen"],
+    status: "coming-soon"
+  },
+  {
+    id: 20,
+    title: "Sonic the Hedgehog 3",
+    vietnameseTitle: "Nhím Sonic 3",
+    genre: "Action, Adventure, Comedy",
+    duration: 110,
+    rating: "P",
+    imdbRating: 0,
+    releaseDate: "2024-12-20",
+    poster: "https://placehold.co/600x900/1a1a1a/FFF?text=Sonic+3",
+    backdrop: "https://image.tmdb.org/t/p/original/sonic3_bg.jpg",
+    trailer: "https://www.youtube.com/watch?v=___", // Placeholder
+    synopsis: "Sonic, Tails và Knuckles phải đối mặt với một kẻ thù mới bí ẩn và mạnh mẽ: Shadow the Hedgehog.",
+    director: "Jeff Fowler",
+    cast: ["Ben Schwartz", "Keanu Reeves", "Jim Carrey"],
+    status: "coming-soon"
+  },
+
+  // --- THÊM PHIM ĐANG CHIẾU ---
+  {
+    id: 21,
+    title: "The Fantastic Four",
+    vietnameseTitle: "Bộ Tứ Siêu Đẳng",
+    genre: "Action, Sci-Fi",
+    duration: 140,
+    rating: "T13",
+    imdbRating: 8.5,
+    releaseDate: "2024-07-25",
+    poster: "https://image.tmdb.org/t/p/w500/4OTYefcAlaShn6TGVK33UszLlgP.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+    trailer: "https://www.youtube.com/watch?v=abc123",
+    synopsis: "Bộ tứ siêu anh hùng huyền thoại trở lại màn ảnh rộng với một cuộc phiêu lưu hoành tráng chống lại Galactus.",
+    director: "Matt Shakman",
+    cast: ["Pedro Pascal", "Vanessa Kirby", "Joseph Quinn"],
+    status: "now-showing"
+  },
+  {
+    id: 22,
+    title: "A Quiet Place: Day One",
+    vietnameseTitle: "Vùng Đất Câm Lặng: Ngày Đầu Tiên",
+    genre: "Horror, Thriller, Sci-Fi",
+    duration: 99,
+    rating: "T16",
+    imdbRating: 7.1,
+    releaseDate: "2024-06-28",
+    poster: "https://image.tmdb.org/t/p/w500/hU42CRk14JuPEdqZG3AWmagiPAP.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/yrpPYKijwdMHyTGIOd1iK1h0Xno.jpg",
+    trailer: "https://www.youtube.com/watch?v=def456",
+    synopsis: "Câu chuyện nguồn gốc về ngày đầu tiên khi những sinh vật ngoài hành tinh xâm chiếm Trái Đất.",
+    director: "Michael Sarnoski",
+    cast: ["Lupita Nyong'o", "Joseph Quinn", "Alex Wolff"],
+    status: "now-showing"
+  },
+  {
+    id: 23,
+    title: "Twisters",
+    vietnameseTitle: "Lốc Xoáy Tử Thần",
+    genre: "Action, Adventure, Thriller",
+    duration: 122,
+    rating: "T13",
+    imdbRating: 7.3,
+    releaseDate: "2024-07-19",
+    poster: "https://image.tmdb.org/t/p/w500/pjnD08FlMAIXsfOLKQbvmO0LHqx.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/58D6ZAvOKxlHjyX9TLBuPKhbV8f.jpg",
+    trailer: "https://www.youtube.com/watch?v=ghi789",
+    synopsis: "Một nhóm thợ săn bão liều lĩnh đối mặt với những cơn lốc xoáy chưa từng thấy giữa vùng đồng bằng Oklahoma.",
+    director: "Lee Isaac Chung",
+    cast: ["Daisy Edgar-Jones", "Glen Powell", "Anthony Ramos"],
+    status: "now-showing"
+  },
+  {
+    id: 24,
+    title: "Bad Boys: Ride or Die",
+    vietnameseTitle: "Bad Boys: Tới Bến",
+    genre: "Action, Comedy, Crime",
+    duration: 115,
+    rating: "T16",
+    imdbRating: 7.0,
+    releaseDate: "2024-06-07",
+    poster: "https://image.tmdb.org/t/p/w500/oGythE98MYleE6mZlGs5oBGkux1.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/gRApXuxWmO2forYTuTmcz5RaNUV.jpg",
+    trailer: "https://www.youtube.com/watch?v=jkl101",
+    synopsis: "Mike và Marcus quay trở lại trong cuộc phiêu lưu nguy hiểm nhất khi họ bị truy nã oan và phải tự minh oan.",
+    director: "Adil El Arbi, Bilall Fallah",
+    cast: ["Will Smith", "Martin Lawrence", "Vanessa Hudgens"],
+    status: "now-showing"
+  },
+  {
+    id: 25,
+    title: "Alien: Romulus",
+    vietnameseTitle: "Quái Vật Không Gian: Romulus",
+    genre: "Horror, Sci-Fi, Thriller",
+    duration: 119,
+    rating: "T18",
+    imdbRating: 7.8,
+    releaseDate: "2024-08-16",
+    poster: "https://image.tmdb.org/t/p/w500/b33nnKl1GSFbao4l3fZDDqsMx0F.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/9SSEUrSqhljBMzRe4aBTh17wUjD.jpg",
+    trailer: "https://www.youtube.com/watch?v=mno202",
+    synopsis: "Một nhóm thanh niên khám phá trạm không gian bị bỏ hoang và đối mặt với sinh vật Xenomorph kinh hoàng.",
+    director: "Fede Álvarez",
+    cast: ["Cailee Spaeny", "David Jonsson", "Archie Renaux"],
+    status: "now-showing"
+  },
+  {
+    id: 26,
+    title: "It Ends with Us",
+    vietnameseTitle: "Nơi Ta Kết Thúc",
+    genre: "Drama, Romance",
+    duration: 130,
+    rating: "T16",
+    imdbRating: 6.9,
+    releaseDate: "2024-08-09",
+    poster: "https://image.tmdb.org/t/p/w500/AjV6jFJ2YQoeMlUh4nmHBMfgP9Y.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/lgkPzcOSnTvjeMnuFzozRO5HHw1.jpg",
+    trailer: "https://www.youtube.com/watch?v=pqr303",
+    synopsis: "Lily Bloom vượt qua tuổi thơ đau thương để xây dựng cuộc sống mới, nhưng mối quan hệ với Ryle khiến cô đối mặt với quá khứ.",
+    director: "Justin Baldoni",
+    cast: ["Blake Lively", "Justin Baldoni", "Brandon Sklenar"],
+    status: "now-showing"
+  },
+  {
+    id: 27,
+    title: "Beetlejuice Beetlejuice",
+    vietnameseTitle: "Beetlejuice 2",
+    genre: "Comedy, Fantasy, Horror",
+    duration: 104,
+    rating: "T13",
+    imdbRating: 7.2,
+    releaseDate: "2024-09-06",
+    poster: "https://image.tmdb.org/t/p/w500/kKgQzkUCnQmeTPkyIwHly2t6ZFI.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/xi1lfkEDnkKR0iMagEestLE6JaA.jpg",
+    trailer: "https://www.youtube.com/watch?v=stu404",
+    synopsis: "Beetlejuice trở lại! Sau bi kịch gia đình, cánh cổng thế giới bên kia mở ra và hỗn loạn bắt đầu.",
+    director: "Tim Burton",
+    cast: ["Michael Keaton", "Winona Ryder", "Jenna Ortega"],
+    status: "now-showing"
+  },
+  {
+    id: 28,
+    title: "The Wild Robot",
+    vietnameseTitle: "Robot Hoang Dã",
+    genre: "Animation, Adventure, Family",
+    duration: 101,
+    rating: "P",
+    imdbRating: 8.1,
+    releaseDate: "2024-09-27",
+    poster: "https://image.tmdb.org/t/p/w500/wTnV3PCVW5O92JMrFvvrRcV39RU.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/4gMFJzBFDsGHBJHQxJZLnhDdFPo.jpg",
+    trailer: "https://www.youtube.com/watch?v=vwx505",
+    synopsis: "Robot Roz bị trôi dạt đến hoang đảo và phải học cách sinh tồn cùng muông thú hoang dã.",
+    director: "Chris Sanders",
+    cast: ["Lupita Nyong'o", "Pedro Pascal", "Kit Connor"],
+    status: "now-showing"
+  },
+  {
+    id: 29,
+    title: "Wicked",
+    vietnameseTitle: "Phù Thủy Xứ Oz",
+    genre: "Fantasy, Musical, Drama",
+    duration: 160,
+    rating: "P",
+    imdbRating: 8.3,
+    releaseDate: "2024-11-22",
+    poster: "https://image.tmdb.org/t/p/w500/xDGbZ0JJ3mYaGKy4Nzd9Kph6OF9.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/uKb22E0nlzr914bA9KSGDhqHNHR.jpg",
+    trailer: "https://www.youtube.com/watch?v=yza606",
+    synopsis: "Câu chuyện chưa kể về những phù thủy xứ Oz - Elphaba và Glinda trước khi Dorothy đến.",
+    director: "Jon M. Chu",
+    cast: ["Cynthia Erivo", "Ariana Grande", "Jeff Goldblum"],
+    status: "now-showing"
+  },
+  {
+    id: 30,
+    title: "Moana 2",
+    vietnameseTitle: "Hành Trình Của Moana 2",
+    genre: "Animation, Adventure, Family",
+    duration: 100,
+    rating: "P",
+    imdbRating: 7.5,
+    releaseDate: "2024-11-27",
+    poster: "https://image.tmdb.org/t/p/w500/yh64qw9mgXBvlaWDi7Q9tpUBAvH.jpg",
+    backdrop: "https://image.tmdb.org/t/p/original/tElnmtQ6yz1PjN1kY1Vo2FJlA2.jpg",
+    trailer: "https://www.youtube.com/watch?v=abc707",
+    synopsis: "Moana lên đường ra khơi một lần nữa trong hành trình phiêu lưu xa hơn bao giờ hết.",
+    director: "David Derrick Jr.",
+    cast: ["Auli'i Cravalho", "Dwayne Johnson", "Alan Tudyk"],
+    status: "now-showing"
   }
 ];
-
-export const mockBanners = [
-  {
-    id: 1,
-    title: "Avatar: Dòng Chảy Của Nước",
-    subtitle: "Đang Chiếu Tại Rạp",
-    movieId: 1,
-    image: "https://images.unsplash.com/photo-1542204172-3c35b6999679?auto=format&fit=crop&w=1920&q=80"
-  },
-  {
-    id: 2,
-    title: "Dune: Hành Tinh Cát - Phần 2",
-    subtitle: "Sắp Ra Mắt",
-    movieId: 5,
-    image: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=1920&q=80"
-  },
-  {
-    id: 3,
-    title: "Ưu Đãi Đặc Biệt - Giảm 20%",
-    subtitle: "Đặt Vé Ngay Hôm Nay",
-    movieId: null,
-    image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed0083c?auto=format&fit=crop&w=1920&q=80"
-  }
-];
-
-export const mockPromotions = [
-  {
-    id: 1,
-    title: "Ưu Đãi Cuối Tuần",
-    description: "Giảm ngay 20% cho tất cả các vé đặt vào cuối tuần",
-    image: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=600",
-    validUntil: "2026-02-28",
-    code: "WEEKEND20"
-  },
-  {
-    id: 2,
-    title: "Ưu Đãi Sinh Viên",
-    description: "Sinh viên được giảm 15% khi xuất trình thẻ sinh viên",
-    image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed0083c?auto=format&fit=crop&w=600",
-    validUntil: "2026-12-31",
-    code: "STUDENT15"
-  },
-  {
-    id: 3,
-    title: "Đặt Sớm Nhận Ưu Đãi",
-    description: "Đặt trước 12 giờ trưa và tiết kiệm 10% giá vé",
-    image: "https://images.unsplash.com/photo-1542204172-3c35b6999679?auto=format&fit=crop&w=600",
-    validUntil: "2026-03-31",
-    code: "EARLY10"
-  }
-];
-
-export const mockCinemas = [
-  { id: 1, name: "CineOps Central", location: "District 1, HCM" },
-  { id: 2, name: "CineOps Riverside", location: "District 7, HCM" },
-  { id: 3, name: "CineOps Mall", location: "District 2, HCM" },
-  { id: 4, name: "CineOps Plaza", location: "District 10, HCM" }
-];
-
-export const mockShowtimes = [
-  { id: 101, movieId: 1, cinemaId: 1, time: "10:00 AM", format: "2D", price: 85000 },
-  { id: 102, movieId: 1, cinemaId: 1, time: "01:30 PM", format: "3D", price: 125000 },
-  { id: 103, movieId: 1, cinemaId: 1, time: "04:00 PM", format: "2D", price: 85000 },
-  { id: 104, movieId: 1, cinemaId: 1, time: "07:30 PM", format: "IMAX", price: 155000 },
-  { id: 105, movieId: 1, cinemaId: 1, time: "10:15 PM", format: "2D", price: 95000 },
-  { id: 201, movieId: 1, cinemaId: 2, time: "05:00 PM", format: "2D", price: 85000 },
-  { id: 301, movieId: 2, cinemaId: 1, time: "11:00 AM", format: "2D", price: 80000 },
-  { id: 302, movieId: 2, cinemaId: 1, time: "02:00 PM", format: "2D", price: 80000 }
-];
-
-export const mockFood = [
-  { 
-    id: 1, 
-    name: "Classic Combo", 
-    description: "1 Large Popcorn + 1 Large Soda", 
-    price: 95000, 
-    image: "https://dummyimage.com/200x150/f59e0b/ffffff?text=Classic+Combo"
-  },
-  { 
-    id: 2, 
-    name: "Couple Combo", 
-    description: "1 Large Popcorn + 2 Regular Sodas", 
-    price: 125000, 
-    image: "https://dummyimage.com/200x150/ec4899/ffffff?text=Couple+Combo"
-  },
-  { 
-    id: 3, 
-    name: "Family Deal", 
-    description: "2 Large Popcorns + 4 Soft Drinks", 
-    price: 245000, 
-    image: "https://dummyimage.com/200x150/3b82f6/ffffff?text=Family+Deal"
-  },
-  { 
-    id: 4, 
-    name: "Single Popcorn", 
-    description: "Large Sweet/Salty Popcorn", 
-    price: 65000, 
-    image: "https://dummyimage.com/200x150/10b981/ffffff?text=Popcorn"
-  }
-];
-
-

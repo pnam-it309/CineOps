@@ -7,9 +7,9 @@
       </el-aside>
 
       <!-- Main Container -->
-      <el-container class="d-flex flex-column vh-100 overflow-hidden bg-light">
+      <el-container class="d-flex flex-column vh-100 overflow-hidden bg-dark-primary">
         <!-- Top Navigation Bar -->
-        <el-header class="d-flex align-items-center justify-content-between bg-white shadow-sm px-3" style="height: 60px;">
+        <el-header class="d-flex align-items-center justify-content-between bg-dark-secondary shadow-sm px-3 border-bottom border-dark" style="height: 60px;">
           <div class="d-flex align-items-center gap-3">
             <el-icon class="fs-4 cursor-pointer" @click="toggleSidebar">
               <Fold v-if="!isCollapse" />
@@ -129,5 +129,15 @@ if (window.innerWidth < 768) {
 }
 .cursor-pointer {
   cursor: pointer;
+}
+
+/* Breadcrumb overrides for dark mode */
+:deep(.el-breadcrumb__inner) {
+  color: #adb5bd !important;
+}
+
+:deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  color: #fff !important;
+  font-weight: 600;
 }
 </style>

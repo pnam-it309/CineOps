@@ -1,7 +1,7 @@
 <template>
   <div class="cinema-info-page pb-5">
     <div class="header-section text-center py-5 bg-dark text-white mb-5 rounded-4 shadow-sm" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1517604931442-7e0c8ed0083c?auto=format&fit=crop&w=1200') center/cover;">
-      <h1 class="display-4 fw-bold mb-3 tracking-tight">Hệ Thống <span class="text-primary-light">CineOps</span></h1>
+      <h1 class="display-4 fw-bold mb-3 tracking-tight">Rạp <span class="text-primary-light">CineOps</span></h1>
       <p class="lead opacity-75">Không gian điện ảnh đẳng cấp - Trải nghiệm không giới hạn</p>
     </div>
 

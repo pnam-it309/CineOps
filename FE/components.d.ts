@@ -65,6 +65,8 @@ declare module 'vue' {
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     ElTimePicker: typeof import('element-plus/es')['ElTimePicker']
     ElUpload: typeof import('element-plus/es')['ElUpload']
+    LoadingOverlay: typeof import('./src/components/common/LoadingOverlay.vue')['default']
+    MovieCard: typeof import('./src/components/common/MovieCard.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StaffSidebar: typeof import('./src/components/StaffSidebar.vue')['default']

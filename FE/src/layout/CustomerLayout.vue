@@ -1,12 +1,12 @@
 <template>
   <MainLayout>
-    <el-container class="min-vh-100 d-flex flex-column">
+    <el-container class="min-vh-100 d-flex flex-column bg-dark-primary" style="overflow-x: hidden;">
       <!-- Top Navigation Bar -->
-      <el-header class="shadow-sm p-0" style="height: 64px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+      <el-header class="shadow-sm p-0 nav-sleek" style="height: 64px;">
         <div class="container-xl h-100 d-flex align-items-center justify-content-between px-3">
           <div class="d-flex align-items-center">
             <router-link :to="{ name: 'Home' }" class="d-flex align-items-center gap-2 text-white text-decoration-none fs-4 fw-bold">
-              <el-icon :size="24"><VideoPlay /></el-icon>
+              <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" class="logo-img" />
               <span class="d-none d-md-block">CineOps</span>
             </router-link>
           </div>
@@ -17,9 +17,9 @@
             :default-active="activeMenu"
             class="d-none d-lg-flex flex-grow-1 justify-content-center bg-transparent border-0"
             :ellipsis="false"
-            text-color="rgba(255, 255, 255, 0.9)"
-            active-text-color="#ffffff"
-            style="--el-menu-bg-color: transparent; --el-menu-hover-bg-color: rgba(255, 255, 255, 0.1);"
+            text-color="rgba(255, 255, 255, 0.85)"
+            active-text-color="#FFBA00"
+            style="--el-menu-bg-color: transparent; --el-menu-hover-bg-color: rgba(255, 255, 255, 0.05);"
             router
           >
             <el-menu-item index="/">
@@ -36,7 +36,7 @@
             </el-menu-item>
             <el-menu-item index="/cinemas">
               <el-icon><MapLocation /></el-icon>
-              <span>Rạp & Giá Vé</span>
+              <span>Giá Vé</span>
             </el-menu-item>
           </el-menu>
 
@@ -103,21 +103,21 @@
       </el-header>
 
       <!-- Main Content -->
-      <el-main class="flex-fill bg-light p-0 w-100">
+      <el-main class="flex-fill bg-dark-primary p-0 w-100">
         <div class="container-xl py-4 min-vh-75">
           <router-view />
         </div>
       </el-main>
 
       <!-- Premium Footer -->
-      <footer class="customer-footer bg-dark text-white pt-5 pb-3 mt-auto border-top border-secondary">
+      <footer class="customer-footer bg-dark-secondary text-white pt-5 pb-3 mt-auto border-top" style="border-color: var(--border-color) !important; overflow-x: hidden;">
         <div class="container-xl">
           <div class="row g-4 mb-5">
             <!-- Brand Column -->
             <div class="col-lg-4 col-md-6">
               <div class="d-flex align-items-center gap-2 mb-3">
-                <el-icon :size="32" class="text-primary-light"><VideoPlay /></el-icon>
-                <span class="fs-3 fw-bold tracking-tight">Cine<span class="text-primary-light">Ops</span></span>
+                <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" class="footer-logo" />
+                <span class="fs-3 fw-bold tracking-tight">Cine<span class="text-brand-light">Ops</span></span>
               </div>
               <p class="text-secondary small lh-lg">
                 Hệ thống rạp chiếu phim hiện đại hàng đầu Việt Nam, mang đến trải nghiệm điện ảnh chân thực với công nghệ âm thanh và hình ảnh tiên tiến nhất. Tận hưởng từng khoảnh khắc giải trí tuyệt vời cùng gia đình và bạn bè.
@@ -213,7 +213,7 @@
           </el-menu-item>
           <el-menu-item index="/cinemas">
             <el-icon><MapLocation /></el-icon>
-            <span>Rạp & Giá Vé</span>
+            <span>Giá Vé</span>
           </el-menu-item>
           
           <template v-if="authStore.isAuthenticated">
@@ -327,11 +327,29 @@ const handleLogout = async () => {
 /* Footer Styles */
 .customer-footer {
   font-family: 'Inter', sans-serif;
-  background-color: #0f172a !important; /* Material Darker */
+  background-color: var(--dark-bg-secondary) !important;
+}
+
+.logo-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.footer-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 .text-primary-light {
-  color: #a5b4fc; /* Light Indigo */
+  color: #F37021; /* Brand Orange */
+}
+
+.text-brand-light {
+  color: #FFBA00; /* Brand Yellow */
 }
 
 .footer-links {
@@ -360,8 +378,8 @@ const handleLogout = async () => {
 }
 
 .footer-social-btn:hover {
-  background: #6366f1 !important;
-  border-color: #6366f1 !important;
+  background: linear-gradient(90deg, #A51C1C 0%, #E31E24 40%, #F37021 70%, #FFBA00 100%) !important;
+  border-color: #E31E24 !important;
   color: #fff !important;
   transform: translateY(-3px);
 }
