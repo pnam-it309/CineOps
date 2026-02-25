@@ -36,7 +36,7 @@ const pageSize = 10;
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Báo cáo Giao dịch</h2>
+        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Báo cáo Giao dịch</h2>
       </div>
       <el-button type="success" size="default" :icon="Download" round>Xuất CSV</el-button>
     </div>

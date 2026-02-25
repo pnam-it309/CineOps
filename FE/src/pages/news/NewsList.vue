@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { Collection, Gift, Calendar } from '@element-plus/icons-vue';
+import { Calendar } from '@element-plus/icons-vue';
 
 const router = useRouter();
 
@@ -56,22 +56,21 @@ const goToDetail = (id) => {
 
     <div class="row g-4">
       <div v-for="item in mockNews" :key="item.id" class="col-lg-4 col-md-6">
-        <el-card 
-          shadow="hover" 
-          class="border-0 shadow-sm rounded-4 h-100 cursor-pointer overflow-hidden"
-          :body-style="{ padding: '0px' }"
-          @click="goToDetail(item.id)"
-        >
+        <el-card shadow="hover" class="border-0 shadow-sm rounded-4 h-100 cursor-pointer overflow-hidden"
+          :body-style="{ padding: '0px' }" @click="goToDetail(item.id)">
           <div class="news-img-wrapper overflow-hidden">
             <img :src="item.image" class="w-100 news-img" style="aspect-ratio: 16/10; object-fit: cover;">
-            <div class="item-category position-absolute top-0 start-0 m-3 px-3 py-1 bg-primary text-white rounded-pill small fw-bold">
+            <div
+              class="item-category position-absolute top-0 start-0 m-3 px-3 py-1 bg-primary text-white rounded-pill small fw-bold">
               {{ item.category }}
             </div>
           </div>
-          
+
           <div class="p-4">
             <div class="d-flex align-items-center gap-2 mb-2 text-secondary small">
-              <el-icon><Calendar /></el-icon>
+              <el-icon>
+                <Calendar />
+              </el-icon>
               <span>{{ item.date }}</span>
             </div>
             <h4 class="fw-bold mb-3 line-clamp-2 h-news-title">{{ item.title }}</h4>

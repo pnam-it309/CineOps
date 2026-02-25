@@ -28,7 +28,7 @@ const goToSales = (showtime) => {
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 class="fs-4 fw-bold mb-1">Điều khiển POS</h2>
+        <h2 class="fw-bold mb-1" style="font-size: 18px;">Điều khiển POS</h2>
       </div>
       <div class="d-flex gap-4">
         <div v-for="stat in quickStats" :key="stat.label" class="text-end">

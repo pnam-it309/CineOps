@@ -17,7 +17,7 @@ const handleLogin = async () => {
   try {
     // authStore.login action handles calling service and fetching profile
     await authStore.login({ username: username.value, password: password.value });
-    
+
     // Redirect based on role
     if (authStore.isAdmin) {
       router.push({ name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name });
@@ -38,30 +38,24 @@ const handleLogin = async () => {
 <template>
   <div class="login-container d-flex align-items-center justify-content-center min-vh-100">
     <!-- Glass Card with Bootstrap utilities -->
-    <div class="glass-card p-4 p-md-5 bg-white bg-opacity-10 border border-white border-opacity-25 shadow-lg rounded-4 m-3 w-100" style="max-width: 420px;">
+    <div
+      class="glass-card p-4 p-md-5 bg-white bg-opacity-10 border border-white border-opacity-25 shadow-lg rounded-4 m-3 w-100"
+      style="max-width: 420px;">
       <h2 class="display-5 fw-bold mb-4 text-center text-white">Đăng nhập</h2>
-      
+
       <form @submit.prevent="handleLogin">
         <div class="mb-3">
-          <input 
-            type="text" 
-            class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-            placeholder="Tên đăng nhập" 
-            v-model="username" 
-            required
-          >
+          <input type="text"
+            class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none"
+            placeholder="Tên đăng nhập" v-model="username" required>
         </div>
-        
+
         <div class="mb-3">
-          <input 
-            type="password" 
-            class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-            placeholder="Mật khẩu" 
-            v-model="password" 
-            required
-          >
+          <input type="password"
+            class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none"
+            placeholder="Mật khẩu" v-model="password" required>
         </div>
-        
+
         <div class="d-flex justify-content-between align-items-center mb-4 text-white small px-1">
           <div class="form-check m-0">
             <input class="form-check-input bg-transparent border-white" type="checkbox" id="rememberMe">
@@ -71,18 +65,17 @@ const handleLogin = async () => {
         </div>
 
         <div v-if="error" class="alert alert-danger py-2 mb-3 small opacity-90">{{ error }}</div>
-        
-        <button 
-          type="submit" 
-          class="btn btn-light w-100 rounded-pill py-2 fw-semibold mb-4 border-0 shadow-sm hover-lift" 
-          :disabled="loading"
-        >
+
+        <button type="submit"
+          class="btn btn-light w-100 rounded-pill py-2 fw-semibold mb-4 border-0 shadow-sm hover-lift"
+          :disabled="loading">
           {{ loading ? '...' : 'Đăng nhập' }}
         </button>
 
         <div class="text-center text-white">
           <span class="opacity-75">Chưa có tài khoản? </span>
-          <router-link to="/register" class="text-white fw-bold text-decoration-none hover-underline">Đăng ký</router-link>
+          <router-link to="/register" class="text-white fw-bold text-decoration-none hover-underline">Đăng
+            ký</router-link>
         </div>
       </form>
     </div>

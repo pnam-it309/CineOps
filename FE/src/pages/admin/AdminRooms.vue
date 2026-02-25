@@ -84,7 +84,7 @@ const pageSize = 10;
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Cụm Rạp & Phòng Chiếu</h2>
+        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Cụm Rạp & Phòng Chiếu</h2>
       </div>
       <div class="d-flex gap-2">
         <el-button type="primary" size="default" :icon="Plus" round @click="openDesigner()">Thêm phòng</el-button>

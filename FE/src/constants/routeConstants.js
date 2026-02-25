@@ -78,17 +78,18 @@ export const ROUTES_CONSTANTS = {
     name: 'Admin',
     children: {
       DASHBOARD: { path: 'dashboard', name: 'AdminDashboard' },
-      MOVIES: { path: 'movies', name: 'AdminMovies' },
-      ROOMS: { path: 'rooms', name: 'AdminRooms' },
+      STATISTICS: { path: 'statistics', name: 'AdminStatistics' },
+      POS: { path: 'pos', name: 'AdminPOS' },
+      CHECKIN: { path: 'checkin', name: 'AdminCheckin' },
+      INVOICES: { path: 'invoices', name: 'AdminInvoices' },
+      TICKETS: { path: 'tickets', name: 'AdminTickets' },
+      SEATS: { path: 'seats', name: 'AdminSeats' },
+      MOVIES_SCHEDULE: { path: 'movies-schedule', name: 'AdminMoviesSchedule' },
       SHOWTIMES: { path: 'showtimes', name: 'AdminShowtimes' },
-      PRICING: { path: 'pricing', name: 'AdminPricing' },
       FOOD: { path: 'food', name: 'AdminFood' },
       VOUCHERS: { path: 'vouchers', name: 'AdminVouchers' },
-      BANNERS: { path: 'banners', name: 'AdminBanners' },
-      STAFF: { path: 'staff', name: 'AdminStaff' },
       CUSTOMERS: { path: 'customers', name: 'AdminCustomers' },
-      REPORTS: { path: 'reports', name: 'AdminReports' },
-      REVIEWS: { path: 'reviews', name: 'AdminReviews' }
+      STAFF: { path: 'staff', name: 'AdminStaff' }
     }
   },
 

@@ -35,7 +35,7 @@ const pageSize = 10;
   <div class="admin-customers w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
     <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
       <div>
-        <h2 class="fs-2 fw-bold text-dark mb-1">Cơ sở dữ liệu Khách hàng</h2>
+        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Cơ sở dữ liệu Khách hàng</h2>
       </div>
     </div>
 

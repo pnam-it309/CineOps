@@ -1,17 +1,17 @@
 <template>
   <MainLayout>
-    <el-container class="vh-100 overflow-hidden">
+    <el-container class="vh-100 overflow-hidden admin-staff-layout">
       <!-- Sidebar -->
-      <el-aside :width="isCollapse ? '64px' : '240px'" class="bg-dark shadow transition-width overflow-hidden">
+      <el-aside :width="isCollapse ? '64px' : '240px'" class="bg-white shadow transition-width overflow-hidden">
         <AdminSidebar :is-collapse="isCollapse" />
       </el-aside>
 
       <!-- Main Container -->
-      <el-container class="d-flex flex-column vh-100 overflow-hidden bg-dark-primary">
+      <el-container class="d-flex flex-column vh-100 overflow-hidden bg-light">
         <!-- Top Navigation Bar -->
-        <el-header class="d-flex align-items-center justify-content-between bg-dark-secondary shadow-sm px-3 border-bottom border-dark" style="height: 60px;">
+        <el-header class="d-flex align-items-center justify-content-between bg-white shadow-sm px-3 border-bottom border-light" style="height: 60px;">
           <div class="d-flex align-items-center gap-3">
-            <el-icon class="fs-4 cursor-pointer" @click="toggleSidebar">
+            <el-icon class="fs-4 cursor-pointer text-dark" @click="toggleSidebar">
               <Fold v-if="!isCollapse" />
               <Expand v-else />
             </el-icon>
@@ -57,7 +57,7 @@
         </el-header>
 
         <!-- Main Content Area -->
-        <el-main class="p-4 flex-fill overflow-auto">
+        <el-main class="p-4 flex-fill overflow-auto text-dark">
           <router-view />
         </el-main>
       </el-container>
@@ -126,6 +126,27 @@ if (window.innerWidth < 768) {
 </script>
 
 <style scoped>
+.admin-staff-layout {
+  /* Force light theme variables within admin/staff scope */
+  --text-primary: #1e293b !important;
+  --text-secondary: #64748b !important;
+  --text-tertiary: #94a3b8 !important;
+  
+  /* Element Plus Variable Overrides */
+  --el-text-color-primary: #1e293b !important;
+  --el-text-color-regular: #475569 !important;
+  --el-text-color-secondary: #64748b !important;
+  --el-border-color-light: #e2e8f0 !important;
+  --el-border-color: #e2e8f0 !important;
+  --el-border-color-lighter: #f1f5f9 !important;
+  --el-bg-color: #ffffff !important;
+  --el-bg-color-overlay: #ffffff !important;
+  --el-fill-color-blank: #ffffff !important;
+  --el-fill-color-light: #f8fafc !important;
+  
+  color: #1e293b;
+}
+
 .transition-width {
   transition: width 0.28s;
 }
@@ -133,13 +154,28 @@ if (window.innerWidth < 768) {
   cursor: pointer;
 }
 
-/* Breadcrumb overrides for dark mode */
+/* Breadcrumb overrides for light mode */
 :deep(.el-breadcrumb__inner) {
-  color: #adb5bd !important;
+  color: #64748b !important;
 }
 
 :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
-  color: #fff !important;
+  color: #1e293b !important;
   font-weight: 600;
 }
+
+/* Table and Card overrides to ensure readability */
+:deep(.el-card) {
+  --el-card-bg-color: #ffffff;
+  --el-card-border-color: #e2e8f0;
+}
+
+:deep(.el-table) {
+  --el-table-border-color: #e2e8f0;
+  --el-table-header-bg-color: #f8fafc;
+  --el-table-text-color: #1e293b;
+  --el-table-header-text-color: #475569;
+}
 </style>
+
+

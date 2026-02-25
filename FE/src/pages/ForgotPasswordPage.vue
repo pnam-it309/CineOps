@@ -15,7 +15,7 @@ const handleReset = async () => {
     ElMessage.error('Vui lòng nhập địa chỉ email hợp lệ');
     return;
   }
-  
+
   loading.value = true;
   try {
     // Mock reset request
@@ -32,30 +32,26 @@ const handleReset = async () => {
 
 <template>
   <div class="login-container d-flex align-items-center justify-content-center min-vh-100">
-    <div class="glass-card p-4 p-md-5 bg-white bg-opacity-10 border border-white border-opacity-25 shadow-lg rounded-4 m-3 w-100" style="max-width: 450px;">
+    <div
+      class="glass-card p-4 p-md-5 bg-white bg-opacity-10 border border-white border-opacity-25 shadow-lg rounded-4 m-3 w-100"
+      style="max-width: 450px;">
       <h2 class="display-6 fw-bold mb-3 text-center text-white">Đặt lại mật khẩu</h2>
-      
+
       <div v-if="!submitted">
         <p class="text-white text-center opacity-75 mb-4 px-2">
           Nhập địa chỉ email của bạn và chúng tôi sẽ gửi liên kết để đặt lại mật khẩu.
         </p>
-        
+
         <form @submit.prevent="handleReset">
           <div class="mb-4">
-            <input 
-              type="email" 
-              class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none" 
-              placeholder="Địa chỉ Email" 
-              v-model="email" 
-              required
-            >
+            <input type="email"
+              class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none"
+              placeholder="Địa chỉ Email" v-model="email" required>
           </div>
-          
-          <button 
-            type="submit" 
-            class="btn btn-light w-100 rounded-pill py-2 fw-semibold mb-3 border-0 shadow-sm hover-lift" 
-            :disabled="loading"
-          >
+
+          <button type="submit"
+            class="btn btn-light w-100 rounded-pill py-2 fw-semibold mb-3 border-0 shadow-sm hover-lift"
+            :disabled="loading">
             {{ loading ? '...' : 'Gửi liên kết đặt lại' }}
           </button>
         </form>
@@ -63,7 +59,9 @@ const handleReset = async () => {
 
       <div v-else class="text-center text-white py-4">
         <div class="mb-4">
-          <el-icon size="60" class="text-success"><CircleCheck /></el-icon>
+          <el-icon size="60" class="text-success">
+            <CircleCheck />
+          </el-icon>
         </div>
         <h4 class="fw-bold mb-3">Kiểm tra Email của bạn</h4>
         <p class="opacity-75 mb-4">

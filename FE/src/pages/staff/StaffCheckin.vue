@@ -30,7 +30,7 @@ const handleCheckin = () => {
 <template>
   <div class="staff-checkin w-100 h-100 d-flex flex-column align-items-center justify-content-center overflow-hidden no-scroll">
     <div style="max-width: 500px; width: 100%;" class="flex-shrink-0">
-      <h2 class="fs-4 fw-bold text-center mb-4">Soát vé vào cổng</h2>
+      <h2 class="fw-bold text-center mb-4" style="font-size: 18px;">Soát vé vào cổng</h2>
       
       <!-- Input Area -->
       <el-card shadow="never" class="border-black shadow-sm rounded-4 mb-4">

@@ -2,12 +2,12 @@
   <div class="container-fluid p-4">
     <!-- Page Header -->
     <div class="mb-4">
-      <h2 class="mb-2 fs-3 fw-bold text-dark">Tổng quan Bảng điều khiển</h2>
+      <h2 class="mb-2 fw-bold text-dark" style="font-size: 18px;">Tổng quan Bảng điều khiển</h2>
     </div>
 
     <!-- Statistics Cards -->
-    <el-row :gutter="20" class="mb-4">
-      <el-col :xs="24" :sm="12" :lg="6" class="mb-4 mb-lg-0">
+    <div class="stats-row mb-4">
+      <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
           <div class="d-flex align-items-center gap-3">
             <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -23,9 +23,9 @@
             </div>
           </div>
         </el-card>
-      </el-col>
+      </div>
 
-      <el-col :xs="24" :sm="12" :lg="6" class="mb-4 mb-lg-0">
+      <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
           <div class="d-flex align-items-center gap-3">
             <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">
@@ -41,9 +41,27 @@
             </div>
           </div>
         </el-card>
-      </el-col>
+      </div>
 
-      <el-col :xs="24" :sm="12" :lg="6" class="mb-4 mb-sm-0">
+      <div class="stat-col">
+        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);">
+              <el-icon :size="40"><TrendCharts /></el-icon>
+            </div>
+            <div class="flex-grow-1">
+              <p class="text-secondary small mb-1">Doanh thu dự kiến</p>
+              <h3 class="fs-4 fw-bold text-dark mb-1">${{ stats.expectedRevenue }}</h3>
+              <p class="small mb-0 text-primary d-flex align-items-center gap-1">
+                <el-icon><CaretTop /></el-icon>
+                Dự báo tháng này
+              </p>
+            </div>
+          </div>
+        </el-card>
+      </div>
+
+      <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
           <div class="d-flex align-items-center gap-3">
             <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
@@ -59,9 +77,9 @@
             </div>
           </div>
         </el-card>
-      </el-col>
+      </div>
 
-      <el-col :xs="24" :sm="12" :lg="6">
+      <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
           <div class="d-flex align-items-center gap-3">
             <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
@@ -76,30 +94,30 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
+      </div>
+    </div>
 
     <!-- Charts and Activity Section -->
     <el-row :gutter="20" class="mb-4">
       <el-col :xs="24" :lg="16" class="mb-4 mb-lg-0">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm">
           <template #header>
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center" style="min-height: 32px;">
               <span class="d-flex align-items-center gap-2 fw-bold fs-6">
                 <el-icon><TrendCharts /></el-icon>
-                Revenue Analytics
+                Thống kê Doanh thu
               </span>
               <el-button-group size="small">
-                <el-button :type="activeTab === 'week' ? 'primary' : ''" @click="activeTab = 'week'">Week</el-button>
-                <el-button :type="activeTab === 'month' ? 'primary' : ''" @click="activeTab = 'month'">Month</el-button>
-                <el-button :type="activeTab === 'year' ? 'primary' : ''" @click="activeTab = 'year'">Year</el-button>
+                <el-button :type="activeTab === 'week' ? 'primary' : ''" @click="activeTab = 'week'">Tuần</el-button>
+                <el-button :type="activeTab === 'month' ? 'primary' : ''" @click="activeTab = 'month'">Tháng</el-button>
+                <el-button :type="activeTab === 'year' ? 'primary' : ''" @click="activeTab = 'year'">Năm</el-button>
               </el-button-group>
             </div>
           </template>
           <div class="d-flex flex-column align-items-center justify-content-center rounded bg-light p-5 text-center" style="min-height: 300px;">
             <el-icon :size="64" class="text-secondary mb-3"><TrendCharts /></el-icon>
-            <p class="fs-5 fw-medium text-dark mb-1">Chart visualization will be integrated here</p>
-            <p class="text-secondary small mb-0">You can use Chart.js, ECharts, or any other charting library</p>
+            <p class="fs-5 fw-medium text-dark mb-1">Biểu đồ thống kê sẽ được hiển thị tại đây</p>
+            <p class="text-secondary small mb-0">Hệ thống hỗ trợ Chart.js, ECharts và nhiều thư viện khác</p>
           </div>
         </el-card>
       </el-col>
@@ -107,23 +125,29 @@
       <el-col :xs="24" :lg="8">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm">
           <template #header>
-            <span class="d-flex align-items-center gap-2 fw-bold fs-6">
-              <el-icon><Lightning /></el-icon>
-              Thao tác nhanh
-            </span>
+            <div class="d-flex justify-content-between align-items-center" style="min-height: 32px;">
+              <span class="d-flex align-items-center gap-2 fw-bold fs-6">
+                <el-icon><Lightning /></el-icon>
+                Thao tác nhanh
+              </span>
+            </div>
           </template>
           <div class="d-flex flex-column gap-3">
-            <el-button type="primary" :icon="VideoPlay" size="large" class="w-100 justify-content-start" @click="handleAction('movie')">
-              Thêm phim mới
+            <el-button type="primary" size="large" class="w-100 custom-btn-start" @click="handleAction('movie')">
+              <span class="btn-icon-wrapper"><el-icon :size="18"><VideoPlay /></el-icon></span>
+              <span class="btn-label">Thêm phim mới</span>
             </el-button>
-            <el-button type="success" :icon="Document" size="large" class="w-100 justify-content-start" @click="handleAction('report')">
-              Xuất báo cáo
+            <el-button type="success" size="large" class="w-100 custom-btn-start" @click="handleAction('report')">
+              <span class="btn-icon-wrapper"><el-icon :size="18"><Document /></el-icon></span>
+              <span class="btn-label">Xuất báo cáo</span>
             </el-button>
-            <el-button type="info" :icon="User" size="large" class="w-100 justify-content-start" @click="handleAction('user')">
-              Quản lý tài khoản
+            <el-button type="info" size="large" class="w-100 custom-btn-start" @click="handleAction('user')">
+              <span class="btn-icon-wrapper"><el-icon :size="18"><User /></el-icon></span>
+              <span class="btn-label">Quản lý tài khoản</span>
             </el-button>
-            <el-button type="warning" :icon="Setting" size="large" class="w-100 justify-content-start" @click="handleAction('settings')">
-              Cấu hình hệ thống
+            <el-button type="warning" size="large" class="w-100 custom-btn-start" @click="handleAction('settings')">
+              <span class="btn-icon-wrapper"><el-icon :size="18"><Setting /></el-icon></span>
+              <span class="btn-label">Cấu hình hệ thống</span>
             </el-button>
           </div>
         </el-card>
@@ -202,7 +226,7 @@
                 <tr v-for="movie in topMovies" :key="movie.id">
                   <td class="ps-3">
                     <div class="fw-bold">{{ movie.title }}</div>
-                    <div class="small text-secondary">{{ movie.screenings }} screenings</div>
+                    <div class="small text-secondary">{{ movie.screenings }} suất chiếu</div>
                   </td>
                   <td class="text-center">
                     <span class="badge bg-light text-dark px-3 rounded-pill">{{ movie.tickets }}</span>
@@ -268,6 +292,7 @@ const revenueData = ref([45, 62, 55, 80, 75, 95, 88]);
 const stats = ref({
   totalUsers: 1420,
   revenue: '12,450',
+  expectedRevenue: '45,800',
   pendingTickets: 23,
   issues: 0
 });
@@ -280,10 +305,10 @@ const occupancyStats = ref([
 ]);
 
 const recentTransactions = ref([
-  { id: 1, customer: 'John Wick', movie: 'Avatar 3', amount: 45.00, method: 'VNPay', time: '10 mins ago' },
-  { id: 2, customer: 'Sarah Connor', movie: 'Terminator', amount: 32.00, method: 'Credit Card', time: '25 mins ago' },
-  { id: 3, customer: 'Peter Parker', movie: 'Spider-Man', amount: 15.00, method: 'Momo', time: '1 hr ago' },
-  { id: 4, customer: 'Bruce Wayne', movie: 'Batman', amount: 120.00, method: 'VNPay', time: '2 hrs ago' }
+  { id: 1, customer: 'John Wick', movie: 'Avatar 3', amount: 45.00, method: 'VNPay', time: '10 phút trước' },
+  { id: 2, customer: 'Sarah Connor', movie: 'Terminator', amount: 32.00, method: 'Thẻ tín dụng', time: '25 phút trước' },
+  { id: 3, customer: 'Peter Parker', movie: 'Spider-Man', amount: 15.00, method: 'Momo', time: '1 giờ trước' },
+  { id: 4, customer: 'Bruce Wayne', movie: 'Batman', amount: 120.00, method: 'VNPay', time: '2 giờ trước' }
 ]);
 
 const topMovies = ref([
@@ -302,10 +327,49 @@ const handleAction = (action) => {
 </script>
 
 <style scoped>
+.card-hover-effect {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 .card-hover-effect:hover {
   transform: translateY(-4px);
-  transition: transform 0.3s ease;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.stat-col {
+  flex: 1 1 0;
+  min-width: 220px;
+}
+
+.custom-btn-start {
+  justify-content: flex-start !important;
+  padding-left: 20px !important;
+  height: 52px !important;
+}
+
+.custom-btn-start :deep(> span) {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.btn-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  margin-right: 10px;
+}
+
+.btn-label {
+  text-align: left;
 }
 
 .bar-hover:hover {

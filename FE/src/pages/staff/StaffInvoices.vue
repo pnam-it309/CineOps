@@ -38,69 +38,96 @@ const handleReprint = (row) => {
 </script>
 
 <template>
-  <div class="staff-invoices w-100">
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-2">
+  <div class="staff-invoices w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
+    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
       <div>
-        <h2 class="fs-4 fw-bold mb-1">Nhật ký Bán hàng</h2>
+        <h2 class="fw-bold mb-1" style="font-size: 18px;">Nhật ký Bán hàng</h2>
       </div>
       <el-button :icon="RefreshRight" circle />
     </div>
 
     <!-- Filters -->
-    <el-card shadow="never" class="border-0 shadow-sm rounded-4 mb-4">
+    <el-card shadow="never" class="border-black shadow-sm rounded-4 mb-3 w-100 flex-shrink-0">
       <div class="row g-2 align-items-center">
         <div class="col-md-9">
-          <el-input placeholder="Tìm theo Mã Hóa đơn hoặc Khách hàng..." :prefix-icon="Search" size="large" />
+          <el-input placeholder="Tìm theo Mã Hóa đơn hoặc Khách hàng..." :prefix-icon="Search" size="default" clearable />
         </div>
         <div class="col-md-3">
-          <el-button type="primary" class="w-100" size="large">TÌM KIẾM</el-button>
+          <el-button type="primary" class="w-100" size="default">TÌM KIẾM</el-button>
         </div>
       </div>
     </el-card>
 
     <!-- Table using BaseTable -->
-    <BaseTable
-      :data="invoices"
-      :columns="tableColumns"
-      :total="invoices.length"
-      v-model:currentPage="currentPage"
-      v-model:pageSize="pageSize"
-      :show-checkbox="false"
-    >
-      <template #cell-id="{ row }">
-        <span class="fw-bold text-dark">{{ row.id }}</span>
-      </template>
+    <div class="flex-grow-1 overflow-auto no-scroll">
+      <BaseTable
+        :data="invoices"
+        :columns="tableColumns"
+        :total="invoices.length"
+        v-model:currentPage="currentPage"
+        v-model:pageSize="pageSize"
+        :show-checkbox="false"
+      >
+        <template #cell-id="{ row }">
+          <code class="fw-bold text-primary">{{ row.id }}</code>
+        </template>
 
-      <template #cell-time="{ row }">
-        <span class="small text-secondary">{{ row.time }}</span>
-      </template>
+        <template #cell-time="{ row }">
+          <span class="small text-secondary">{{ row.time }}</span>
+        </template>
 
-      <template #cell-amount="{ row }">
-        <span class="fw-bold text-primary">{{ row.amount.toLocaleString() }}đ</span>
-      </template>
+        <template #cell-amount="{ row }">
+          <span class="fw-bold text-dark">{{ row.amount.toLocaleString() }}đ</span>
+        </template>
 
-      <template #cell-status="{ row }">
-        <span 
-          :class="row.status === 'Đã thanh toán' ? 'badge bg-success-subtle text-success' : 'badge bg-danger-subtle text-danger'"
-          class="rounded-pill px-3 py-2 border-0"
-          style="font-size: 0.75rem;"
-        >
-          {{ row.status }}
-        </span>
-      </template>
+        <template #cell-status="{ row }">
+          <el-tag 
+            :type="row.status === 'Đã thanh toán' ? 'success' : 'danger'"
+            effect="light"
+            round
+            size="small"
+          >
+            {{ row.status }}
+          </el-tag>
+        </template>
 
-      <template #actions="{ row }">
-        <div class="d-flex justify-content-center gap-1">
-          <el-button :icon="Printer" size="small" type="primary" plain @click="handleReprint(row)" />
-          <el-button :icon="Close" size="small" type="danger" plain @click="handleVoid(row)" />
-        </div>
-      </template>
-    </BaseTable>
+        <template #actions="{ row }">
+          <div class="d-flex justify-content-center gap-1">
+            <el-button :icon="Printer" size="small" type="primary" plain @click="handleReprint(row)" />
+            <el-button :icon="Close" size="small" type="danger" plain @click="handleVoid(row)" />
+          </div>
+        </template>
+      </BaseTable>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.badge {
-  font-weight: 600;
+.staff-invoices {
+  height: calc(100vh - 84px);
+}
+
+:deep(.el-card) {
+  border: 1px solid #000 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.no-scroll {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow: hidden !important;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+.overflow-auto.no-scroll {
+  overflow-y: auto !important;
+}
+
+code {
+  letter-spacing: 0.5px;
 }
 </style>

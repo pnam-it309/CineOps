@@ -3,8 +3,7 @@
     <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 class="fs-4 fw-bold text-dark mb-1">Quản Lý Đồ Ăn & Combo</h2>
-        <p class="text-secondary small mb-0">Quản lý danh sách bắp, nước và các combo khuyến mãi</p>
+        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Quản Lý Đồ Ăn & Combo</h2>
       </div>
       <el-button type="primary" :icon="Plus" @click="openDialog()">Thêm sản phẩm mới</el-button>
     </div>

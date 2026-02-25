@@ -41,7 +41,7 @@ const deleteSlot = (id) => {
     <div class="admin-scheduling h-100 d-grid overflow-hidden">
       <!-- Header Area -->
       <header class="p-3 pb-0 d-flex justify-content-between align-items-center flex-shrink-0">
-        <h2 class="fs-2 fw-bold text-dark mb-0">Lập lịch Chiếu phim</h2>
+        <h2 class="fw-bold text-dark mb-0" style="font-size: 18px;">Lập lịch Chiếu phim</h2>
         <div class="d-flex gap-2 align-items-center">
           <el-button-group>
             <el-button :icon="ArrowLeft" />

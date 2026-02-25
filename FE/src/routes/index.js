@@ -167,24 +167,44 @@ const routes = [
                 component: () => import('@/pages/admin/AdminDashboard.vue'),
             },
             {
-                path: ROUTES_CONSTANTS.ADMIN.children.MOVIES.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.MOVIES.name,
-                component: () => import('@/pages/admin/AdminMovies.vue'),
+                path: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.name,
+                component: () => import('@/pages/admin/AdminReports.vue'),
             },
             {
-                path: ROUTES_CONSTANTS.ADMIN.children.ROOMS.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.ROOMS.name,
+                path: ROUTES_CONSTANTS.ADMIN.children.POS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.POS.name,
+                component: () => import('@/pages/staff/StaffSales.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.CHECKIN.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.CHECKIN.name,
+                component: () => import('@/pages/staff/StaffCheckin.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.INVOICES.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.INVOICES.name,
+                component: () => import('@/pages/staff/StaffInvoices.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.TICKETS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.TICKETS.name,
+                component: () => import('@/pages/admin/AdminReports.vue'), // Using reports as placeholder for tickets
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.SEATS.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.SEATS.name,
                 component: () => import('@/pages/admin/AdminRooms.vue'),
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.name,
+                component: () => import('@/pages/admin/AdminMovies.vue'),
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.name,
                 component: () => import('@/pages/admin/AdminShowtimes.vue'),
-            },
-            {
-                path: ROUTES_CONSTANTS.ADMIN.children.PRICING.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.PRICING.name,
-                component: () => import('@/pages/admin/AdminPricing.vue'),
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.FOOD.path,
@@ -197,29 +217,14 @@ const routes = [
                 component: () => import('@/pages/admin/AdminVouchers.vue'),
             },
             {
-                path: ROUTES_CONSTANTS.ADMIN.children.BANNERS.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.BANNERS.name,
-                component: () => import('@/pages/admin/AdminBanners.vue'),
-            },
-            {
-                path: ROUTES_CONSTANTS.ADMIN.children.STAFF.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.STAFF.name,
-                component: () => import('@/pages/admin/AdminUsers.vue'),
-            },
-            {
                 path: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.name,
                 component: () => import('@/pages/admin/AdminCustomers.vue'),
             },
             {
-                path: ROUTES_CONSTANTS.ADMIN.children.REPORTS.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.REPORTS.name,
-                component: () => import('@/pages/admin/AdminReports.vue'),
-            },
-            {
-                path: ROUTES_CONSTANTS.ADMIN.children.REVIEWS.path,
-                name: ROUTES_CONSTANTS.ADMIN.children.REVIEWS.name,
-                component: () => import('@/pages/admin/AdminReviews.vue'),
+                path: ROUTES_CONSTANTS.ADMIN.children.STAFF.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.STAFF.name,
+                component: () => import('@/pages/admin/AdminStaff.vue'),
             },
         ]
     },

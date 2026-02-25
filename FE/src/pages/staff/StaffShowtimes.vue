@@ -2,7 +2,7 @@
   <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
       <div>
-        <h2 class="mb-2 fs-3 fw-bold text-dark">Quản lý Lịch chiếu</h2>
+        <h2 class="mb-2 fw-bold text-dark" style="font-size: 18px;">Quản lý Lịch chiếu</h2>
         <p class="text-secondary mb-0 small">Quản lý lịch chiếu phim và các suất chiếu</p>
       </div>
       <el-button type="primary" :icon="Plus" @click="dialogVisible = true">
