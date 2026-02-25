@@ -25,4 +25,7 @@ public class AppConfig {
 
     @Value("${ROLE}")
     private String role;
+
+    @Value("${USER_PASSWORD}")
+    private String userPassword;
 }

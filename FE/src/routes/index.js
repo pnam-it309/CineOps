@@ -10,6 +10,7 @@ const CustomerLayout = () => import('@/layout/CustomerLayout.vue');
 // Pages
 const Home = () => import('@/pages/customer/HomePage.vue');
 const Login = () => import('@/pages/LoginPage.vue');
+const OAuthCallback = () => import('@/pages/OAuthCallbackPage.vue');
 const Showtimes = () => import('@/pages/customer/ShowtimesPage.vue');
 const Promotions = () => import('@/pages/customer/PromotionsPage.vue');
 const CinemaInfo = () => import('@/pages/customer/CinemaInfoPage.vue');
@@ -265,6 +266,14 @@ const routes = [
                 component: () => import('@/pages/staff/StaffShift.vue'),
             },
         ]
+    },
+
+    // OAuth2 Callback (outside layout, no auth required)
+    {
+        path: '/oauth2/redirect',
+        name: 'OAuthCallback',
+        component: OAuthCallback,
+        meta: { guestOnly: false } // allow even if authenticated to handle re-login
     },
 
     // Catch All

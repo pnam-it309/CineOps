@@ -66,7 +66,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     .map(Cookie::getValue);
             if (redirectUri.isEmpty()) throw new RedirectException("Redirect uri not found! Please try again later!");
             String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
-            String token = "tokenProvider.createRefreshTokenForKhachHang(authentication)";
+            // Extract UserPrincipal and create real JWT token
+            service.cinema.be.infrastructure.security.user.UserPrincipal userPrincipal =
+                    (service.cinema.be.infrastructure.security.user.UserPrincipal) authentication.getPrincipal();
+            String token = tokenProvider.createToken(
+                    userPrincipal.getEmail(),
+                    userPrincipal.getRole(),
+                    userPrincipal.getId()
+            );
             String refreshToken = refreshTokenService.createRefreshToken(authentication).getRefreshToken();
             return buildSuccessUrl(targetUrl, TokenUriResponse.getState(token, refreshToken));
         } catch (RedirectException e) {

@@ -24,7 +24,7 @@ public class TaiKhoan extends PrimaryEntity {
     @Column(name = "ten_tai_khoan", length = 100, unique = true, nullable = false)
     private String tenTaiKhoan;
 
-    @Column(name = "mat_khau", length = 255, nullable = false)
+    @Column(name = "mat_khau", length = 255)
     private String matKhau;
 
     @Column(name = "trang_thai")

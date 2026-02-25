@@ -100,36 +100,36 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 oAuth2UserRequest.getClientRegistration().getRegistrationId());
     }
 
-    private OAuth2User processUserByRole(OAuth2UserInfo oAuth2UserInfo, String roleStr, 
+    private OAuth2User processUserByRole(OAuth2UserInfo oAuth2UserInfo, String roleStr,
                                           boolean isRegister, String providerId) {
         Optional<KhachHang> khachHangOptional = userRepository.findByEmailWithRoles(
                 oAuth2UserInfo.getEmail());
 
         if (khachHangOptional.isPresent()) {
-            // Existing customer - update OAuth2 info
+            // Tài khoản đã tồn tại → cập nhật thông tin và cho đăng nhập
             KhachHang khachHang = khachHangOptional.get();
             updateKhachHangFromOAuth2(khachHang, oAuth2UserInfo, providerId);
             userRepository.save(khachHang);
 
             UserPrincipal principal = UserPrincipal.createFromKhachHang(khachHang);
             principal.setAttributes(oAuth2UserInfo.getAttributes());
+            log.info("OAuth2 login - tài khoản đã có: {} | role: {}",
+                    oAuth2UserInfo.getEmail(),
+                    khachHang.getTaiKhoan() != null && khachHang.getTaiKhoan().getPhanQuyen() != null
+                            ? khachHang.getTaiKhoan().getPhanQuyen().getMaPhanQuyen() : "null");
             return principal;
 
-        } else if (isRegister) {
-            // New customer registration via OAuth2
-            KhachHang newKhachHang = createKhachHangFromOAuth2(oAuth2UserInfo, roleStr, providerId);
+        } else {
+            // Tài khoản chưa có → tự động tạo mới với role CUSTOMER (mặc định)
+            // Nếu có roleStr cụ thể (vd: admin login) thì dùng roleStr đó
+            String effectiveRole = (roleStr != null && !roleStr.isBlank()) ? roleStr : EntityRole.CUSTOMER.name();
+            KhachHang newKhachHang = createKhachHangFromOAuth2(oAuth2UserInfo, effectiveRole, providerId);
             newKhachHang = userRepository.save(newKhachHang);
 
             UserPrincipal principal = UserPrincipal.createFromKhachHang(newKhachHang);
             principal.setAttributes(oAuth2UserInfo.getAttributes());
+            log.info("OAuth2 login - tạo tài khoản mới: {} | role: {}", oAuth2UserInfo.getEmail(), effectiveRole);
             return principal;
-
-        } else {
-            // Customer not found and not registering
-            log.error("Customer not found and not registering: {}", oAuth2UserInfo.getEmail());
-            CookieUtils.addCookie(httpServletResponse, CookieConstant.ACCOUNT_NOT_EXIST,
-                    CookieConstant.ACCOUNT_NOT_EXIST);
-            throw new OAuth2AuthenticationProcessingException(CookieConstant.ACCOUNT_NOT_EXIST);
         }
     }
 
@@ -138,7 +138,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         TaiKhoan taiKhoan = new TaiKhoan();
         taiKhoan.setId(UUID.randomUUID().toString());
         taiKhoan.setTenTaiKhoan(oAuth2UserInfo.getEmail());
-        taiKhoan.setMatKhau(null); // OAuth2 users don't have password
+        taiKhoan.setMatKhau(""); // OAuth2 users don't have password
         taiKhoan.setTrangThai(1); // Active
 
         // Find and assign role
@@ -176,16 +176,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     /**
-     * Convert role string to ma_phan_quyen
-     * Example: "ROLE_USER" -> "role_user", "CUSTOMER" -> "role_user"
+     * Convert role string sang ma_phan_quyen lưu trong DB.
+     * DB dùng: "admin", "staff", "customer" (EntityRole.name().toLowerCase())
+     * Input có thể là: "ROLE_USER", "CUSTOMER", "ROLE_CUSTOMER", "ROLE_ADMIN", "admin", ...
      */
     private String convertRoleStringToMaPhanQuyen(String roleStr) {
+        if (roleStr == null || roleStr.isBlank()) {
+            return EntityRole.CUSTOMER.name().toLowerCase(); // mặc định = "customer"
+        }
+        String upper = roleStr.toUpperCase()
+                .replace("ROLE_", "")  // bỏ prefix "ROLE_"
+                .replace("USER", "CUSTOMER"); // ROLE_USER → CUSTOMER
         try {
-            EntityRole entityRole = EntityRole.valueOf(roleStr.toUpperCase());
-            return entityRole.name().toLowerCase();
+            EntityRole entityRole = EntityRole.valueOf(upper);
+            return entityRole.name().toLowerCase(); // "admin" / "staff" / "customer"
         } catch (Exception e) {
-            log.warn("Invalid role: {}, defaulting to ROLE_USER", roleStr);
-            return "role_user";
+            log.warn("Invalid role '{}', defaulting to CUSTOMER", roleStr);
+            return EntityRole.CUSTOMER.name().toLowerCase();
         }
     }
 

@@ -19,7 +19,7 @@ import java.util.List;
 @Table(name = "khach_hang")
 public class KhachHang extends PrimaryEntity {
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = jakarta.persistence.CascadeType.ALL)
     @JoinColumn(name = "id_tai_khoan", unique = true)
     private TaiKhoan taiKhoan;
 

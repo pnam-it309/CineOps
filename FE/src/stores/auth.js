@@ -23,17 +23,20 @@ export const useAuthStore = defineStore('auth', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await AuthService.login(credentials);
-                // Assumption: response contains accessToken. User data might be separate or in token.
-                // We'll set the token, then fetch user details immediately.
-                this.token = response.accessToken; 
-                // Wait for the token to be set in localStorage (AuthService does it, but we sync state here)
-                // Actually AuthService.login sets localStorage. We just double check via our state.
-                
-                await this.fetchProfile();
+                const authData = await AuthService.login(credentials);
+                // authData = { accessToken, refreshToken, email, fullName, role }
+                this.token = authData.accessToken;
+                this.user = {
+                    email: authData.email,
+                    fullName: authData.fullName,
+                };
+                // role từ BE là chuỗi: "ROLE_ADMIN" / "ROLE_STAFF" / "ROLE_CUSTOMER"
+                if (authData.role) {
+                    this.roles = [authData.role];
+                }
                 return true;
             } catch (err) {
-                this.error = err.response?.data?.message || 'Login failed';
+                this.error = err.response?.data?.message || 'Đăng nhập thất bại';
                 throw err;
             } finally {
                 this.loading = false;
@@ -68,16 +71,14 @@ export const useAuthStore = defineStore('auth', {
         async fetchProfile() {
             if (!this.token) return;
             try {
-                const response = await AuthService.getCurrentUser();
-                this.user = response.data; // Assuming /me returns the user object
-                // Extract roles. Adjust based on your Backend response structure. 
-                // Common pattern: user.roles = [{name: 'ROLE_ADMIN'}, ...] or just ['ROLE_ADMIN']
-                // Let's assume response.data.roles is an array of strings or objects.
-                if (this.user.roles) {
-                    this.roles = this.user.roles.map(r => typeof r === 'string' ? r : r.name);
+                const userData = await AuthService.getCurrentUser();
+                // userData = { email, fullName, role }
+                this.user = userData;
+                if (userData?.role) {
+                    this.roles = [userData.role];
                 }
             } catch (err) {
-                // If fetching profile fails (e.g. 401), logout
+                // Nếu lấy profile thất bại (ví dụ 401), logout
                 this.logout();
             }
         }

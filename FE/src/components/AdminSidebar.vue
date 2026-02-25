@@ -1,11 +1,7 @@
 <template>
   <div class="d-flex flex-column h-100 bg-white border-end shadow-sm">
-    <div
-      class="d-flex align-items-center justify-content-center gap-2 p-3 text-white fw-bold fs-4 admin-header"
-      style="height: 60px;">
-      <img v-if="!isCollapse" src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" class="sidebar-logo" />
-      <!-- <transition name="fade">
-      </transition> -->
+    <div class="logo-section" :style="{ height: isCollapse ? '60px' : '120px' }">
+      <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" :class="['sidebar-logo', { 'logo-collapse': isCollapse }]" />
     </div>
 
     <el-menu :default-active="activeMenu" :collapse="isCollapse" :collapse-transition="false" background-color="#ffffff"
@@ -206,15 +202,29 @@ const handleCommand = (command) => {
   /* Chrome, Safari, Edge */
 }
 
-.sidebar-logo {
-  height: 36px;
-  width: auto;
-  object-fit: contain;
-  border-radius: 4px;
+.logo-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #ffffff;
+  transition: all 0.3s;
 }
 
-.admin-header {
-  background: linear-gradient(90deg, #A51C1C 0%, #E31E24 40%, #F37021 70%, #FFBA00 100%);
+.sidebar-logo {
+  width: 130%; /* Phóng to ra ngoài khung để loại bỏ khoảng trắng dư của ảnh */
+  height: 130%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: contrast(1.1) brightness(1.1);
+  transition: all 0.3s;
+  transform: scale(1.3); /* Phóng đại thêm để logo to nhất có thể */
+}
+
+.sidebar-logo.logo-collapse {
+  width: 100%;
+  height: 100%;
+  transform: scale(1);
 }
 </style>
 
