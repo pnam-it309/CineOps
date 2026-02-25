@@ -28,14 +28,15 @@ public class SuatChieu extends PrimaryEntity {
     @JoinColumn(name = "id_phong_chieu")
     private PhongChieu phongChieu;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_khung_gio")
+    private KhungGio khungGio;
+
     @Column(name = "ngay_chieu")
     private LocalDate ngayChieu;
 
-    @Column(name = "gio_bat_dau")
-    private LocalTime gioBatDau;
-
-    @Column(name = "gio_ket_thuc")
-    private LocalTime gioKetThuc;
+    @Column(name = "so_ghe_trong")
+    private Integer soGheTrong;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

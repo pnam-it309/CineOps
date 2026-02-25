@@ -1,247 +1,649 @@
-<script setup>
-import { ref, computed } from 'vue';
-import { Plus, Calendar, Clock, Filter, Location, ArrowLeft, ArrowRight, Delete } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
-import { mockMovies } from '@/mock';
-
-const weekDays = ['Mon 01', 'Tue 02', 'Wed 03', 'Thu 04', 'Fri 05', 'Sat 06', 'Sun 07'];
-const timeSlots = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '00:00'];
-
-const selectedVenue = ref('CineOps Central - Hall 1');
-const selectedMovie = ref(mockMovies[0].id);
-
-const schedule = ref([
-  { id: 1, movieId: 1, day: 'Mon 01', time: '10:00', duration: 120 },
-  { id: 2, movieId: 2, day: 'Mon 01', time: '14:00', duration: 150 },
-  { id: 3, movieId: 3, day: 'Tue 02', time: '18:00', duration: 110 },
-  { id: 4, movieId: 1, day: 'Wed 03', time: '08:00', duration: 120 },
-]);
-
-const getMovieTitle = (id) => mockMovies.find(m => m.id === id)?.title || 'Unknown';
-
-const handleAddSlot = (day, time) => {
-  const movie = mockMovies.find(m => m.id === selectedMovie.value);
-  schedule.value.push({
-    id: Date.now(),
-    movieId: selectedMovie.value,
-    day,
-    time,
-    duration: movie.duration
-  });
-  ElMessage.success(`Scheduled "${movie.title}" at ${time} on ${day}`);
-};
-
-const deleteSlot = (id) => {
-  schedule.value = schedule.value.filter(s => s.id !== id);
-};
-</script>
-
 <template>
-  <div class="admin-scheduling-wrapper h-100 overflow-hidden">
-    <div class="admin-scheduling h-100 d-grid overflow-hidden">
-      <!-- Header Area -->
-      <header class="p-3 pb-0 d-flex justify-content-between align-items-center flex-shrink-0">
-        <h2 class="fw-bold text-dark mb-0" style="font-size: 18px;">Lập lịch Chiếu phim</h2>
-        <div class="d-flex gap-2 align-items-center">
-          <el-button-group>
-            <el-button :icon="ArrowLeft" />
-            <el-button class="fw-bold px-4">01/02 - 07/02, 2026</el-button>
-            <el-button :icon="ArrowRight" />
-          </el-button-group>
-          <el-select v-model="selectedVenue" size="large" style="width: 180px;">
-            <el-option label="Phòng 1" value="CineOps Central - Hall 1" />
-            <el-option label="Phòng 2" value="CineOps Central - Hall 2" />
-          </el-select>
-        </div>
-      </header>
-
-      <!-- Content Area -->
-      <main class="p-3 row m-0 g-3 overflow-hidden">
-        <!-- Left Column -->
-        <section class="col-lg-3 d-flex flex-column h-100 overflow-hidden">
-          <el-card shadow="never" class="border border-secondary-subtle shadow-sm rounded-4 d-flex flex-column overflow-hidden h-100 custom-card">
-            <template #header>
-              <div class="d-flex align-items-center">
-                <el-icon class="me-2 text-primary font-bold"><Filter /></el-icon>
-                <span class="fw-bold">Chọn Phim</span>
-              </div>
-            </template>
-            
-            <div class="movie-selector-list overflow-auto flex-grow-1 pe-2">
-              <div v-for="movie in mockMovies" :key="movie.id"
-                class="p-2 mb-2 rounded-3 border cursor-pointer transition-all d-flex align-items-center gap-2"
-                :class="selectedMovie === movie.id ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'border-light-subtle'"
-                @click="selectedMovie = movie.id">
-                <img :src="movie.poster" class="rounded shadow-sm" style="width: 32px; height: 44px; object-fit: cover;">
-                <div class="overflow-hidden">
-                  <div class="small fw-bold text-truncate lh-1 mb-1">{{ movie.title }}</div>
-                  <div class="text-secondary" style="font-size: 9px;">{{ movie.duration }}m • {{ movie.genre }}</div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="mt-2 p-2 bg-light rounded-3 small text-secondary flex-shrink-0" style="font-size: 0.7rem;">
-              <el-icon class="me-1"><Clock /></el-icon>Mẹo: Chọn phim rồi nhấn vào lịch.
-            </div>
-          </el-card>
-        </section>
-
-        <!-- Right Column -->
-        <section class="col-lg-9 d-flex flex-column h-100 overflow-hidden">
-          <el-card shadow="never" class="border border-secondary-subtle shadow-sm rounded-4 overflow-hidden p-0 d-flex flex-column h-100 custom-card">
-            <div class="table-container flex-grow-1 overflow-auto h-100">
-              <table class="table table-bordered mb-0 calendar-table">
-                <thead class="bg-light align-middle sticky-top" style="z-index: 10;">
-                  <tr>
-                    <th class="time-cell ps-3">Giờ</th>
-                    <th v-for="day in weekDays" :key="day" class="text-center py-2 bg-light border-bottom">
-                      <div class="fw-bold small">{{ day.split(' ')[0] }}</div>
-                      <div class="small text-secondary fw-normal" style="font-size: 0.65rem;">{{ day.split(' ')[1] }} Th2</div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="time in timeSlots" :key="time">
-                    <td class="time-cell ps-3 align-middle text-secondary small fw-bold bg-light border-end">{{ time }}</td>
-                    <td v-for="day in weekDays" :key="day" class="calendar-slot position-relative p-0"
-                      @click="handleAddSlot(day, time)">
-                      <div class="slot-inner w-100 h-100 p-1">
-                        <div v-for="slot in schedule.filter(s => s.day === day && s.time === time)" :key="slot.id"
-                          class="scheduled-item p-1 rounded-2 shadow-sm bg-primary text-white position-relative">
-                          <div class="fw-bold truncate-2" style="font-size: 9px; line-height: 1.1;">{{ getMovieTitle(slot.movieId) }}</div>
-                          <div style="font-size: 8px;" class="opacity-75">{{ slot.duration }}m</div>
-                          <el-button link :icon="Delete"
-                            class="position-absolute top-0 end-0 p-1 text-white opacity-0 delete-btn"
-                            @click.stop="deleteSlot(slot.id)" />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </el-card>
-        </section>
-      </main>
+  <div class="admin-showtimes-page">
+    <!-- ===== HEADER ===== -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
+      <div>
+        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">
+          <i class="bi bi-calendar2-week-fill me-2 text-primary"></i>Quản Lý Suất Chiếu
+        </h2>
+      </div>
+      <div class="d-flex gap-2">
+        <el-button type="primary" :icon="Plus" @click="openDialog()">Thêm suất chiếu</el-button>
+      </div>
     </div>
+
+    <!-- ===== NEW PREMIUM FILTER BAR ===== -->
+    <div class="filter-container p-3 mb-3 bg-white rounded-3 shadow-sm border border-black flex-shrink-0">
+      <div class="d-flex align-items-center gap-4 flex-wrap w-100">
+        <div class="filter-group d-flex align-items-center gap-4 flex-wrap w-100">
+          <div class="filter-item">
+            <span class="filter-label text-secondary small fw-bold mb-1 d-block">
+              <el-icon class="me-1"><Calendar /></el-icon>Ngày chiếu
+            </span>
+            <el-date-picker
+              v-model="filterDate"
+              type="date"
+              placeholder="Chọn ngày"
+              value-format="YYYY-MM-DD"
+              @change="fetchShowtimes"
+              style="width: 160px;"
+              class="custom-input"
+            />
+          </div>
+
+
+
+          <div class="filter-item">
+            <span class="filter-label text-secondary small fw-bold mb-1 d-block">
+              <el-icon class="me-1"><Monitor /></el-icon>Phòng chiếu
+            </span>
+            <el-select v-model="filterRoom" placeholder="Tất cả" style="width: 130px;" @change="fetchShowtimes" class="custom-input">
+              <el-option
+                v-for="pc in phongChieuList"
+                :key="pc.id"
+                :label="`${pc.tenRap} - ${pc.tenPhong}`"
+                :value="pc.id"
+              />
+            </el-select>
+          </div>
+
+          <div class="filter-item">
+            <span class="filter-label text-secondary small fw-bold mb-1 d-block">
+              <el-icon class="me-1"><Operation /></el-icon>Trạng thái
+            </span>
+            <el-select v-model="filterTrangThai" placeholder="Tất cả" style="width: 140px;" class="custom-input">
+              <el-option label="Sắp chiếu" :value="1" />
+              <el-option label="Đang chiếu" :value="2" />
+              <el-option label="Đã kết thúc" :value="3" />
+              <el-option label="Đã hủy" :value="0" />
+            </el-select>
+          </div>
+
+
+          <div class="filter-item">
+            <span class="filter-label text-secondary small fw-bold mb-1 d-block">
+              <el-icon class="me-1"><Search /></el-icon>Tìm kiếm
+            </span>
+            <el-input
+              v-model="searchQuery"
+              placeholder="Nhập tên phim..."
+              style="width: 250px;"
+              class="custom-input"
+            />
+          </div>
+
+          <div class="filter-item">
+            <el-tooltip content="Xóa bộ lọc" placement="top">
+              <el-button @click="resetFilter" :icon="Close" circle class="btn-reset" />
+            </el-tooltip>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3 flex-shrink-0">
+      <div class="col-md-3">
+        <div class="stat-card border border-black shadow-sm rounded-3 p-2 bg-white">
+          <div class="small text-secondary fw-semibold" style="font-size: 11px;">Tổng suất chiếu</div>
+          <div class="fw-bold fs-5 text-dark">{{ filteredShowtimes.length }}</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card border border-black shadow-sm rounded-3 p-2 bg-white">
+          <div class="small text-secondary fw-semibold" style="font-size: 11px;">Sắp chiếu</div>
+          <div class="fw-bold fs-5 text-primary">{{ filteredShowtimes.filter(s => s.trangThai === 1).length }}</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card border border-black shadow-sm rounded-3 p-2 bg-white">
+          <div class="small text-secondary fw-semibold" style="font-size: 11px;">Đang chiếu</div>
+          <div class="fw-bold fs-5 text-success">{{ filteredShowtimes.filter(s => s.trangThai === 2).length }}</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card border border-black shadow-sm rounded-3 p-2 bg-white">
+          <div class="small text-secondary fw-semibold" style="font-size: 11px;">Đã hủy</div>
+          <div class="fw-bold fs-5 text-danger">{{ filteredShowtimes.filter(s => s.trangThai === 0).length }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TABLE ===== -->
+    <div class="table-wrapper bg-white rounded-3 border border-black shadow-sm flex-grow-1 overflow-hidden">
+      <el-table
+        :data="paginatedShowtimes"
+        v-loading="loading"
+        stripe
+        style="width: 100%;"
+        height="100%"
+        class="admin-table"
+        empty-text="Không có suất chiếu nào"
+      >
+        <el-table-column type="index" label="STT" width="60" align="center" />
+
+        <el-table-column label="Phim" min-width="200">
+          <template #default="{ row }">
+            <div class="d-flex align-items-center gap-2">
+              <img
+                v-if="row.poster"
+                :src="row.poster"
+                class="rounded"
+                style="width: 32px; height: 44px; object-fit: cover;"
+                :alt="row.tenPhim"
+              />
+              <div v-else class="rounded d-flex align-items-center justify-content-center bg-light border"
+                   style="width: 32px; height: 44px;">
+                <i class="bi bi-film text-secondary"></i>
+              </div>
+              <div>
+                <div class="fw-semibold small text-dark" style="line-height: 1.2;">{{ row.tenPhim || '—' }}</div>
+                <div class="text-secondary" style="font-size: 11px;">{{ row.thoiLuong ? row.thoiLuong + ' phút' : '' }}</div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Phòng chiếu" min-width="160">
+          <template #default="{ row }">
+            <div class="small">
+              <div class="fw-semibold"><i class="bi bi-door-open me-1 text-primary"></i>{{ row.tenPhongChieu }}</div>
+              <div class="text-secondary">{{ row.loaiManHinh }}</div>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Ngày chiếu" width="120" align="center">
+          <template #default="{ row }">
+            <span class="small fw-semibold">{{ formatDate(row.ngayChieu) }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Giờ chiếu" width="190" align="center">
+          <template #default="{ row }">
+            <div class="small">
+              <el-tag type="info" effect="plain" size="small" class="fw-bold me-1">
+                {{ row.gioBatDau }}
+              </el-tag>
+              <span class="text-secondary mx-1">→</span>
+              <el-tag type="info" effect="plain" size="small">{{ row.gioKetThuc }}</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Trạng thái" width="130" align="center">
+          <template #default="{ row }">
+            <el-tag :type="getStatusTag(row.trangThai)" round size="small">
+              {{ getStatusLabel(row.trangThai) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Thao tác" width="110" align="center" fixed="right">
+          <template #default="{ row }">
+            <div class="d-flex gap-1 justify-content-center">
+              <el-tooltip content="Chỉnh sửa" placement="top">
+                <button class="btn btn-action-icon text-primary" @click="openDialog(row)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Xóa" placement="top">
+                <button class="btn btn-action-icon text-danger" @click="handleDelete(row)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </el-tooltip>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    <div class="pagination-container d-flex justify-content-end p-2 bg-white border border-black border-top-0 rounded-bottom-3 shadow-sm">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[5, 10, 20, 50]"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="filteredShowtimes.length"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        small
+      />
+    </div>
+
+    <!-- ===== DIALOG THÊM/SỬA SUẤT CHIẾU ===== -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="editingId ? '✏️ Chỉnh sửa suất chiếu' : '🎬 Thêm suất chiếu mới'"
+      width="520px"
+      destroy-on-close
+    >
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
+        <el-form-item label="Phim" prop="idPhim">
+          <el-select v-model="form.idPhim" class="w-100" placeholder="Chọn phim" filterable>
+            <el-option
+              v-for="p in phimList"
+              :key="p.id"
+              :label="`${p.tenPhim} (${p.thoiLuong || '?'} phút)`"
+              :value="p.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="Phòng chiếu" prop="idPhongChieu">
+          <el-select v-model="form.idPhongChieu" class="w-100" placeholder="Chọn phòng chiếu" filterable>
+            <el-option
+              v-for="pc in phongChieuList"
+              :key="pc.id"
+              :label="`${pc.tenRap} — ${pc.tenPhong} (${pc.loaiManHinh || 'Standard'})`"
+              :value="pc.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="Ngày chiếu" prop="ngayChieu">
+          <el-date-picker
+            v-model="form.ngayChieu"
+            type="date"
+            class="w-100"
+            placeholder="Chọn ngày chiếu"
+            value-format="YYYY-MM-DD"
+            :disabled-date="(d) => d < new Date(new Date().setHours(0,0,0,0))"
+          />
+        </el-form-item>
+
+        <div class="row g-2">
+          <div class="col-6">
+            <el-form-item label="Giờ bắt đầu" prop="gioBatDau">
+              <el-time-picker
+                v-model="form.gioBatDau"
+                class="w-100"
+                placeholder="Chọn giờ bắt đầu"
+                format="HH:mm"
+                value-format="HH:mm:ss"
+              />
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Giờ kết thúc" prop="gioKetThuc">
+              <el-time-picker
+                v-model="form.gioKetThuc"
+                class="w-100"
+                placeholder="Chọn giờ kết thúc"
+                format="HH:mm"
+                value-format="HH:mm:ss"
+              />
+            </el-form-item>
+          </div>
+        </div>
+
+        <el-form-item label="Trạng thái" prop="trangThai">
+          <el-select v-model="form.trangThai" class="w-100">
+            <el-option label="Sắp chiếu" :value="1" />
+            <el-option label="Đang chiếu" :value="2" />
+            <el-option label="Đã hủy" :value="0" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="dialogVisible = false">Hủy</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="saving">
+          {{ editingId ? 'Cập nhật' : 'Thêm suất chiếu' }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
-<style>
-/* Reset parent container strictly */
-.el-main:has(.admin-scheduling-wrapper) {
-  padding: 0 !important;
-  overflow: hidden !important;
-  height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-</style>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { Plus, Search, Calendar, Monitor, Operation, RefreshLeft, Delete, Close } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import axios from '@/services/axios';
+import {
+  API_ADMIN_SUAT_CHIEU,
+  API_ADMIN_PHONG_CHIEU_DROP,
+  API_PHIM_DROP
+} from '@/constants/apiEndpoints';
+
+// =================== STATE ===================
+const loading = ref(false);
+const saving = ref(false);
+const dialogVisible = ref(false);
+const editingId = ref(null);
+const formRef = ref(null);
+
+const showtimes = ref([]);
+const phongChieuList = ref([]);
+const phimList = ref([]);
+
+const filterDate = ref(null);
+const filterRoom = ref(null);
+const filterTrangThai = ref(null);
+const searchQuery = ref('');
+
+// Pagination state
+const currentPage = ref(1);
+const pageSize = ref(5);
+
+const form = ref({
+  idPhim: '',
+  idPhongChieu: '',
+  ngayChieu: null,
+  gioBatDau: null,
+  gioKetThuc: null,
+  trangThai: 1
+});
+
+const rules = {
+  idPhim: [{ required: true, message: 'Chọn phim', trigger: 'change' }],
+  idPhongChieu: [{ required: true, message: 'Chọn phòng chiếu', trigger: 'change' }],
+  ngayChieu: [{ required: true, message: 'Chọn ngày chiếu', trigger: 'change' }],
+  gioBatDau: [{ required: true, message: 'Chọn giờ bắt đầu', trigger: 'change' }],
+  gioKetThuc: [{ required: true, message: 'Chọn giờ kết thúc', trigger: 'change' }],
+};
+
+// =================== COMPUTED ===================
+const filteredShowtimes = computed(() => {
+  return showtimes.value.filter(s => {
+    const matchRoom = !filterRoom.value || s.idPhongChieu === filterRoom.value;
+    const matchStatus = filterTrangThai.value === null || filterTrangThai.value === undefined
+      ? true
+      : s.trangThai === filterTrangThai.value;
+    const matchSearch = !searchQuery.value
+      || s.tenPhim?.toLowerCase().includes(searchQuery.value.toLowerCase());
+    return matchRoom && matchStatus && matchSearch;
+  });
+});
+
+const paginatedShowtimes = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredShowtimes.value.slice(start, end);
+});
+
+// =================== METHODS ===================
+const fetchDropdowns = async () => {
+  try {
+    const [phongRes, phimRes] = await Promise.all([
+      axios.get(API_ADMIN_PHONG_CHIEU_DROP),
+      axios.get(API_PHIM_DROP)
+    ]);
+    phongChieuList.value = phongRes.data?.data || [];
+    phimList.value = phimRes.data?.data || [];
+  } catch (e) {
+    ElMessage.error('Không thể tải dữ liệu dropdown');
+  }
+};
+
+const fetchShowtimes = async () => {
+  loading.value = true;
+  try {
+    const params = {};
+    if (filterDate.value) params.ngayChieu = filterDate.value;
+    if (filterRoom.value) params.idPhongChieu = filterRoom.value;
+    const res = await axios.get(API_ADMIN_SUAT_CHIEU, { params });
+    showtimes.value = res.data?.data || [];
+  } catch (e) {
+    ElMessage.error('Không thể tải danh sách suất chiếu');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const resetFilter = () => {
+  filterDate.value = null;
+  filterRoom.value = null;
+  filterTrangThai.value = null;
+  searchQuery.value = '';
+  currentPage.value = 1; // Reset to page 1
+  fetchShowtimes();
+};
+
+const handleSizeChange = (val) => {
+  pageSize.value = val;
+  currentPage.value = 1;
+};
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val;
+};
+
+const openDialog = (row = null) => {
+  editingId.value = row?.id || null;
+  if (row) {
+    form.value = {
+      idPhim: row.idPhim,
+      idPhongChieu: row.idPhongChieu,
+      ngayChieu: row.ngayChieu,
+      gioBatDau: row.gioBatDau,
+      gioKetThuc: row.gioKetThuc,
+      trangThai: row.trangThai
+    };
+  } else {
+    form.value = {
+      idPhim: '',
+      idPhongChieu: '',
+      ngayChieu: null,
+      gioBatDau: null,
+      gioKetThuc: null,
+      trangThai: 1
+    };
+  }
+  dialogVisible.value = true;
+};
+
+const handleSubmit = async () => {
+  if (!formRef.value) return;
+  await formRef.value.validate(async (valid) => {
+    if (!valid) return;
+    saving.value = true;
+    try {
+      if (editingId.value) {
+        await axios.put(`${API_ADMIN_SUAT_CHIEU}/${editingId.value}`, form.value);
+        ElMessage.success('Cập nhật suất chiếu thành công');
+      } else {
+        await axios.post(API_ADMIN_SUAT_CHIEU, form.value);
+        ElMessage.success('Thêm suất chiếu thành công');
+      }
+      dialogVisible.value = false;
+      await fetchShowtimes();
+    } catch (e) {
+      ElMessage.error(e.response?.data?.message || 'Có lỗi xảy ra');
+    } finally {
+      saving.value = false;
+    }
+  });
+};
+
+const handleDelete = (row) => {
+  ElMessageBox.confirm(
+    `Bạn có chắc muốn xóa suất chiếu phim "<b>${row.tenPhim}</b>" ngày ${formatDate(row.ngayChieu)}?`,
+    'Xác nhận xóa',
+    {
+      dangerouslyUseHTMLString: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      type: 'warning',
+    }
+  ).then(async () => {
+    try {
+      await axios.delete(`${API_ADMIN_SUAT_CHIEU}/${row.id}`);
+      ElMessage.success('Đã xóa suất chiếu');
+      await fetchShowtimes();
+    } catch (e) {
+      ElMessage.error(e.response?.data?.message || 'Xóa thất bại');
+    }
+  }).catch(() => {});
+};
+
+// =================== HELPERS ===================
+const getStatusTag = (status) => {
+  const map = { 0: 'danger', 1: 'primary', 2: 'success', 3: 'info' };
+  return map[status] || 'info';
+};
+
+const getStatusLabel = (status) => {
+  const map = { 0: 'Đã hủy', 1: 'Sắp chiếu', 2: 'Đang chiếu', 3: 'Kết thúc' };
+  return map[status] || 'Không xác định';
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+// =================== LIFECYCLE ===================
+onMounted(async () => {
+  await fetchDropdowns();
+  await fetchShowtimes();
+});
+</script>
 
 <style scoped>
-.admin-scheduling-wrapper {
-  box-sizing: border-box;
-}
-
-.admin-scheduling {
-  grid-template-rows: auto 1fr;
+.admin-showtimes-page {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-}
-
-.truncate-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-:deep(.custom-card) {
-  height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
+.table-wrapper {
+  flex: 1;
   min-height: 0;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 
-:deep(.custom-card .el-card__header) {
-  padding: 0.75rem 1rem !important;
-  flex-shrink: 0;
+/* Custom Scrollbar */
+:deep(.el-table__body-wrapper::-webkit-scrollbar) {
+  width: 6px;
+}
+:deep(.el-table__body-wrapper::-webkit-scrollbar-thumb) {
+  background-color: #d1d5db;
+  border-radius: 10px;
+}
+:deep(.el-table__body-wrapper::-webkit-scrollbar-track) {
+  background-color: #f3f4f6;
 }
 
-:deep(.custom-card .el-card__body) {
-  flex: 1 !important;
-  min-height: 0;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  padding: 1rem !important;
+.pagination-container {
+  margin-top: -1px; /* Align with table border */
 }
 
-:deep(.p-0 .el-card__body) {
-  padding: 0 !important;
+:deep(.el-table th) {
+  background-color: #f8f9fa !important;
+  font-weight: 600;
+  color: #374151;
+  font-size: 13px;
 }
 
-.table-container {
-  scrollbar-width: thin;
+/* Premium Filter Styles */
+.filter-container {
+  transition: all 0.3s ease;
 }
 
-.calendar-table {
-  table-layout: fixed;
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+.filter-separator {
+  width: 1px;
+  height: 32px;
+  background-color: #e5e7eb;
+  margin: 0 4px;
+  align-self: flex-end;
 }
 
-.calendar-table th,
-.calendar-table td {
-  border-color: #f0f0f0 !important;
+.filter-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
 }
 
-.time-cell {
-  width: 55px;
-  background-color: #fbfbfb;
-  position: sticky;
-  left: 0;
-  z-index: 5;
-  font-size: 0.7rem;
-}
-
-.calendar-slot {
-  height: 75px;
-  transition: background-color 0.2s;
-  cursor: pointer;
-}
-
-.slot-inner {
-  overflow-y: auto;
-}
-
-.calendar-slot:hover {
-  background-color: rgba(13, 110, 253, 0.04);
-}
-
-.scheduled-item {
-  z-index: 2;
+:deep(.custom-input .el-input__wrapper) {
+  box-shadow: none !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
   transition: all 0.2s;
+  background-color: #f9fafb;
 }
 
-.scheduled-item:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.1);
+:deep(.custom-input .el-input__wrapper:hover) {
+  border-color: var(--el-color-primary) !important;
+  background-color: #fff;
 }
 
-.scheduled-item:hover .delete-btn {
-  opacity: 1 !important;
+:deep(.custom-input .el-input__wrapper.is-focus) {
+  border-color: var(--el-color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1) !important;
+  background-color: #fff;
 }
 
-.movie-selector-list::-webkit-scrollbar,
-.table-container::-webkit-scrollbar {
-  width: 4px;
+:deep(.el-table td) {
+  font-size: 13px;
 }
 
-.movie-selector-list::-webkit-scrollbar-thumb,
-.table-container::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 4px;
+.btn-action-icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.btn-action-icon:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action-icon.text-primary:hover {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+}
+
+.btn-action-icon.text-danger:hover {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+}
+
+.btn-action-icon i {
+  transition: transform 0.2s;
+}
+
+.btn-action-icon:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.btn-reset {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-color: #e5e7eb !important;
+  color: #6b7280 !important;
+}
+
+.btn-reset:hover {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #ef4444 !important;
+  transform: rotate(90deg);
+}
+
+.btn-reset:active {
+  transform: rotate(90deg) scale(0.9);
+}
+
+.stat-card {
+  transition: box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
 }
 </style>

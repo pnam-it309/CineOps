@@ -225,7 +225,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Calendar, ArrowRight } from '@element-plus/icons-vue';
 import MovieCard from '@/components/common/MovieCard.vue';
-import { mockMovies, mockPromotions } from '@/mock';
+import { mockMovies, mockPromotions } from '@/assets/mock';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';

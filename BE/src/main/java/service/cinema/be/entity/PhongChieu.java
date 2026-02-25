@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +17,8 @@ import java.util.List;
 @Table(name = "phong_chieu")
 public class PhongChieu extends PrimaryEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_rap")
-    private Rap rap;
+    @Column(name = "id_rap", length = 36)
+    private String idRap;
 
     @Column(name = "ten_phong", length = 50)
     private String tenPhong;
@@ -28,8 +26,8 @@ public class PhongChieu extends PrimaryEntity {
     @Column(name = "loai_man_hinh", length = 50)
     private String loaiManHinh;
 
-    @Column(name = "so_luong_ghe")
-    private Integer soLuongGhe;
+    @Column(name = "tong_ghe")
+    private Integer tongGhe;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

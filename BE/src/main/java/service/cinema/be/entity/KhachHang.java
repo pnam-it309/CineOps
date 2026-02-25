@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +18,9 @@ import java.util.List;
 @Table(name = "khach_hang")
 public class KhachHang extends PrimaryEntity {
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = jakarta.persistence.CascadeType.ALL)
-    @JoinColumn(name = "id_tai_khoan", unique = true)
-    private TaiKhoan taiKhoan;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_loai_khach_hang")
+    private LoaiKhachHang loaiKhachHang;
 
     @Column(name = "ma_khach_hang", length = 50, unique = true)
     private String maKhachHang;
@@ -50,19 +49,16 @@ public class KhachHang extends PrimaryEntity {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @OneToMany(mappedBy = "khachHang")
-    private List<DiaChi> diaChis = new ArrayList<>();
+    @Column(name = "mat_khau", length = 255)
+    private String matKhau;
 
     @OneToMany(mappedBy = "khachHang")
-    private List<DanhGiaPhim> danhGiaPhims = new ArrayList<>();
+    private List<DiaChi> diaChis = new ArrayList<>();
 
     @OneToMany(mappedBy = "khachHang")
     private List<PhieuGiamGiaChiTiet> phieuGiamGiaChiTiets = new ArrayList<>();
 
     @OneToMany(mappedBy = "khachHang")
     private List<HoaDon> hoaDons = new ArrayList<>();
-
-    @OneToMany(mappedBy = "khachHang")
-    private List<DanhGiaDichVu> danhGiaDichVus = new ArrayList<>();
 
 }

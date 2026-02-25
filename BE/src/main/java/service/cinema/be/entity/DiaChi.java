@@ -23,11 +23,14 @@ public class DiaChi extends PrimaryEntity {
     @JoinColumn(name = "id_nhan_vien")
     private NhanVien nhanVien;
 
-    @Column(name = "mo_ta_dia_chi", columnDefinition = "TEXT")
-    private String moTaDiaChi;
+    @Column(name = "ma_dia_chi", length = 50)
+    private String maDiaChi;
 
     @Column(name = "thanh_pho_tinh", length = 100)
     private String thanhPhoTinh;
+
+    @Column(name = "quan_huyen", length = 100)
+    private String quanHuyen;
 
     @Column(name = "phuong_xa", length = 100)
     private String phuongXa;

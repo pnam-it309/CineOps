@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +18,9 @@ import java.util.List;
 @Table(name = "nhan_vien")
 public class NhanVien extends PrimaryEntity {
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_tai_khoan", unique = true)
-    private TaiKhoan taiKhoan;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_phan_quyen")
+    private PhanQuyen phanQuyen;
 
     @Column(name = "ma_nhan_vien", length = 50, unique = true)
     private String maNhanVien;
@@ -56,8 +55,8 @@ public class NhanVien extends PrimaryEntity {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @OneToMany(mappedBy = "nhanVienTrongCa")
-    private List<GiaoCa> giaoCasTrongCa = new ArrayList<>();
+    @Column(name = "mat_khau", length = 255)
+    private String matKhau;
 
     @OneToMany(mappedBy = "nhanVien")
     private List<DiaChi> diaChis = new ArrayList<>();

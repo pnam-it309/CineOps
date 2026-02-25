@@ -18,8 +18,8 @@ import java.math.BigDecimal;
 public class Ve extends PrimaryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_hoa_don")
-    private HoaDon hoaDon;
+    @JoinColumn(name = "id_loai_khach_hang")
+    private LoaiKhachHang loaiKhachHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_ghe")
@@ -29,12 +29,14 @@ public class Ve extends PrimaryEntity {
     @JoinColumn(name = "id_suat_chieu")
     private SuatChieu suatChieu;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_gia_ve_chi_tiet")
-    private GiaVeChiTiet giaVeChiTiet;
+    @Column(name = "ma_ve", length = 50)
+    private String maVe;
 
-    @Column(name = "gia_ve_thuc_te", precision = 15, scale = 2)
-    private BigDecimal giaVeThucTe;
+    @Column(name = "gia_ve_goc", precision = 20, scale = 2)
+    private BigDecimal giaVeGoc;
+
+    @Column(name = "loai_ve")
+    private Integer loaiVe;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

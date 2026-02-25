@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,20 +41,23 @@ public class Phim extends PrimaryEntity {
     @Column(name = "poster", length = 255)
     private String poster;
 
-    @Column(name = "do_tuoi_gioi_han")
-    private Integer doTuoiGioiHan;
+    @Column(name = "ngon_ngu", length = 100)
+    private String ngonNgu;
 
-    @Column(name = "noi_dung", columnDefinition = "TEXT")
-    private String noiDung;
+    @Column(name = "do_tuoi")
+    private Integer doTuoi;
+
+    @Column(name = "mo_ta", columnDefinition = "TEXT")
+    private String moTa;
+
+    @Column(name = "danh_gia", precision = 3, scale = 1)
+    private BigDecimal danhGia;
 
     @Column(name = "trang_thai")
     private Integer trangThai;
 
     @OneToMany(mappedBy = "phim", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PhimTheLoai> phimTheLoais = new ArrayList<>();
-
-    @OneToMany(mappedBy = "phim")
-    private List<DanhGiaPhim> danhGiaPhims = new ArrayList<>();
 
     @OneToMany(mappedBy = "phim")
     private List<SuatChieu> suatChieus = new ArrayList<>();

@@ -125,7 +125,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { mockMovies } from '@/mock';
+import { mockMovies } from '@/assets/mock';
 
 const router = useRouter();
 const scrollContainer = ref(null);

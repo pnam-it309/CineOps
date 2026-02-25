@@ -8,14 +8,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import service.cinema.be.entity.KhachHang;
-import service.cinema.be.entity.TaiKhoan;
+import service.cinema.be.entity.NhanVien;
 import service.cinema.be.entity.PhanQuyen;
 import service.cinema.be.infrastructure.constant.EntityRole;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class UserPrincipal implements OAuth2User, UserDetails {
@@ -44,31 +43,43 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     /**
      * Create UserPrincipal from KhachHang entity
-     * Extracts role from TaiKhoan -> PhanQuyen relationship
      */
     public static UserPrincipal createFromKhachHang(KhachHang khachHang) {
-        TaiKhoan taiKhoan = khachHang.getTaiKhoan();
-        
-        Collection<GrantedAuthority> authorities;
-        if (taiKhoan != null && taiKhoan.getPhanQuyen() != null) {
-            PhanQuyen phanQuyen = taiKhoan.getPhanQuyen();
-            // Convert ma_phan_quyen to EntityRole
-            EntityRole entityRole = convertToEntityRole(phanQuyen.getMaPhanQuyen());
-            authorities = Collections.singletonList(
-                new SimpleGrantedAuthority(entityRole.getAuthority())
-            );
-        } else {
-            // Default role if no role assigned
-            authorities = Collections.singletonList(
+        Collection<GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(EntityRole.CUSTOMER.getAuthority())
-            );
-        }
+        );
 
         return new UserPrincipal(
                 khachHang.getId(),
                 khachHang.getEmail(),
                 khachHang.getTenKhachHang(),
-                taiKhoan != null ? taiKhoan.getMatKhau() : null,
+                khachHang.getMatKhau(),
+                authorities
+        );
+    }
+
+    /**
+     * Create UserPrincipal from NhanVien entity
+     */
+    public static UserPrincipal createFromNhanVien(NhanVien nhanVien) {
+        Collection<GrantedAuthority> authorities;
+        if (nhanVien.getPhanQuyen() != null) {
+            PhanQuyen phanQuyen = nhanVien.getPhanQuyen();
+            EntityRole entityRole = convertToEntityRole(phanQuyen.getMaPhanQuyen());
+            authorities = Collections.singletonList(
+                new SimpleGrantedAuthority(entityRole.getAuthority())
+            );
+        } else {
+            authorities = Collections.singletonList(
+                new SimpleGrantedAuthority(EntityRole.STAFF.getAuthority())
+            );
+        }
+
+        return new UserPrincipal(
+                nhanVien.getId(),
+                nhanVien.getEmail(),
+                nhanVien.getTenNhanVien(),
+                nhanVien.getMatKhau(),
                 authorities
         );
     }
@@ -80,14 +91,11 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         try {
             return EntityRole.valueOf(maPhanQuyen.toUpperCase());
         } catch (Exception e) {
-            log.warn("Unknown role: {}, defaulting to ROLE_USER", maPhanQuyen);
-            return EntityRole.CUSTOMER;
+            log.warn("Unknown role: {}, defaulting to STAFF", maPhanQuyen);
+            return EntityRole.STAFF;
         }
     }
 
-    /**
-     * Create UserPrincipal with single role (for simple authentication)
-     */
     public static UserPrincipal createWithRole(String id, String email, String fullName, String password, String roleAuthority) {
         Collection<GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(roleAuthority)
@@ -141,9 +149,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return id;
     }
 
-    /**
-     * Get the primary role of the user (first authority)
-     */
     public String getRole() {
         return authorities.stream()
                 .findFirst()

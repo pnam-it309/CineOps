@@ -33,7 +33,5 @@ public class PhanQuyen extends PrimaryEntity {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @OneToMany(mappedBy = "phanQuyen")
-    private List<TaiKhoan> taiKhoans = new ArrayList<>();
 
 }

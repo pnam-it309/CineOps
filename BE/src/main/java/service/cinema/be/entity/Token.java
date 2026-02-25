@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -14,27 +13,19 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "danh_gia_phim")
-public class DanhGiaPhim extends PrimaryEntity {
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_phim")
-    private Phim phim;
+@Table(name = "token")
+public class Token extends PrimaryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
 
-    @Column(name = "diem_so")
-    private Integer diemSo;
+    @Column(name = "ma_token", columnDefinition = "TEXT")
+    private String maToken;
 
-    @Column(name = "noi_dung", columnDefinition = "TEXT")
-    private String noiDung;
-
-    @Column(name = "ngay_tao_danh_gia")
-    private LocalDateTime ngayTaoDanhGia;
+    @Column(name = "ngay_het_han")
+    private LocalDateTime ngayHetHan;
 
     @Column(name = "trang_thai")
     private Integer trangThai;
-
 }

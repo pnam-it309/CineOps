@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "loai_san_pham")
+@Table(name = "loai_san_pham_di_kem")
 public class LoaiSanPham extends PrimaryEntity {
 
     @Column(name = "ten_loai", length = 100)

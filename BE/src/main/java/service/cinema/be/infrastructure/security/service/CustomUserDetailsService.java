@@ -8,8 +8,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.cinema.be.entity.KhachHang;
+import service.cinema.be.entity.NhanVien;
 import service.cinema.be.infrastructure.security.user.UserPrincipal;
-import service.cinema.be.repository.UserRepository;
+import service.cinema.be.repository.KhachHangRepository;
+import service.cinema.be.repository.NhanVienRepository;
 
 import java.util.Optional;
 
@@ -18,39 +20,30 @@ import java.util.Optional;
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final KhachHangRepository khachHangRepository;
+    private final NhanVienRepository nhanVienRepository;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        log.debug("Loading customer by email: {}", email);
+        log.debug("Loading user by email: {}", email);
 
-        // Find customer with account and role eagerly loaded
-        Optional<KhachHang> khachHangOptional = userRepository.findByEmailWithRoles(email);
-
-        if (khachHangOptional.isEmpty()) {
-            log.error("Customer not found with email: {}", email);
-            throw new UsernameNotFoundException("Customer not found with email: " + email);
+        // 1. Try to find in NhanVien (Staff/Admin)
+        Optional<NhanVien> nhanVienOp = nhanVienRepository.findByEmail(email);
+        if (nhanVienOp.isPresent()) {
+            log.debug("Successfully loaded NhanVien: {}", email);
+            return UserPrincipal.createFromNhanVien(nhanVienOp.get());
         }
 
-        KhachHang khachHang = khachHangOptional.get();
-        
-        // Check if customer has account
-        if (khachHang.getTaiKhoan() == null) {
-            log.error("Customer {} has no account", email);
-            throw new UsernameNotFoundException("Customer has no account: " + email);
+        // 2. Try to find in KhachHang (Customer)
+        Optional<KhachHang> khachHangOp = khachHangRepository.findByEmail(email);
+        if (khachHangOp.isPresent()) {
+            log.debug("Successfully loaded KhachHang: {}", email);
+            return UserPrincipal.createFromKhachHang(khachHangOp.get());
         }
 
-        // Check if account has role
-        if (khachHang.getTaiKhoan().getPhanQuyen() == null) {
-            log.error("Customer {} has no role assigned", email);
-            throw new UsernameNotFoundException("Customer has no role assigned: " + email);
-        }
-
-        log.debug("Successfully loaded customer: {} with role: {}", 
-                email, khachHang.getTaiKhoan().getPhanQuyen().getTenVaiTro());
-
-        return UserPrincipal.createFromKhachHang(khachHang);
+        log.error("User not found with email: {}", email);
+        throw new UsernameNotFoundException("User not found with email: " + email);
     }
 
 }

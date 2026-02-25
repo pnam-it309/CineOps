@@ -44,17 +44,14 @@ public class HoaDon extends PrimaryEntity {
     @Column(name = "thuc_thu", precision = 15, scale = 2)
     private BigDecimal thucThu;
 
-    @Column(name = "tong_tien_thanh_toan", precision = 15, scale = 2)
+    @Column(name = "tong_tien_thanh_toan", precision = 20, scale = 2)
     private BigDecimal tongTienThanhToan;
 
-    @Column(name = "tien_thua", precision = 15, scale = 2)
-    private BigDecimal tienThua;
+    @Column(name = "phuong_thuc_thanh_toan")
+    private Integer phuongThucThanhToan;
 
-    @Column(name = "hinh_thuc_thanh_toan")
-    private Integer hinhThucThanhToan;
-
-    @Column(name = "ngay_mua")
-    private LocalDateTime ngayMua;
+    @Column(name = "kem_ban_hang")
+    private Integer kemBanHang;
 
     @Column(name = "trang_thai")
     private Integer trangThai;
@@ -62,8 +59,6 @@ public class HoaDon extends PrimaryEntity {
     @Column(name = "ghi_chu", columnDefinition = "TEXT")
     private String ghiChu;
 
-    @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Ve> ves = new ArrayList<>();
 
     @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HoaDonChiTiet> hoaDonChiTiets = new ArrayList<>();
@@ -71,7 +66,5 @@ public class HoaDon extends PrimaryEntity {
     @OneToMany(mappedBy = "hoaDon")
     private List<ThanhToan> thanhToans = new ArrayList<>();
 
-    @OneToMany(mappedBy = "hoaDon")
-    private List<DanhGiaDichVu> danhGiaDichVus = new ArrayList<>();
 
 }

@@ -32,10 +32,16 @@ public class PhieuGiamGia extends PrimaryEntity {
     @Column(name = "phan_tram_giam_gia", precision = 5, scale = 2)
     private BigDecimal phanTramGiamGia;
 
-    @Column(name = "so_tien_giam", precision = 15, scale = 2)
+    @Column(name = "so_tien_giam", precision = 20, scale = 2)
     private BigDecimal soTienGiam;
 
-    @Column(name = "giam_toi_da", precision = 15, scale = 2)
+    @Column(name = "gia_tri_hoa_don_toi_thieu", precision = 20, scale = 2)
+    private BigDecimal giaTriHoaDonToiThieu;
+
+    @Column(name = "co_cho_cong_don")
+    private Integer coChoCongDon;
+
+    @Column(name = "giam_toi_da", precision = 20, scale = 2)
     private BigDecimal giamToiDa;
 
     @Column(name = "ngay_bat_dau")

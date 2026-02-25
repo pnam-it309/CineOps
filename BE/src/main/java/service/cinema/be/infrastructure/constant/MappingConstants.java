@@ -109,6 +109,14 @@ public class MappingConstants {
     public static final String API_ADMIN_REPORTS_STAFF = API_ADMIN_REPORTS + "/staff";
     public static final String API_ADMIN_REPORTS_SYSTEM = API_ADMIN_REPORTS + "/system";
 
+    // Seat Management
+    public static final String API_ADMIN_GHE = API_ADMIN_PREFIX + "/ghe";
+    public static final String API_ADMIN_LOAI_GHE = API_ADMIN_GHE + "/loai-ghe";
+    public static final String API_ADMIN_PHONG_CHIEU_DROP = API_ADMIN_GHE + "/phong-chieu";
+
+    // Showtime Management
+    public static final String API_ADMIN_SUAT_CHIEU = API_ADMIN_PREFIX + "/suat-chieu";
+
     /* ============================================
      * COMMON ENDPOINTS (All Authenticated Users)
      * ============================================ */

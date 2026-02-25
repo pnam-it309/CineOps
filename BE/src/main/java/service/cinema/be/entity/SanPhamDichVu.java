@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "san_pham_dich_vu")
+@Table(name = "san_pham_di_kem")
 public class SanPhamDichVu extends PrimaryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,7 +41,7 @@ public class SanPhamDichVu extends PrimaryEntity {
     @Column(name = "mo_ta", columnDefinition = "TEXT")
     private String moTa;
 
-    @OneToMany(mappedBy = "sanPhamDichVu")
-    private List<HoaDonChiTiet> hoaDonChiTiets = new ArrayList<>();
+    @OneToMany(mappedBy = "sanPham")
+    private List<ChiTietSanPhamDiKem> chiTietSanPhamDiKems = new ArrayList<>();
 
 }

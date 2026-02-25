@@ -37,4 +37,7 @@ public class KhungGio extends PrimaryEntity {
     @OneToMany(mappedBy = "khungGio")
     private List<GiaVeChiTiet> giaVeChiTiets = new ArrayList<>();
 
+    @OneToMany(mappedBy = "khungGio")
+    private List<SuatChieu> suatChieus = new ArrayList<>();
+
 }

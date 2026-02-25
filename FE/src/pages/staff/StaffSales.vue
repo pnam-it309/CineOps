@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { ShoppingCart, VideoPlay, Menu, User, Money, Check, ArrowRight, ArrowLeft, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { mockMovies } from '@/mock';
+import { mockMovies } from '@/assets/mock';
 
 // Mock Data
 const showtimes = [

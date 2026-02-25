@@ -23,8 +23,14 @@ public class PhieuGiamGiaChiTiet extends PrimaryEntity {
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
 
-    @Column(name = "so_luong_su_dung")
-    private Integer soLuongSuDung;
+    @Column(name = "ma_phieu_giam_gia_chi_tiet", length = 50)
+    private String maPhieuGiamGiaChiTiet;
+
+    @Column(name = "so_luong_dung")
+    private Integer soLuongDung;
+
+    @Column(name = "ghi_chu", columnDefinition = "TEXT")
+    private String ghiChu;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

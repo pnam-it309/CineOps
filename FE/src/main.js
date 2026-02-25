@@ -10,9 +10,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 // Import Global Styles (Bootstrap SCSS)
 import './assets/scss/styles.scss'
 // Import Theme Variables
-import './theme/variables.css'
+import './assets/theme/variables.css'
 // Import Dark Theme
-import './theme/theme-dark.css'
+import './assets/theme/theme-dark.css'
 import App from './App.vue'
 
 const app = createApp(App)

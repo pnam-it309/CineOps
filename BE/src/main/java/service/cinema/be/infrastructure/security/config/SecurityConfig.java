@@ -97,7 +97,8 @@ public class SecurityConfig {
                 // Authentication endpoints
                 .requestMatchers(
                         service.cinema.be.infrastructure.constant.MappingConstants.API_AUTH_PREFIX + "/**",
-                        service.cinema.be.infrastructure.constant.MappingConstants.API_OAUTH2_PREFIX + "/**"
+                        service.cinema.be.infrastructure.constant.MappingConstants.API_OAUTH2_PREFIX + "/**",
+                        service.cinema.be.infrastructure.constant.MappingConstants.API_COMMON + "/**"
                 ).permitAll()
                 
                 // Public content (read-only, no auth)

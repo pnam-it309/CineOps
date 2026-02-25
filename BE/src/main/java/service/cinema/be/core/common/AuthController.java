@@ -14,9 +14,10 @@ import service.cinema.be.core.common.request.LoginRequest;
 import service.cinema.be.core.common.response.ApiResponse;
 import service.cinema.be.core.common.response.AuthResponse;
 import service.cinema.be.infrastructure.constant.MappingConstants;
-import service.cinema.be.infrastructure.security.service.RefreshTokenService;
+import service.cinema.be.infrastructure.security.service.TokenService;
 import service.cinema.be.infrastructure.security.service.TokenProvider;
 import service.cinema.be.infrastructure.security.user.UserPrincipal;
+import service.cinema.be.entity.Token;
 
 @Slf4j
 @RestController
@@ -26,7 +27,7 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
-    private final RefreshTokenService refreshTokenService;
+    private final TokenService tokenService;
 
     /**
      * POST /api/v1/auth/login
@@ -52,7 +53,7 @@ public class AuthController {
             );
 
             // Tạo refresh token
-            String refreshToken = refreshTokenService.createRefreshToken(authentication).getRefreshToken();
+            String refreshToken = tokenService.createRefreshToken(authentication).getMaToken();
 
             AuthResponse authResponse = AuthResponse.builder()
                     .accessToken(accessToken)

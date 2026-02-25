@@ -5,8 +5,13 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -14,20 +19,20 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class AuditEntity {
 
-    @org.springframework.data.annotation.CreatedDate
-    @Column(name = "created_date", updatable = false)
-    private Long createdDate;
+    @CreatedDate
+    @Column(name = "ngay_tao", updatable = false)
+    private LocalDateTime ngayTao;
 
-    @org.springframework.data.annotation.CreatedBy
-    @Column(name = "created_by", length = 100, updatable = false)
-    private String createdBy;
+    @CreatedBy
+    @Column(name = "nguoi_tao", length = 100, updatable = false)
+    private String nguoiTao;
 
-    @org.springframework.data.annotation.LastModifiedDate
-    @Column(name = "last_modified_date")
-    private Long lastModifiedDate;
+    @LastModifiedDate
+    @Column(name = "ngay_cap_nhat")
+    private LocalDateTime ngayCapNhat;
 
-    @org.springframework.data.annotation.LastModifiedBy
-    @Column(name = "last_modified_by", length = 100)
-    private String lastModifiedBy;
+    @LastModifiedBy
+    @Column(name = "nguoi_cap_nhat", length = 100)
+    private String nguoiCapNhat;
 
 }

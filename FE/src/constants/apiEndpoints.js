@@ -103,6 +103,17 @@ export const API_ADMIN_REPORTS_CUSTOMERS = `${API_ADMIN_REPORTS}/customers`;
 export const API_ADMIN_REPORTS_STAFF = `${API_ADMIN_REPORTS}/staff`;
 export const API_ADMIN_REPORTS_SYSTEM = `${API_ADMIN_REPORTS}/system`;
 
+// Seat Management
+export const API_ADMIN_GHE = `${API_ADMIN_PREFIX}/ghe`;
+export const API_ADMIN_LOAI_GHE = `${API_ADMIN_GHE}/loai-ghe`;
+export const API_ADMIN_PHONG_CHIEU_DROP = `${API_ADMIN_GHE}/phong-chieu`;
+
+// Showtime Management
+export const API_ADMIN_SUAT_CHIEU = `${API_ADMIN_PREFIX}/suat-chieu`;
+
+// Phim dropdown (public)
+export const API_PHIM_DROP = `${API_VERSION_PREFIX}/admin/phim`;
+
 /* ============================================
  * COMMON ENDPOINTS (All Authenticated Users)
  * ============================================ */

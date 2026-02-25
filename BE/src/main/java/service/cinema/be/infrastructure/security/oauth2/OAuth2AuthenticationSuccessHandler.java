@@ -14,7 +14,7 @@ import service.cinema.be.infrastructure.constant.CookieConstant;
 import service.cinema.be.infrastructure.constant.OAuth2Constant;
 import service.cinema.be.infrastructure.exception.RedirectException;
 import service.cinema.be.infrastructure.security.response.TokenUriResponse;
-import service.cinema.be.infrastructure.security.service.RefreshTokenService;
+import service.cinema.be.infrastructure.security.service.TokenService;
 import service.cinema.be.infrastructure.security.service.TokenProvider;
 import service.cinema.be.utils.CookieUtils;
 
@@ -30,7 +30,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private TokenProvider tokenProvider;
 
     @Setter(onMethod_ = @Autowired)
-    private RefreshTokenService refreshTokenService;
+    private TokenService tokenService;
 
     @Setter(onMethod_ = @Autowired)
     private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
@@ -74,7 +74,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     userPrincipal.getRole(),
                     userPrincipal.getId()
             );
-            String refreshToken = refreshTokenService.createRefreshToken(authentication).getRefreshToken();
+            String refreshToken = tokenService.createRefreshToken(authentication).getMaToken();
             return buildSuccessUrl(targetUrl, TokenUriResponse.getState(token, refreshToken));
         } catch (RedirectException e) {
             e.printStackTrace(System.out);

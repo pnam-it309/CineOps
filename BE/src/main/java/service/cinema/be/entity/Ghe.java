@@ -29,11 +29,11 @@ public class Ghe extends PrimaryEntity {
     @Column(name = "so_ghe", length = 10)
     private String soGhe;
 
-    @Column(name = "hang", length = 5)
-    private String hang;
+    @Column(name = "so_hang", length = 5)
+    private String soHang;
 
-    @Column(name = "cot")
-    private Integer cot;
+    @Column(name = "so_cot")
+    private Integer soCot;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

@@ -195,7 +195,7 @@ const routes = [
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.SEATS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.SEATS.name,
-                component: () => import('@/pages/admin/AdminRooms.vue'),
+                component: () => import('@/pages/admin/AdminSeats.vue'),
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.path,
