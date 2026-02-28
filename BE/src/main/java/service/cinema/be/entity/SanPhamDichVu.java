@@ -25,12 +25,12 @@ public class SanPhamDichVu extends PrimaryEntity {
 
     @Column(name = "ten_san_pham", length = 150)
     private String tenSanPham;
+//trang bỏ vì đã có trong chi tiết
+//    @Column(name = "gia_tien", precision = 15, scale = 2)
+//    private BigDecimal giaTien;
 
-    @Column(name = "gia_tien", precision = 15, scale = 2)
-    private BigDecimal giaTien;
-
-    @Column(name = "so_luong_ton")
-    private Integer soLuongTon;
+//    @Column(name = "so_luong_ton")
+//    private Integer soLuongTon;
 
     @Column(name = "trang_thai")
     private Integer trangThai;
