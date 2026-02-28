@@ -1,0 +1,20 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Backend (Gradle/Spring)
+.gradle/
+build/
+BE/build/
+
+# Frontend
+node_modules/
+dist/
+
+# Env
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db

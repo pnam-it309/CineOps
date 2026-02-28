@@ -65,7 +65,6 @@ public class DataSeeder implements ApplicationRunner {
             pq.setId(UUID.randomUUID().toString());
             pq.setMaPhanQuyen(maPhanQuyen);
             pq.setTenVaiTro(tenVaiTro);
-            pq.setMoTa(moTa);
             pq.setTrangThai(1);
             return phanQuyenRepository.save(pq);
         });

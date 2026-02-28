@@ -27,8 +27,6 @@ public class PhanQuyen extends PrimaryEntity {
     @Column(name = "quyen_han", columnDefinition = "TEXT")
     private String quyenHan;
 
-    @Column(name = "mo_ta", columnDefinition = "TEXT")
-    private String moTa;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

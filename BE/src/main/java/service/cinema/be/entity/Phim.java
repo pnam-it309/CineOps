@@ -29,6 +29,12 @@ public class Phim extends PrimaryEntity {
     @Column(name = "ngay_khoi_chieu")
     private LocalDate ngayKhoiChieu;
 
+    @Column(name = "ngay_ket_thuc")
+    private LocalDate ngayKetThuc;
+
+    @Column(name = "lich_chieu")
+    private String lichChieu;
+
     @Column(name = "dao_dien", length = 100)
     private String daoDien;
 
@@ -56,8 +62,11 @@ public class Phim extends PrimaryEntity {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @OneToMany(mappedBy = "phim", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PhimTheLoai> phimTheLoais = new ArrayList<>();
+    @Column(name = "gia_ve_goc", precision = 20, scale = 2)
+    private BigDecimal giaVeGoc;
+
+    @OneToMany(mappedBy = "phim", fetch = FetchType.EAGER)
+    private List<PhimTheLoai> phimTheLoais;
 
     @OneToMany(mappedBy = "phim")
     private List<SuatChieu> suatChieus = new ArrayList<>();
