@@ -311,16 +311,17 @@ const tableColumnsLC = [
         <h2 class="fw-bold text-dark mb-0" style="font-size:18px;">Quản lý Phim & Lịch chiếu</h2>
         <div class="d-flex gap-1 bg-light rounded-3 p-1">
           <button class="btn btn-sm px-4 rounded-3 fw-semibold"
-                  :class="activeTab==='phim' ? 'btn-red' : 'btn-light text-secondary'"
+                  :class="activeTab==='phim' ? 'btn-premium-toggle-active' : 'btn-premium-toggle'"
                   @click="activeTab='phim'">Phim
           </button>
           <button class="btn btn-sm px-4 rounded-3 fw-semibold"
-                  :class="activeTab==='lichChieu' ? 'btn-red' : 'btn-light text-secondary'"
+                  :class="activeTab==='lichChieu' ? 'btn-premium-toggle-active' : 'btn-premium-toggle'"
                   @click="activeTab='lichChieu'">Lịch chiếu
           </button>
         </div>
       </div>
-      <el-button type="primary" :icon="Plus" round class="btn-add-movie" @click="handleAdd">
+      <el-button @click="handleAdd" class="btn-add-premium">
+        <template #icon><el-icon><Plus /></el-icon></template>
         Thêm phim mới
       </el-button>
     </div>
@@ -362,16 +363,21 @@ const tableColumnsLC = [
 
           <template #actions="{ row }">
             <div class="d-flex gap-1 justify-content-center align-items-center">
-              <button class="btn-action text-detail" title="Chi tiết"
-                      @click="selectedMovie=row; detailVisible=true">
-                <i class="bi bi-eye"></i>
-              </button>
-              <button class="btn-action text-edit" title="Chỉnh sửa" @click="handleEdit(row)">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn-action text-delete" title="Xóa" @click="handleDelete(row)">
-                <i class="bi bi-trash"></i>
-              </button>
+              <el-tooltip content="Chi tiết" placement="top">
+                <button class="btn-action-icon btn-action-view" @click="selectedMovie=row; detailVisible=true">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Chỉnh sửa" placement="top">
+                <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Xóa" placement="top">
+                <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </el-tooltip>
             </div>
           </template>
 
@@ -469,10 +475,11 @@ const tableColumnsLC = [
 
           <template #actions="{ row }">
             <div class="d-flex gap-1 justify-content-center align-items-center">
-              <button class="btn-action text-edit" title="Sửa lịch chiếu"
-                      @click="handleEditLichChieu(row)">
-                <i class="bi bi-pencil-square"></i>
-              </button>
+              <el-tooltip content="Sửa lịch chiếu" placement="top">
+                <button class="btn-action-icon btn-action-edit" @click="handleEditLichChieu(row)">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+              </el-tooltip>
             </div>
           </template>
 
@@ -640,8 +647,8 @@ const tableColumnsLC = [
       </el-form>
       <template #footer>
         <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible=false">Hủy</el-button>
-          <el-button type="primary" @click="handleSave">
+          <el-button @click="dialogVisible = false" class="btn-premium-secondary">Hủy</el-button>
+          <el-button @click="handleSave" class="btn-premium-primary">
             {{ editingMovie ? 'Cập nhật' : 'Thêm phim' }}
           </el-button>
         </div>

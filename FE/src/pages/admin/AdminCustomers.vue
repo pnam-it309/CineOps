@@ -169,6 +169,18 @@ const getStatusType = (status) => status === 1 ? 'success' : 'info';
       @reset-filter="resetFilter"
       @selection-change="handleSelectionChange"
   >
+    <template #header-actions-left>
+      <el-button 
+        v-if="selectedIds.length" 
+        type="danger" 
+        plain 
+        size="default" 
+        :icon="Delete" 
+        @click="handleBulkDelete"
+      >
+        XÓA {{ selectedIds.length }} KHÁCH HÀNG
+      </el-button>
+    </template>
     <template #stats>
       <div class="col-md-3">
         <StatCard label="Tổng Khách Hàng" :value="customers.length" icon="bi bi-people" type="primary" />
@@ -226,21 +238,18 @@ const getStatusType = (status) => status === 1 ? 'success' : 'info';
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="Trạng thái" width="140" align="center">
-        <template #default="{ row }">
-          <el-tag :type="getStatusType(row.trangThai)" effect="light">
-            {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
-          </el-tag>
-        </template>
-      </el-table-column>
       <el-table-column label="Hành động" width="120" fixed="right" align="center">
         <template #default="{ row }">
-          <div class="d-flex gap-2 justify-content-center">
+          <div class="d-flex gap-1 justify-content-center">
             <el-tooltip content="Chỉnh sửa" placement="top">
-              <el-button @click="handleEdit(row)" :icon="Edit" circle size="small" type="primary" plain />
+              <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+                <i class="bi bi-pencil"></i>
+              </button>
             </el-tooltip>
             <el-tooltip content="Xóa" placement="top">
-              <el-button @click="handleDelete(row)" :icon="Delete" circle size="small" type="danger" plain />
+              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
+                <i class="bi bi-trash"></i>
+              </button>
             </el-tooltip>
           </div>
         </template>
@@ -282,8 +291,10 @@ const getStatusType = (status) => status === 1 ? 'success' : 'info';
       </div>
     </el-form>
     <template #footer>
-      <el-button @click="dialogVisible = false">Hủy</el-button>
-      <el-button type="primary" @click="submitForm">Xác nhận</el-button>
+      <div class="d-flex gap-2 justify-content-end">
+        <el-button @click="dialogVisible = false" class="btn-premium-secondary">HỦY BỎ</el-button>
+        <el-button @click="submitForm" class="btn-premium-primary">XÁC NHẬN</el-button>
+      </div>
     </template>
   </el-dialog>
 </template>
