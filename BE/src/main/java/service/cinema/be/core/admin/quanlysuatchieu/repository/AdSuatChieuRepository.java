@@ -19,10 +19,12 @@ public interface AdSuatChieuRepository extends SuatChieuRepository {
     List<SuatChieu> findByNgayVaPhongNative(@Param("ngay") LocalDate ngay, @Param("idPC") String idPC);
 
     @Query("SELECT COUNT(s) > 0 FROM SuatChieu s WHERE s.phongChieu.id = :idPC " +
-           "AND s.ngayChieu = :ngay " +
-           "AND s.id <> :excludeId " +
-           "AND s.khungGio.id = :idKhungGio")
-    boolean existsConflict(@Param("idPC") String idPC, @Param("ngay") LocalDate ngay, 
-                          @Param("idKhungGio") String idKhungGio, 
+            "AND s.ngayChieu = :ngay " +
+            "AND s.id <> :excludeId " +
+            "AND ((s.khungGio.gioBatDau < :end AND s.khungGio.gioKetThuc > :start))")
+    boolean existsConflict(@Param("idPC") String idPC, 
+                          @Param("ngay") LocalDate ngay, 
+                          @Param("start") java.time.LocalTime start,
+                          @Param("end") java.time.LocalTime end,
                           @Param("excludeId") String excludeId);
 }

@@ -1,7 +1,12 @@
 <template>
   <div id="app">
     <!-- Loading Overlay with Film Reel Animation -->
-    <LoadingOverlay :is-loading="isLoading" animation-type="filmReel" />
+    <LoadingOverlay 
+      :is-loading="isLoading" 
+      :animation-type="loadingType" 
+      :show-background="loadingBg"
+      :use-blur="true"
+    />
     
     <!-- Main Content -->
     <router-view></router-view>
@@ -9,24 +14,64 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
+import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
+const authStore = useAuthStore();
 const isLoading = ref(false);
+const loadingType = ref('filmReel'); // 'filmReel' or 'progressBar'
+const loadingBg = ref(true);
+const isInitialLoad = ref(true);
+
+// Watch for store loading (Login/Register/Logout actions)
+watch(() => authStore.loading, (newVal) => {
+  if (newVal) {
+    loadingType.value = 'filmReel';
+    loadingBg.value = true;
+    isLoading.value = true;
+  } else {
+    // Only hide if we're not currently navigating (which has its own logic)
+    // Actually, it's safer to just set isLoading to false after a delay
+    setTimeout(() => {
+      // If we are still navigating, the router guard will keep isLoading true
+      // but if the action finished, we should probably hide it
+      isLoading.value = false;
+    }, 400);
+  }
+});
 
 // Show loading on route navigation
 router.beforeEach((to, from, next) => {
+  // Check if target is login or register
+  const isAuthRoute = to.name === ROUTES_CONSTANTS.LOGIN.name || to.name === ROUTES_CONSTANTS.REGISTER.name;
+
+  // If it's the first load, OR navigating to login/register -> Full Screen Film Reel
+  if (isInitialLoad.value || isAuthRoute) {
+    loadingType.value = 'filmReel';
+    loadingBg.value = true;
+  } else {
+    // Other route changes -> Sleek Top Progress Bar
+    loadingType.value = 'progressBar';
+    loadingBg.value = false;
+  }
+  
   isLoading.value = true;
   next();
 });
 
 router.afterEach(() => {
-  // Add slight delay for smooth transition
+  // Mark initial load as complete
+  isInitialLoad.value = false;
+  
+  // Quick fade out for top bar, regular for splash
+  const delay = loadingType.value === 'progressBar' ? 200 : 400;
   setTimeout(() => {
     isLoading.value = false;
-  }, 400);
+  }, delay);
 });
 
 onMounted(() => {

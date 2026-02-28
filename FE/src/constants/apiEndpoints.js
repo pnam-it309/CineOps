@@ -105,6 +105,7 @@ export const API_ADMIN_REPORTS_SYSTEM = `${API_ADMIN_REPORTS}/system`;
 
 // Seat Management
 export const API_ADMIN_GHE = `${API_ADMIN_PREFIX}/ghe`;
+export const API_ADMIN_GHE_GENERATE = `${API_ADMIN_GHE}/generate`;
 export const API_ADMIN_LOAI_GHE = `${API_ADMIN_GHE}/loai-ghe`;
 export const API_ADMIN_PHONG_CHIEU_DROP = `${API_ADMIN_GHE}/phong-chieu`;
 

@@ -1,6 +1,8 @@
 <script setup>
-import { ref, markRaw } from 'vue';
-import { Download, Search, Filter, Document, Money, Ticket, Calendar } from '@element-plus/icons-vue';
+import { ref, markRaw, computed } from 'vue';
+import { Download, Search, Filter, Document, Money, Ticket, Calendar, Refresh } from '@element-plus/icons-vue';
+import AdminTableLayout from '@/components/AdminTableLayout.vue';
+import StatCard from '@/components/common/StatCard.vue';
 
 const dateRange = ref([]);
 const selectedType = ref('All');
@@ -11,177 +13,124 @@ const reports = ref([
 ]);
 
 const stats = ref([
-  { label: 'Total Revenue', value: '124.5M', icon: markRaw(Money), color: 'text-success' },
-  { label: 'Tickets Sold', value: '1,240', icon: markRaw(Ticket), color: 'text-primary' },
-  { label: 'Avg. Order', value: '185k', icon: markRaw(Document), color: 'text-warning' }
+  { label: 'Doanh thu tổng', value: '124.5M', icon: 'bi bi-cash-stack', type: 'success' },
+  { label: 'Vé đã bán', value: '1,240', icon: 'bi bi-ticket-perforated-fill', type: 'primary' },
+  { label: 'TB Đơn hàng', value: '185k', icon: 'bi bi-file-earmark-text-fill', type: 'warning' }
 ]);
-import BaseTable from '@/components/common/BaseTable.vue';
-
-const tableColumns = [
-  { label: 'Mã GD', key: 'id' },
-  { label: 'Thời gian', key: 'date' },
-  { label: 'Khách hàng', key: 'customer' },
-  { label: 'Sản phẩm', key: 'items' },
-  { label: 'Tổng tiền', key: 'total' },
-  { label: 'Trạng thái', key: 'status' },
-  { label: 'Hình thức', key: 'method' }
-];
 
 const currentPage = ref(1);
-const pageSize = 10;
+const pageSize = ref(10);
+const searchQuery = ref('');
+
+const filteredReports = computed(() => {
+    return reports.value.filter(r => {
+        const matchSearch = !searchQuery.value || r.id.toLowerCase().includes(searchQuery.value.toLowerCase()) || r.customer.toLowerCase().includes(searchQuery.value.toLowerCase());
+        const matchType = selectedType.value === 'All' || r.method === selectedType.value;
+        return matchSearch && matchType;
+    });
+});
 </script>
 
 <template>
-  <div class="admin-reports w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
-      <div>
-        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Báo cáo Giao dịch</h2>
-      </div>
-      <el-button type="success" size="default" :icon="Download" round>Xuất CSV</el-button>
-    </div>
+  <div class="admin-reports-page">
+    <AdminTableLayout
+      title="Báo cáo Giao dịch"
+      subtitle="Thống kê và lịch sử giao dịch bán vé & đồ ăn"
+      titleIcon="bi bi-bar-chart-fill"
+      :data="filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :total="filteredReports.length"
+      v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize"
+      :selectable="false"
+      @reset-filter="() => { dateRange = []; selectedType = 'All'; searchQuery = ''; }"
+    >
+      <template #header-actions-left>
+        <el-button class="btn-premium-secondary text-success border-success-subtle" :icon="Download">Xuất CSV</el-button>
+      </template>
 
-    <!-- Stats Summary -->
-    <div class="row g-3 mb-3 flex-shrink-0">
-      <div v-for="s in stats" :key="s.label" class="col-md-4">
-        <el-card shadow="never" class="border-black shadow-sm rounded-4 h-100">
-          <div class="p-2 d-flex align-items-center justify-content-center gap-3">
-            <div class="p-2 bg-light rounded-circle shadow-sm d-flex align-items-center justify-content-center">
-              <el-icon :size="20" :class="s.color"><component :is="s.icon" /></el-icon>
-            </div>
-            <div class="text-start">
-              <div class="text-secondary x-small fw-bold text-uppercase" style="font-size: 0.6rem; letter-spacing: 0.5px;">{{ s.label }}</div>
-              <div class="fs-5 fw-bold text-dark lh-1">{{ s.value }}</div>
-            </div>
-          </div>
-        </el-card>
-      </div>
-    </div>
+      <template #stats>
+        <div v-for="s in stats" :key="s.label" class="col-md-4">
+          <StatCard 
+              :label="s.label" 
+              :value="s.value" 
+              :icon="s.icon"
+              :type="s.type"
+            />
+        </div>
+      </template>
 
-    <!-- Filters -->
-    <el-card shadow="never" class="border-black shadow-sm rounded-4 mb-3 flex-shrink-0">
-      <div class="row g-2 align-items-center">
-        <div class="col-md-5">
+      <template #filters>
+        <div class="filter-item" style="width: 350px;">
           <el-date-picker
             v-model="dateRange"
             type="daterange"
             range-separator="Đến"
-            start-placeholder="Ngày bắt đầu"
-            end-placeholder="Ngày kết thúc"
+            start-placeholder="Bắt đầu"
+            end-placeholder="Kết thúc"
             size="default"
-            class="w-100 compact-input"
-            popper-class="compact-date-picker"
+            class="w-100"
           />
         </div>
-        <div class="col-md-3">
-          <el-select v-model="selectedType" placeholder="Phương thức" size="default" class="w-100 compact-input">
+        <div class="filter-item" style="width: 200px;">
+          <el-select v-model="selectedType" placeholder="Phương thức" size="default" class="w-100">
             <el-option label="Tất cả phương thức" value="All" />
             <el-option label="VNPay" value="VNPay" />
             <el-option label="Momo" value="Momo" />
-            <el-option label="Thẻ tín dụng" value="Card" />
+            <el-option label="Credit Card" value="Credit Card" />
           </el-select>
         </div>
-        <div class="col-md-4">
-          <el-input placeholder="Mã giao dịch hoặc khách hàng..." :prefix-icon="Search" size="default" class="compact-input" />
+        <div class="filter-item flex-grow-1">
+          <el-input v-model="searchQuery" placeholder="Mã GD hoặc khách hàng..." :prefix-icon="Search" size="default" clearable />
         </div>
-      </div>
-    </el-card>
+      </template>
 
-    <!-- Results Table Container -->
-    <div class="flex-grow-1 overflow-auto no-scroll">
-      <BaseTable
-        :data="reports"
-        :columns="tableColumns"
-        :total="reports.length"
-        v-model:currentPage="currentPage"
-        :page-size="pageSize"
-        :show-actions="false"
-      >
-        <template #cell-id="{ row }">
-          <span class="fw-bold small">{{ row.id }}</span>
-        </template>
+      <template #columns>
+        <el-table-column label="Mã GD" width="120">
+            <template #default="{ row }">
+                <span class="fw-bold text-indigo-500">#{{ row.id }}</span>
+            </template>
+        </el-table-column>
+        
+        <el-table-column label="Thời gian" width="180" align="center">
+          <template #default="{ row }">
+            <div class="small text-secondary"><i class="bi bi-clock me-1"></i>{{ row.date }}</div>
+          </template>
+        </el-table-column>
 
-        <template #cell-date="{ row }">
-          <span class="x-small text-secondary">{{ row.date }}</span>
-        </template>
+        <el-table-column label="Khách hàng" prop="customer" min-width="150" />
 
-        <template #cell-items="{ row }">
-          <div class="x-small text-truncate mx-auto" style="max-width: 200px;">{{ row.items }}</div>
-        </template>
+        <el-table-column label="Sản phẩm" min-width="200">
+          <template #default="{ row }">
+            <div class="small text-truncate" style="max-width: 250px;" :title="row.items">{{ row.items }}</div>
+          </template>
+        </el-table-column>
 
-        <template #cell-total="{ row }">
-          <span class="fw-bold small">{{ row.total.toLocaleString() }}đ</span>
-        </template>
+        <el-table-column label="Tổng tiền" width="150" align="center">
+          <template #default="{ row }">
+            <span class="fw-bold text-dark">{{ row.total.toLocaleString() }}đ</span>
+          </template>
+        </el-table-column>
 
-        <template #cell-status="{ row }">
-          <el-tag :type="row.status === 'Completed' ? 'success' : 'danger'" size="small" round>{{ row.status }}</el-tag>
-        </template>
+        <el-table-column label="Trạng thái" width="130" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'Completed' ? 'success' : 'danger'" size="small" round effect="light">
+              {{ row.status === 'Completed' ? 'Thành công' : 'Đã hoàn tiền' }}
+            </el-tag>
+          </template>
+        </el-table-column>
 
-        <template #cell-method="{ row }">
-          <span class="small fw-bold">{{ row.method }}</span>
-        </template>
-      </BaseTable>
-    </div>
+        <el-table-column label="Hình thức" width="130" align="center">
+          <template #default="{ row }">
+            <span class="badge bg-light-subtle text-dark border px-2 py-1">{{ row.method }}</span>
+          </template>
+        </el-table-column>
+      </template>
+    </AdminTableLayout>
   </div>
 </template>
 
 <style scoped>
-.admin-reports {
-  height: calc(100vh - 84px);
-}
-
-:deep(.el-card) {
-  border: 1px solid #000 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-}
-
-.compact-input :deep(.el-input__wrapper) {
-  padding: 0 8px !important;
-  font-size: 0.8rem !important;
-}
-
-/* Shrink the range picker input height slightly */
-:deep(.el-range-editor.el-input__wrapper) {
-  padding: 0 10px !important;
-}
-
-.table thead th {
-  border-bottom: none;
-}
-
-.no-scroll {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-  overflow: hidden !important;
-}
-
-.no-scroll::-webkit-scrollbar {
-  display: none !important;
-}
-
-.overflow-auto.no-scroll {
-  overflow-y: auto !important;
-}
-
-.x-small {
-  font-size: 0.65rem;
-}
-</style>
-
-<!-- Global style for the date picker popper as it is rendered outside the app root -->
-<style>
-.compact-date-picker {
-  transform: scale(0.85);
-  transform-origin: top left;
-  margin-top: -10px !important;
-}
-
-.compact-date-picker .el-picker-panel__body {
-  min-width: unset !important;
-}
-
-.compact-date-picker .el-date-range-picker {
-  width: auto !important;
+.text-indigo-500 {
+  color: #4f46e5;
 }
 </style>

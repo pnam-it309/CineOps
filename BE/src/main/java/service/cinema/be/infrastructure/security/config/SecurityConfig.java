@@ -48,10 +48,6 @@ public class SecurityConfig {
         return new TokenAuthenticationFilter();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(PasswordEncoder passwordEncoder,

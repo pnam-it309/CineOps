@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheGenerationRequest;
 import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheRequest;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdGheResponse;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdLoaiGheResponse;
@@ -15,7 +16,7 @@ import service.cinema.be.infrastructure.constant.MappingConstants;
 import java.util.List;
 
 @RestController
-@RequestMapping(MappingConstants.API_ADMIN_PREFIX + "/ghe")
+@RequestMapping(MappingConstants.API_ADMIN_GHE)
 @RequiredArgsConstructor
 public class AdGheController {
 
@@ -40,6 +41,12 @@ public class AdGheController {
     @PostMapping
     public ResponseEntity<ApiResponse<AdGheResponse>> create(@Valid @RequestBody AdGheRequest request) {
         return ResponseEntity.ok(ApiResponse.success(adGheService.createGhe(request)));
+    }
+
+    @PostMapping("/generate")
+    public ResponseEntity<ApiResponse<Void>> generate(@Valid @RequestBody AdGheGenerationRequest request) {
+        adGheService.generateGhe(request);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PutMapping("/{id}")

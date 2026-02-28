@@ -1,8 +1,15 @@
 <template>
-  <div class="container-fluid p-4">
+  <div class="admin-dashboard-wrapper container-fluid p-4">
     <!-- Page Header -->
-    <div class="mb-4">
-      <h2 class="mb-2 fw-bold text-dark" style="font-size: 18px;">Tổng quan Bảng điều khiển</h2>
+    <div class="mb-4 d-flex justify-content-between align-items-end">
+      <div>
+        <h2 class="mb-1 fw-bold text-dark" style="font-size: 20px;">Tổng quan Hệ thống</h2>
+        <p class="text-secondary small mb-0">Theo dõi hoạt động kinh doanh và vận hành rạp phim</p>
+      </div>
+      <div class="d-flex gap-2">
+        <el-button class="btn-premium-secondary" :icon="Calendar">Tháng này</el-button>
+        <el-button class="btn-premium-primary" :icon="Download">Báo cáo</el-button>
+      </div>
     </div>
 
     <!-- Statistics Cards -->
@@ -107,11 +114,11 @@
                 <el-icon><TrendCharts /></el-icon>
                 Thống kê Doanh thu
               </span>
-              <el-button-group size="small">
-                <el-button :type="activeTab === 'week' ? 'primary' : ''" @click="activeTab = 'week'">Tuần</el-button>
-                <el-button :type="activeTab === 'month' ? 'primary' : ''" @click="activeTab = 'month'">Tháng</el-button>
-                <el-button :type="activeTab === 'year' ? 'primary' : ''" @click="activeTab = 'year'">Năm</el-button>
-              </el-button-group>
+              <el-radio-group v-model="activeTab" size="small">
+                <el-radio-button label="Tuần" value="week" />
+                <el-radio-button label="Tháng" value="month" />
+                <el-radio-button label="Năm" value="year" />
+              </el-radio-group>
             </div>
           </template>
           <div class="d-flex flex-column align-items-center justify-content-center rounded bg-light p-5 text-center" style="min-height: 300px;">
@@ -277,6 +284,7 @@ import {
   TrendCharts,
   Lightning,
   VideoPlay,
+  Download,
   Document,
   Setting,
   Clock,

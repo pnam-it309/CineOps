@@ -1,140 +1,8 @@
-<template>
-  <div class="admin-food-container p-4">
-    <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Quản Lý Đồ Ăn & Combo</h2>
-      </div>
-      <el-button type="primary" :icon="Plus" @click="openDialog()">Thêm sản phẩm mới</el-button>
-    </div>
-
-    <!-- Filter & Search -->
-    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm">
-      <el-radio-group v-model="activeCategory" size="large">
-        <el-radio-button label="Tất cả" value="All" />
-        <el-radio-button label="Bắp" value="Popcorn" />
-        <el-radio-button label="Nước" value="Drink" />
-        <el-radio-button label="Combo" value="Combo" />
-      </el-radio-group>
-      
-      <div class="d-flex gap-2" style="width: 300px;">
-        <el-input
-          v-model="searchQuery"
-          placeholder="Tìm kiếm sản phẩm..."
-          :prefix-icon="Search"
-          clearable
-        />
-      </div>
-    </div>
-
-    <!-- Product Grid -->
-    <div class="product-grid" v-if="filteredItems.length > 0">
-      <el-row :gutter="20">
-        <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in filteredItems" :key="item.id" class="mb-4">
-          <div class="food-card bg-white rounded-3 shadow-sm h-100 d-flex flex-column position-relative overflow-hidden hover-scale">
-            <!-- Image & Badge -->
-            <div class="card-image-wrapper position-relative">
-              <img :src="item.image" :alt="item.name" class="w-100 h-100 object-fit-cover">
-              <div class="category-badge position-absolute top-0 start-0 m-2">
-                <el-tag :type="getCategoryType(item.category)" effect="dark" size="small">{{ getCategoryLabel(item.category) }}</el-tag>
-              </div>
-              
-              <!-- Hover Actions -->
-              <div class="card-actions position-absolute top-50 start-50 translate-middle d-flex gap-2 opacity-0">
-                <el-button type="primary" circle :icon="Edit" @click="openDialog(item)" />
-                <el-button type="danger" circle :icon="Delete" @click="handleDelete(item)" />
-              </div>
-            </div>
-
-            <!-- Content -->
-            <div class="p-3 d-flex flex-column flex-grow-1">
-              <h5 class="fw-bold fs-6 mb-1 text-truncate" :title="item.name">{{ item.name }}</h5>
-              <p class="text-secondary x-small mb-3 line-clamp-2">{{ item.description }}</p>
-              
-              <div class="mt-auto d-flex justify-content-between align-items-end">
-                <div>
-                  <div class="text-primary fw-bold fs-5">{{ formatCurrency(item.price) }}</div>
-                  <div class="x-small" :class="getStockClass(item.stock)">
-                    {{ getStockLabel(item.stock) }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-    </div>
-    
-    <el-empty v-else description="Không tìm thấy sản phẩm nào" />
-
-    <!-- Add/Edit Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'"
-      width="500px"
-      class="rounded-3"
-      destroy-on-close
-    >
-      <el-form :model="itemForm" label-position="top" :rules="rules" ref="formRef">
-        <div class="row">
-          <div class="col-8">
-            <el-form-item label="Tên sản phẩm" prop="name">
-              <el-input v-model="itemForm.name" placeholder="VD: Bắp Phô Mai" />
-            </el-form-item>
-          </div>
-          <div class="col-4">
-            <el-form-item label="Danh mục" prop="category">
-              <el-select v-model="itemForm.category" class="w-100">
-                <el-option label="Bắp" value="Popcorn" />
-                <el-option label="Nước" value="Drink" />
-                <el-option label="Combo" value="Combo" />
-                <el-option label="Khác" value="Snack" />
-              </el-select>
-            </el-form-item>
-          </div>
-        </div>
-
-        <el-form-item label="Mô tả" prop="description">
-          <el-input type="textarea" v-model="itemForm.description" :rows="2" placeholder="Mô tả ngắn về sản phẩm..." />
-        </el-form-item>
-
-        <div class="row">
-          <div class="col-6">
-            <el-form-item label="Giá bán (VNĐ)" prop="price">
-              <el-input-number v-model="itemForm.price" class="w-100" :min="0" :step="1000" controls-position="right" />
-            </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="Tồn kho" prop="stock">
-              <el-input-number v-model="itemForm.stock" class="w-100" :min="0" controls-position="right" />
-            </el-form-item>
-          </div>
-        </div>
-
-        <el-form-item label="Hình ảnh URL" prop="image">
-           <el-input v-model="itemForm.image" placeholder="https://..." :prefix-icon="Picture">
-             <template #append>
-               <el-button :icon="View" />
-             </template>
-           </el-input>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">Hủy</el-button>
-          <el-button type="primary" @click="saveItem">
-            {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-
 <script setup>
 import { ref, computed } from 'vue';
 import { Plus, Edit, Delete, Search, Picture, View } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 // --- State ---
 const activeCategory = ref('All');
@@ -216,22 +84,25 @@ const rules = {
   price: [{ required: true, message: 'Vui lòng nhập giá', trigger: 'blur' }],
 };
 
+const currentPage = ref(1);
+const pageSize = ref(12);
+
 // --- Computed ---
 const filteredItems = computed(() => {
   let result = items.value;
-  
-  // Filter by Category
   if (activeCategory.value !== 'All') {
     result = result.filter(i => i.category === activeCategory.value);
   }
-
-  // Filter by Search Query
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(i => i.name.toLowerCase().includes(query) || i.description.toLowerCase().includes(query));
   }
-  
   return result;
+});
+
+const pagedItems = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredItems.value.slice(start, start + pageSize.value);
 });
 
 // --- Methods ---
@@ -285,12 +156,10 @@ const saveItem = async () => {
     await formRef.value.validate((valid) => {
         if (valid) {
             if (isEditMode.value) {
-                // Update
                 const index = items.value.findIndex(i => i.id === itemForm.value.id);
                 if (index !== -1) items.value[index] = { ...itemForm.value };
                 ElMessage.success('Cập nhật sản phẩm thành công');
             } else {
-                // Add
                 const newId = Math.max(...items.value.map(i => i.id)) + 1;
                 items.value.push({ ...itemForm.value, id: newId });
                 ElMessage.success('Thêm sản phẩm mới thành công');
@@ -316,30 +185,170 @@ const handleDelete = (item) => {
 };
 </script>
 
-<style scoped>
-.admin-food-container {
-  min-height: 100%;
-  background-color: #f8f9fa;
-}
+<template>
+  <div class="admin-food-page">
+    <AdminTableLayout
+      title="Quản Lý Đồ Ăn & Combo"
+      subtitle="Quản lý kho sản phẩm và combo rạp phim"
+      titleIcon="bi bi-basket3-fill"
+      addButtonLabel="Thêm sản phẩm"
+      :data="pagedItems"
+      :total="filteredItems.length"
+      v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize"
+      @add-click="openDialog()"
+      @reset-filter="() => { activeCategory = 'All'; searchQuery = ''; }"
+    >
+      <template #filters>
+        <div class="filter-item">
+          <el-radio-group v-model="activeCategory" size="default">
+            <el-radio-button label="Tất cả" value="All" />
+            <el-radio-button label="Bắp" value="Popcorn" />
+            <el-radio-button label="Nước" value="Drink" />
+            <el-radio-button label="Combo" value="Combo" />
+          </el-radio-group>
+        </div>
+        <div class="filter-item" style="width: 320px;">
+          <el-input
+            v-model="searchQuery"
+            placeholder="Tìm kiếm sản phẩm..."
+            :prefix-icon="Search"
+            clearable
+            size="default"
+          />
+        </div>
+      </template>
 
+      <template #content>
+        <div class="product-grid p-1" v-if="pagedItems.length > 0">
+          <el-row :gutter="20">
+            <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in pagedItems" :key="item.id" class="mb-4">
+              <div class="food-card bg-white rounded-4 border shadow-sm h-100 d-flex flex-column position-relative overflow-hidden hover-scale">
+                <div class="card-image-wrapper position-relative">
+                  <img :src="item.image" :alt="item.name" class="w-100 h-100 object-fit-cover">
+                  <div class="category-badge position-absolute top-0 start-0 m-3">
+                    <el-tag :type="getCategoryType(item.category)" effect="dark" size="small" class="rounded-pill border-0 shadow-sm">{{ getCategoryLabel(item.category) }}</el-tag>
+                  </div>
+                  <div class="card-actions position-absolute top-50 start-50 translate-middle d-flex gap-2 opacity-0">
+                    <el-button type="primary" circle :icon="Edit" @click="openDialog(item)" class="shadow-lg" />
+                    <el-button type="danger" circle :icon="Delete" @click="handleDelete(item)" class="shadow-lg" />
+                  </div>
+                </div>
+                <div class="p-3 d-flex flex-column flex-grow-1">
+                  <h5 class="fw-bold fs-6 mb-1 text-truncate text-dark" :title="item.name">{{ item.name }}</h5>
+                  <p class="text-secondary small mb-3 line-clamp-2" style="font-size: 12px;">{{ item.description }}</p>
+                  <div class="mt-auto d-flex justify-content-between align-items-end pt-2 border-top border-light">
+                    <div>
+                      <div class="text-primary fw-bold" style="font-size: 1.1rem;">{{ formatCurrency(item.price) }}</div>
+                      <div class="small mt-1" :class="getStockClass(item.stock)" style="font-size: 11px;">
+                        <i class="bi bi-box me-1"></i>{{ getStockLabel(item.stock) }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+        <el-empty v-else description="Không tìm thấy sản phẩm nào" />
+      </template>
+    </AdminTableLayout>
+
+    <!-- Add/Edit Dialog -->
+    <el-dialog
+      v-model="dialogVisible"
+      width="600px"
+      class="premium-dialog"
+      destroy-on-close
+    >
+      <template #header>
+        <div class="premium-header">
+          <div class="premium-header-content">
+            <div class="header-icon-box">
+              <i :class="isEditMode ? 'bi bi-pencil-square' : 'bi bi-plus-lg'"></i>
+            </div>
+            <div class="header-text">
+              <h5 class="title">{{ isEditMode ? 'Chỉnh sửa Sản phẩm' : 'Thêm Sản phẩm mới' }}</h5>
+              <p class="subtitle opacity-75">Cập nhật thông tin thực đơn rạp phim</p>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <el-form :model="itemForm" label-position="top" :rules="rules" ref="formRef" class="premium-form">
+        <div class="row g-3">
+          <div class="col-8">
+            <el-form-item label="Tên sản phẩm" prop="name">
+              <el-input v-model="itemForm.name" placeholder="VD: Bắp Phô Mai" />
+            </el-form-item>
+          </div>
+          <div class="col-4">
+            <el-form-item label="Danh mục" prop="category">
+              <el-select v-model="itemForm.category" class="w-100">
+                <el-option label="Bắp" value="Popcorn" />
+                <el-option label="Nước" value="Drink" />
+                <el-option label="Combo" value="Combo" />
+                <el-option label="Khác" value="Snack" />
+              </el-select>
+            </el-form-item>
+          </div>
+        </div>
+        <el-form-item label="Mô tả" prop="description">
+          <el-input type="textarea" v-model="itemForm.description" :rows="2" placeholder="Mô tả ngắn về sản phẩm..." />
+        </el-form-item>
+        <div class="row g-3">
+          <div class="col-6">
+            <el-form-item label="Giá bán (VNĐ)" prop="price">
+              <el-input-number v-model="itemForm.price" class="w-100" :min="0" :step="1000" controls-position="right" />
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Tồn kho" prop="stock">
+              <el-input-number v-model="itemForm.stock" class="w-100" :min="0" controls-position="right" />
+            </el-form-item>
+          </div>
+        </div>
+        <el-form-item label="Hình ảnh URL" prop="image">
+           <el-input v-model="itemForm.image" placeholder="https://..." :prefix-icon="Picture">
+             <template #append>
+               <el-button :icon="View" />
+             </template>
+           </el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="d-flex gap-2 justify-content-end">
+          <el-button @click="dialogVisible = false" class="btn-premium-secondary">Hủy</el-button>
+          <el-button type="primary" @click="saveItem" class="btn-premium-primary">
+            {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<style scoped>
 .card-image-wrapper {
-  height: 180px;
+  height: 200px;
   overflow: hidden;
 }
 
 .food-card {
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .food-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-  border-color: var(--el-color-primary-light-5);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
 
-.hover-scale .card-actions {
-  transition: opacity 0.3s ease;
+.card-actions {
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  padding: 10px;
+  border-radius: 50px;
 }
 
 .food-card:hover .card-actions {
@@ -350,10 +359,7 @@ const handleDelete = (item) => {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   overflow: hidden;
-}
-
-.x-small {
-  font-size: 0.85rem;
 }
 </style>

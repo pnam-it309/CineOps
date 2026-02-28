@@ -6,9 +6,9 @@ INSERT INTO loai_ghe (id, ten_loai, phu_phi, nguoi_tao) VALUES
 ('lg-couple-uuid', 'Couple', 50000, 'system');
 
 -- 2. PHÒNG CHIẾU
-INSERT INTO phong_chieu (id, id_rap, ten_phong, loai_man_hinh, tong_ghe, nguoi_tao) VALUES 
-('pc-001-uuid-001', 'RAP-001', 'Phòng 01', 'IMAX 3D', 40, 'system'),
-('pc-002-uuid-002', 'RAP-001', 'Phòng 02', '2D Digital', 30, 'system');
+INSERT INTO phong_chieu (id, ten_phong, loai_man_hinh, tong_ghe, nguoi_tao) VALUES 
+('pc-001-uuid-001', 'Phòng 01', 'IMAX 3D', 40, 'system'),
+('pc-002-uuid-002', 'Phòng 02', '2D Digital', 30, 'system');
 
 -- 3. GHẾ (Seed cho Phòng 01 - Hàng A, B, C)
 -- Hàng A (Thường - 10 ghế)
@@ -66,3 +66,24 @@ INSERT INTO suat_chieu (id, id_khung_gio, id_phong_chieu, id_phim, ngay_chieu, s
 (UUID(), 'kg-05-uuid', 'pc-002-uuid-002', 'phim-02-uuid', CURDATE(), 30, 2, 'system'),
 (UUID(), 'kg-01-uuid', 'pc-001-uuid-001', 'phim-01-uuid', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 40, 1, 'system'),
 (UUID(), 'kg-02-uuid', 'pc-001-uuid-001', 'phim-03-uuid', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 40, 1, 'system');
+
+-- 7. LOẠI KHÁCH HÀNG
+INSERT INTO loai_khach_hang (id, ten_loai, he_so_giam_gia, mo_ta, nguoi_tao) VALUES 
+('lkh-member-uuid', 'Thành viên', 0, 'Khách hàng mới đăng ký', 'system'),
+('lkh-vip-uuid', 'VIP', 5, 'Khách hàng thân thiết', 'system'),
+('lkh-diamond-uuid', 'Diamond', 10, 'Khách hàng hạng kim cương', 'system');
+
+-- 8. KHÁCH HÀNG
+INSERT INTO khach_hang (id, id_loai_khach_hang, ma_khach_hang, ten_khach_hang, email, sdt, gioi_tinh, trang_thai, nguoi_tao) VALUES 
+('kh-001-uuid', 'lkh-member-uuid', 'KH001', 'Nguyễn Văn A', 'anv@example.com', '0987654321', 1, 1, 'system'),
+('kh-002-uuid', 'lkh-vip-uuid', 'KH002', 'Trần Thị B', 'btt@example.com', '0123456789', 0, 1, 'system');
+
+-- 9. PHIẾU GIẢM GIÁ
+INSERT INTO phieu_giam_gia (id, ten_phieu, loai_phieu, phan_tram_giam_gia, so_tien_giam, gia_tri_hoa_don_toi_thieu, co_cho_cong_don, giam_toi_da, ngay_bat_dau, ngay_ket_thuc, trang_thai, ghi_chu, nguoi_tao) VALUES 
+('pgg-01-uuid', 'Chào mừng thành viên mới', 1, 10.00, 0, 100000, 0, 50000, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 'Giảm 10% cho hóa đơn từ 100k', 'system'),
+('pgg-02-uuid', 'Tri ân khách hàng VIP', 2, 0, 50000, 200000, 1, 50000, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 'Giảm trực tiếp 50k cho khách VIP', 'system');
+
+-- 10. PHIẾU GIẢM GIÁ CHI TIẾT
+INSERT INTO phieu_giam_gia_chi_tiet (id, id_phieu_giam_gia, id_khach_hang, ma_phieu_giam_gia_chi_tiet, so_luong_dung, trang_thai, nguoi_tao) VALUES 
+(UUID(), 'pgg-01-uuid', 'kh-001-uuid', 'PGGCT-001', 0, 1, 'system'),
+(UUID(), 'pgg-02-uuid', 'kh-002-uuid', 'PGGCT-002', 0, 1, 'system');

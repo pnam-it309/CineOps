@@ -156,7 +156,7 @@ const routes = [
     {
         path: ROUTES_CONSTANTS.ADMIN.path, // /admin
         component: AdminLayout,
-        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
+        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'], title: 'Quản trị' },
         children: [
             {
                 path: '', // Default to dashboard
@@ -166,66 +166,79 @@ const routes = [
                 path: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name,
                 component: () => import('@/pages/admin/AdminDashboard.vue'),
+                meta: { title: 'Tổng quan' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.name,
                 component: () => import('@/pages/admin/AdminReports.vue'),
+                meta: { title: 'Thống kê' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.POS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.POS.name,
-                component: () => import('@/pages/staff/StaffSales.vue'),
+                component: () => import('@/pages/admin/AdminSales.vue'),
+                meta: { title: 'Bán vé tại quầy' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.CHECKIN.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.CHECKIN.name,
-                component: () => import('@/pages/staff/StaffCheckin.vue'),
+                component: () => import('@/pages/admin/AdminCheckin.vue'),
+                meta: { title: 'Check-in vé' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.INVOICES.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.INVOICES.name,
-                component: () => import('@/pages/staff/StaffInvoices.vue'),
+                component: () => import('@/pages/admin/AdminInvoices.vue'),
+                meta: { title: 'Quản lý hóa đơn' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.TICKETS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.TICKETS.name,
                 component: () => import('@/pages/admin/AdminReports.vue'), // Using reports as placeholder for tickets
+                meta: { title: 'Quản lý vé' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.SEATS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.SEATS.name,
-                component: () => import('@/pages/admin/AdminSeats.vue'),
+                component: () => import('@/pages/admin/ghe/AdminSeats.vue'),
+                meta: { title: 'Quản lý ghế' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.name,
                 component: () => import('@/pages/admin/AdminMovies.vue'),
+                meta: { title: 'Phim & Lịch chiếu' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.name,
-                component: () => import('@/pages/admin/AdminShowtimes.vue'),
+                component: () => import('@/pages/admin/suatchieu/AdminShowtimes.vue'),
+                meta: { title: 'Suất chiếu' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.FOOD.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.FOOD.name,
                 component: () => import('@/pages/admin/AdminFood.vue'),
+                meta: { title: 'Sản phẩm & Combo' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.name,
                 component: () => import('@/pages/admin/AdminVouchers.vue'),
+                meta: { title: 'Phiếu giảm giá' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.name,
                 component: () => import('@/pages/admin/AdminCustomers.vue'),
+                meta: { title: 'Khách hàng' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.STAFF.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.STAFF.name,
                 component: () => import('@/pages/admin/AdminStaff.vue'),
+                meta: { title: 'Nhân viên' }
             },
         ]
     },
@@ -234,7 +247,7 @@ const routes = [
     {
         path: ROUTES_CONSTANTS.STAFF.path,
         component: StaffLayout,
-        meta: { requiresAuth: true, roles: ['ROLE_STAFF', 'ROLE_ADMIN'] }, // Admin usually can see staff stuff too
+        meta: { requiresAuth: true, roles: ['ROLE_STAFF', 'ROLE_ADMIN'], title: 'Nhân viên' },
         children: [
              {
                 path: '',
@@ -244,29 +257,36 @@ const routes = [
                 path: ROUTES_CONSTANTS.STAFF.children.DASHBOARD.path,
                 name: ROUTES_CONSTANTS.STAFF.children.DASHBOARD.name,
                 component: () => import('@/pages/staff/StaffDashboard.vue'),
+                meta: { title: 'Tổng quan POS' }
             },
             {
                 path: ROUTES_CONSTANTS.STAFF.children.SALES.path,
                 name: ROUTES_CONSTANTS.STAFF.children.SALES.name,
                 component: () => import('@/pages/staff/StaffSales.vue'),
+                meta: { title: 'Quầy bán vé' }
             },
             {
                 path: ROUTES_CONSTANTS.STAFF.children.CHECKIN.path,
                 name: ROUTES_CONSTANTS.STAFF.children.CHECKIN.name,
                 component: () => import('@/pages/staff/StaffCheckin.vue'),
+                meta: { title: 'Soát vé' }
             },
             {
                 path: ROUTES_CONSTANTS.STAFF.children.INVOICES.path,
                 name: ROUTES_CONSTANTS.STAFF.children.INVOICES.name,
                 component: () => import('@/pages/staff/StaffInvoices.vue'),
+                meta: { title: 'Hóa đơn ngày' }
             },
             {
                 path: ROUTES_CONSTANTS.STAFF.children.SHIFT.path,
                 name: ROUTES_CONSTANTS.STAFF.children.SHIFT.name,
                 component: () => import('@/pages/staff/StaffShift.vue'),
+                meta: { title: 'Bàn giao ca' }
             },
+
         ]
     },
+
 
     // OAuth2 Callback (outside layout, no auth required)
     {
@@ -299,16 +319,17 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
     
-    // 1. Initialize auth if needed (check token and fetch profile)
-    // We might want to do this only once? Or authStore handles it?
-    // For simplicity, verify authentication state:
-    if (localStorage.getItem('token') && !authStore.user) {
-         try {
-             // Attempt to restore session
-            await authStore.fetchProfile();
-         } catch(e) {
-             // Failed to restore -> Token invalid
-         }
+    // 1. Đồng bộ state nếu token bị xóa (bởi interceptor hoặc logout)
+    if (!sessionStorage.getItem('token') && authStore.token) {
+        authStore.user = null;
+        authStore.token = null;
+        authStore.roles = [];
+    }
+
+    // 2. Khôi phục session nếu có token nhưng chưa có user (F5 hoặc click nhanh)
+    // restoreSession() đã có cơ chế chống gọi trùng (shared promise)
+    if (sessionStorage.getItem('token') && !authStore.user) {
+        await authStore.restoreSession();
     }
 
     const isAuthenticated = authStore.isAuthenticated;

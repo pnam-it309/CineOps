@@ -1,9 +1,10 @@
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { Plus, Edit, Delete, Location, House, Setting, View } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import AdminTableLayout from '@/components/AdminTableLayout.vue';
+import StatCard from '@/components/common/StatCard.vue';
 
-// Mock Cinemas
 // Mock Cinemas
 const cinemas = ref([
   { id: 1, name: 'CineOps Central', address: 'District 1, HCM', rooms: 4 }
@@ -58,213 +59,280 @@ const handleUpdateRoom = () => {
 };
 
 const deleteRoom = (id) => {
-  rooms.value = rooms.value.filter(r => r.id !== id);
+  ElMessageBox.confirm('Bạn có chắc chắn muốn xóa phòng chiếu này?', 'Cảnh báo', {
+      type: 'warning'
+  }).then(() => {
+    rooms.value = rooms.value.filter(r => r.id !== id);
+    ElMessage.success('Đã xóa phòng chiếu');
+  });
 };
 
-// Seat Grid Logic
 const getSeatLabel = (row, col) => {
   const rowLabel = String.fromCharCode(64 + row);
   return `${rowLabel}${col}`;
 };
-import BaseTable from '@/components/common/BaseTable.vue';
-
-const tableColumns = [
-  { label: 'Tên phòng chiếu', key: 'name' },
-  { label: 'Định dạng', key: 'type' },
-  { label: 'Kích thước', key: 'dimensions' },
-  { label: 'Tổng số ghế', key: 'seats' }
-];
 
 const currentPage = ref(1);
-const pageSize = 10;
+const pageSize = ref(10);
+
+// New variables for the updated template
+const searchQuery = ref('');
+const filterStatus = ref('all');
+const dialogVisible = ref(false);
+const editingId = ref(null);
+
+const roomForm = reactive({
+  name: '',
+  type: '2D/3D Standard',
+  rows: 8,
+  cols: 12,
+  status: 'Sẵn sàng',
+  note: ''
+});
+
+const filteredRooms = computed(() => {
+  let filtered = rooms.value;
+
+  if (searchQuery.value) {
+    filtered = filtered.filter(room =>
+      room.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      room.note.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  }
+
+  if (filterStatus.value !== 'all') {
+    filtered = filtered.filter(room => room.status === filterStatus.value);
+  }
+
+  return filtered;
+});
+
+const stats = computed(() => [
+  { label: 'Tổng số phòng', value: rooms.value.length, icon: 'bi bi-door-open-fill', type: 'primary' },
+  { label: 'Phòng sẵn sàng', value: rooms.value.filter(r => r.status === 'Sẵn sàng').length, icon: 'bi bi-check-circle-fill', type: 'success' },
+  { label: 'Phòng bảo trì', value: rooms.value.filter(r => r.status === 'Đang bảo trì').length, icon: 'bi bi-tools', type: 'warning' },
+  { label: 'Tổng số ghế', value: rooms.value.reduce((acc, r) => acc + r.capacity, 0), icon: 'bi bi-grid-3x3-gap-fill', type: 'info' }
+]);
+
+const openDialog = (room = null) => {
+  if (room) {
+    editingId.value = room.id;
+    Object.assign(roomForm, room);
+  } else {
+    editingId.value = null;
+    roomForm.name = '';
+    roomForm.type = '2D/3D Standard';
+    roomForm.rows = 8;
+    roomForm.cols = 12;
+    roomForm.status = 'Sẵn sàng';
+    roomForm.note = '';
+  }
+  dialogVisible.value = true;
+};
+
+const handleSave = () => {
+  if (editingId.value) {
+    const index = rooms.value.findIndex(r => r.id === editingId.value);
+    if (index !== -1) {
+      rooms.value[index] = { ...roomForm, id: editingId.value, capacity: roomForm.rows * roomForm.cols };
+      ElMessage.success('Cập nhật phòng thành công!');
+    }
+  } else {
+    const newRoom = {
+      id: Date.now(),
+      ...roomForm,
+      capacity: roomForm.rows * roomForm.cols
+    };
+    rooms.value.push(newRoom);
+    ElMessage.success('Thêm phòng mới thành công!');
+  }
+  dialogVisible.value = false;
+};
+
+const handleDelete = (room) => {
+  ElMessageBox.confirm(`Bạn có chắc chắn muốn xóa phòng "${room.name}"?`, 'Cảnh báo', {
+    type: 'warning'
+  }).then(() => {
+    rooms.value = rooms.value.filter(r => r.id !== room.id);
+    ElMessage.success('Đã xóa phòng chiếu!');
+  }).catch(() => {
+    // User cancelled
+  });
+};
 </script>
 
 <template>
-  <div class="admin-rooms w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
-      <div>
-        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Cụm Rạp & Phòng Chiếu</h2>
-      </div>
-      <div class="d-flex gap-2">
-        <el-button type="primary" size="default" :icon="Plus" round @click="openDesigner()">Thêm phòng</el-button>
-      </div>
-    </div>
-
-    <!-- Stats Summary -->
-    <div class="row g-3 mb-3 flex-shrink-0">
-      <div class="col-md-4">
-        <el-card shadow="never" class="border-black shadow-sm rounded-4 bg-primary bg-opacity-10 text-primary h-100">
-          <div class="d-flex align-items-center gap-2">
-            <div class="p-2 bg-white rounded-circle shadow-sm">
-              <el-icon :size="20">
-                <Location />
-              </el-icon>
-            </div>
-            <div class="overflow-hidden">
-              <div class="small fw-bold opacity-75 x-small">Địa chỉ</div>
-              <div class="fw-bold small text-truncate">{{ selectedCinema.address }}</div>
-            </div>
-          </div>
-        </el-card>
-      </div>
-      <div class="col-md-4">
-        <el-card shadow="never" class="border-black shadow-sm rounded-4 h-100">
-          <div class="d-flex align-items-center gap-2">
-            <div class="p-2 bg-light rounded-circle">
-              <el-icon :size="20" class="text-success">
-                <House />
-              </el-icon>
-            </div>
-            <div>
-              <div class="small text-secondary fw-bold x-small">Phòng đang hoạt động</div>
-              <div class="fw-bold fs-6">{{ rooms.length }}</div>
-            </div>
-          </div>
-        </el-card>
-      </div>
-      <div class="col-md-4">
-        <el-card shadow="never" class="border-black shadow-sm rounded-4 h-100">
-          <div class="d-flex align-items-center gap-2">
-            <div class="p-2 bg-light rounded-circle">
-              <el-icon :size="20" class="text-warning">
-                <View />
-              </el-icon>
-            </div>
-            <div>
-              <div class="small text-secondary fw-bold x-small">Tổng số ghế</div>
-              <div class="fw-bold fs-6">{{rooms.reduce((acc, r) => acc + (r.rows * r.cols), 0)}}</div>
-            </div>
-          </div>
-        </el-card>
-      </div>
-    </div>
-
-    <!-- Rooms Table -->
-    <div class="flex-grow-1 overflow-auto no-scroll">
-      <BaseTable :data="rooms" :columns="tableColumns" :total="rooms.length" v-model:currentPage="currentPage"
-        :page-size="pageSize" @edit="openDesigner" @delete="(r) => deleteRoom(r.id)">
-        <template #cell-type="{ row }">
-          <el-tag round effect="plain" size="small">{{ row.type }}</el-tag>
-        </template>
-
-        <template #cell-dimensions="{ row }">
-          <span class="text-secondary small">{{ row.rows }} Hàng × {{ row.cols }} Cột</span>
-        </template>
-
-        <template #cell-seats="{ row }">
-          <span class="badge bg-light text-dark px-2">{{ row.rows * row.cols }} Ghế</span>
-        </template>
-
-        <template #actions="{ row }">
-          <div class="d-flex justify-content-center gap-2">
-            <button class="btn btn-action-icon" title="Edit Layout" @click="openDesigner(row)">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn btn-action-icon text-danger" title="Delete" @click="deleteRoom(row.id)">
-              <i class="bi bi-trash"></i>
-            </button>
-          </div>
-        </template>
-      </BaseTable>
-    </div>
-
-
-    <!-- Seat Layout Designer Modal -->
-    <el-dialog v-model="designerVisible"
-      :title="activeRoom ? 'Thiết kế sơ đồ phòng: ' + activeRoom.name : 'Tạo phòng chiếu mới'" width="90%"
-      style="max-width: 1200px;" class="rounded-4 overflow-hidden">
-      <div class="row g-4">
-        <!-- Configuration Column -->
-        <div class="col-lg-3">
-          <div class="card border-0 bg-light p-3 rounded-4 mb-4">
-            <h6 class="fw-bold mb-3">Cấu hình phòng</h6>
-            <el-form :model="roomConfig" label-position="top">
-              <el-form-item label="Tên phòng (Hall)">
-                <el-input v-model="roomConfig.name" placeholder="VD: Phòng 5" />
-              </el-form-item>
-              <el-form-item label="Định dạng phòng">
-                <el-select v-model="roomConfig.type" class="w-100">
-                  <el-option label="Tiêu chuẩn (2D/3D)" value="2D/3D" />
-                  <el-option label="Trải nghiệm IMAX" value="IMAX" />
-                  <el-option label="Hạng Thương gia (VIP)" value="Gold Class" />
-                  <el-option label="Khu vui chơi trẻ em" value="Kids" />
-                </el-select>
-              </el-form-item>
-              <div class="row g-2">
-                <div class="col-6">
-                  <el-form-item label="Số hàng ghế">
-                    <el-input-number v-model="roomConfig.rows" :min="1" :max="20" class="w-100" />
-                  </el-form-item>
-                </div>
-                <div class="col-6">
-                  <el-form-item label="Số cột (Ghế/Hàng)">
-                    <el-input-number v-model="roomConfig.cols" :min="1" :max="30" class="w-100" />
-                  </el-form-item>
-                </div>
-              </div>
-            </el-form>
-          </div>
-          <div class="alert alert-info border-0 rounded-4 small mb-0">
-            <el-icon class="me-1">
-              <Setting />
-            </el-icon>
-            Điều chỉnh số hàng và cột để tự động tạo sơ đồ ghế kỹ thuật số ở bên phải.
-          </div>
+  <div class="admin-rooms-page">
+    <AdminTableLayout
+      title="Quản lý Phòng chiếu"
+      subtitle="Quản lý cấu hình phòng và sơ đồ ghế ngồi"
+      titleIcon="bi bi-door-open-fill"
+      addButtonLabel="Thêm phòng mới"
+      :data="filteredRooms.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :total="filteredRooms.length"
+      v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize"
+      @add-click="openDialog()"
+      @reset-filter="() => { searchQuery = ''; filterStatus = 'all'; }"
+    >
+      <template #stats>
+        <div v-for="s in stats" :key="s.label" class="col-md-3">
+          <StatCard 
+              :label="s.label" 
+              :value="s.value" 
+              :icon="s.icon"
+              :type="s.type"
+            />
         </div>
+      </template>
 
-        <!-- Designer Column -->
-        <div class="col-lg-9">
-          <div class="designer-preview p-4 bg-dark rounded-4 shadow-inner text-center overflow-auto"
-            style="min-height: 500px;">
-            <div
-              class="screen-indicator mx-auto mb-5 text-uppercase small text-white opacity-50 border-top border-2 pt-2"
-              style="width: 60%; letter-spacing: 5px;">
-              Màn hình chính
-            </div>
+      <template #filters>
+        <div class="filter-item" style="width: 350px;">
+          <el-input
+            v-model="searchQuery"
+            placeholder="Tìm theo tên phòng hoặc mô tả..."
+            :prefix-icon="Search"
+            size="default"
+            clearable
+          />
+        </div>
+        <div class="filter-item" style="width: 200px;">
+          <el-select v-model="filterStatus" placeholder="Trạng thái" size="default" class="w-100">
+            <el-option label="Tất cả trạng thái" value="all" />
+            <el-option label="Sẵn sàng" value="Sẵn sàng" />
+            <el-option label="Đang bảo trì" value="Đang bảo trì" />
+          </el-select>
+        </div>
+      </template>
 
-            <div class="seat-grid d-inline-block">
-              <div v-for="r in roomConfig.rows" :key="r" class="d-flex gap-1 mb-1 justify-content-center">
-                <div v-for="c in roomConfig.cols" :key="c" class="seat-mock rounded-1" :title="getSeatLabel(r, c)">
-                </div>
+      <template #columns>
+        <el-table-column label="Thông tin phòng" min-width="250">
+          <template #default="{ row }">
+            <div class="d-flex align-items-center gap-3">
+              <div class="room-icon-box bg-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-display fs-5"></i>
+              </div>
+              <div class="text-start">
+                <div class="fw-bold text-dark">{{ row.name }}</div>
+                <div class="small text-secondary">{{ row.type }}</div>
               </div>
             </div>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="text-secondary small">
-              <strong>Xem trước:</strong> đã tạo {{ roomConfig.rows * roomConfig.cols }} ghế.
+          </template>
+        </el-table-column>
+        
+        <el-table-column label="Sức chứa" width="150" align="center">
+          <template #default="{ row }">
+            <div class="stat-badge bg-light text-dark border px-3 py-1 rounded-pill small">
+              <i class="bi bi-people me-1"></i>{{ row.capacity || (row.rows * row.cols) }} ghế
             </div>
-            <div class="d-flex gap-2">
-              <el-button @click="designerVisible = false">Hủy</el-button>
-              <el-button type="primary" @click="activeRoom ? handleUpdateRoom() : handleCreateRoom()" class="px-4">
-                {{ activeRoom ? 'Cập nhật sơ đồ' : 'Lưu phòng' }}
-              </el-button>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Trạng thái" width="150" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'Sẵn sàng' ? 'success' : 'warning'" size="small" effect="light" round>
+              {{ row.status || 'Sẵn sàng' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Ghi chú" prop="note" min-width="200" show-overflow-tooltip />
+
+        <el-table-column label="Thao tác" width="150" align="center" fixed="right">
+          <template #default="{ row }">
+            <div class="d-flex justify-content-center gap-1">
+              <el-tooltip content="Chỉnh sửa sơ đồ ghế" placement="top">
+                <button class="btn-action-icon btn-action-view">
+                  <i class="bi bi-grid-3x3 fs-6"></i>
+                </button>
+              </el-tooltip>
+              <button class="btn-action-icon btn-action-edit" @click="openDialog(row)">
+                <i class="bi bi-pencil fs-6"></i>
+              </button>
+              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
+                <i class="bi bi-trash fs-6"></i>
+              </button>
+            </div>
+          </template>
+        </el-table-column>
+      </template>
+    </AdminTableLayout>
+
+    <!-- Room Dialog -->
+    <el-dialog
+      v-model="dialogVisible"
+      width="550px"
+      class="premium-dialog"
+      destroy-on-close
+    >
+      <template #header>
+        <div class="premium-header">
+          <div class="premium-header-content">
+            <div class="header-icon-box">
+              <i class="bi bi-door-open"></i>
+            </div>
+            <div class="header-text">
+              <h5 class="title">{{ editingId ? 'Cập nhật Phòng' : 'Thêm Phòng mới' }}</h5>
+              <p class="subtitle opacity-75">Cấu hình thông số kỹ thuật phòng chiếu</p>
             </div>
           </div>
         </div>
-      </div>
+      </template>
+
+      <el-form :model="roomForm" label-position="top" class="premium-form">
+        <div class="row g-3">
+          <div class="col-8">
+            <el-form-item label="Tên phòng" required>
+              <el-input v-model="roomForm.name" placeholder="VD: Phòng chiếu 01" />
+            </el-form-item>
+          </div>
+          <div class="col-4">
+            <el-form-item label="Loại phòng">
+              <el-select v-model="roomForm.type" class="w-100">
+                <el-option label="2D/3D Standard" value="2D/3D Standard" />
+                <el-option label="IMAX" value="IMAX" />
+                <el-option label="Gold Class" value="Gold Class" />
+              </el-select>
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Số hàng ghế">
+              <el-input-number v-model="roomForm.rows" :min="1" class="w-100" controls-position="right" />
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Số ghế mỗi hàng">
+              <el-input-number v-model="roomForm.cols" :min="1" class="w-100" controls-position="right" />
+            </el-form-item>
+          </div>
+          <div class="col-12">
+            <el-form-item label="Trạng thái">
+              <el-select v-model="roomForm.status" class="w-100">
+                <el-option label="Sẵn sàng" value="Sẵn sàng" />
+                <el-option label="Đang bảo trì" value="Đang bảo trì" />
+              </el-select>
+            </el-form-item>
+          </div>
+          <div class="col-12">
+            <el-form-item label="Ghi chú">
+              <el-input v-model="roomForm.note" type="textarea" :rows="2" placeholder="Thông tin bổ sung..." />
+            </el-form-item>
+          </div>
+        </div>
+      </el-form>
+      <template #footer>
+        <div class="d-flex gap-2 justify-content-end">
+          <el-button @click="dialogVisible = false" class="btn-premium-secondary">Hủy</el-button>
+          <el-button type="primary" @click="handleSave" class="btn-premium-primary">Lưu thông tin</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <style scoped>
-.admin-rooms {
-  height: calc(100vh - 84px);
-}
-
-:deep(.el-card) {
-  border: 1px solid #000 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-}
-
-.cinema-select {
-  width: 250px;
-}
-
 .designer-preview {
-  background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
   display: flex !important;
   flex-direction: column;
 }
@@ -272,39 +340,30 @@ const pageSize = 10;
 .seat-mock {
   width: 20px;
   height: 20px;
-  background-color: #333;
-  border: 1px solid #444;
+  background-color: #334155;
+  border: 1px solid #475569;
 }
 
 .seat-mock:hover {
-  background-color: var(--el-color-primary);
-  border-color: var(--el-color-primary);
+  background-color: #4f46e5;
+  border-color: #6366f1;
   cursor: crosshair;
 }
 
 .shadow-inner {
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
 }
 
-.table thead th {
-  border-bottom: none;
+.bg-indigo-50 {
+  background-color: #eff6ff;
 }
 
-.no-scroll {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-  overflow: hidden !important;
+.text-indigo-500 {
+  color: #4f46e5;
 }
 
-.no-scroll::-webkit-scrollbar {
-  display: none !important;
-}
-
-.overflow-auto.no-scroll {
-  overflow-y: auto !important;
-}
-
-.x-small {
-  font-size: 0.65rem;
+.alert-indigo-light {
+    background-color: #f0f4ff;
+    color: #4338ca;
 }
 </style>

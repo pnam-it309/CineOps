@@ -1,128 +1,267 @@
 <script setup>
-import { ref } from 'vue';
-import { Search, User, View, Ticket, Star, Filter } from '@element-plus/icons-vue';
+import { ref, onMounted, computed } from 'vue';
+import { Search, Plus, Edit, Delete, View, Filter, User } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import AdminTableLayout from '@/components/AdminTableLayout.vue';
+import StatCard from '@/components/common/StatCard.vue';
+import { khachHangService } from '@/services/api/admin/khachHangService';
 
-const customers = ref([
-  { id: 1, name: 'Alice Johnson', email: 'alice@example.com', phone: '0901234567', points: 1250, level: 'Gold', joinDate: '2025-10-15', tickets: 24 },
-  { id: 2, name: 'Bob Smith', email: 'bob@example.com', phone: '0912345678', points: 450, level: 'Silver', joinDate: '2025-11-20', tickets: 8 },
-  { id: 3, name: 'Charlie Davis', email: 'charlie@example.com', phone: '0923456789', points: 2800, level: 'Platinum', joinDate: '2025-08-01', tickets: 45 },
-  { id: 4, name: 'Diana Prince', email: 'diana@example.com', phone: '0934567890', points: 150, level: 'Silver', joinDate: '2026-01-10', tickets: 2 }
-]);
+// State
+const customers = ref([]);
+const loading = ref(false);
+const searchQuery = ref('');
+const filterTrangThai = ref('');
+const currentPage = ref(1);
+const pageSize = ref(10);
+const selectedIds = ref([]);
 
-const getLevelColor = (level) => {
-  switch (level) {
-    case 'Platinum': return 'danger';
-    case 'Gold': return 'warning';
-    default: return 'info';
+// Fetch data
+const fetchCustomers = async () => {
+  loading.value = true;
+  try {
+    const res = await khachHangService.getAll(searchQuery.value, filterTrangThai.value);
+    if (res.data.success) {
+      customers.value = res.data.data;
+    }
+  } catch (error) {
+    ElMessage.error('Không thể tải danh sách khách hàng');
+  } finally {
+    loading.value = false;
   }
 };
-import BaseTable from '@/components/common/BaseTable.vue';
 
-const tableColumns = [
-  { label: 'Thông tin khách hàng', key: 'name' },
-  { label: 'Liên hệ', key: 'contact' },
-  { label: 'Hạng thành viên', key: 'level' },
-  { label: 'Điểm tích lũy', key: 'points' },
-  { label: 'Tổng số vé', key: 'tickets' },
-  { label: 'Ngày đăng ký', key: 'joinDate' }
-];
+onMounted(fetchCustomers);
 
-const currentPage = ref(1);
-const pageSize = 10;
+// Reset filter
+const resetFilter = () => {
+  searchQuery.value = '';
+  filterTrangThai.value = '';
+  fetchCustomers();
+};
+
+// Selection
+const handleSelectionChange = (val) => {
+  selectedIds.value = val.map(item => item.id);
+};
+
+// Detail/Edit/Delete Actions
+const handleView = (row) => {
+  ElMessage.info(`Xem chi tiết khách hàng: ${row.tenKhachHang}`);
+};
+
+const handleEdit = (row) => {
+  ElMessage.info(`Chỉnh sửa khách hàng: ${row.tenKhachHang}`);
+};
+
+const handleDelete = (row) => {
+  ElMessageBox.confirm(`Bạn có chắc chắn muốn xóa khách hàng "${row.tenKhachHang}"?`, 'Cảnh báo', {
+    confirmButtonText: 'Xóa',
+    cancelButtonText: 'Hủy',
+    type: 'warning',
+    confirmButtonClass: 'el-button--danger'
+  }).then(async () => {
+    try {
+      await khachHangService.delete(row.id);
+      ElMessage.success('Đã xóa khách hàng thành công');
+      fetchCustomers();
+    } catch (error) {
+      ElMessage.error('Lỗi khi xóa khách hàng');
+    }
+  });
+};
+
+const handleBulkDelete = () => {
+  ElMessageBox.confirm(`Bạn có chắc muốn xóa ${selectedIds.value.length} khách hàng đã chọn?`, 'Cảnh báo', {
+    type: 'warning'
+  }).then(() => {
+    ElMessage.warning('Chức năng xóa nhiều đang phát triển');
+  });
+};
+
+// Paginated data
+const paginatedCustomers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return customers.value.slice(start, end);
+});
+
+// Helper for labels
+const getGenderText = (gender) => {
+  if (gender === 1) return 'Nam';
+  if (gender === 0) return 'Nữ';
+  return 'Khác';
+};
+
+const getStatusType = (status) => {
+  return status === 1 ? 'success' : 'info';
+};
 </script>
 
 <template>
-  <div class="admin-customers w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
-    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
-      <div>
-        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Cơ sở dữ liệu Khách hàng</h2>
-      </div>
-    </div>
+  <AdminTableLayout
+    title="Quản Lý Khách Hàng"
+    titleIcon="bi bi-people-fill"
+    addButtonLabel="Thêm khách hàng"
+    :data="paginatedCustomers"
+    :loading="loading"
+    :total="customers.length"
+    v-model:currentPage="currentPage"
+    v-model:pageSize="pageSize"
+    @add-click="ElMessage.info('Thêm khách hàng đang phát triển')"
+    @reset-filter="resetFilter"
+    @selection-change="handleSelectionChange"
+  >
+    <!-- Header Actions Left -->
+    <template #header-actions-left>
+      <el-button 
+        v-if="selectedIds.length" 
+        type="danger" 
+        plain 
+        size="default" 
+        :icon="Delete" 
+        @click="handleBulkDelete"
+      >
+        Xóa {{ selectedIds.length }} khách hàng
+      </el-button>
+    </template>
 
-    <el-card shadow="never" class="border-black shadow-sm rounded-4 mb-3 flex-shrink-0">
-      <div class="row g-2 align-items-center">
-        <div class="col-md-6 col-lg-8">
-          <el-input placeholder="Tìm kiếm khách hàng..." :prefix-icon="Search" size="default" clearable />
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <el-select placeholder="Lọc theo hạng" size="default" class="w-100">
-            <el-option label="Tất cả các hạng" value="all" />
-            <el-option label="Bạch kim (Platinum)" value="platinum" />
-            <el-option label="Vàng (Gold)" value="gold" />
-            <el-option label="Bạc (Silver)" value="silver" />
-          </el-select>
-        </div>
+    <!-- Stats -->
+    <template #stats>
+      <div class="col-md-3">
+        <StatCard 
+          label="Tổng Khách Hàng" 
+          :value="customers.length" 
+          icon="bi bi-people"
+          type="primary"
+        />
       </div>
-    </el-card>
+      <div class="col-md-3">
+        <StatCard 
+          label="Đang Hoạt Động" 
+          :value="customers.filter(c => c.trangThai === 1).length" 
+          icon="bi bi-person-check"
+          type="success"
+        />
+      </div>
+      <div class="col-md-3">
+        <StatCard 
+          label="Thành Viên Mới" 
+          value="12" 
+          icon="bi bi-person-plus"
+          type="warning"
+          subText="Trong tháng này"
+        />
+      </div>
+      <div class="col-md-3">
+        <StatCard 
+          label="Ngừng Hoạt Động" 
+          :value="customers.filter(c => c.trangThai === 0).length" 
+          icon="bi bi-person-x"
+          type="danger"
+        />
+      </div>
+    </template>
 
-    <!-- Customers Table Container -->
-    <div class="flex-grow-1 overflow-auto no-scroll">
-      <BaseTable :data="customers" :columns="tableColumns" :total="customers.length" v-model:currentPage="currentPage"
-        :page-size="pageSize" @view="(c) => ElMessage.info('Detail view not implemented')">
-        <template #cell-name="{ row }">
-          <div class="d-flex align-items-center justify-content-center gap-2">
-            <el-avatar :size="28" class="bg-primary small">{{ row.name.charAt(0) }}</el-avatar>
-            <div class="fw-bold small">{{ row.name }}</div>
+    <!-- Filters -->
+    <template #filters>
+      <div class="filter-item search-input-wrapper">
+        <el-input
+          v-model="searchQuery"
+          placeholder="Tìm theo tên, email, SĐT..."
+          :prefix-icon="Search"
+          size="default"
+          clearable
+          @input="fetchCustomers"
+        />
+      </div>
+      <div class="filter-item">
+        <el-select v-model="filterTrangThai" placeholder="Trạng thái" style="width: 170px;" clearable @change="fetchCustomers">
+          <template #prefix><el-icon><Filter /></el-icon></template>
+          <el-option label="Tất cả trạng thái" value="" />
+          <el-option label="Hoạt động" :value="1" />
+          <el-option label="Ngừng hoạt động" :value="0" />
+        </el-select>
+      </div>
+    </template>
+
+    <!-- Table Columns -->
+    <template #columns>
+      <el-table-column type="index" label="STT" width="60" align="center" fixed="left" />
+      
+      <el-table-column label="Khách hàng" min-width="220">
+        <template #default="{ row }">
+          <div class="d-flex align-items-center gap-2">
+            <el-avatar :size="32" :src="row.hinhAnh" class="bg-primary shadow-sm">
+              {{ row.tenKhachHang?.charAt(0) }}
+            </el-avatar>
+            <div>
+              <div class="fw-bold text-dark small">{{ row.tenKhachHang }}</div>
+              <div class="text-secondary" style="font-size: 11px;">{{ row.maKhachHang }}</div>
+            </div>
           </div>
         </template>
+      </el-table-column>
 
-        <template #cell-contact="{ row }">
-          <div class="x-small">{{ row.email }}</div>
-          <div class="text-secondary x-small">{{ row.phone }}</div>
+      <el-table-column label="Liên hệ" min-width="200">
+        <template #default="{ row }">
+          <div class="small">
+            <div class="text-dark"><i class="bi bi-envelope me-1 text-primary"></i>{{ row.email || '—' }}</div>
+            <div class="text-secondary"><i class="bi bi-telephone me-1"></i>{{ row.sdt || '—' }}</div>
+          </div>
         </template>
+      </el-table-column>
 
-        <template #cell-level="{ row }">
-          <el-tag :type="getLevelColor(row.level)" effect="dark" size="small">{{ row.level }}</el-tag>
+      <el-table-column label="Giới tính" width="100" align="center">
+        <template #default="{ row }">
+          <el-tag :type="row.gioiTinh === 1 ? '' : 'danger'" effect="plain" size="small">
+            {{ getGenderText(row.gioiTinh) }}
+          </el-tag>
         </template>
+      </el-table-column>
 
-        <template #cell-points="{ row }">
-          <span class="fw-bold text-primary">{{ row.points.toLocaleString() }}</span>
+      <el-table-column label="Hạng" width="130" align="center">
+        <template #default="{ row }">
+          <el-tag type="warning" effect="dark" size="small">
+            {{ row.tenLoaiKhachHang || 'Thành viên' }}
+          </el-tag>
         </template>
+      </el-table-column>
 
-        <template #cell-tickets="{ row }">
-          <span class="badge bg-light text-dark px-2 rounded-pill">{{ row.tickets }}</span>
+      <el-table-column label="Trạng thái" width="140" align="center">
+        <template #default="{ row }">
+          <el-tag :type="getStatusType(row.trangThai)" effect="light">
+            {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
+          </el-tag>
         </template>
+      </el-table-column>
 
-        <template #actions="{ row }">
-          <button class="btn btn-action-icon" title="View Details" @click="ElMessage.info('Details for ' + row.name)">
-            <i class="bi bi-eye"></i>
-          </button>
+      <el-table-column label="Hành động" width="120" fixed="right">
+        <template #default="{ row }">
+          <div class="d-flex gap-1 justify-content-center">
+            <el-tooltip content="Xem chi tiết" placement="top">
+              <button class="btn-action-icon btn-action-view" @click="handleView(row)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </el-tooltip>
+            <el-tooltip content="Chỉnh sửa" placement="top">
+              <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+                <i class="bi bi-pencil"></i>
+              </button>
+            </el-tooltip>
+            <el-tooltip content="Xóa" placement="top">
+              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </el-tooltip>
+          </div>
         </template>
-      </BaseTable>
-    </div>
-  </div>
+      </el-table-column>
+    </template>
+  </AdminTableLayout>
 </template>
 
 <style scoped>
 .admin-customers {
   height: calc(100vh - 84px);
-}
-
-:deep(.el-card) {
-  border: 1px solid #000 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-}
-
-.table thead th {
-  border-bottom: none;
-}
-
-.no-scroll {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-  overflow: hidden !important;
-}
-
-.no-scroll::-webkit-scrollbar {
-  display: none !important;
-}
-
-.overflow-auto.no-scroll {
-  overflow-y: auto !important;
-}
-
-.x-small {
-  font-size: 0.65rem;
 }
 </style>

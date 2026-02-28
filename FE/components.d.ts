@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AdminSidebar: typeof import('./src/components/AdminSidebar.vue')['default']
+    AdminTableLayout: typeof import('./src/components/AdminTableLayout.vue')['default']
     BaseTable: typeof import('./src/components/common/BaseTable.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
@@ -72,6 +73,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StaffSidebar: typeof import('./src/components/StaffSidebar.vue')['default']
+    StatCard: typeof import('./src/components/common/StatCard.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

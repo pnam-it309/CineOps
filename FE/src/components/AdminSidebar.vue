@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex flex-column h-100 bg-white border-end shadow-sm">
-    <div class="logo-section" :style="{ height: isCollapse ? '60px' : '120px' }">
-      <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" :class="['sidebar-logo', { 'logo-collapse': isCollapse }]" />
+    <div class="logo-container" :style="{ height: isCollapse ? '70px' : '150px' }">
+      <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" :class="['brand-logo', { 'is-collapsed': isCollapse }]" />
     </div>
 
     <el-menu :default-active="activeMenu" :collapse="isCollapse" :collapse-transition="false" background-color="#ffffff"
@@ -38,10 +38,24 @@
         <template #title>Quản lý vé</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS)">
-        <el-icon><Place /></el-icon>
-        <template #title>Quản lý ghế</template>
-      </el-menu-item>
+      <el-sub-menu index="admin-seats-submenu">
+        <template #title>
+          <el-icon><Place /></el-icon>
+          <span>Quản lý ghế</span>
+        </template>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS) + '?tab=list'">
+          <el-icon><Tickets /></el-icon>
+          <template #title>Danh sách ghế</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS) + '?tab=layout'">
+          <el-icon><Monitor /></el-icon>
+          <template #title>Sơ đồ ghế</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS) + '?tab=config'">
+          <el-icon><Setting /></el-icon>
+          <template #title>Cấu hình phòng</template>
+        </el-menu-item>
+      </el-sub-menu>
 
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
         <el-icon><Film /></el-icon>
@@ -110,7 +124,10 @@ import {
   Coffee,
   PriceTag,
   Avatar,
-  User
+  User,
+  Tickets,
+  Monitor,
+  Setting
 } from '@element-plus/icons-vue';
 
 const props = defineProps({
@@ -133,9 +150,9 @@ const getRoutePath = (childRoute) => {
   return `${ROUTES_CONSTANTS.ADMIN.path}/${childRoute.path}`;
 };
 
-const handleCommand = (command) => {
+const handleCommand = async (command) => {
   if (command === 'logout') {
-    authStore.logout();
+    await authStore.logout();
     router.push(ROUTES_CONSTANTS.LOGIN.path);
   } else if (command === 'profile') {
     console.log('Navigate to profile');
@@ -144,40 +161,64 @@ const handleCommand = (command) => {
 </script>
 
 <style scoped>
-/* CSS cho icon to hơn và cân đối */
-:deep(.el-menu-item .el-icon),
-:deep(.el-sub-menu__title .el-icon) {
-  font-size: 22px !important; /* Phóng to icon lên 22px */
-  margin-right: 12px !important;
-  width: 24px !important;
-  display: inline-flex !important;
-  justify-content: center !important;
+/* Simplified menu item styles to match Sample 2 */
+:deep(.el-menu-item),
+:deep(.el-sub-menu__title) {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  height: 50px !important;
+  line-height: 50px !important;
+  transition: background-color 0.3s !important;
 }
 
-/* Hiệu ứng hover cho menu item và submenu title trong mode sáng */
+/* Text animation */
+:deep(.el-menu-item span),
+:deep(.el-sub-menu__title span) {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+:deep(.el-menu-item:hover span),
+:deep(.el-sub-menu__title:hover span) {
+  transform: translateX(5px);
+}
+
 :deep(.el-menu-item:hover),
 :deep(.el-sub-menu__title:hover) {
   background-color: #f8fafc !important;
-  color: #E31E24 !important;
 }
 
-/* Biểu tượng cũng đổi màu khi hover */
+/* Icon enhancement */
+:deep(.el-menu-item .el-icon),
+:deep(.el-sub-menu__title .el-icon) {
+  font-size: 20px !important;
+  margin-right: 12px !important;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
 :deep(.el-menu-item:hover .el-icon),
 :deep(.el-sub-menu__title:hover .el-icon) {
   color: #E31E24 !important;
+  transform: scale(1.2) rotate(5deg);
 }
 
-/* Highlight menu item đang active */
+/* Active State indicator like Sample 2 (usually side border or just color) */
 :deep(.el-menu-item.is-active) {
-  background-color: #fef2f2 !important;
   color: #E31E24 !important;
+  background-color: #fff1f1 !important;
   border-right: 3px solid #E31E24;
+  font-weight: 600 !important;
+}
+
+/* Red indicator on the left for specific active item */
+:deep(.el-menu-item.is-active::before) {
+  display: none; /* Removed the previous floating indicator */
 }
 
 /* Transition optimizations */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fade-enter-from,
@@ -189,42 +230,30 @@ const handleCommand = (command) => {
   cursor: pointer;
 }
 
-/* Hide scrollbar but maintain functionality */
-.el-menu {
-  scrollbar-width: none;
-  /* Firefox */
-  -ms-overflow-style: none;
-  /* IE/Edge */
-}
-
+/* Hide scrollbar */
 .el-menu::-webkit-scrollbar {
   display: none;
-  /* Chrome, Safari, Edge */
 }
 
-.logo-section {
+.logo-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  background-color: #ffffff;
   transition: all 0.3s;
 }
 
-.sidebar-logo {
-  width: 130%; /* Phóng to ra ngoài khung để loại bỏ khoảng trắng dư của ảnh */
-  height: 130%;
+.brand-logo {
+  max-width: 100%;
+  height: auto;
+  max-height: 140px;
   object-fit: contain;
   mix-blend-mode: multiply;
-  filter: contrast(1.1) brightness(1.1);
+  filter: brightness(1.08) contrast(1.1);
   transition: all 0.3s;
-  transform: scale(1.3); /* Phóng đại thêm để logo to nhất có thể */
 }
 
-.sidebar-logo.logo-collapse {
-  width: 100%;
-  height: 100%;
-  transform: scale(1);
+.brand-logo.is-collapsed {
+  max-height: 40px;
 }
 </style>
-
+```

@@ -27,9 +27,9 @@ onMounted(async () => {
     }
 
     // Save token & fetch profile
-    localStorage.setItem('token', tokenData.accessToken);
+    sessionStorage.setItem('token', tokenData.accessToken);
     if (tokenData.refreshToken) {
-      localStorage.setItem('refreshToken', tokenData.refreshToken);
+      sessionStorage.setItem('refreshToken', tokenData.refreshToken);
     }
 
     authStore.token = tokenData.accessToken;

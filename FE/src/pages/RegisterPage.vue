@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue';
+import { View, Hide } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { isValidEmail, isValidPhone, validatePassword } from '@/utils/validators';
@@ -10,6 +11,8 @@ const email = ref('');
 const phone = ref('');
 const password = ref('');
 const confirmPassword = ref('');
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 const loading = ref(false);
 
 const handleRegister = async () => {
@@ -76,15 +79,29 @@ const handleRegister = async () => {
               class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none"
               placeholder="Số điện thoại" v-model="phone" required>
           </div>
-          <div class="col-md-6">
-            <input type="password"
-              class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none"
+          <div class="col-md-6 position-relative">
+            <input :type="showPassword ? 'text' : 'password'"
+              class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none pe-5"
               placeholder="Mật khẩu" v-model="password" required>
+            <div class="position-absolute end-0 top-50 translate-middle-y me-4 cursor-pointer text-white opacity-75 hover-opacity-100" 
+                 @click="showPassword = !showPassword">
+              <el-icon :size="18">
+                <View v-if="!showPassword" />
+                <Hide v-else />
+              </el-icon>
+            </div>
           </div>
-          <div class="col-md-6">
-            <input type="password"
-              class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none"
+          <div class="col-md-6 position-relative">
+            <input :type="showConfirmPassword ? 'text' : 'password'"
+              class="glass-input form-control bg-white bg-opacity-10 border-white border-opacity-25 rounded-pill text-white py-2 px-4 shadow-none pe-5"
               placeholder="Xác nhận mật khẩu" v-model="confirmPassword" required>
+            <div class="position-absolute end-0 top-50 translate-middle-y me-4 cursor-pointer text-white opacity-75 hover-opacity-100" 
+                 @click="showConfirmPassword = !showConfirmPassword">
+              <el-icon :size="18">
+                <View v-if="!showConfirmPassword" />
+                <Hide v-else />
+              </el-icon>
+            </div>
           </div>
         </div>
 
@@ -142,6 +159,18 @@ const handleRegister = async () => {
 
 .hover-underline:hover {
   text-decoration: underline !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-opacity-100:hover {
+  opacity: 1 !important;
+}
+
+.pe-5 {
+  padding-right: 3rem !important;
 }
 
 .form-check-input:checked {

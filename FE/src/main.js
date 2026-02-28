@@ -13,6 +13,7 @@ import './assets/scss/styles.scss'
 import './assets/theme/variables.css'
 // Import Dark Theme
 import './assets/theme/theme-dark.css'
+import './assets/css/admin-premium.css'
 import App from './App.vue'
 
 const app = createApp(App)

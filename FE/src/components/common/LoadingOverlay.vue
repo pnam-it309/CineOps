@@ -1,6 +1,8 @@
 <template>
   <Transition name="fade">
-    <div v-if="isLoading" class="loading-overlay">
+    <div v-if="isLoading" 
+         class="loading-overlay" 
+         :class="{ 'no-bg': !showBackground, 'blur-bg': showBackground && useBlur }">
       
       <!-- Progress Bar Animation (Option 1) -->
       <div v-if="animationType === 'progressBar'" class="loading-progress-container">
@@ -56,6 +58,14 @@ const props = defineProps({
     type: String,
     default: 'filmReel', // 'progressBar' or 'filmReel'
     validator: (value) => ['progressBar', 'filmReel'].includes(value)
+  },
+  showBackground: {
+    type: Boolean,
+    default: true
+  },
+  useBlur: {
+    type: Boolean,
+    default: false
   }
 });
 </script>
@@ -78,7 +88,19 @@ const props = defineProps({
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: #121212 !important;
+  background-color: #121212;
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.loading-overlay.no-bg {
+  background-color: transparent !important;
+  pointer-events: none; /* Allow interaction with page when only top bar is visible */
+}
+
+.loading-overlay.blur-bg {
+  background-color: rgba(18, 18, 18, 0.4) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Fade Transition */

@@ -2,6 +2,7 @@
 CREATE TABLE phan_quyen (
     id VARCHAR(36) PRIMARY KEY,
     ma_phan_quyen VARCHAR(50),
+    ten_vai_tro VARCHAR(100) ,
     quyen_han TEXT,
     trang_thai INT DEFAULT 1,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -103,7 +104,6 @@ CREATE TABLE dia_chi (
 -- 7. BẢNG PHÒNG CHIẾU
 CREATE TABLE phong_chieu (
     id VARCHAR(36) PRIMARY KEY,
-    id_rap VARCHAR(36), -- Mã rạp (lưu String do ERD không có bảng Rap)
     ten_phong VARCHAR(50),
     loai_man_hinh VARCHAR(50),
     tong_ghe INT,

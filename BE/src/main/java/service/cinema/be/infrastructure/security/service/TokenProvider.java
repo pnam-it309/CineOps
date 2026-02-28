@@ -19,7 +19,8 @@ public class TokenProvider {
     @Value("${jwt.secret:}")
     private String tokenSecret;
 
-    private final long ACCESS_TOKEN_EXPIRATION = 2 * 60 * 60 * 1000;  // 2h
+    @Value("${jwt.expiration:7200000}") // Default to 2h if not set
+    private long jwtExpiration;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(tokenSecret.getBytes());
@@ -35,7 +36,7 @@ public class TokenProvider {
                 .setSubject(email)
                 .setClaims(claims)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }

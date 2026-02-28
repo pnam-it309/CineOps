@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 import service.cinema.be.core.common.request.LoginRequest;
 import service.cinema.be.core.common.response.ApiResponse;
 import service.cinema.be.core.common.response.AuthResponse;
@@ -18,6 +19,11 @@ import service.cinema.be.infrastructure.security.service.TokenService;
 import service.cinema.be.infrastructure.security.service.TokenProvider;
 import service.cinema.be.infrastructure.security.user.UserPrincipal;
 import service.cinema.be.entity.Token;
+import service.cinema.be.entity.KhachHang;
+import service.cinema.be.entity.NhanVien;
+import service.cinema.be.core.common.request.TokenRefreshRequest;
+
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -106,5 +112,63 @@ public class AuthController {
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(authResponse));
+    }
+
+    /**
+     * POST /api/v1/auth/refresh
+     * Refresh access token using refresh token
+     */
+    @Transactional
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+        log.info("Yêu cầu refresh token: {}", requestRefreshToken);
+
+        Optional<Token> tokenOptional = tokenService.findByToken(requestRefreshToken);
+        if (tokenOptional.isEmpty()) {
+            return ResponseEntity.status(400).body(ApiResponse.error(400, "Refresh token không tồn tại!"));
+        }
+
+        Token token = tokenService.verifyExpiration(tokenOptional.get());
+        if (token == null) {
+            return ResponseEntity.status(400).body(ApiResponse.error(400, "Refresh token đã hết hạn!"));
+        }
+
+        String accessToken;
+        String email;
+        String fullName;
+        String role;
+
+        try {
+            if (token.getKhachHang() != null) {
+                KhachHang khachHang = token.getKhachHang();
+                email = khachHang.getEmail();
+                fullName = khachHang.getTenKhachHang();
+                role = "ROLE_CUSTOMER";
+                accessToken = tokenProvider.createToken(email, role, khachHang.getId());
+            } else if (token.getNhanVien() != null) {
+                NhanVien nhanVien = token.getNhanVien();
+                email = nhanVien.getEmail();
+                fullName = nhanVien.getTenNhanVien();
+                // Truy cập PhanQuyen để tránh LazyInitializationException
+                role = (nhanVien.getPhanQuyen() != null) ? nhanVien.getPhanQuyen().getMaPhanQuyen() : "ROLE_STAFF";
+                accessToken = tokenProvider.createToken(email, role, nhanVien.getId());
+            } else {
+                return ResponseEntity.status(400).body(ApiResponse.error(400, "Token không hợp lệ!"));
+            }
+
+            AuthResponse authResponse = AuthResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(requestRefreshToken)
+                    .email(email)
+                    .fullName(fullName)
+                    .role(role)
+                    .build();
+
+            return ResponseEntity.ok(ApiResponse.success(authResponse, "Refresh token thành công"));
+        } catch (Exception e) {
+            log.error("Lỗi khi xử lý nạp lại token: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(ApiResponse.error(500, "Lỗi server: " + e.getMessage()));
+        }
     }
 }

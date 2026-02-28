@@ -17,8 +17,6 @@ import java.util.List;
 @Table(name = "phong_chieu")
 public class PhongChieu extends PrimaryEntity {
 
-    @Column(name = "id_rap", length = 36)
-    private String idRap;
 
     @Column(name = "ten_phong", length = 50)
     private String tenPhong;

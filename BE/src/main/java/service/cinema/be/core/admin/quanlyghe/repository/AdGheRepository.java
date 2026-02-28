@@ -18,4 +18,6 @@ public interface AdGheRepository extends GheRepository {
     long countByPC(@Param("idPC") String idPC);
 
     boolean existsBySoGheAndPhongChieuId(String soGhe, String idPC);
+
+    void deleteByPhongChieuId(String idPhongChieu);
 }

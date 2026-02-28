@@ -20,6 +20,10 @@ public class Token extends PrimaryEntity {
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_nhan_vien")
+    private NhanVien nhanVien;
+
     @Column(name = "ma_token", columnDefinition = "TEXT")
     private String maToken;
 

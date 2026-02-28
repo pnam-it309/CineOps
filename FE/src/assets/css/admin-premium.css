@@ -1,0 +1,282 @@
+/* Admin Premium Design System */
+
+/* 1. Modal / Dialog Styling */
+.premium-dialog {
+    border-radius: 20px !important;
+    overflow: visible !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    border: none !important;
+    max-height: none !important;
+}
+
+.premium-dialog .el-dialog__header {
+    margin: 0 !important;
+    padding: 0 !important;
+    border-bottom: none !important;
+}
+
+.premium-dialog .el-dialog__body {
+    padding: 24px 30px !important;
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+.premium-dialog .el-dialog__footer {
+    padding: 20px 30px !important;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Global: ALL el-dialog — one-page view, no scroll, no clip */
+.el-overlay-dialog {
+    overflow: visible !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.el-dialog {
+    max-height: none !important;
+    margin: auto !important;
+    overflow: visible !important;
+}
+
+.el-dialog__body {
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+.premium-header {
+    padding: 30px 30px 20px;
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.premium-header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-icon-box {
+    width: 48px;
+    height: 48px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    font-size: 20px;
+}
+
+.header-text .title {
+    color: #1e293b;
+    font-size: 18px;
+    margin-bottom: 2px;
+    font-weight: 700;
+}
+
+.header-text .subtitle {
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+/* 2. Form Styling */
+.premium-form .el-form-item__label {
+    font-weight: 600 !important;
+    color: #475569 !important;
+    padding-bottom: 8px !important;
+    font-size: 13px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Global Overrides for Element Plus inside Premium Form */
+.premium-form .el-input__wrapper,
+.premium-form .el-select__wrapper,
+.premium-form .el-date-editor.el-input__wrapper,
+.premium-form .el-input-number .el-input__wrapper {
+    border-radius: 12px !important;
+    height: 48px !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    transition: all 0.2s;
+    padding: 0 15px !important;
+}
+
+.premium-form .el-input__inner,
+.premium-form .el-select__inner {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    height: 100% !important;
+    color: #1e293b !important;
+    font-weight: 500 !important;
+}
+
+.premium-form .el-input__wrapper.is-focus,
+.premium-form .el-select__wrapper.is-focused {
+    border-color: #4f46e5 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+}
+
+/* 3. Filter Bar Styling */
+.filter-card {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    background: #fff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+.filter-card .el-input__wrapper,
+.filter-card .el-select__wrapper {
+    border-radius: 10px !important;
+    background-color: #f8fafc !important;
+    height: 40px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+}
+
+.filter-card .el-input__wrapper.is-focus,
+.filter-card .el-select__wrapper.is-focused {
+    border-color: #4f46e5 !important;
+    background-color: #fff !important;
+}
+
+/* 4. Action Buttons */
+.btn-premium-primary {
+    background: #fff !important;
+    border: 1px solid #ff914d !important;
+    color: #ff914d !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 0 20px !important;
+    height: 38px !important;
+    font-size: 13px !important;
+    transition: all 0.2s !important;
+    text-transform: uppercase;
+}
+
+.btn-premium-primary:hover {
+    background: #fff5f0 !important;
+    border-color: #ff7d2d !important;
+    color: #ff7d2d !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 145, 77, 0.15) !important;
+}
+
+.btn-premium-secondary {
+    border-radius: 12px !important;
+    padding: 10px 24px !important;
+    height: 45px !important;
+    font-weight: 600 !important;
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #64748b !important;
+}
+
+/* Utility */
+.text-orange-custom {
+    color: #ff914d !important;
+}
+
+.btn-add-premium {
+    background: #fff !important;
+    border: 1px solid #ff914d !important;
+    color: #ff914d !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 0 12px !important;
+    height: 34px !important;
+    font-size: 13px !important;
+    transition: all 0.2s !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+}
+
+.btn-add-premium:hover {
+    background: #fff5f0 !important;
+    border-color: #ff7d2d !important;
+    color: #ff7d2d !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 145, 77, 0.15) !important;
+}
+
+.btn-action-icon {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px !important;
+    border: none !important;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    font-size: 16px;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-action-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.btn-action-icon:hover::before {
+    opacity: 0.08;
+}
+
+.btn-action-icon:hover {
+    transform: translateY(-2px) scale(1.15);
+}
+
+.btn-action-icon:active {
+    transform: translateY(0) scale(0.95);
+}
+
+/* Unified Action Colors */
+.btn-action-view {
+    color: #6366f1 !important;
+}
+
+.btn-action-edit {
+    color: #f59e0b !important;
+}
+
+.btn-action-delete {
+    color: #ef4444 !important;
+}
+
+.btn-action-print {
+    color: #3b82f6 !important;
+}
+
+.btn-action-view:hover {
+    color: #4f46e5 !important;
+}
+
+.btn-action-edit:hover {
+    color: #d97706 !important;
+}
+
+.btn-action-delete:hover {
+    color: #dc2626 !important;
+}
+
+.btn-action-print:hover {
+    color: #2563eb !important;
+}

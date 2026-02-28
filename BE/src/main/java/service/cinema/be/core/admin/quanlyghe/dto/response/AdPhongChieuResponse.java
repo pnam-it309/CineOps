@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AdPhongChieuResponse {
     private String id;
-    private String tenRap; // In DB it's id_rap string
     private String tenPhong;
     private String loaiManHinh;
 }

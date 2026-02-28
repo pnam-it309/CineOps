@@ -6,7 +6,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.request.AdSuatChieuRequest;
+import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdPhimResponse;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdSuatChieuResponse;
+import service.cinema.be.core.admin.quanlyghe.dto.response.AdPhongChieuResponse;
 import service.cinema.be.core.admin.quanlysuatchieu.service.AdSuatChieuService;
 import service.cinema.be.core.common.response.ApiResponse;
 import service.cinema.be.infrastructure.constant.MappingConstants;
@@ -15,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping(MappingConstants.API_ADMIN_PREFIX + "/suat-chieu")
+@RequestMapping(MappingConstants.API_ADMIN_SUAT_CHIEU)
 @RequiredArgsConstructor
 public class AdSuatChieuController {
 
@@ -26,6 +28,16 @@ public class AdSuatChieuController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngayChieu,
             @RequestParam(required = false) String idPhongChieu) {
         return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.getSuatChieu(ngayChieu, idPhongChieu)));
+    }
+
+    @GetMapping("/phim-dropdown")
+    public ResponseEntity<ApiResponse<List<AdPhimResponse>>> getPhimDropdown() {
+        return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.getPhimDropdown()));
+    }
+
+    @GetMapping("/phong-chieu-dropdown")
+    public ResponseEntity<ApiResponse<List<AdPhongChieuResponse>>> getPhongChieuDropdown() {
+        return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.getPhongChieuDropdown()));
     }
 
     @PostMapping

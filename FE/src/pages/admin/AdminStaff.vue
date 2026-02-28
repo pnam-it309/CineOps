@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { Plus, User, Edit, Delete, Lock, Key, Setting, Search, Phone, Message, Clock, Check, Close } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import BaseTable from '@/components/common/BaseTable.vue';
+import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 const staff = ref([
   { id: 1, name: 'Nguyễn Văn An', username: 'admin', role: 'Quản trị viên', status: 'Đang hoạt động', email: 'admin@cineops.com', phone: '0901 234 567', joinDate: '2024-01-15' },
@@ -19,22 +19,13 @@ const roles = ref([
   { name: 'Nhân viên', permissions: ['Bán vé tại quầy', 'Check-in khách hàng', 'Hỗ trợ khách hàng'], color: 'primary', icon: '🎫' },
 ]);
 
-const tableColumns = [
-  { label: 'Nhân viên', key: 'name' },
-  { label: 'Tên đăng nhập', key: 'username' },
-  { label: 'Vai trò', key: 'role' },
-  { label: 'SĐT', key: 'phone' },
-  { label: 'Ngày tham gia', key: 'joinDate' },
-  { label: 'Trạng thái', key: 'status' },
-];
-
 const dialogVisible = ref(false);
 const roleDialogVisible = ref(false);
 const searchQuery = ref('');
 const filterRole = ref('all');
 const filterStatus = ref('all');
 const currentPage = ref(1);
-const pageSize = 10;
+const pageSize = ref(10);
 
 const staffForm = ref({
   name: '',
@@ -120,22 +111,24 @@ const openAddDialog = () => {
 </script>
 
 <template>
-  <div class="admin-staff w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 w-100 flex-shrink-0">
-      <div>
-        <h2 class="fw-bold text-dark mb-1" style="font-size: 18px;">Quản lý Nhân viên</h2>
-      </div>
-      <div class="d-flex gap-2">
-        <el-button type="info" :icon="Setting" round @click="roleDialogVisible = true">Vai trò & Quyền</el-button>
-        <el-button type="primary" :icon="Plus" round @click="openAddDialog">Thêm nhân viên</el-button>
-      </div>
-    </div>
+  <div class="admin-staff-page">
+    <AdminTableLayout
+      title="Quản lý Nhân viên"
+      titleIcon="bi bi-people-fill"
+      addButtonLabel="Thêm nhân viên"
+      :data="filteredStaff.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :total="filteredStaff.length"
+      v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize"
+      @add-click="openAddDialog"
+      @reset-filter="() => { searchQuery = ''; filterRole = 'all'; filterStatus = 'all'; }"
+    >
+      <template #header-actions-left>
+        <el-button class="btn-premium-secondary" :icon="Setting" @click="roleDialogVisible = true">Vai trò & Quyền</el-button>
+      </template>
 
-    <!-- Filter Bar -->
-    <el-card shadow="never" class="border-black shadow-sm rounded-4 mb-3 w-100 flex-shrink-0">
-      <div class="row g-2 align-items-center">
-        <div class="col-md-5">
+      <template #filters>
+        <div class="filter-item" style="width: 350px;">
           <el-input
             v-model="searchQuery"
             placeholder="Tìm theo tên, username, email..."
@@ -144,73 +137,98 @@ const openAddDialog = () => {
             clearable
           />
         </div>
-        <div class="col-md-3">
-          <el-select v-model="filterRole" placeholder="Lọc theo vai trò" size="default" class="w-100">
+        <div class="filter-item" style="width: 200px;">
+          <el-select v-model="filterRole" placeholder="Vai trò" size="default" class="w-100">
             <el-option label="Tất cả vai trò" value="all" />
             <el-option v-for="r in roles" :key="r.name" :label="r.name" :value="r.name" />
           </el-select>
         </div>
-        <div class="col-md-3">
-          <el-select v-model="filterStatus" placeholder="Lọc theo trạng thái" size="default" class="w-100">
+        <div class="filter-item" style="width: 200px;">
+          <el-select v-model="filterStatus" placeholder="Trạng thái" size="default" class="w-100">
             <el-option label="Tất cả trạng thái" value="all" />
             <el-option label="Đang hoạt động" value="Đang hoạt động" />
             <el-option label="Ngừng hoạt động" value="Ngừng hoạt động" />
           </el-select>
         </div>
-        <div class="col-md-1 text-end">
-          <el-tag type="info" effect="plain" round class="px-3">{{ filteredStaff.length }}</el-tag>
-        </div>
-      </div>
-    </el-card>
+      </template>
 
-    <!-- Staff Table -->
-    <div class="flex-grow-1 overflow-auto no-scroll">
-      <BaseTable
-        :data="filteredStaff"
-        :columns="tableColumns"
-        :total="filteredStaff.length"
-        v-model:currentPage="currentPage"
-        :page-size="pageSize"
-        @edit="handleEdit"
-        @delete="handleDelete"
-      >
-        <template #cell-name="{ row }">
-          <div class="d-flex align-items-center gap-3">
-            <el-avatar :size="36" class="flex-shrink-0" :style="{ background: getRoleType(row.role) === 'danger' ? '#f56c6c' : getRoleType(row.role) === 'warning' ? '#e6a23c' : '#409eff' }">
-              {{ row.name.charAt(0) }}
-            </el-avatar>
-            <div>
-              <div class="fw-bold">{{ row.name }}</div>
-              <div class="small text-secondary">{{ row.email }}</div>
+      <template #columns>
+        <el-table-column label="Nhân viên" min-width="250">
+          <template #default="{ row }">
+            <div class="d-flex align-items-center gap-3">
+              <el-avatar :size="36" class="flex-shrink-0" :style="{ background: getRoleType(row.role) === 'danger' ? '#f56c6c' : getRoleType(row.role) === 'warning' ? '#e6a23c' : '#409eff' }">
+                {{ row.name.charAt(0) }}
+              </el-avatar>
+              <div class="text-start">
+                <div class="fw-bold text-dark">{{ row.name }}</div>
+                <div class="small text-secondary">{{ row.email }}</div>
+              </div>
             </div>
-          </div>
-        </template>
+          </template>
+        </el-table-column>
 
-        <template #cell-username="{ row }">
-          <code class="small fw-bold text-dark">@{{ row.username }}</code>
-        </template>
+        <el-table-column label="Tên đăng nhập" width="180">
+          <template #default="{ row }">
+            <code class="small fw-bold text-indigo-500">@{{ row.username }}</code>
+          </template>
+        </el-table-column>
 
-        <template #cell-role="{ row }">
-          <el-tag :type="getRoleType(row.role)" size="small" effect="light" round>{{ row.role }}</el-tag>
-        </template>
+        <el-table-column label="Vai trò" width="150" align="center">
+          <template #default="{ row }">
+            <el-tag :type="getRoleType(row.role)" size="small" effect="light" round>{{ row.role }}</el-tag>
+          </template>
+        </el-table-column>
 
-        <template #cell-status="{ row }">
-          <div class="d-flex align-items-center gap-2 cursor-pointer" @click="handleToggleStatus(row)">
-            <span class="status-dot" :class="row.status === 'Đang hoạt động' ? 'bg-success' : 'bg-secondary'"></span>
-            <span class="small" :class="row.status === 'Đang hoạt động' ? 'text-success' : 'text-secondary'">{{ row.status }}</span>
-          </div>
-        </template>
-      </BaseTable>
-    </div>
+        <el-table-column label="Số điện thoại" prop="phone" width="150" align="center" />
+        
+        <el-table-column label="Ngày tham gia" prop="joinDate" width="150" align="center" />
+
+        <el-table-column label="Trạng thái" width="150" align="center">
+          <template #default="{ row }">
+            <div class="d-flex align-items-center justify-content-center gap-2 cursor-pointer" @click="handleToggleStatus(row)">
+              <span class="status-dot" :class="row.status === 'Đang hoạt động' ? 'bg-success' : 'bg-secondary'"></span>
+              <span class="small" :class="row.status === 'Đang hoạt động' ? 'text-success' : 'text-secondary'">{{ row.status }}</span>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Thao tác" width="120" align="center" fixed="right">
+          <template #default="{ row }">
+            <div class="d-flex justify-content-center gap-1">
+              <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+                <i class="bi bi-pencil fs-6"></i>
+              </button>
+              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
+                <i class="bi bi-trash fs-6"></i>
+              </button>
+            </div>
+          </template>
+        </el-table-column>
+      </template>
+    </AdminTableLayout>
 
     <!-- Add/Edit Staff Dialog -->
     <el-dialog
       v-model="dialogVisible"
-      :title="staffForm.id ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên mới'"
-      width="500px"
-      class="rounded-4"
+      width="600px"
+      class="premium-dialog"
+      destroy-on-close
     >
-      <el-form :model="staffForm" label-position="top">
+      <template #header>
+        <div class="premium-header">
+          <div class="premium-header-content">
+            <div class="header-icon-box">
+              <i :class="staffForm.id ? 'bi bi-person-gear' : 'bi bi-person-plus'"></i>
+            </div>
+            <div class="header-text">
+              <h5 class="title">{{ staffForm.id ? 'Chỉnh sửa Nhân viên' : 'Thêm Nhân viên mới' }}</h5>
+              <p class="subtitle opacity-75">Quản trị nhân sự và quyền truy cập</p>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <el-form :model="staffForm" label-position="top" class="premium-form">
         <el-form-item label="Họ và tên" required>
           <el-input v-model="staffForm.name" placeholder="VD: Nguyễn Văn A" :prefix-icon="User" />
         </el-form-item>
@@ -247,24 +265,36 @@ const openAddDialog = () => {
       </el-form>
       <template #footer>
         <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false">Hủy</el-button>
-          <el-button type="primary" class="px-4" @click="handleSave">
-            {{ staffForm.id ? 'Cập nhật' : 'Thêm nhân viên' }}
-          </el-button>
+          <el-button @click="dialogVisible = false" class="btn-premium-secondary">Hủy</el-button>
+          <el-button type="primary" @click="handleSave" class="btn-premium-primary">Lưu lại</el-button>
         </div>
       </template>
     </el-dialog>
 
     <!-- Roles Dialog -->
-    <el-dialog v-model="roleDialogVisible" title="Quản lý Vai trò & Quyền hạn" width="600px" class="rounded-4">
-      <div class="d-flex flex-column gap-4">
-        <div v-for="role in roles" :key="role.name" class="p-3 border rounded-3">
+    <el-dialog v-model="roleDialogVisible" width="600px" class="premium-dialog">
+      <template #header>
+        <div class="premium-header">
+          <div class="premium-header-content">
+            <div class="header-icon-box">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="header-text">
+              <h5 class="title">Vai trò & Quyền hạn</h5>
+              <p class="subtitle opacity-75">Cấu hình phân quyền hệ thống</p>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <div class="d-flex flex-column gap-3">
+        <div v-for="role in roles" :key="role.name" class="p-3 border rounded-3 bg-light-subtle">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="d-flex align-items-center gap-2">
               <span class="fs-5">{{ role.icon }}</span>
               <el-tag :type="role.color" effect="dark" round>{{ role.name }}</el-tag>
             </div>
-            <el-button size="small" :icon="Edit" text>Sửa</el-button>
+            <el-button size="small" :icon="Edit" text class="text-indigo-500">Sửa</el-button>
           </div>
           <div class="d-flex flex-wrap gap-2">
             <el-tag v-for="perm in role.permissions" :key="perm" type="info" effect="plain" size="small" round>
@@ -274,31 +304,13 @@ const openAddDialog = () => {
         </div>
       </div>
       <template #footer>
-        <el-button @click="roleDialogVisible = false">Đóng</el-button>
+        <el-button @click="roleDialogVisible = false" class="btn-premium-secondary">Đóng</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <style scoped>
-.admin-staff {
-  height: calc(100vh - 84px);
-}
-
-:deep(.el-card) {
-  border: 1px solid #000 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
 .cursor-pointer {
   cursor: pointer;
 }
@@ -307,17 +319,14 @@ code {
   letter-spacing: 0.5px;
 }
 
-.no-scroll {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-  overflow: hidden !important;
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
-.no-scroll::-webkit-scrollbar {
-  display: none !important;
-}
-
-.overflow-auto.no-scroll {
-  overflow-y: auto !important;
+.text-indigo-500 {
+  color: #4f46e5;
 }
 </style>

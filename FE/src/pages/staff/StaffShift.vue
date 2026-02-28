@@ -24,7 +24,7 @@ const handleHandover = () => {
     <div style="max-width: 600px; width: 100%;" class="flex-shrink-0">
       <h2 class="fw-bold text-center mb-4" style="font-size: 18px;">Kết thúc ca làm việc (Giao ca)</h2>
 
-      <el-card shadow="never" class="border-black shadow-sm rounded-4 overflow-hidden mb-4 p-0">
+      <el-card shadow="never" class="shadow-sm rounded-4 overflow-hidden mb-4 p-0">
         <div class="bg-primary text-white p-4">
           <div class="row align-items-center">
             <div class="col">
@@ -87,7 +87,7 @@ const handleHandover = () => {
 }
 
 :deep(.el-card) {
-  border: 1px solid #000 !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 .no-scroll {

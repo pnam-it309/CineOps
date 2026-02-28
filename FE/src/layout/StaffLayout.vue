@@ -108,9 +108,9 @@ const breadcrumbs = computed(() => {
   return breadcrumbList;
 });
 
-const handleCommand = (command) => {
+const handleCommand = async (command) => {
   if (command === 'logout') {
-    authStore.logout();
+    await authStore.logout();
     router.push(ROUTES_CONSTANTS.LOGIN.path);
   } else if (command === 'profile') {
     console.log('Navigate to profile');

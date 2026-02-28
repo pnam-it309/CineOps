@@ -57,8 +57,12 @@
         </el-header>
 
         <!-- Main Content Area -->
-        <el-main class="p-4 flex-fill overflow-auto text-dark">
-          <router-view />
+        <el-main class="p-0 flex-fill overflow-y-auto text-dark">
+          <router-view v-slot="{ Component }">
+            <transition name="page-fade" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
         </el-main>
       </el-container>
     </el-container>
@@ -110,9 +114,9 @@ const breadcrumbs = computed(() => {
   return breadcrumbList;
 });
 
-const handleCommand = (command) => {
+const handleCommand = async (command) => {
   if (command === 'logout') {
-    authStore.logout();
+    await authStore.logout();
     router.push(ROUTES_CONSTANTS.LOGIN.path);
   } else if (command === 'profile') {
     console.log('Navigate to profile');
@@ -175,6 +179,86 @@ if (window.innerWidth < 768) {
   --el-table-header-bg-color: #f8fafc;
   --el-table-text-color: #1e293b;
   --el-table-header-text-color: #475569;
+}
+
+/* Global Pagination Overrides */
+:deep(.el-pagination) {
+  --el-pagination-font-size: 15px !important;
+  --el-pagination-button-width: 36px !important;
+  --el-pagination-button-height: 36px !important;
+  font-weight: 600;
+  padding: 0 !important; /* Clean padding for nested parts */
+}
+
+:deep(.el-pager li) {
+  font-size: 15px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  margin: 0 4px !important;
+}
+
+:deep(.el-pagination button) {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+/* Remove large margins as they are now in separate containers */
+:deep(.el-pagination__sizes) {
+  margin: 0 !important;
+}
+
+:deep(.el-pagination__jump) {
+  margin: 0 !important;
+  font-size: 14px !important;
+  color: #000 !important;
+}
+
+:deep(.el-pagination .el-select .el-input) {
+  width: 110px !important;
+}
+
+:deep(.el-pagination__jump .el-input) {
+  width: 50px !important;
+  margin: 0 8px !important;
+}
+
+/* Standardize inputs to prevent jiggling */
+:deep(.el-pagination .el-input__wrapper) {
+  border: 1px solid #000 !important;
+  box-shadow: none !important;
+  border-radius: 6px !important;
+}
+
+/* Standard Scrollbar for Admin Light Theme */
+:deep(.el-main)::-webkit-scrollbar {
+  width: 8px;
+}
+:deep(.el-main)::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+:deep(.el-main)::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+:deep(.el-main)::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Page Transition */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateX(20px) scale(0.98);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-20px) scale(1.02);
 }
 </style>
 
