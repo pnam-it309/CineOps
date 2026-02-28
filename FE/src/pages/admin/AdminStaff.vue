@@ -321,3 +321,128 @@ code {
   overflow-y: auto !important;
 }
 </style>
+<!--<script setup>-->
+<!--import { ref, onMounted, computed, reactive } from 'vue';-->
+<!--import { Plus, User, Edit, Delete, Setting, Search, Phone, Message, Filter } from '@element-plus/icons-vue';-->
+<!--import { ElMessage, ElMessageBox } from 'element-plus';-->
+<!--import BaseTable from '@/components/common/BaseTable.vue';-->
+<!--// Import service thực tế-->
+<!--import { nhanVienService } from '@/services/api/admin/nhanVienService';-->
+
+<!--// -&#45;&#45; State -&#45;&#45;-->
+<!--const staff = ref([]); // Sẽ chứa dữ liệu từ API-->
+<!--const loading = ref(false);-->
+<!--const searchQuery = ref('');-->
+<!--const filterRole = ref('all');-->
+<!--const filterStatus = ref('all');-->
+<!--const currentPage = ref(1);-->
+<!--const pageSize = 10;-->
+
+<!--const dialogVisible = ref(false);-->
+<!--const roleDialogVisible = ref(false);-->
+<!--const formRef = ref(null);-->
+
+<!--// Form khớp với AdNhanVienRequest ở Backend-->
+<!--const staffForm = reactive({-->
+<!--  id: null,-->
+<!--  tenNhanVien: '',-->
+<!--  email: '',-->
+<!--  soDienThoai: '',-->
+<!--  tenDangNhap: '',-->
+<!--  cccd: '',-->
+<!--  ngaySinh: '',-->
+<!--  idPhanQuyen: '', // Backend dùng ID phôi quyền-->
+<!--  chucVu: '',-->
+<!--  trangThai: 1,-->
+<!--  matKhau: ''-->
+<!--});-->
+
+<!--// Dữ liệu vai trò cố định để hiển thị/lọc (hoặc lấy từ API roles nếu có)-->
+<!--const roles = ref([-->
+<!--  { id: 'admin-id', name: 'Quản trị viên', permissions: ['Toàn quyền hệ thống'], color: 'danger', icon: '👑' },-->
+<!--  { id: 'manager-id', name: 'Quản lý rạp', permissions: ['Quản lý lịch chiếu'], color: 'warning', icon: '🎬' },-->
+<!--  { id: 'staff-id', name: 'Nhân viên', permissions: ['Bán vé tại quầy'], color: 'primary', icon: '🎫' },-->
+<!--]);-->
+
+<!--// -&#45;&#45; Logic tải dữ liệu -&#45;&#45;-->
+<!--const fetchStaff = async () => {-->
+<!--  loading.value = true;-->
+<!--  try {-->
+<!--    // Gọi API với các tham số lọc-->
+<!--    const res = await nhanVienService.getAll(-->
+<!--        searchQuery.value,-->
+<!--        filterRole.value === 'all' ? null : filterRole.value,-->
+<!--        filterStatus.value === 'all' ? null : filterStatus.value-->
+<!--    );-->
+<!--    if (res.data && res.data.status === 'success') {-->
+<!--      staff.value = res.data.data;-->
+<!--    }-->
+<!--  } catch (error) {-->
+<!--    ElMessage.error('Không thể tải danh sách nhân viên');-->
+<!--  } finally {-->
+<!--    loading.value = false;-->
+<!--  }-->
+<!--};-->
+
+<!--onMounted(fetchStaff);-->
+
+<!--// -&#45;&#45; Cấu hình cột (Khớp với AdNhanVienResponse) -&#45;&#45;-->
+<!--const tableColumns = [-->
+<!--  { label: 'Nhân viên', key: 'tenNhanVien' },-->
+<!--  { label: 'Tên đăng nhập', key: 'tenDangNhap' },-->
+<!--  { label: 'Vai trò', key: 'tenPhanQuyen' },-->
+<!--  { label: 'SĐT', key: 'soDienThoai' },-->
+<!--  { label: 'Ngày tham gia', key: 'ngayTao' },-->
+<!--  { label: 'Trạng thái', key: 'trangThai' },-->
+<!--];-->
+
+<!--// -&#45;&#45; Xử lý Action -&#45;&#45;-->
+<!--const openAddDialog = () => {-->
+<!--  Object.assign(staffForm, {-->
+<!--    id: null, tenNhanVien: '', email: '', soDienThoai: '',-->
+<!--    tenDangNhap: '', cccd: '', ngaySinh: '', idPhanQuyen: '',-->
+<!--    chucVu: '', trangThai: 1, matKhau: ''-->
+<!--  });-->
+<!--  dialogVisible.value = true;-->
+<!--};-->
+
+<!--const handleEdit = (row) => {-->
+<!--  Object.assign(staffForm, {-->
+<!--    ...row,-->
+<!--    matKhau: '' // Không hiện mật khẩu khi sửa-->
+<!--  });-->
+<!--  dialogVisible.value = true;-->
+<!--};-->
+
+<!--const handleSave = async () => {-->
+<!--  try {-->
+<!--    if (staffForm.id) {-->
+<!--      await nhanVienService.update(staffForm.id, staffForm);-->
+<!--      ElMessage.success('Cập nhật thành công');-->
+<!--    } else {-->
+<!--      await nhanVienService.create(staffForm);-->
+<!--      ElMessage.success('Thêm nhân viên thành công');-->
+<!--    }-->
+<!--    dialogVisible.value = false;-->
+<!--    fetchStaff();-->
+<!--  } catch (error) {-->
+<!--    ElMessage.error(error.response?.data?.message || 'Lỗi thao tác');-->
+<!--  }-->
+<!--};-->
+
+<!--const handleDelete = (row) => {-->
+<!--  ElMessageBox.confirm(`Xóa nhân viên "${row.tenNhanVien}"?`, 'Xác nhận', {-->
+<!--    type: 'warning',-->
+<!--    confirmButtonText: 'Xóa'-->
+<!--  }).then(async () => {-->
+<!--    await nhanVienService.delete(row.id);-->
+<!--    ElMessage.success('Đã xóa');-->
+<!--    fetchStaff();-->
+<!--  });-->
+<!--};-->
+
+<!--const getRoleType = (roleName) => {-->
+<!--  const map = { 'Quản trị viên': 'danger', 'Quản lý rạp': 'warning', 'Nhân viên': 'primary' };-->
+<!--  return map[roleName] || 'info';-->
+<!--};-->
+<!--</script>-->
