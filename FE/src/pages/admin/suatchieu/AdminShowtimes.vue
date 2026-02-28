@@ -9,20 +9,13 @@
       :total="filteredShowtimes.length"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
+      v-model:selection="selectedShowtimes"
       @add-click="openDialog()"
       @reset-filter="resetFilter"
-      @selection-change="handleSelectionChange"
     >
       <!-- Header Actions Left Slot -->
       <template #header-actions-left>
-        <el-button 
-          v-if="selectedIds.length" 
-          type="danger" 
-          plain 
-          size="default" 
-          :icon="Delete" 
-          @click="handleBulkDelete"
-        >
+        <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
           Xóa {{ selectedIds.length }} suất chiếu
         </el-button>
       </template>
@@ -105,83 +98,72 @@
         </div>
       </template>
 
-      <!-- Table Columns Slot -->
-      <template #columns>
-        <el-table-column type="index" label="STT" width="60" align="center" fixed="left" />
+      <!-- Content Slot with BaseTable -->
+    <template #content>
+      <BaseTable
+        :data="paginatedShowtimes"
+        :columns="showtimeColumns"
+        :loading="loading"
+        :total="filteredShowtimes.length"
+        v-model:currentPage="currentPage"
+        v-model:pageSize="pageSize"
+        v-model:selection="selectedShowtimes"
+        :hide-pagination="true"
+        @edit="openDialog"
+        @delete="handleDelete"
+      >
+        <template #cell-index="{ index }">
+          <span class="text-secondary small">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+        </template>
 
-        <el-table-column label="Phim" min-width="250">
-          <template #default="{ row }">
-            <div class="d-flex align-items-center gap-2">
-              <img
-                v-if="row.poster"
-                :src="row.poster"
-                class="rounded"
-                style="width: 32px; height: 44px; object-fit: cover;"
-                :alt="row.tenPhim"
-              />
-              <div v-else class="rounded d-flex align-items-center justify-content-center bg-light border"
-                   style="width: 32px; height: 44px;">
-                <i class="bi bi-film text-secondary"></i>
-              </div>
-              <div>
+        <template #cell-phim="{ row }">
+          <div class="d-flex align-items-center gap-2 text-start">
+            <img
+              v-if="row.poster"
+              :src="row.poster"
+              class="rounded shadow-sm"
+              style="width: 32px; height: 44px; object-fit: cover;"
+              :alt="row.tenPhim"
+            />
+            <div v-else class="rounded d-flex align-items-center justify-content-center bg-light border shadow-sm"
+                 style="width: 32px; height: 44px;">
+              <i class="bi bi-film text-secondary"></i>
+            </div>
+            <div>
               <div class="fw-semibold small text-dark" style="line-height: 1.2;">{{ row.tenPhim || '—' }}</div>
-                <div class="text-dark" style="font-size: 11px;">{{ row.thoiLuong ? row.thoiLuong + ' phút' : '' }}</div>
-              </div>
+              <div class="text-secondary extra-small" style="font-size: 10px;">{{ row.thoiLuong ? row.thoiLuong + ' phút' : '' }}</div>
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="Phòng chiếu" width="180">
-          <template #default="{ row }">
-            <div class="small">
-              <div class="fw-semibold text-dark"><i class="bi bi-door-open me-1 text-primary"></i>{{ row.tenPhongChieu }}</div>
-              <div class="text-dark">{{ row.loaiManHinh }}</div>
-            </div>
-          </template>
-        </el-table-column>
+          </div>
+        </template>
 
-        <el-table-column label="Ngày chiếu" width="110" align="center">
-          <template #default="{ row }">
-            <span class="small fw-semibold">{{ formatDate(row.ngayChieu) }}</span>
-          </template>
-        </el-table-column>
+        <template #cell-phongChieu="{ row }">
+          <div class="small text-start">
+            <div class="fw-semibold text-dark"><i class="bi bi-door-open me-1 text-primary"></i>{{ row.tenPhongChieu }}</div>
+            <div class="text-secondary extra-small">{{ row.loaiManHinh }}</div>
+          </div>
+        </template>
 
-        <el-table-column label="Giờ chiếu" width="170" align="center">
-          <template #default="{ row }">
-            <div class="small">
-              <el-tag type="info" effect="plain" size="small" class="fw-bold me-1">
-                {{ row.gioBatDau }}
-              </el-tag>
-              <span class="text-dark mx-1">→</span>
-              <el-tag type="info" effect="plain" size="small">{{ row.gioKetThuc }}</el-tag>
-            </div>
-          </template>
-        </el-table-column>
+        <template #cell-ngayChieu="{ row }">
+          <span class="small fw-semibold text-dark">{{ formatDate(row.ngayChieu) }}</span>
+        </template>
 
-        <el-table-column label="Trạng thái" width="110" align="center">
-          <template #default="{ row }">
-            <el-tag :type="getStatusTag(row.trangThai)" round size="small">
-              {{ getStatusLabel(row.trangThai) }}
+        <template #cell-gioChieu="{ row }">
+          <div class="small d-flex align-items-center justify-content-center gap-1">
+            <el-tag type="info" effect="plain" size="small" class="fw-bold" style="font-size: 11px;">
+              {{ row.gioBatDau }}
             </el-tag>
-          </template>
-        </el-table-column>
+            <span class="text-secondary">→</span>
+            <el-tag type="info" effect="plain" size="small" style="font-size: 11px;">{{ row.gioKetThuc }}</el-tag>
+          </div>
+        </template>
 
-        <el-table-column label="Thao tác" width="110" align="center" fixed="right">
-          <template #default="{ row }">
-            <div class="d-flex gap-1 justify-content-center">
-              <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon btn-action-edit" @click="openDialog(row)">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Xóa" placement="top">
-                <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </el-tooltip>
-            </div>
-          </template>
-        </el-table-column>
-      </template>
+        <template #cell-trangThai="{ row }">
+          <el-tag :type="getStatusTag(row.trangThai)" round size="small">
+            {{ getStatusLabel(row.trangThai) }}
+          </el-tag>
+        </template>
+      </BaseTable>
+    </template>
     </AdminTableLayout>
 
     <!-- Dialog vẫn giữ ở component chính -->
@@ -303,6 +285,16 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { suatChieuService } from '@/services/api/admin/suatChieuService';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
+
+const showtimeColumns = [
+  { label: 'STT', key: 'index', width: '60px' },
+  { label: 'PHIM', key: 'phim', minWidth: '250px' },
+  { label: 'PHÒNG CHIẾU', key: 'phongChieu', width: '180px' },
+  { label: 'NGÀY CHIẾU', key: 'ngayChieu', width: '110px' },
+  { label: 'GIỜ CHIẾU', key: 'gioChieu', width: '170px' },
+  { label: 'TRẠNG THÁI', key: 'trangThai', width: '110px' },
+];
 
 // =================== STATE ===================
 const loading = ref(false);
@@ -323,11 +315,8 @@ const searchQuery = ref('');
 // Pagination state
 const currentPage = ref(1);
 const pageSize = ref(5);
-const selectedIds = ref([]);
-
-const handleSelectionChange = (val) => {
-  selectedIds.value = val.map(item => item.id);
-};
+const selectedShowtimes = ref([]);
+const selectedIds = computed(() => selectedShowtimes.value.map(item => item.id));
 
 const handleBulkDelete = () => {
     ElMessageBox.confirm(
@@ -343,7 +332,7 @@ const handleBulkDelete = () => {
         try {
             await Promise.all(selectedIds.value.map(id => suatChieuService.deleteShowtime(id)));
             ElMessage.success(`Đã xóa ${selectedIds.value.length} suất chiếu`);
-            selectedIds.value = [];
+            selectedShowtimes.value = [];
             fetchShowtimes();
         } catch (error) {
             ElMessage.error('Có lỗi khi xóa hàng loạt');

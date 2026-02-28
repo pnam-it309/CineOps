@@ -30,7 +30,7 @@ public class AdSanPhamDiKemService {
 
     @Transactional(readOnly = true)
     public Page<AdSanPhamDiKemResponse> getAll(String keyword, Integer trangThai, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
         return repository.getAll(pageable, keyword, trangThai).map(this::toResponse);
     }
 

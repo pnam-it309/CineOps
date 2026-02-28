@@ -17,6 +17,10 @@ import java.math.BigDecimal;
 public class GiaVeChiTiet extends PrimaryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_loai_ngay")
+    private LoaiNgay loaiNgay;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_loai_khach_hang")
     private LoaiKhachHang loaiKhachHang;
 

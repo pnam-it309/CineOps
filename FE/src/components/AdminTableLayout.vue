@@ -192,7 +192,7 @@ const pagesToShow = computed(() => {
 <style scoped>
 .admin-table-layout {
   overflow: hidden;
-  background-color: #f8fafc;
+  background-color: #ffffff;
 }
 
 .table-container {
@@ -206,12 +206,12 @@ const pagesToShow = computed(() => {
 /* Table styling fixes */
 :deep(.el-table) {
     --el-table-border-color: #f1f5f9;
-    --el-table-header-bg-color: #f8fafc;
+    --el-table-header-bg-color: #ffffff;
     border-radius: 16px;
 }
 
 :deep(.el-table th) {
-  background-color: #f8fafc !important;
+  background-color: #ffffff !important;
   font-weight: 700 !important;
   color: #475569 !important;
   height: 54px !important;
@@ -300,7 +300,7 @@ const pagesToShow = computed(() => {
 
 :deep(.compact-select .el-input__wrapper) {
     border-radius: 8px !important;
-    background-color: #f8fafc !important;
+    background-color: #ffffff !important;
     box-shadow: none !important;
     border: 1px solid #e2e8f0 !important;
     height: 32px !important;
@@ -308,7 +308,7 @@ const pagesToShow = computed(() => {
 
 :deep(.no-border-select .el-input__wrapper) {
     border: none !important;
-    background-color: #f1f5f9 !important;
+    background-color: #ffffff !important;
 }
 
 /* Global button border removal for action icons */

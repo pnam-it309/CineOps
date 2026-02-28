@@ -12,7 +12,7 @@ import java.util.List;
 public class AdSanPhamDiKemRequest {
 
     @NotNull(message = "Loại sản phẩm không được để trống")
-    private Long idLoaiSanPham;
+    private String idLoaiSanPham;
 
     @NotBlank(message = "Tên sản phẩm không được để trống")
     @Size(min = 3, max = 50, message = "Tên sản phẩm phải từ 3-50 ký tự")
@@ -37,10 +37,10 @@ public class AdSanPhamDiKemRequest {
     @Getter @Setter
     public static class VariantRequest {
         @NotNull(message = "Kích cỡ không được để trống")
-        private Long idKichCo;
+        private String idKichCo;
 
         @NotNull(message = "Đơn vị tính không được để trống")
-        private Long idDonViTinh;
+        private String idDonViTinh;
 
         @NotNull(message = "Định lượng không được để trống")
         private Double giaTriDinhLuong;

@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import service.cinema.be.entity.KichCo;
 @Repository
 
-public interface KichCoRepository extends JpaRepository<KichCo, Long> {
+public interface KichCoRepository extends JpaRepository<KichCo, String> {
 }

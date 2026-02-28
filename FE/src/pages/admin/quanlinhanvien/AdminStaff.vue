@@ -1,17 +1,24 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Plus, User, Edit, Delete, Lock, Key, Setting, Search, Phone, Message, Clock, Check, Close } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
+import StatCard from '@/components/common/StatCard.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
+import { nhanVienService } from '@/services/api/admin/nhanVienService';
 
-const staff = ref([
-  { id: 1, name: 'Nguyễn Văn An', username: 'admin', role: 'Quản trị viên', status: 'Đang hoạt động', email: 'admin@cineops.com', phone: '0901 234 567', joinDate: '2024-01-15' },
-  { id: 2, name: 'Trần Thị Hồng', username: 'manager1', role: 'Quản lý rạp', status: 'Đang hoạt động', email: 'hong@cineops.com', phone: '0912 345 678', joinDate: '2024-03-20' },
-  { id: 3, name: 'Lê Minh Tuấn', username: 'tuan_le', role: 'Nhân viên', status: 'Ngừng hoạt động', email: 'tuan@cineops.com', phone: '0923 456 789', joinDate: '2024-06-10' },
-  { id: 4, name: 'Phạm Thị Mai', username: 'mai_pham', role: 'Nhân viên', status: 'Đang hoạt động', email: 'mai@cineops.com', phone: '0934 567 890', joinDate: '2025-01-05' },
-  { id: 5, name: 'Hoàng Đức Anh', username: 'duc_anh', role: 'Quản lý rạp', status: 'Đang hoạt động', email: 'ducanh@cineops.com', phone: '0945 678 901', joinDate: '2024-09-12' },
-  { id: 6, name: 'Võ Thanh Sơn', username: 'son_vo', role: 'Nhân viên', status: 'Đang hoạt động', email: 'son@cineops.com', phone: '0956 789 012', joinDate: '2025-02-01' },
-]);
+const staff = ref([]);
+const selectedStaff = ref([]);
+const loading = ref(false);
+
+const staffColumns = [
+  { label: 'NHÂN VIÊN', key: 'staff', minWidth: '250px' },
+  { label: 'TÊN ĐĂNG NHẬP', key: 'username', width: '180px' },
+  { label: 'VAI TRÒ', key: 'role', width: '150px' },
+  { label: 'SỐ ĐIỆN THOẠI', key: 'phone', width: '150px', align: 'center' },
+  { label: 'NGÀY THAM GIA', key: 'joinDate', width: '150px', align: 'center' },
+  { label: 'TRẠNG THÁI', key: 'status', width: '150px', align: 'center' },
+];
 
 const roles = ref([
   { name: 'Quản trị viên', permissions: ['Toàn quyền hệ thống', 'Quản lý người dùng', 'Cấu hình hệ thống', 'Báo cáo & thống kê'], color: 'danger', icon: '👑' },
@@ -22,92 +29,182 @@ const roles = ref([
 const dialogVisible = ref(false);
 const roleDialogVisible = ref(false);
 const searchQuery = ref('');
-const filterRole = ref('all');
-const filterStatus = ref('all');
+const filterRole = ref('');
+const filterStatus = ref('');
 const currentPage = ref(1);
 const pageSize = ref(10);
 
 const staffForm = ref({
-  name: '',
-  username: '',
+  tenNhanVien: '',
   email: '',
-  phone: '',
-  role: 'Nhân viên',
-  status: 'Đang hoạt động',
+  soDienThoai: '',
+  cccd: '',
+  ngaySinh: '',
+  queQuan: '',
+  gioiTinh: 1,
+  chucVu: '',
+  anhNhanVien: '',
+  idPhanQuyen: '',
+  trangThai: 1,
+  matKhau: '',
 });
 
 const resetForm = () => {
   staffForm.value = {
-    name: '',
-    username: '',
+    id: null,
+    tenNhanVien: '',
     email: '',
-    phone: '',
-    role: 'Nhân viên',
-    status: 'Đang hoạt động',
+    soDienThoai: '',
+    cccd: '',
+    ngaySinh: '',
+    queQuan: '',
+    gioiTinh: 1,
+    chucVu: '',
+    anhNhanVien: '',
+    idPhanQuyen: '',
+    trangThai: 1,
+    matKhau: '',
   };
 };
 
-const filteredStaff = computed(() => {
-  return staff.value.filter((s) => {
-    const matchSearch =
-      !searchQuery.value ||
-      s.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      s.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      s.email.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchRole = filterRole.value === 'all' || s.role === filterRole.value;
-    const matchStatus = filterStatus.value === 'all' || s.status === filterStatus.value;
-    return matchSearch && matchRole && matchStatus;
-  });
-});
-
-const getRoleType = (role) => {
-  const map = { 'Quản trị viên': 'danger', 'Quản lý rạp': 'warning', 'Nhân viên': 'primary' };
-  return map[role] || 'info';
+const fetchStaff = async () => {
+  loading.value = true;
+  try {
+    const res = await nhanVienService.getAll(
+      searchQuery.value || null,
+      filterRole.value || null,
+      filterStatus.value === '' ? null : filterStatus.value
+    );
+    if (res.data && res.data.data) {
+      staff.value = Array.isArray(res.data.data) ? res.data.data : [];
+    } else {
+      staff.value = [];
+    }
+  } catch (error) {
+    ElMessage.error('Không thể tải danh sách nhân viên');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleEdit = (s) => {
-  staffForm.value = { ...s };
+const filteredStaff = computed(() => staff.value);
+
+const getRoleType = (role) => {
+  if (!role) return 'info';
+  if (role.toLowerCase().includes('admin') || role.includes('Quản trị')) return 'danger';
+  if (role.toLowerCase().includes('manager') || role.includes('Quản lý')) return 'warning';
+  return 'primary';
+};
+
+const getAvatarColor = (role) => {
+  const type = getRoleType(role);
+  if (type === 'danger') return '#f56c6c';
+  if (type === 'warning') return '#e6a23c';
+  return '#409eff';
+};
+
+const handleEdit = (row) => {
+  staffForm.value = {
+    id: row.id,
+    tenNhanVien: row.tenNhanVien,
+    email: row.email,
+    soDienThoai: row.soDienThoai,
+    cccd: row.cccd || '',
+    ngaySinh: row.ngaySinh || '',
+    queQuan: row.queQuan || '',
+    gioiTinh: row.gioiTinh ?? 1,
+    chucVu: row.chucVu || '',
+    anhNhanVien: row.anhNhanVien || '',
+    idPhanQuyen: row.idPhanQuyen || '',
+    trangThai: row.trangThai,
+    matKhau: '',
+  };
   dialogVisible.value = true;
 };
 
-const handleDelete = (s) => {
-  ElMessageBox.confirm(`Bạn có chắc muốn xóa nhân viên "${s.name}"?`, 'Xác nhận xóa', {
+const handleDelete = (row) => {
+  ElMessageBox.confirm(`Bạn có chắc muốn xóa nhân viên "${row.tenNhanVien}"?`, 'Xác nhận xóa', {
     confirmButtonText: 'Xóa',
     cancelButtonText: 'Hủy',
     type: 'warning',
-  }).then(() => {
-    staff.value = staff.value.filter((item) => item.id !== s.id);
-    ElMessage.success('Đã xóa nhân viên thành công');
+  }).then(async () => {
+    try {
+      await nhanVienService.delete(row.id);
+      ElMessage.success('Đã xóa nhân viên thành công');
+      fetchStaff();
+    } catch {
+      ElMessage.error('Xóa nhân viên thất bại');
+    }
   }).catch(() => {});
 };
 
-const handleSave = () => {
-  if (!staffForm.value.name || !staffForm.value.email) {
+const handleSave = async () => {
+  if (!staffForm.value.tenNhanVien || !staffForm.value.email) {
     ElMessage.warning('Vui lòng điền đầy đủ thông tin bắt buộc');
     return;
   }
-  if (staffForm.value.id) {
-    const index = staff.value.findIndex((s) => s.id === staffForm.value.id);
-    if (index !== -1) staff.value[index] = { ...staffForm.value };
-    ElMessage.success('Cập nhật nhân viên thành công');
-  } else {
-    const newId = Math.max(...staff.value.map((s) => s.id)) + 1;
-    staff.value.push({ ...staffForm.value, id: newId, joinDate: new Date().toISOString().slice(0, 10) });
-    ElMessage.success('Thêm nhân viên thành công');
+  try {
+    const payload = { ...staffForm.value };
+    delete payload.id;
+    if (staffForm.value.id) {
+      if (!payload.matKhau) delete payload.matKhau;
+      await nhanVienService.update(staffForm.value.id, payload);
+      ElMessage.success('Cập nhật nhân viên thành công');
+    } else {
+      await nhanVienService.create(payload);
+      ElMessage.success('Thêm nhân viên thành công');
+    }
+    dialogVisible.value = false;
+    resetForm();
+    fetchStaff();
+  } catch (error) {
+    const msg = error.response?.data?.message || 'Lưu nhân viên thất bại';
+    ElMessage.error(msg);
   }
-  dialogVisible.value = false;
-  resetForm();
 };
 
-const handleToggleStatus = (s) => {
-  s.status = s.status === 'Đang hoạt động' ? 'Ngừng hoạt động' : 'Đang hoạt động';
-  ElMessage.success(`Đã ${s.status === 'Đang hoạt động' ? 'kích hoạt' : 'vô hiệu hóa'} tài khoản ${s.name}`);
+const handleToggleStatus = async (row) => {
+  const newStatus = row.trangThai === 1 ? 0 : 1;
+  try {
+    await nhanVienService.update(row.id, { ...row, trangThai: newStatus, matKhau: undefined });
+    row.trangThai = newStatus;
+    ElMessage.success(`Đã ${newStatus === 1 ? 'kích hoạt' : 'vô hiệu hóa'} tài khoản ${row.tenNhanVien}`);
+  } catch {
+    ElMessage.error('Thay đổi trạng thái thất bại');
+  }
 };
 
 const openAddDialog = () => {
   resetForm();
   dialogVisible.value = true;
 };
+
+const selectedIds = computed(() => selectedStaff.value.map(item => item.id));
+
+const handleBulkDelete = () => {
+    ElMessageBox.confirm(
+        `Xác nhận xóa <b>${selectedIds.value.length}</b> nhân viên đã chọn?`,
+        'Xóa hàng loạt',
+        {
+            dangerouslyUseHTMLString: true,
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy',
+            type: 'warning'
+        }
+    ).then(async () => {
+        try {
+            await Promise.all(selectedIds.value.map(id => nhanVienService.delete(id)));
+            ElMessage.success(`Đã xóa ${selectedIds.value.length} nhân viên`);
+            selectedStaff.value = [];
+            fetchStaff();
+        } catch (error) {
+            ElMessage.error('Có lỗi khi xóa hàng loạt');
+        }
+    }).catch(() => {});
+};
+
+onMounted(fetchStaff);
+watch([searchQuery, filterRole, filterStatus], fetchStaff);
 </script>
 
 <template>
@@ -116,94 +213,112 @@ const openAddDialog = () => {
       title="Quản lý Nhân viên"
       titleIcon="bi bi-people-fill"
       addButtonLabel="Thêm nhân viên"
-      :data="filteredStaff.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :data="filteredStaff"
+      :loading="loading"
       :total="filteredStaff.length"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
       @add-click="openAddDialog"
-      @reset-filter="() => { searchQuery = ''; filterRole = 'all'; filterStatus = 'all'; }"
+      @reset-filter="() => { searchQuery = ''; filterRole = ''; filterStatus = ''; }"
     >
       <template #header-actions-left>
-        <el-button class="btn-premium-secondary" :icon="Setting" @click="roleDialogVisible = true">Vai trò & Quyền</el-button>
+        <div class="d-flex align-items-center gap-2">
+          <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
+            Xóa {{ selectedIds.length }} nhân viên
+          </el-button>
+          <el-button class="btn-premium-secondary" :icon="Setting" @click="roleDialogVisible = true" round>Vai trò & Quyền</el-button>
+        </div>
       </template>
 
       <template #filters>
-        <div class="filter-item" style="width: 350px;">
+        <div class="filter-item flex-grow-1" style="max-width: 350px;">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block">Tìm kiếm</span>
           <el-input
             v-model="searchQuery"
-            placeholder="Tìm theo tên, username, email..."
+            placeholder="Tên, username, email..."
             :prefix-icon="Search"
             size="default"
             clearable
           />
         </div>
         <div class="filter-item" style="width: 200px;">
-          <el-select v-model="filterRole" placeholder="Vai trò" size="default" class="w-100">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block">Vai trò</span>
+          <el-select v-model="filterRole" placeholder="Tất cả" size="default" class="w-100">
             <el-option label="Tất cả vai trò" value="all" />
             <el-option v-for="r in roles" :key="r.name" :label="r.name" :value="r.name" />
           </el-select>
         </div>
         <div class="filter-item" style="width: 200px;">
-          <el-select v-model="filterStatus" placeholder="Trạng thái" size="default" class="w-100">
-            <el-option label="Tất cả trạng thái" value="all" />
-            <el-option label="Đang hoạt động" value="Đang hoạt động" />
-            <el-option label="Ngừng hoạt động" value="Ngừng hoạt động" />
+           <span class="filter-label text-dark small fw-bold mb-1 d-block">Trạng thái</span>
+          <el-select v-model="filterStatus" placeholder="Tất cả" size="default" class="w-100">
+            <el-option label="Tất cả trạng thái" value="" />
+            <el-option label="Đang hoạt động" :value="1" />
+            <el-option label="Ngừng hoạt động" :value="0" />
           </el-select>
         </div>
       </template>
 
-      <template #columns>
-        <el-table-column label="Nhân viên" min-width="250">
-          <template #default="{ row }">
-            <div class="d-flex align-items-center gap-3">
-              <el-avatar :size="36" class="flex-shrink-0" :style="{ background: getRoleType(row.role) === 'danger' ? '#f56c6c' : getRoleType(row.role) === 'warning' ? '#e6a23c' : '#409eff' }">
-                {{ row.name.charAt(0) }}
+      <template #content>
+        <BaseTable
+          :data="filteredStaff.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+          :columns="staffColumns"
+          :loading="loading"
+          :total="filteredStaff.length"
+          v-model:currentPage="currentPage"
+          v-model:pageSize="pageSize"
+          v-model:selection="selectedStaff"
+          :hide-pagination="true"
+          @edit="handleEdit"
+          @delete="handleDelete"
+        >
+          <template #cell-staff="{ row }">
+            <div class="d-flex align-items-center gap-3 text-start">
+              <el-avatar :size="36" class="flex-shrink-0 border border-white shadow-sm" :style="{ background: getAvatarColor(row.tenPhanQuyen) }">
+                {{ (row.tenNhanVien || '').charAt(0) }}
               </el-avatar>
-              <div class="text-start">
-                <div class="fw-bold text-dark">{{ row.name }}</div>
-                <div class="small text-secondary">{{ row.email }}</div>
+              <div>
+                <div class="fw-bold text-dark small">{{ row.tenNhanVien }}</div>
+                <div class="text-secondary extra-small" style="font-size: 11px;">{{ row.email }}</div>
               </div>
             </div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Tên đăng nhập" width="180">
-          <template #default="{ row }">
-            <code class="small fw-bold text-indigo-500">@{{ row.username }}</code>
+          <template #cell-username="{ row }">
+            <code class="small fw-bold text-indigo-500">{{ row.tenDangNhap || row.maNhanVien }}</code>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Vai trò" width="150" align="center">
-          <template #default="{ row }">
-            <el-tag :type="getRoleType(row.role)" size="small" effect="light" round>{{ row.role }}</el-tag>
+          <template #cell-role="{ row }">
+            <el-tag :type="getRoleType(row.tenPhanQuyen)" size="small" effect="light" round>{{ row.tenPhanQuyen || 'Chưa gán' }}</el-tag>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Số điện thoại" prop="phone" width="150" align="center" />
-        
-        <el-table-column label="Ngày tham gia" prop="joinDate" width="150" align="center" />
+          <template #cell-phone="{ row }">
+            <span class="small">{{ row.soDienThoai }}</span>
+          </template>
+          
+          <template #cell-joinDate="{ row }">
+            <span class="small text-secondary">
+              {{ row.ngayTao ? new Date(row.ngayTao).toLocaleDateString('vi-VN') : '—' }}
+            </span>
+          </template>
 
-        <el-table-column label="Trạng thái" width="150" align="center">
-          <template #default="{ row }">
-            <div class="d-flex align-items-center justify-content-center gap-2 cursor-pointer" @click="handleToggleStatus(row)">
-              <span class="status-dot" :class="row.status === 'Đang hoạt động' ? 'bg-success' : 'bg-secondary'"></span>
-              <span class="small" :class="row.status === 'Đang hoạt động' ? 'text-success' : 'text-secondary'">{{ row.status }}</span>
+          <template #cell-status="{ row }">
+            <div class="d-flex align-items-center justify-content-center gap-2 cursor-pointer" @click="handleToggleStatus(row)" title="Bấm để đổi trạng thái">
+              <span class="status-dot" :class="row.trangThai === 1 ? 'bg-success shadow-success-lite' : 'bg-secondary'"></span>
+              <span class="extra-small" :class="row.trangThai === 1 ? 'text-success' : 'text-secondary'">{{ row.trangThai === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động' }}</span>
             </div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Thao tác" width="120" align="center" fixed="right">
-          <template #default="{ row }">
+          <template #actions="{ row }">
             <div class="d-flex justify-content-center gap-1">
-              <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+              <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)" title="Kiểm tra/Sửa">
                 <i class="bi bi-pencil fs-6"></i>
               </button>
-              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
+              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)" title="Xóa nhân viên">
                 <i class="bi bi-trash fs-6"></i>
               </button>
             </div>
           </template>
-        </el-table-column>
+        </BaseTable>
       </template>
     </AdminTableLayout>
 
@@ -230,35 +345,56 @@ const openAddDialog = () => {
 
       <el-form :model="staffForm" label-position="top" class="premium-form">
         <el-form-item label="Họ và tên" required>
-          <el-input v-model="staffForm.name" placeholder="VD: Nguyễn Văn A" :prefix-icon="User" />
+          <el-input v-model="staffForm.tenNhanVien" placeholder="VD: Nguyễn Văn A" :prefix-icon="User" />
         </el-form-item>
         <el-form-item label="Địa chỉ Email" required>
           <el-input v-model="staffForm.email" placeholder="vanna@cineops.com" :prefix-icon="Message" />
         </el-form-item>
         <div class="row g-2">
           <div class="col-6">
-            <el-form-item label="Tên đăng nhập">
-              <el-input v-model="staffForm.username" placeholder="vanna123" />
+            <el-form-item label="Số điện thoại" required>
+              <el-input v-model="staffForm.soDienThoai" placeholder="0901234567" :prefix-icon="Phone" />
             </el-form-item>
           </div>
           <div class="col-6">
-            <el-form-item label="Số điện thoại">
-              <el-input v-model="staffForm.phone" placeholder="0901 234 567" :prefix-icon="Phone" />
+            <el-form-item label="CCCD" required>
+              <el-input v-model="staffForm.cccd" placeholder="012345678901" />
             </el-form-item>
           </div>
           <div class="col-6">
-            <el-form-item label="Vai trò">
-              <el-select v-model="staffForm.role" class="w-100">
-                <el-option v-for="r in roles" :key="r.name" :label="r.name" :value="r.name" />
+            <el-form-item label="Ngày sinh" required>
+              <el-date-picker v-model="staffForm.ngaySinh" type="date" class="w-100" value-format="YYYY-MM-DD" placeholder="Chọn ngày" />
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Giới tính">
+              <el-select v-model="staffForm.gioiTinh" class="w-100">
+                <el-option label="Nam" :value="1" />
+                <el-option label="Nữ" :value="0" />
               </el-select>
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Chức vụ" required>
+              <el-input v-model="staffForm.chucVu" placeholder="Nhân viên bán vé" />
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Quê quán">
+              <el-input v-model="staffForm.queQuan" placeholder="Hà Nội" />
             </el-form-item>
           </div>
           <div class="col-6">
             <el-form-item label="Trạng thái">
-              <el-select v-model="staffForm.status" class="w-100">
-                <el-option label="Đang hoạt động" value="Đang hoạt động" />
-                <el-option label="Ngừng hoạt động" value="Ngừng hoạt động" />
+              <el-select v-model="staffForm.trangThai" class="w-100">
+                <el-option label="Đang hoạt động" :value="1" />
+                <el-option label="Ngừng hoạt động" :value="0" />
               </el-select>
+            </el-form-item>
+          </div>
+          <div class="col-12">
+            <el-form-item :label="staffForm.id ? 'Mật khẩu mới (để trống nếu không đổi)' : 'Mật khẩu'" :required="!staffForm.id">
+              <el-input v-model="staffForm.matKhau" type="password" placeholder="Tối thiểu 6 ký tự" show-password />
             </el-form-item>
           </div>
         </div>
@@ -309,14 +445,21 @@ const openAddDialog = () => {
     </el-dialog>
   </div>
 </template>
-
 <style scoped>
-.cursor-pointer {
-  cursor: pointer;
+.bg-indigo-500 {
+  background-color: #6366f1;
 }
 
-code {
-  letter-spacing: 0.5px;
+.shadow-success-lite {
+  box-shadow: 0 0 8px rgba(103, 194, 58, 0.4);
+}
+
+.extra-small {
+  font-size: 11px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .status-dot {
@@ -330,128 +473,3 @@ code {
   color: #4f46e5;
 }
 </style>
-<!--<script setup>-->
-<!--import { ref, onMounted, computed, reactive } from 'vue';-->
-<!--import { Plus, User, Edit, Delete, Setting, Search, Phone, Message, Filter } from '@element-plus/icons-vue';-->
-<!--import { ElMessage, ElMessageBox } from 'element-plus';-->
-<!--import BaseTable from '@/components/common/BaseTable.vue';-->
-<!--// Import service thực tế-->
-<!--import { nhanVienService } from '@/services/api/admin/nhanVienService';-->
-
-<!--// -&#45;&#45; State -&#45;&#45;-->
-<!--const staff = ref([]); // Sẽ chứa dữ liệu từ API-->
-<!--const loading = ref(false);-->
-<!--const searchQuery = ref('');-->
-<!--const filterRole = ref('all');-->
-<!--const filterStatus = ref('all');-->
-<!--const currentPage = ref(1);-->
-<!--const pageSize = 10;-->
-
-<!--const dialogVisible = ref(false);-->
-<!--const roleDialogVisible = ref(false);-->
-<!--const formRef = ref(null);-->
-
-<!--// Form khớp với AdNhanVienRequest ở Backend-->
-<!--const staffForm = reactive({-->
-<!--  id: null,-->
-<!--  tenNhanVien: '',-->
-<!--  email: '',-->
-<!--  soDienThoai: '',-->
-<!--  tenDangNhap: '',-->
-<!--  cccd: '',-->
-<!--  ngaySinh: '',-->
-<!--  idPhanQuyen: '', // Backend dùng ID phôi quyền-->
-<!--  chucVu: '',-->
-<!--  trangThai: 1,-->
-<!--  matKhau: ''-->
-<!--});-->
-
-<!--// Dữ liệu vai trò cố định để hiển thị/lọc (hoặc lấy từ API roles nếu có)-->
-<!--const roles = ref([-->
-<!--  { id: 'admin-id', name: 'Quản trị viên', permissions: ['Toàn quyền hệ thống'], color: 'danger', icon: '👑' },-->
-<!--  { id: 'manager-id', name: 'Quản lý rạp', permissions: ['Quản lý lịch chiếu'], color: 'warning', icon: '🎬' },-->
-<!--  { id: 'staff-id', name: 'Nhân viên', permissions: ['Bán vé tại quầy'], color: 'primary', icon: '🎫' },-->
-<!--]);-->
-
-<!--// -&#45;&#45; Logic tải dữ liệu -&#45;&#45;-->
-<!--const fetchStaff = async () => {-->
-<!--  loading.value = true;-->
-<!--  try {-->
-<!--    // Gọi API với các tham số lọc-->
-<!--    const res = await nhanVienService.getAll(-->
-<!--        searchQuery.value,-->
-<!--        filterRole.value === 'all' ? null : filterRole.value,-->
-<!--        filterStatus.value === 'all' ? null : filterStatus.value-->
-<!--    );-->
-<!--    if (res.data && res.data.status === 'success') {-->
-<!--      staff.value = res.data.data;-->
-<!--    }-->
-<!--  } catch (error) {-->
-<!--    ElMessage.error('Không thể tải danh sách nhân viên');-->
-<!--  } finally {-->
-<!--    loading.value = false;-->
-<!--  }-->
-<!--};-->
-
-<!--onMounted(fetchStaff);-->
-
-<!--// -&#45;&#45; Cấu hình cột (Khớp với AdNhanVienResponse) -&#45;&#45;-->
-<!--const tableColumns = [-->
-<!--  { label: 'Nhân viên', key: 'tenNhanVien' },-->
-<!--  { label: 'Tên đăng nhập', key: 'tenDangNhap' },-->
-<!--  { label: 'Vai trò', key: 'tenPhanQuyen' },-->
-<!--  { label: 'SĐT', key: 'soDienThoai' },-->
-<!--  { label: 'Ngày tham gia', key: 'ngayTao' },-->
-<!--  { label: 'Trạng thái', key: 'trangThai' },-->
-<!--];-->
-
-<!--// -&#45;&#45; Xử lý Action -&#45;&#45;-->
-<!--const openAddDialog = () => {-->
-<!--  Object.assign(staffForm, {-->
-<!--    id: null, tenNhanVien: '', email: '', soDienThoai: '',-->
-<!--    tenDangNhap: '', cccd: '', ngaySinh: '', idPhanQuyen: '',-->
-<!--    chucVu: '', trangThai: 1, matKhau: ''-->
-<!--  });-->
-<!--  dialogVisible.value = true;-->
-<!--};-->
-
-<!--const handleEdit = (row) => {-->
-<!--  Object.assign(staffForm, {-->
-<!--    ...row,-->
-<!--    matKhau: '' // Không hiện mật khẩu khi sửa-->
-<!--  });-->
-<!--  dialogVisible.value = true;-->
-<!--};-->
-
-<!--const handleSave = async () => {-->
-<!--  try {-->
-<!--    if (staffForm.id) {-->
-<!--      await nhanVienService.update(staffForm.id, staffForm);-->
-<!--      ElMessage.success('Cập nhật thành công');-->
-<!--    } else {-->
-<!--      await nhanVienService.create(staffForm);-->
-<!--      ElMessage.success('Thêm nhân viên thành công');-->
-<!--    }-->
-<!--    dialogVisible.value = false;-->
-<!--    fetchStaff();-->
-<!--  } catch (error) {-->
-<!--    ElMessage.error(error.response?.data?.message || 'Lỗi thao tác');-->
-<!--  }-->
-<!--};-->
-
-<!--const handleDelete = (row) => {-->
-<!--  ElMessageBox.confirm(`Xóa nhân viên "${row.tenNhanVien}"?`, 'Xác nhận', {-->
-<!--    type: 'warning',-->
-<!--    confirmButtonText: 'Xóa'-->
-<!--  }).then(async () => {-->
-<!--    await nhanVienService.delete(row.id);-->
-<!--    ElMessage.success('Đã xóa');-->
-<!--    fetchStaff();-->
-<!--  });-->
-<!--};-->
-
-<!--const getRoleType = (roleName) => {-->
-<!--  const map = { 'Quản trị viên': 'danger', 'Quản lý rạp': 'warning', 'Nhân viên': 'primary' };-->
-<!--  return map[roleName] || 'info';-->
-<!--};-->
-<!--</script>-->

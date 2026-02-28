@@ -7,7 +7,7 @@
       </el-aside>
 
       <!-- Main Container -->
-      <el-container class="d-flex flex-column vh-100 overflow-hidden bg-light">
+      <el-container class="d-flex flex-column vh-100 overflow-hidden bg-white">
         <!-- Top Navigation Bar -->
         <el-header class="d-flex align-items-center justify-content-between bg-white shadow-sm px-3 border-bottom border-light" style="height: 60px;">
           <div class="d-flex align-items-center gap-3">
@@ -146,7 +146,7 @@ if (window.innerWidth < 768) {
   --el-bg-color: #ffffff !important;
   --el-bg-color-overlay: #ffffff !important;
   --el-fill-color-blank: #ffffff !important;
-  --el-fill-color-light: #f8fafc !important;
+  --el-fill-color-light: #ffffff !important;
   
   color: #1e293b;
 }
@@ -176,7 +176,7 @@ if (window.innerWidth < 768) {
 
 :deep(.el-table) {
   --el-table-border-color: #e2e8f0;
-  --el-table-header-bg-color: #f8fafc;
+  --el-table-header-bg-color: #ffffff;
   --el-table-text-color: #1e293b;
   --el-table-header-text-color: #475569;
 }
@@ -235,7 +235,7 @@ if (window.innerWidth < 768) {
   width: 8px;
 }
 :deep(.el-main)::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #ffffff;
 }
 :deep(.el-main)::-webkit-scrollbar-thumb {
   background: #cbd5e1;

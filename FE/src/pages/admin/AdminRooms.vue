@@ -4,6 +4,35 @@ import { Plus, Edit, Delete, Location, House, Setting, View } from '@element-plu
 import { ElMessage, ElMessageBox } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
+
+// Define columns
+const roomColumns = [
+  { label: 'PHÒNG CHIẾU', key: 'room', minWidth: '250px' },
+  { label: 'SỨC CHỨA', key: 'capacity', width: '150px' },
+  { label: 'TRẠNG THÁI', key: 'status', width: '150px' },
+  { label: 'GHI CHÚ', key: 'note', minWidth: '200px' },
+];
+
+const selectedRooms = ref([]);
+const selectedIds = computed(() => selectedRooms.value.map(r => r.id));
+
+const handleBulkDelete = () => {
+    ElMessageBox.confirm(
+        `Xác nhận xóa <b>${selectedIds.value.length}</b> phòng chiếu đã chọn?`,
+        'Xóa hàng loạt',
+        {
+            dangerouslyUseHTMLString: true,
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy',
+            type: 'warning'
+        }
+    ).then(() => {
+        rooms.value = rooms.value.filter(r => !selectedIds.value.includes(r.id));
+        ElMessage.success(`Đã xóa ${selectedIds.value.length} phòng chiếu`);
+        selectedRooms.value = [];
+    }).catch(() => {});
+};
 
 // Mock Cinemas
 const cinemas = ref([
@@ -175,6 +204,11 @@ const handleDelete = (room) => {
       @add-click="openDialog()"
       @reset-filter="() => { searchQuery = ''; filterStatus = 'all'; }"
     >
+      <template #header-actions-left>
+        <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
+          Xóa {{ selectedIds.length }} phòng chiếu
+        </el-button>
+      </template>
       <template #stats>
         <div v-for="s in stats" :key="s.label" class="col-md-3">
           <StatCard 
@@ -205,41 +239,47 @@ const handleDelete = (room) => {
         </div>
       </template>
 
-      <template #columns>
-        <el-table-column label="Thông tin phòng" min-width="250">
-          <template #default="{ row }">
-            <div class="d-flex align-items-center gap-3">
+      <template #content>
+        <BaseTable
+          :data="filteredRooms.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+          :columns="roomColumns"
+          :total="filteredRooms.length"
+          v-model:currentPage="currentPage"
+          v-model:pageSize="pageSize"
+          v-model:selection="selectedRooms"
+          :hide-pagination="true"
+          @edit="openDialog"
+          @delete="handleDelete"
+        >
+          <template #cell-room="{ row }">
+            <div class="d-flex align-items-center gap-3 text-start">
               <div class="room-icon-box bg-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                 <i class="bi bi-display fs-5"></i>
               </div>
-              <div class="text-start">
-                <div class="fw-bold text-dark">{{ row.name }}</div>
-                <div class="small text-secondary">{{ row.type }}</div>
+              <div>
+                <div class="fw-bold text-dark small">{{ row.name }}</div>
+                <div class="text-secondary" style="font-size: 11px;">{{ row.type }}</div>
               </div>
             </div>
           </template>
-        </el-table-column>
-        
-        <el-table-column label="Sức chứa" width="150" align="center">
-          <template #default="{ row }">
-            <div class="stat-badge bg-light text-dark border px-3 py-1 rounded-pill small">
+
+          <template #cell-capacity="{ row }">
+             <div class="stat-badge bg-light text-dark border px-3 py-1 rounded-pill small d-inline-block">
               <i class="bi bi-people me-1"></i>{{ row.capacity || (row.rows * row.cols) }} ghế
             </div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Trạng thái" width="150" align="center">
-          <template #default="{ row }">
+          <template #cell-status="{ row }">
             <el-tag :type="row.status === 'Sẵn sàng' ? 'success' : 'warning'" size="small" effect="light" round>
               {{ row.status || 'Sẵn sàng' }}
             </el-tag>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Ghi chú" prop="note" min-width="200" show-overflow-tooltip />
+          <template #cell-note="{ row }">
+            <span class="text-secondary small">{{ row.note || '—' }}</span>
+          </template>
 
-        <el-table-column label="Thao tác" width="150" align="center" fixed="right">
-          <template #default="{ row }">
+          <template #cell-actions="{ row }">
             <div class="d-flex justify-content-center gap-1">
               <el-tooltip content="Chỉnh sửa sơ đồ ghế" placement="top">
                 <button class="btn-action-icon btn-action-view">
@@ -254,7 +294,7 @@ const handleDelete = (room) => {
               </button>
             </div>
           </template>
-        </el-table-column>
+        </BaseTable>
       </template>
     </AdminTableLayout>
 

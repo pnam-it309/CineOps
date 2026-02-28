@@ -25,8 +25,8 @@ public class ThanhToan extends PrimaryEntity {
     @Column(name = "ma_giao_dich", length = 100)
     private String maGiaoDich;
 
-    @Column(name = "phuong_thuc_thanh_toan", length = 50)
-    private String phuongThucThanhToan;
+    @Column(name = "phuong_thuc_thanh_toan")
+    private Integer phuongThucThanhToan;
 
     @Column(name = "so_tien", precision = 15, scale = 2)
     private BigDecimal soTien;

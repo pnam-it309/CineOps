@@ -200,6 +200,6 @@ onMounted(async () => {
 .admin-seats-page {
   height: calc(100vh - 60px);
   overflow: hidden;
-  background-color: #f8fafc;
+  background-color: #ffffff;
 }
 </style>

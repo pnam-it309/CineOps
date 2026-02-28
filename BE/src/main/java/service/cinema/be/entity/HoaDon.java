@@ -41,8 +41,6 @@ public class HoaDon extends PrimaryEntity {
     @Column(name = "so_tien_giam", precision = 15, scale = 2)
     private BigDecimal soTienGiam;
 
-    @Column(name = "thuc_thu", precision = 15, scale = 2)
-    private BigDecimal thucThu;
 
     @Column(name = "tong_tien_thanh_toan", precision = 20, scale = 2)
     private BigDecimal tongTienThanhToan;

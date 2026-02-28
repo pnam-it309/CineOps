@@ -1,20 +1,28 @@
 
 <script setup>
-import { ref, onMounted, computed, reactive } from 'vue';
+import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { Search, Plus, Edit, Delete, View, Filter } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
 import { khachHangService } from '@/services/api/admin/khachHangService';
 
 // --- State ---
 const customers = ref([]);
+const selectedCustomers = ref([]);
 const loading = ref(false);
 const searchQuery = ref('');
-const filterTrangThai = ref(''); // Lưu giá trị: '', 1, hoặc 0
+const filterTrangThai = ref(''); 
 const currentPage = ref(1);
 const pageSize = ref(10);
-const selectedIds = ref([]);
+
+const customerColumns = [
+  { label: 'KHÁCH HÀNG', key: 'customer', minWidth: '220px' },
+  { label: 'LIÊN HỆ', key: 'contact', minWidth: '200px' },
+  { label: 'GIỚI TÍNH', key: 'gender', width: '120px' },
+  { label: 'TRẠNG THÁI', key: 'trangThai', width: '130px' },
+];
 
 // State điều khiển Modal
 const dialogVisible = ref(false);
@@ -142,8 +150,28 @@ const resetFilter = () => {
   fetchCustomers();
 };
 
-const handleSelectionChange = (val) => {
-  selectedIds.value = val.map(item => item.id);
+const selectedIds = computed(() => selectedCustomers.value.map(item => item.id));
+
+const handleBulkDelete = () => {
+  ElMessageBox.confirm(
+    `Xác nhận xóa <b>${selectedIds.value.length}</b> khách hàng đã chọn?`,
+    'Xóa hàng loạt',
+    {
+      dangerouslyUseHTMLString: true,
+      confirmButtonText: 'Đồng ý',
+      cancelButtonText: 'Hủy',
+      type: 'warning'
+    }
+  ).then(async () => {
+    try {
+      await Promise.all(selectedIds.value.map(id => khachHangService.delete(id)));
+      ElMessage.success(`Đã xóa ${selectedIds.value.length} khách hàng`);
+      selectedCustomers.value = [];
+      fetchCustomers();
+    } catch (error) {
+      ElMessage.error('Có lỗi khi xóa hàng loạt');
+    }
+  }).catch(() => { });
 };
 
 const paginatedCustomers = computed(() => {
@@ -152,7 +180,9 @@ const paginatedCustomers = computed(() => {
 });
 
 const getGenderText = (gender) => gender === 1 ? 'Nam' : (gender === 0 ? 'Nữ' : 'Khác');
-const getStatusType = (status) => status === 1 ? 'success' : 'info';
+const getStatusLabel = (status) => status === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
+
+watch([currentPage, pageSize], fetchCustomers);
 </script>
 
 <template>
@@ -161,27 +191,20 @@ const getStatusType = (status) => status === 1 ? 'success' : 'info';
         title="Quản Lý Khách Hàng"
         titleIcon="bi bi-people-fill"
         addButtonLabel="Thêm khách hàng"
-        :data="paginatedCustomers"
+        :data="customers"
         :loading="loading"
         :total="customers.length"
         v-model:currentPage="currentPage"
         v-model:pageSize="pageSize"
         @add-click="handleAdd"
         @reset-filter="resetFilter"
-        @selection-change="handleSelectionChange"
     >
       <template #header-actions-left>
-        <el-button 
-          v-if="selectedIds.length" 
-          type="danger" 
-          plain 
-          size="default" 
-          :icon="Delete" 
-          @click="handleBulkDelete"
-        >
-          XÓA {{ selectedIds.length }} KHÁCH HÀNG
+        <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
+          Xóa {{ selectedIds.length }} khách hàng
         </el-button>
       </template>
+
       <template #stats>
         <div class="col-md-3">
           <StatCard label="Tổng Khách Hàng" :value="customers.length" icon="bi bi-people" type="primary" />
@@ -198,10 +221,12 @@ const getStatusType = (status) => status === 1 ? 'success' : 'info';
       </template>
   
       <template #filters>
-        <div class="filter-item search-input-wrapper">
-          <el-input v-model="searchQuery" placeholder="Tìm theo tên, email, SĐT..." :prefix-icon="Search" clearable @input="fetchCustomers" />
+        <div class="filter-item flex-grow-1 search-input-wrapper" style="max-width: 400px;">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block">Tìm kiếm</span>
+          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable @input="fetchCustomers" />
         </div>
         <div class="filter-item">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block">Trạng thái</span>
           <el-select v-model="filterTrangThai" placeholder="Trạng thái" style="width: 170px;" clearable @change="fetchCustomers">
             <template #prefix><el-icon><Filter /></el-icon></template>
             <el-option label="Tất cả trạng thái" value="" />
@@ -211,50 +236,59 @@ const getStatusType = (status) => status === 1 ? 'success' : 'info';
         </div>
       </template>
   
-      <template #columns>
-        <el-table-column type="index" label="STT" width="60" align="center" fixed="left" />
-        <el-table-column label="Khách hàng" min-width="220">
-          <template #default="{ row }">
-            <div class="d-flex align-items-center gap-2">
-              <el-avatar :size="32" class="bg-primary shadow-sm">{{ row.tenKhachHang?.charAt(0) }}</el-avatar>
+      <template #content>
+        <BaseTable
+          :data="paginatedCustomers"
+          :columns="customerColumns"
+          :loading="loading"
+          :total="customers.length"
+          v-model:currentPage="currentPage"
+          v-model:pageSize="pageSize"
+          v-model:selection="selectedCustomers"
+          :hide-pagination="true"
+          @edit="handleEdit"
+          @delete="handleDelete"
+        >
+          <template #cell-customer="{ row }">
+            <div class="d-flex align-items-center gap-2 text-start">
+              <el-avatar :size="32" class="bg-primary shadow-sm border border-white">{{ row.tenKhachHang?.charAt(0) }}</el-avatar>
               <div>
                 <div class="fw-bold text-dark small">{{ row.tenKhachHang }}</div>
                 <div class="text-secondary" style="font-size: 11px;">{{ row.maKhachHang }}</div>
               </div>
             </div>
           </template>
-        </el-table-column>
-        <el-table-column label="Liên hệ" min-width="200">
-          <template #default="{ row }">
-            <div class="small">
-              <div class="text-dark"><i class="bi bi-envelope me-1 text-primary"></i>{{ row.email || '—' }}</div>
-              <div class="text-secondary"><i class="bi bi-telephone me-1"></i>{{ row.sdt || '—' }}</div>
+
+          <template #cell-contact="{ row }">
+            <div class="small text-start">
+              <div class="text-dark"><i class="bi bi-envelope me-2 text-primary"></i>{{ row.email || '—' }}</div>
+              <div class="text-secondary"><i class="bi bi-telephone me-2"></i>{{ row.sdt || '—' }}</div>
             </div>
           </template>
-        </el-table-column>
-        <el-table-column label="Giới tính" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag :type="row.gioiTinh === 1 ? 'primary' : 'danger'" size="small" effect="plain">
+
+          <template #cell-gender="{ row }">
+            <el-tag :type="row.gioiTinh === 1 ? 'primary' : 'danger'" size="small" effect="plain" class="rounded-pill">
               {{ getGenderText(row.gioiTinh) }}
             </el-tag>
           </template>
-        </el-table-column>
-        <el-table-column label="Hành động" width="120" fixed="right" align="center">
-          <template #default="{ row }">
+
+          <template #cell-trangThai="{ row }">
+            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round>
+              {{ getStatusLabel(row.trangThai) }}
+            </el-tag>
+          </template>
+
+          <template #actions="{ row }">
             <div class="d-flex gap-1 justify-content-center">
-              <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Xóa" placement="top">
-                <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </el-tooltip>
+              <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)" title="Chỉnh sửa">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)" title="Xóa">
+                <i class="bi bi-trash"></i>
+              </button>
             </div>
           </template>
-        </el-table-column>
+        </BaseTable>
       </template>
     </AdminTableLayout>
   

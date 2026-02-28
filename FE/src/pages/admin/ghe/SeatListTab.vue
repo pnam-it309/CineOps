@@ -8,20 +8,13 @@
     :total="filteredSeats.length"
     v-model:currentPage="currentPage"
     v-model:pageSize="pageSize"
+    v-model:selection="selectedSeats"
     @add-click="$emit('open-dialog')"
     @reset-filter="resetFilter"
-    @selection-change="handleSelectionChange"
   >
     <!-- Header Actions Left Slot -->
     <template #header-actions-left>
-      <el-button 
-        v-if="selectedIds.length" 
-        type="danger" 
-        plain 
-        size="default" 
-        :icon="Delete" 
-        @click="handleBulkDelete"
-      >
+      <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
         Xóa {{ selectedIds.length }} ghế
       </el-button>
     </template>
@@ -95,64 +88,68 @@
       </div>
     </template>
 
-    <!-- Table Columns Slot -->
-    <template #columns>
-      <el-table-column type="index" label="STT" width="60" align="center" fixed="left" />
-      <el-table-column label="Số ghế" width="100" align="center">
-        <template #default="{ row }">
-          <span class="badge bg-dark text-white fw-bold px-2 py-1 rounded-2">{{ row.soGhe }}</span>
+    <!-- Content Slot with BaseTable -->
+    <template #content>
+      <BaseTable
+        :data="paginatedSeats"
+        :columns="seatColumns"
+        :loading="loading"
+        :total="filteredSeats.length"
+        v-model:currentPage="currentPage"
+        v-model:pageSize="pageSize"
+        v-model:selection="selectedSeats"
+        :hide-pagination="true"
+        @edit="row => $emit('open-dialog', row)"
+        @delete="row => $emit('delete-seat', row)"
+      >
+        <template #cell-index="{ index }">
+          <span class="text-secondary small">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
         </template>
-      </el-table-column>
-      <el-table-column label="Vị trí" width="150" align="center">
-        <template #default="{ row }">
+
+        <template #cell-soGhe="{ row }">
+          <span class="badge bg-dark text-white fw-bold px-2 py-1 rounded-2" style="font-size: 11px;">{{ row.soGhe }}</span>
+        </template>
+
+        <template #cell-viTri="{ row }">
           <span class="text-dark small">Hàng <b>{{ row.soHang }}</b> - Cột <b>{{ row.soCot }}</b></span>
         </template>
-      </el-table-column>
-      <el-table-column label="Phòng" prop="tenPhongChieu" min-width="150" />
-      <el-table-column label="Loại ghế" width="140">
-        <template #default="{ row }">
+
+        <template #cell-loaiGhe="{ row }">
           <el-tag :type="getSeatTypeTag(row.tenLoaiGhe)" round size="small" effect="plain">{{ row.tenLoaiGhe }}</el-tag>
         </template>
-      </el-table-column>
-      <el-table-column label="Phụ phí" width="120" align="right">
-        <template #default="{ row }">
+
+        <template #cell-phuPhi="{ row }">
           <span class="text-primary fw-bold small">{{ row.phuPhi > 0 ? formatCurrency(row.phuPhi) : '—' }}</span>
         </template>
-      </el-table-column>
-      <el-table-column label="Trạng thái" width="120" align="center">
-        <template #default="{ row }">
+
+        <template #cell-trangThai="{ row }">
           <el-tag :type="row.trangThai === 1 ? 'success' : 'warning'" round size="small">
             {{ row.trangThai === 1 ? 'Hoạt động' : 'Bảo trì' }}
           </el-tag>
         </template>
-      </el-table-column>
-      <el-table-column label="Thao tác" width="110" align="center" fixed="right">
-        <template #default="{ row }">
-          <div class="d-flex gap-1 justify-content-center">
-            <el-tooltip content="Chỉnh sửa" placement="top">
-              <button class="btn-action-icon btn-action-edit" @click="$emit('open-dialog', row)">
-                <i class="bi bi-pencil"></i>
-              </button>
-            </el-tooltip>
-            <el-tooltip content="Xóa" placement="top">
-              <button class="btn-action-icon btn-action-delete" @click="$emit('delete-seat', row)">
-                <i class="bi bi-trash"></i>
-              </button>
-            </el-tooltip>
-          </div>
-        </template>
-      </el-table-column>
+      </BaseTable>
     </template>
   </AdminTableLayout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Search, Monitor, PriceTag, Delete } from '@element-plus/icons-vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
 import { gheService } from '@/services/api/admin/gheService';
+
+const seatColumns = [
+  { label: 'STT', key: 'index', width: '60px' },
+  { label: 'SỐ GHẾ', key: 'soGhe', width: '100px' },
+  { label: 'VỊ TRÍ', key: 'viTri', width: '150px' },
+  { label: 'PHÒNG', key: 'tenPhongChieu', minWidth: '150px' },
+  { label: 'LOẠI GHẾ', key: 'loaiGhe', width: '140px' },
+  { label: 'PHỤ PHÍ', key: 'phuPhi', width: '120px' },
+  { label: 'TRẠNG THÁI', key: 'trangThai', width: '120px' },
+];
 
 const props = defineProps({
   seats: Array,
@@ -168,11 +165,8 @@ const filterLoaiGhe = ref('');
 const searchQuery = ref('');
 const currentPage = ref(1);
 const pageSize = ref(5);
-const selectedIds = ref([]);
-
-const handleSelectionChange = (val) => {
-  selectedIds.value = val.map(item => item.id);
-};
+const selectedSeats = ref([]);
+const selectedIds = computed(() => selectedSeats.value.map(item => item.id));
 
 const handleBulkDelete = () => {
     ElMessageBox.confirm(
@@ -190,7 +184,7 @@ const handleBulkDelete = () => {
             // Hoặc nếu backend đã hỗ trợ, hãy thay thế bằng endpoint đó
             await Promise.all(selectedIds.value.map(id => gheService.deleteSeat(id)));
             ElMessage.success(`Đã xóa ${selectedIds.value.length} ghế`);
-            selectedIds.value = [];
+            selectedSeats.value = [];
             emit('fetch-seats');
         } catch (error) {
             ElMessage.error('Có lỗi khi xóa hàng loạt');

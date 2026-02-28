@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
   data: {
@@ -22,6 +22,11 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  // Selection state
+  selection: {
+    type: Array,
+    default: () => []
+  },
   // Pagination props
   total: {
     type: Number,
@@ -34,10 +39,54 @@ const props = defineProps({
   pageSize: {
     type: Number,
     default: 10
+  },
+  hidePagination: {
+    type: Boolean,
+    default: false
   }
 });
 
-const emit = defineEmits(['update:currentPage', 'update:pageSize', 'edit', 'delete', 'selection-change', 'view']);
+const emit = defineEmits([
+  'update:currentPage', 
+  'update:pageSize', 
+  'update:selection',
+  'edit', 
+  'delete', 
+  'selection-change', 
+  'view'
+]);
+
+// Selection Logic
+const isAllSelected = computed(() => {
+  return props.data.length > 0 && props.selection.length === props.data.length;
+});
+
+const handleSelectAll = (event) => {
+  const isChecked = event.target.checked;
+  const newSelection = isChecked ? [...props.data] : [];
+  emit('update:selection', newSelection);
+  emit('selection-change', newSelection);
+};
+
+const handleSelectItem = (item, event) => {
+  const isChecked = event.target.checked;
+  let newSelection = [...props.selection];
+  
+  if (isChecked) {
+    if (!newSelection.some(i => (i.id || i) === (item.id || item))) {
+      newSelection.push(item);
+    }
+  } else {
+    newSelection = newSelection.filter(i => (i.id || i) !== (item.id || item));
+  }
+  
+  emit('update:selection', newSelection);
+  emit('selection-change', newSelection);
+};
+
+const isItemSelected = (item) => {
+  return props.selection.some(i => (i.id || i) === (item.id || item));
+};
 
 const totalPages = computed(() => Math.ceil(props.total / props.pageSize));
 
@@ -49,7 +98,7 @@ const handlePageChange = (page) => {
 
 const handlePageSizeChange = (size) => {
   emit('update:pageSize', size);
-  emit('update:currentPage', 1); // Reset to first page when changing size
+  emit('update:currentPage', 1);
 };
 
 const pagesToShow = computed(() => {
@@ -79,9 +128,14 @@ const pagesToShow = computed(() => {
         <!-- Sticky Header -->
         <thead class="sticky-top shadow-sm" style="z-index: 10;">
           <tr class="border-bottom">
-            <th v-if="showCheckbox" class="py-3 px-3 table-header-bg" style="width: 50px;">
-              <div class="form-check d-flex justify-content-center">
-                <input class="form-check-input" type="checkbox" @change="$emit('selection-change', $event)">
+            <th v-if="showCheckbox" class="py-3 px-2 table-header-bg" style="width: 50px; min-width: 50px;">
+              <div class="form-check d-flex justify-content-center ps-0 mb-0" style="min-height: auto;">
+                <input 
+                  class="form-check-input m-0 cursor-pointer" 
+                  type="checkbox" 
+                  :checked="isAllSelected"
+                  @change="handleSelectAll"
+                >
               </div>
             </th>
             <th v-for="col in columns" :key="col.key" class="py-3 px-3 fw-bold text-nowrap text-center table-header-bg" :style="{ width: col.width || 'auto' }">
@@ -92,9 +146,14 @@ const pagesToShow = computed(() => {
         </thead>
         <tbody v-if="!loading && data.length > 0">
           <tr v-for="(item, index) in data" :key="item.id || index" class="border-bottom border-light-subtle">
-            <td v-if="showCheckbox" class="py-3 px-3">
-              <div class="form-check d-flex justify-content-center">
-                <input class="form-check-input" type="checkbox">
+            <td v-if="showCheckbox" class="py-3 px-2" style="width: 50px;">
+              <div class="form-check d-flex justify-content-center ps-0 mb-0" style="min-height: auto;">
+                <input 
+                  class="form-check-input m-0 cursor-pointer" 
+                  type="checkbox"
+                  :checked="isItemSelected(item)"
+                  @change="handleSelectItem(item, $event)"
+                >
               </div>
             </td>
             <td v-for="col in columns" :key="col.key" class="py-3 px-3 text-secondary" style="font-size: 13px;">
@@ -125,7 +184,6 @@ const pagesToShow = computed(() => {
             </td>
           </tr>
         </tbody>
-        <!-- Loading & Empty states remain same but with better padding/styling if needed -->
         <tbody v-else-if="loading">
           <tr>
             <td :colspan="columns.length + (showCheckbox ? 1 : 0) + (showActions ? 1 : 0)" class="py-5 border-0">
@@ -147,14 +205,12 @@ const pagesToShow = computed(() => {
       </table>
     </div>
 
-    <!-- Phân trang cố định ở dưới -->
-    <div class="table-footer-pagination d-flex justify-content-between align-items-center pt-3 px-2 w-100 flex-shrink-0">
+    <div v-if="!hidePagination" class="table-footer-pagination d-flex justify-content-between align-items-center pt-3 px-2 w-100 flex-shrink-0">
       <div class="pagination-left d-flex align-items-center gap-3">
         <div class="total-badge highlight-total py-1 px-3 rounded-pill bg-light border">
           <span class="text-secondary small fw-bold">Tổng cộng:</span> 
           <span class="text-dark fw-bold ms-1" style="font-size: 14px;">{{ total }}</span>
         </div>
-
         <div class="d-flex align-items-center gap-2">
           <el-select 
             :model-value="pageSize" 
@@ -169,7 +225,6 @@ const pagesToShow = computed(() => {
           </el-select>
         </div>
       </div>
-
       <div class="pagination-right">
         <nav v-if="total > 0" aria-label="Table navigation">
           <ul class="pagination-simple mb-0 list-unstyled d-flex align-items-center gap-1">
@@ -178,11 +233,6 @@ const pagesToShow = computed(() => {
                 <i class="bi bi-chevron-left"></i>
               </button>
             </li>
-            
-            <li v-if="pagesToShow[0] > 1" class="page-item">
-              <span class="simple-page-dots">...</span>
-            </li>
-
             <li v-for="page in pagesToShow" :key="page" class="page-item">
               <button 
                 class="simple-page-btn" 
@@ -192,11 +242,6 @@ const pagesToShow = computed(() => {
                 {{ page }}
               </button>
             </li>
-
-            <li v-if="pagesToShow[pagesToShow.length-1] < totalPages" class="page-item">
-              <span class="simple-page-dots">...</span>
-            </li>
-
             <li class="page-item" :class="{ disabled: currentPage === totalPages || total === 0 }">
               <button class="simple-page-btn arrow" @click="handlePageChange(currentPage + 1)">
                 <i class="bi bi-chevron-right"></i>
@@ -210,121 +255,44 @@ const pagesToShow = computed(() => {
 </template>
 
 <style scoped>
-.base-table-container {
-  min-height: 0;
+.base-table-container { min-height: 0; }
+.table-content-wrapper { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+.table-header-bg { background-color: #ffffff !important; color: #475569 !important; font-size: 12px; letter-spacing: 0.025em; text-transform: uppercase; }
+.cursor-pointer { cursor: pointer; }
+.simple-page-btn { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0 8px; border: none; background: transparent; color: #475569; font-size: 14px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
+.simple-page-btn:hover:not(.active):not(.arrow) { color: #4f46e5; background: #f8fafc; border-radius: 6px; }
+.simple-page-btn.active { color: #4f46e5; font-weight: 700; position: relative; }
+.simple-page-btn.arrow { color: #94a3b8; }
+.simple-page-btn.arrow:hover { color: #475569; }
+.page-item.disabled .simple-page-btn { opacity: 0.3; cursor: not-allowed; }
+.highlight-total { background-color: #ffffff !important; border-color: #e2e8f0 !important; }
+.btn-action-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; background: transparent; transition: all 0.2s; padding: 0; cursor: pointer; }
+.btn-action-icon:hover { background-color: #f1f5f9; }
+.spinner-premium { width: 32px; height: 32px; border: 3px solid #f1f5f9; border-top: 3px solid #4f46e5; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+:deep(.compact-select-simple .el-input__wrapper) { border-radius: 6px !important; background-color: #ffffff !important; box-shadow: none !important; border: 1px solid #e2e8f0 !important; height: 30px !important; }
+:deep(.compact-select-simple .el-input__wrapper.is-focus) { border-color: #4f46e5 !important; }
+
+/* Force clean white checkbox style like image 2 */
+:deep(.form-check-input) {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #dcdfe6;
+  border-radius: 5px;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: none !important;
 }
 
-.table-content-wrapper {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+:deep(.form-check-input:checked) {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
 }
 
-.table-header-bg {
-    background-color: #f8fafc !important;
-    color: #475569 !important;
-    font-size: 12px;
-    letter-spacing: 0.025em;
-    text-transform: uppercase;
-}
-
-/* Simple Pagination Style like Image 4 */
-.simple-page-btn {
-    min-width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 8px;
-    border: none;
-    background: transparent;
-    color: #475569;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.simple-page-btn:hover:not(.active):not(.arrow) {
-    color: #4f46e5;
-    background: #f8fafc;
-    border-radius: 6px;
-}
-
-.simple-page-btn.active {
-    color: #4f46e5;
-    font-weight: 700;
-    position: relative;
-}
-
-.simple-page-btn.arrow {
-    color: #94a3b8;
-}
-
-.simple-page-btn.arrow:hover {
-    color: #475569;
-}
-
-.page-item.disabled .simple-page-btn {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.simple-page-dots {
-    padding: 0 4px;
-    color: #94a3b8;
-}
-
-.highlight-total {
-    background-color: #f8fafc !important;
-    border-color: #e2e8f0 !important;
-}
-
-.btn-action-icon {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    border: none;
-    background: transparent;
-    transition: all 0.2s;
-    padding: 0;
-    cursor: pointer;
-}
-
-.btn-action-icon:hover {
-    background-color: #f1f5f9;
-}
-
-.text-indigo-500 { color: #4f46e5; }
-.text-danger { color: #ef4444; }
-
-/* Loading Spinner */
-.spinner-premium {
-    width: 32px;
-    height: 32px;
-    border: 3px solid #f1f5f9;
-    border-top: 3px solid #4f46e5;
-    border-radius: 50%;
-    margin: 0 auto;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-:deep(.compact-select-simple .el-input__wrapper) {
-    border-radius: 6px !important;
-    background-color: #f8fafc !important;
-    box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important;
-    height: 30px !important;
-}
-
-:deep(.compact-select-simple .el-input__wrapper.is-focus) {
-    border-color: #4f46e5 !important;
+:deep(.form-check-input:focus) {
+  border-color: #dcdfe6;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
 }
 </style>

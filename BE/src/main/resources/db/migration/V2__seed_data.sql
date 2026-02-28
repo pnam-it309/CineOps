@@ -1,4 +1,10 @@
 -- DATA SEED FOR CINEOPS
+-- 0. LOẠI NGÀY
+INSERT INTO loai_ngay (id, ten_loai_ngay, he_so_ngay, nguoi_tao) VALUES 
+('ln-thuong', 'Ngày thường', 1.00, 'system'),
+('ln-cuoituan', 'Cuối tuần', 1.20, 'system'),
+('ln-letet', 'Lễ / Tết', 1.50, 'system');
+
 -- 1. LOẠI GHẾ
 INSERT INTO loai_ghe (id, ten_loai, phu_phi, nguoi_tao)
 VALUES ('lg-normal-uuid', 'Thường', 0, 'system'),
@@ -62,31 +68,31 @@ VALUES
 ('P1', 'Thỏ Ơi!!', 95, '2025-02-01', '2025-03-30', '2,4,6,0',
  'Trấn Thành', 'Trấn Thành, Ly Ly, Pháo, Văn Mai Hương, Quốc Anh', 'Phim hoạt hình thiếu nhi vui nhộn',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'https://upload.wikimedia.org/wikipedia/commons/3/3a/Cute_bunny_cartoon.png',
+ 'https://image.tmdb.org/t/p/w500/gRApXuxWmO2forYTuTmcz5RaNUV.jpg',
  'Tiếng Việt', 0, 8.5, 65000, 1, 'admin'),
 
 ('P2', 'Mùi Phở', 110, '2025-02-10', '2025-04-01', '1,2,3,4',
  'Minh Beta', 'Xuân Hinh, Thu Trang, Thanh Thanh Hiền, Quốc Tuấn', 'Phim Việt về văn hóa ẩm thực',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'https://upload.wikimedia.org/wikipedia/commons/6/60/Pho_Bo.jpg',
+ 'https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
  'Tiếng Việt', 13, 8.0, 65000, 1, 'admin'),
 
 ('P3', 'Tài', 105, '2025-02-05', '2025-03-25', '2,3,4,5,6',
  'Mỹ Tâm', 'Mỹ Tâm, Vinh Râu', 'Phim tâm lý xã hội',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'https://upload.wikimedia.org/wikipedia/commons/8/89/Film_reel_icon.png',
+ 'https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg',
  'Tiếng Việt', 16, 7.8, 65000, 1, 'admin'),
 
 ('P4', 'Quỷ Nhập Tràng 2', 120, '2025-02-15', '2025-04-10', '4,6,0,1,2',
  'Đang cập nhật', 'Khả Như, Vân Dung', 'Phim kinh dị Việt Nam',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'https://upload.wikimedia.org/wikipedia/commons/1/17/Horror_film_clapperboard.png',
+ 'https://image.tmdb.org/t/p/w500/A4j8S6moJS2zNtRR8oWF08gRnL5.jpg',
  'Tiếng Việt', 18, 8.7, 65000, 1, 'admin'),
 
 ('P5', 'Avatar: Lửa và Tro Tàn', 165, '2025-12-20', '2026-02-01', '4,5,6,0,1',
  'James Cameron', 'Sam Worthington, Zoe Saldana', 'Bom tấn khoa học viễn tưởng',
  'https://www.youtube.com/watch?v=5PSNL1qE6VY',
- 'https://upload.wikimedia.org/wikipedia/en/d/d6/Avatar_The_Way_of_Water_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg',
  'Tiếng Anh', 13, 9.2, 65000, 2, 'admin'),
 
 ('P6', 'Khủng Long Đón Tết', 100, '2025-01-20', '2025-03-01', '2,3,4,5,6',
@@ -98,147 +104,146 @@ VALUES
 ('P7', 'Tuyển Thủ Dê', 98, '2025-03-01', '2025-04-15', '0,1,2,3',
  'Gabrielle Unio', 'Diễn viên lồng tiếng', 'Phim hoạt hình thể thao',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Soccer_ball.svg',
+ 'https://image.tmdb.org/t/p/w500/sLjBuNcpyYSaeXpOREBJlIUElEX.jpg',
  'Tiếng Việt', 7, 7.9, 65000, 2, 'admin'),
 
 ('P8', 'Doraemon Movie', 105, '2025-02-18', '2025-04-20', '',
  'Fujiko F. Fujio', 'Doraemon, Nobita', 'Phim hoạt hình Nhật Bản',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'https://upload.wikimedia.org/wikipedia/en/0/0d/Doraemon_character.png',
+ 'https://image.tmdb.org/t/p/w500/oT3YgMdKGThPboY6sNTgfHezBQv.jpg',
  'Tiếng Nhật', 0, 8.8, 65000, 1, 'admin'),
 
 ('P9', 'Conan Movie', 110, '2025-03-10', '2025-05-01', '',
  'Aoyama Gosho', 'Conan, Ran', 'Thám tử lừng danh Conan movie',
- 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'https://upload.wikimedia.org/wikipedia/en/1/1b/Detective_Conan_logo.png',
+'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+ 'https://image.tmdb.org/t/p/w500/zN41DPmFcKyDcRUiXMDl8yTYolk.jpg',
  'Tiếng Nhật', 13, 8.9, 65000, 2, 'admin'),
 
 ('P10', 'One Piece Film', 120, '2025-04-01', '2025-06-01', '1,3,5,0',
  'Eiichiro Oda', 'Luffy, Zoro', 'Phiêu lưu hải tặc',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'https://upload.wikimedia.org/wikipedia/en/2/2c/One_Piece_Logo.png',
+ 'https://image.tmdb.org/t/p/w500/cezWGskPY5x7GaglTTRN4Fugivo.jpg',
  'Tiếng Nhật', 13, 9.0, 65000, 2, 'admin'),
 
 -- ===== 10 PHIM HOLLYWOOD (ĐANG CHIẾU MOCK)
 ('P11', 'Fast & Furious 10', 140, '2024-12-01', '2025-03-01', '4,6',
  'Louis Leterrier', 'Vin Diesel, Jason Momoa', 'Phim đua xe hành động',
  'https://www.youtube.com/watch?v=32RAq6JzY-w',
- 'https://upload.wikimedia.org/wikipedia/en/0/0c/Fast_X_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/fiVW06jE7z9F3FaNBaWZxROCPzC.jpg',
  'Tiếng Anh', 16, 8.1, 65000, 1, 'admin'),
 
 ('P12', 'Spider-Man: New World', 130, '2025-01-05', '2025-04-01', '1,3',
  'Marvel Studios', 'Tom Holland', 'Siêu anh hùng Marvel',
  'https://www.youtube.com/watch?v=JfVOs4VSpmA',
- 'https://upload.wikimedia.org/wikipedia/en/0/0c/Spider-Man_No_Way_Home_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg',
  'Tiếng Anh', 13, 9.1, 65000, 1, 'admin'),
 
 ('P13', 'Frozen 3', 115, '2025-06-01', '2025-08-01', '0,1',
  'Disney', 'Elsa, Anna', 'Hoạt hình Disney',
  'https://www.youtube.com/watch?v=TbQm5doF_Uc',
- 'https://upload.wikimedia.org/wikipedia/en/0/05/Frozen_%282013_film%29_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/kgwjIb2JDHRhNk13lmSxiClFjVk.jpg',
  'Tiếng Anh', 0, 8.6, 65000, 2, 'admin'),
 
 ('P14', 'The Nun 3', 120, '2025-03-20', '2025-05-15', '2,4,6',
  'Michael Chaves', 'Taissa Farmiga', 'Phim kinh dị Hollywood',
  'https://www.youtube.com/watch?v=QF-oyCwaArU',
- 'https://upload.wikimedia.org/wikipedia/en/4/47/The_Nun_II_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/wodVhIn5KbpVojhKeMnzmIfmWiU.jpg',
  'Tiếng Anh', 18, 7.5, 65000, 2, 'admin'),
 
 ('P15', 'Joker 2', 135, '2025-10-01', '2025-12-01', '3,5,0',
  'Todd Phillips', 'Joaquin Phoenix', 'Tâm lý tội phạm',
  'https://www.youtube.com/watch?v=zAGVQLHvwOY',
- 'https://upload.wikimedia.org/wikipedia/en/e/e1/Joker_%282019_film%29_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/sc0YGSB4TJl3xkqzjSVEJCFWfVH.jpg',
  'Tiếng Anh', 18, 9.3, 65000, 2, 'admin'),
 
 -- ===== 15 PHIM NGỪNG CHIẾU (DATA LỊCH SỬ)
 ('P16', 'Avengers: Endgame', 180, '2019-04-26', '2019-07-01', '',
  'Russo Brothers', 'Robert Downey Jr', 'Siêu anh hùng Marvel',
  'https://www.youtube.com/watch?v=TcMBFSGVi1c',
- 'https://upload.wikimedia.org/wikipedia/en/0/0d/Avengers_Endgame_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg',
  'Tiếng Anh', 13, 9.5, 65000, 0, 'admin'),
 
 ('P17', 'Titanic', 195, '1997-12-19', '1998-06-01', '',
  'James Cameron', 'Leonardo DiCaprio', 'Phim tình cảm kinh điển',
  'https://www.youtube.com/watch?v=2e-eXJ6HgkQ',
- 'https://upload.wikimedia.org/wikipedia/en/2/22/Titanic_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg',
  'Tiếng Anh', 13, 9.0, 65000, 0, 'admin'),
 
 ('P18', 'Interstellar', 169, '2014-11-07', '2015-02-01', '',
  'Christopher Nolan', 'Matthew McConaughey', 'Du hành vũ trụ',
  'https://www.youtube.com/watch?v=zSWdZVtXT7E',
- 'https://upload.wikimedia.org/wikipedia/en/b/bc/Interstellar_film_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
  'Tiếng Anh', 13, 9.4, 65000, 0, 'admin'),
 
 ('P19', 'The Lion King', 118, '2019-07-19', '2019-10-01', '',
  'Disney', 'Simba', 'Hoạt hình Disney',
- 'https://www.youtube.com/watch?v=7TavVZMewpY',
- 'https://upload.wikimedia.org/wikipedia/en/7/73/The_Lion_King_2019_poster.jpg',
+'https://www.youtube.com/watch?v=7TavVZMewpY',
+ 'https://image.tmdb.org/t/p/w500/sCanFr3dvkGOAMq5FzwLmECNAHr.jpg',
  'Tiếng Anh', 0, 8.5, 65000, 0, 'admin'),
 
 ('P20', 'Minions', 91, '2015-07-10', '2015-10-01', '',
  'Illumination', 'Minions', 'Hoạt hình hài',
  'https://www.youtube.com/watch?v=eisKxhjBnZ0',
- 'https://upload.wikimedia.org/wikipedia/en/3/3d/Minions_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/2LqaLgk4Z226KkgPJuiOQ58ShKD.jpg',
  'Tiếng Anh', 0, 8.2, 65000, 0, 'admin'),
 
 ('P21', 'Transformers', 144, '2007-07-03', '2007-10-01', '',
  'Michael Bay', 'Shia LaBeouf', 'Robot hành động',
  'https://www.youtube.com/watch?v=v8ItGrI-Ou0',
- 'https://upload.wikimedia.org/wikipedia/en/6/66/Transformers07.jpg',
+ 'https://image.tmdb.org/t/p/w500/7cqKGQMnNabzOpi7qaIgZvQ7NGV.jpg',
  'Tiếng Anh', 13, 8.0, 65000, 0, 'admin'),
 
 ('P22', 'Jurassic World', 124, '2015-06-12', '2015-09-01', '',
  'Colin Trevorrow', 'Chris Pratt', 'Khủng long phiêu lưu',
  'https://www.youtube.com/watch?v=RFinNxS5KN4',
- 'https://upload.wikimedia.org/wikipedia/en/6/6e/Jurassic_World_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/dkMD5qlogeRMiEixC4YNPUvax2T.jpg',
  'Tiếng Anh', 13, 8.3, 65000, 0, 'admin'),
 
 ('P23', 'Frozen', 102, '2013-11-27', '2014-03-01', '',
  'Disney', 'Elsa, Anna', 'Công chúa băng giá',
  'https://www.youtube.com/watch?v=TbQm5doF_Uc',
- 'https://upload.wikimedia.org/wikipedia/en/0/05/Frozen_%282013_film%29_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/kgwjIb2JDHRhNk13lmSxiClFjVk.jpg' ,
  'Tiếng Anh', 0, 8.7, 65000, 0, 'admin'),
 
 ('P24', 'Inception', 148, '2010-07-16', '2010-10-01', '',
  'Christopher Nolan', 'Leonardo DiCaprio', 'Giấc mơ tầng sâu',
  'https://www.youtube.com/watch?v=YoHD9XEInc0',
- 'https://upload.wikimedia.org/wikipedia/en/7/7f/Inception_ver3.jpg',
+ 'https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
  'Tiếng Anh', 13, 9.2, 65000, 0, 'admin'),
 
 ('P25', 'Doctor Strange', 115, '2016-11-04', '2017-02-01', '',
  'Marvel Studios', 'Benedict Cumberbatch', 'Pháp sư tối thượng',
  'https://www.youtube.com/watch?v=HSzx-zryEgM',
- 'https://upload.wikimedia.org/wikipedia/en/c/c7/Doctor_Strange_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/uGy4DCmgj5G40Mq0FgOUT94b1oA.jpg',
  'Tiếng Anh', 13, 8.6, 65000, 0, 'admin'),
 
 ('P26', 'Aquaman', 143, '2018-12-21', '2019-03-01', '',
  'James Wan', 'Jason Momoa', 'Anh hùng đại dương',
  'https://www.youtube.com/watch?v=WDkg3h8PCVU',
- 'https://upload.wikimedia.org/wikipedia/en/e/ea/Aquaman_%282018_film%29_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/2wurSpMJ85WRoX0gJMoG3BKs5oc.jpg',
  'Tiếng Anh', 13, 8.1, 65000, 0, 'admin'),
 
 ('P27', 'Black Panther', 134, '2018-02-16', '2018-05-01', '',
  'Ryan Coogler', 'Chadwick Boseman', 'Vua Wakanda',
  'https://www.youtube.com/watch?v=xjDjIWPwcPU',
- 'https://upload.wikimedia.org/wikipedia/en/d/d6/Black_Panther_%28film%29_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/uxzzxijgPIY7slzFvMotPv8wjKA.jpg',
  'Tiếng Anh', 13, 8.8, 65000, 0, 'admin'),
 
 ('P28', 'Aladdin', 128, '2019-05-24', '2019-08-01', '0,1,2,3,4',
  'Guy Ritchie', 'Will Smith', 'Phiêu lưu thần đèn',
  'https://www.youtube.com/watch?v=foyufD52aog',
- 'https://upload.wikimedia.org/wikipedia/en/5/5c/Aladdin_%282019_film%29.png',
+ 'https://image.tmdb.org/t/p/w500/eLRjF0aBUMiGWmBJcSbn02mOqhj.jpg',
  'Tiếng Anh', 0, 8.4, 65000, 0, 'admin'),
 
 ('P29', 'Toy Story 4', 100, '2019-06-21', '2019-09-01', '',
  'Pixar', 'Woody, Buzz', 'Hoạt hình Pixar',
  'https://www.youtube.com/watch?v=wmiIUN-7qhE',
- 'https://upload.wikimedia.org/wikipedia/en/4/4c/Toy_Story_4_poster.jpg',
+ 'https://image.tmdb.org/t/p/w500/w9kR8qbmQ01HwnvK4alvnQ2ca0L.jpg',
  'Tiếng Anh', 0, 8.9, 65000, 0, 'admin'),
-
 ('P30', 'Kung Fu Panda', 95, '2008-06-06', '2008-09-01', '1,3,5,6',
  'DreamWorks', 'Po', 'Hoạt hình võ thuật',
  'https://www.youtube.com/watch?v=PXi3Mv6KMzY',
- 'https://upload.wikimedia.org/wikipedia/en/7/76/Kungfupanda.jpg',
+ 'https://image.tmdb.org/t/p/w500/wWt5JEXUIhFBMVMDruAzBwlSMhc.jpg',
  'Tiếng Anh', 0, 8.8, 65000, 0, 'admin');
 
 -- 6. SUẤT CHIẾU
@@ -423,3 +428,71 @@ INSERT INTO phim_the_loai (id, id_phim, id_the_loai) VALUES
 ('PTL074', 'P30', 'TL1'),
 ('PTL075', 'P30', 'TL5'),
 ('PTL076', 'P30', 'TL7');
+
+-- 13. LOẠI SẢN PHẨM ĐI KÈM
+INSERT INTO loai_san_pham_di_kem (id, ten_loai, nguoi_tao) VALUES 
+('lsp-popcorn', 'Bắp', 'system'),
+('lsp-drink', 'Nước', 'system');
+
+-- 14. KÍCH CỠ
+INSERT INTO kich_co (id, ten_kich_co, mo_ta) VALUES 
+('kc-s', 'S', 'Nhỏ'),
+('kc-m', 'M', 'Vừa'),
+('kc-l', 'L', 'Lớn'),
+('kc-xl', 'XL', 'Rất lớn');
+
+-- 15. ĐƠN VỊ TÍNH
+INSERT INTO don_vi_tinh (id, ten_don_vi_tinh, mo_ta) VALUES 
+('dvt-g', 'g', 'Gram'),
+('dvt-ml', 'ml', 'Milliliter'),
+('dvt-ly', 'Ly', 'Ly'),
+('dvt-hop', 'Hộp', 'Hộp');
+
+-- 16. SẢN PHẨM ĐI KÈM
+INSERT INTO san_pham_di_kem (id, id_loai_san_pham, ten_san_pham, mo_ta, hinh_anh, trang_thai, nguoi_tao) VALUES
+('sp-popcorn-cheese', 'lsp-popcorn', 'Bắp Phô Mai', 'Bắp rang bơ vị phô mai thơm ngon, giòn tan', 'https://images.unsplash.com/photo-1585735024088-0c4e0e5b3b3e?w=400', 1, 'system'),
+('sp-popcorn-caramel', 'lsp-popcorn', 'Bắp Caramel', 'Bắp rang bơ caramel ngọt ngào, hấp dẫn', 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=400', 1, 'system'),
+('sp-popcorn-butter', 'lsp-popcorn', 'Bắp Bơ Truyền Thống', 'Bắp rang bơ truyền thống, vị cổ điển', 'https://images.unsplash.com/photo-1612404730960-5c0b4d0e9fb0?w=400', 1, 'system'),
+('sp-coca', 'lsp-drink', 'Coca Cola', 'Nước ngọt có ga Coca Cola mát lạnh', 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400', 1, 'system'),
+('sp-pepsi', 'lsp-drink', 'Pepsi', 'Nước ngọt Pepsi sảng khoái', 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400', 1, 'system'),
+('sp-tra-dao', 'lsp-drink', 'Trà Đào Cam Sả', 'Trà đào cam sả thanh mát, giải khát', 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400', 1, 'system'),
+('sp-nuoc-suoi', 'lsp-drink', 'Nước Suối', 'Nước suối tinh khiết Aquafina', 'https://images.unsplash.com/photo-1560023907-5f339617ea55?w=400', 1, 'system'),
+('sp-popcorn-spicy', 'lsp-popcorn', 'Bắp Cay', 'Bắp rang bơ vị cay nồng, kích thích vị giác', 'https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?w=400', 1, 'system');
+
+-- 17. CHI TIẾT SẢN PHẨM ĐI KÈM (Biến thể theo Size)
+INSERT INTO chi_tiet_san_pham_di_kem (id, id_san_pham, id_kich_co, id_don_vi_tinh, gia_tri_dinh_luong, huong_vi, gia_ban, so_luong_ton, nguoi_tao) VALUES
+-- Bắp Phô Mai: S/M/L
+('ct-pc-s', 'sp-popcorn-cheese', 'kc-s', 'dvt-g', 50, 'Phô Mai', 35000, 100, 'system'),
+('ct-pc-m', 'sp-popcorn-cheese', 'kc-m', 'dvt-g', 80, 'Phô Mai', 49000, 80, 'system'),
+('ct-pc-l', 'sp-popcorn-cheese', 'kc-l', 'dvt-g', 120, 'Phô Mai', 65000, 60, 'system'),
+
+-- Bắp Caramel: S/M/L
+('ct-pcr-s', 'sp-popcorn-caramel', 'kc-s', 'dvt-g', 50, 'Caramel', 35000, 90, 'system'),
+('ct-pcr-m', 'sp-popcorn-caramel', 'kc-m', 'dvt-g', 80, 'Caramel', 49000, 70, 'system'),
+('ct-pcr-l', 'sp-popcorn-caramel', 'kc-l', 'dvt-g', 120, 'Caramel', 65000, 50, 'system'),
+
+-- Bắp Bơ Truyền Thống: S/M/L
+('ct-pb-s', 'sp-popcorn-butter', 'kc-s', 'dvt-g', 50, 'Bơ', 30000, 120, 'system'),
+('ct-pb-m', 'sp-popcorn-butter', 'kc-m', 'dvt-g', 80, 'Bơ', 42000, 100, 'system'),
+('ct-pb-l', 'sp-popcorn-butter', 'kc-l', 'dvt-g', 120, 'Bơ', 55000, 80, 'system'),
+
+-- Bắp Cay: M/L
+('ct-ps-m', 'sp-popcorn-spicy', 'kc-m', 'dvt-g', 80, 'Cay', 49000, 60, 'system'),
+('ct-ps-l', 'sp-popcorn-spicy', 'kc-l', 'dvt-g', 120, 'Cay', 65000, 40, 'system'),
+
+-- Coca Cola: S/M/L
+('ct-cc-s', 'sp-coca', 'kc-s', 'dvt-ml', 300, NULL, 25000, 200, 'system'),
+('ct-cc-m', 'sp-coca', 'kc-m', 'dvt-ml', 500, NULL, 35000, 150, 'system'),
+('ct-cc-l', 'sp-coca', 'kc-l', 'dvt-ml', 700, NULL, 45000, 100, 'system'),
+
+-- Pepsi: S/M/L
+('ct-pp-s', 'sp-pepsi', 'kc-s', 'dvt-ml', 300, NULL, 25000, 180, 'system'),
+('ct-pp-m', 'sp-pepsi', 'kc-m', 'dvt-ml', 500, NULL, 35000, 130, 'system'),
+('ct-pp-l', 'sp-pepsi', 'kc-l', 'dvt-ml', 700, NULL, 45000, 90, 'system'),
+
+-- Trà Đào Cam Sả: M/L
+('ct-td-m', 'sp-tra-dao', 'kc-m', 'dvt-ml', 500, 'Đào Cam Sả', 39000, 80, 'system'),
+('ct-td-l', 'sp-tra-dao', 'kc-l', 'dvt-ml', 700, 'Đào Cam Sả', 49000, 60, 'system'),
+
+-- Nước Suối: S
+('ct-ns-s', 'sp-nuoc-suoi', 'kc-s', 'dvt-ml', 500, NULL, 15000, 300, 'system');

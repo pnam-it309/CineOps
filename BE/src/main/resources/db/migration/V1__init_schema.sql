@@ -238,9 +238,21 @@ CREATE TABLE ve (
     FOREIGN KEY (id_suat_chieu) REFERENCES suat_chieu(id)
 );
 
--- 15. GIÁ VÉ CHI TIẾT
+-- 15. BẢNG LOẠI NGÀY
+CREATE TABLE loai_ngay (
+    id VARCHAR(36) PRIMARY KEY,
+    ten_loai_ngay VARCHAR(100),
+    he_so_ngay DECIMAL(5,2),
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    nguoi_tao VARCHAR(100),
+    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    nguoi_cap_nhat VARCHAR(100)
+);
+
+-- 16. GIÁ VÉ CHI TIẾT
 CREATE TABLE gia_ve_chi_tiet (
     id VARCHAR(36) PRIMARY KEY,
+    id_loai_ngay VARCHAR(36),
     id_loai_khach_hang VARCHAR(36),
     id_loai_ghe VARCHAR(36),
     id_khung_gio VARCHAR(36),
@@ -251,6 +263,7 @@ CREATE TABLE gia_ve_chi_tiet (
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
     nguoi_cap_nhat VARCHAR(100),
     FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
+    FOREIGN KEY (id_loai_ngay) REFERENCES loai_ngay(id),
     FOREIGN KEY (id_loai_ghe) REFERENCES loai_ghe(id),
     FOREIGN KEY (id_khung_gio) REFERENCES khung_gio(id)
 );
@@ -380,6 +393,7 @@ CREATE TABLE san_pham_di_kem (
     id_loai_san_pham VARCHAR(36),
     ten_san_pham VARCHAR(150),
     mo_ta TEXT,
+    hinh_anh VARCHAR(255),
     trang_thai INT DEFAULT 1,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),

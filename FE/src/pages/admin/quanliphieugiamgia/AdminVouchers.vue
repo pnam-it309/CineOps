@@ -1,28 +1,11 @@
 <template>
   <div class="admin-vouchers-page">
-    <AdminTableLayout
-      title="Quản Lý Phiếu Giảm Giá"
-      titleIcon="bi bi-ticket-perforated-fill"
-      addButtonLabel="Thêm Voucher"
-      :data="vouchers"
-      :loading="loading"
-      :total="total"
-      v-model:currentPage="currentPage"
-      v-model:pageSize="pageSize"
-      @add-click="openDialog()"
-      @reset-filter="resetFilter"
-      @selection-change="handleSelectionChange"
-    >
+    <AdminTableLayout title="Quản Lý Phiếu Giảm Giá" titleIcon="bi bi-ticket-perforated-fill"
+      addButtonLabel="Thêm Voucher" :data="vouchers" :loading="loading" :total="total" v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize" @add-click="openDialog()" @reset-filter="resetFilter">
       <!-- Header Actions Left Slot -->
       <template #header-actions-left>
-        <el-button 
-          v-if="selectedIds.length" 
-          type="danger" 
-          plain 
-          size="default" 
-          :icon="Delete" 
-          @click="handleBulkDelete"
-        >
+        <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
           Xóa {{ selectedIds.length }} voucher
         </el-button>
       </template>
@@ -30,36 +13,17 @@
       <!-- Stats Slot -->
       <template #stats>
         <div class="col-md-3">
-          <StatCard 
-            label="Tổng số phiếu" 
-            :value="total" 
-            icon="bi bi-ticket-perforated-fill"
-            type="primary"
-          />
+          <StatCard label="Tổng số phiếu" :value="total" icon="bi bi-ticket-perforated-fill" type="primary" />
         </div>
         <div class="col-md-3">
-          <StatCard 
-            label="Đang hoạt động" 
-            :value="stats.active || 0" 
-            icon="bi bi-check-circle-fill"
-            type="success"
-          />
+          <StatCard label="Đang hoạt động" :value="stats.active || 0" icon="bi bi-check-circle-fill" type="success" />
         </div>
         <div class="col-md-3">
-          <StatCard 
-            label="Hết hạn/Hết lượt" 
-            :value="stats.expired || 0" 
-            icon="bi bi-exclamation-triangle-fill"
-            type="danger"
-          />
+          <StatCard label="Hết hạn/Hết lượt" :value="stats.expired || 0" icon="bi bi-exclamation-triangle-fill"
+            type="danger" />
         </div>
         <div class="col-md-3">
-          <StatCard 
-            label="Dừng hoạt động" 
-            :value="stats.inactive || 0" 
-            icon="bi bi-pause-circle-fill"
-            type="warning"
-          />
+          <StatCard label="Dừng hoạt động" :value="stats.inactive || 0" icon="bi bi-pause-circle-fill" type="warning" />
         </div>
       </template>
 
@@ -77,35 +41,41 @@
 
         <div class="filter-item flex-grow-1 search-input-wrapper">
           <span class="filter-label text-dark small fw-bold mb-1 d-block">Tìm kiếm</span>
-          <el-input 
-            v-model="searchQuery" 
-            placeholder="Nhập mã hoặc tên phiếu..." 
-            style="width: 100%;" 
-            clearable 
-            @input="handleSearch"
-          />
+          <el-input v-model="searchQuery" placeholder="Nhập mã hoặc tên phiếu..." style="width: 100%;" clearable
+            @input="handleSearch" />
         </div>
       </template>
 
-      <!-- Table Columns Slot -->
-      <template #columns>
-        <el-table-column type="selection" width="50" align="center" />
-        <el-table-column label="Thông tin phiếu" min-width="250">
-          <template #default="{ row }">
-            <div>
-              <div class="text-dark fw-bold mb-0">
-                <span class="badge bg-light text-primary border border-primary-subtle me-2">{{ row.maPhieuGiamGia }}</span>
-                {{ row.tenPhieu }}
-              </div>
-              <div class="text-dark extra-small mt-1" style="font-size: 11px;">
-                Đơn tối thiểu: <span class="fw-bold">{{ formatCurrency(row.giaTriHoaDonToiThieu) }}</span>
-              </div>
-            </div>
+      <!-- Content Slot with BaseTable -->
+      <template #content>
+        <BaseTable
+          :data="vouchers"
+          :columns="voucherColumns"
+          :loading="loading"
+          :total="total"
+          v-model:currentPage="currentPage"
+          v-model:pageSize="pageSize"
+          v-model:selection="selectedObjects"
+          :hide-pagination="true"
+          @edit="openDialog"
+          @delete="handleDelete"
+          @view="handleView"
+        >
+          <template #cell-maPhieuGiamGia="{ row }">
+            <el-tag type="primary" effect="light" round size="small" style="font-weight: 600; letter-spacing: 0.5px;">
+              {{ row.maPhieuGiamGia }}
+            </el-tag>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Giảm giá" width="160" align="center">
-          <template #default="{ row }">
+          <template #cell-tenPhieu="{ row }">
+            <span class="fw-semibold text-dark small">{{ row.tenPhieu }}</span>
+          </template>
+
+          <template #cell-giaTriHoaDonToiThieu="{ row }">
+            <span class="fw-bold text-dark small text-nowrap">{{ formatCurrency(row.giaTriHoaDonToiThieu) }}</span>
+          </template>
+
+          <template #cell-loaiPhieu="{ row }">
             <div v-if="row.loaiPhieu === 1">
               <el-tag type="warning" effect="dark" round size="small">{{ row.phanTramGiamGia }}%</el-tag>
               <div class="text-dark extra-small mt-1" style="font-size: 10px;">Tối đa: {{ formatCurrency(row.giamToiDa) }}</div>
@@ -114,62 +84,29 @@
               <el-tag type="danger" effect="dark" round size="small">-{{ formatCurrency(row.soTienGiam) }}</el-tag>
             </div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Số lượng" width="120" align="center">
-          <template #default="{ row }">
-            <span class="text-dark fw-bold">{{ row.soLuong }}</span>
+          <template #cell-soLuong="{ row }">
+            <span class="text-dark fw-bold small">{{ row.soLuong }}</span>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Thời gian" width="180">
-          <template #default="{ row }">
-            <div class="small text-dark">
-              <div><i class="bi bi-calendar-check me-1"></i>{{ formatDate(row.ngayBatDau) }}</div>
-              <div><i class="bi bi-calendar-x me-1"></i>{{ formatDate(row.ngayKetThuc) }}</div>
+          <template #cell-time="{ row }">
+            <div class="small text-secondary" style="font-size: 11px;">
+              <div class="text-nowrap"><i class="bi bi-calendar-check me-1"></i>{{ formatDate(row.ngayBatDau) }}</div>
+              <div class="text-nowrap"><i class="bi bi-calendar-x me-1"></i>{{ formatDate(row.ngayKetThuc) }}</div>
             </div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Trạng thái" width="130" align="center">
-          <template #default="{ row }">
+          <template #cell-trangThai="{ row }">
             <el-tag :type="getStatusTag(row.trangThai)" round size="small">
               {{ getStatusLabel(row.trangThai) }}
             </el-tag>
           </template>
-        </el-table-column>
-
-        <el-table-column label="Thao tác" width="150" align="center" fixed="right">
-          <template #default="{ row }">
-            <div class="d-flex gap-1 justify-content-center">
-              <el-tooltip content="Chi tiết" placement="top">
-                <button class="btn-action-icon btn-action-view" @click="handleView(row)">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon btn-action-edit" @click="openDialog(row)">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Xóa" placement="top">
-                <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </el-tooltip>
-            </div>
-          </template>
-        </el-table-column>
+        </BaseTable>
       </template>
     </AdminTableLayout>
 
     <!-- Create/Edit Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
-      width="680px"
-      destroy-on-close
-      class="premium-dialog"
-    >
+    <el-dialog v-model="dialogVisible" width="680px" destroy-on-close class="premium-dialog">
       <template #header>
         <div class="premium-header">
           <div class="premium-header-content">
@@ -177,19 +114,21 @@
               <i :class="editingId ? 'bi bi-pencil-square' : 'bi bi-ticket-perforated'"></i>
             </div>
             <div class="header-text">
-              <h5 class="title">{{ isReadonly ? 'Chi tiết Voucher' : (editingId ? 'Cập nhật Voucher' : 'Phát hành Voucher mới') }}</h5>
+              <h5 class="title">
+                {{ isReadonly ? 'Chi tiết Voucher' : (editingId ? 'Cập nhật Voucher' : 'Phát hành Voucher mới') }}</h5>
               <p class="subtitle opacity-75">{{ isReadonly ? 'Xem thông tin đầy đủ về mã ưu đãi' : 'Tạo chương trình ưu đãi và mã giảm giá' }}</p>
             </div>
           </div>
           <div class="premium-header-bg"></div>
         </div>
       </template>
-      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="premium-form" :disabled="isReadonly">
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="premium-form"
+        :disabled="isReadonly">
         <div class="row g-3">
           <div class="col-md-6">
             <el-form-item label="Mã Voucher" prop="maPhieuGiamGia">
               <el-input v-model="form.maPhieuGiamGia" placeholder="VD: TET2026" :disabled="!!editingId || isReadonly">
-                 <template #prefix><i class="bi bi-tag me-1"></i></template>
+                <template #prefix><i class="bi bi-tag me-1"></i></template>
               </el-input>
             </el-form-item>
           </div>
@@ -233,7 +172,7 @@
               <el-input-number v-model="form.soLuong" :min="1" class="w-100" />
             </el-form-item>
           </div>
-           <div class="col-md-4">
+          <div class="col-md-4">
             <el-form-item label="Trạng thái" prop="trangThai">
               <el-select v-model="form.trangThai" class="w-100">
                 <el-option label="Hoạt động" :value="1" />
@@ -244,12 +183,14 @@
 
           <div class="col-md-6">
             <el-form-item label="Ngày bắt đầu" prop="ngayBatDau">
-              <el-date-picker v-model="form.ngayBatDau" type="datetime" class="w-100" placeholder="Chọn thời gian" value-format="YYYY-MM-DDTHH:mm:ss" />
+              <el-date-picker v-model="form.ngayBatDau" type="datetime" class="w-100" placeholder="Chọn thời gian"
+                value-format="YYYY-MM-DDTHH:mm:ss" />
             </el-form-item>
           </div>
           <div class="col-md-6">
             <el-form-item label="Ngày kết thúc" prop="ngayKetThuc">
-              <el-date-picker v-model="form.ngayKetThuc" type="datetime" class="w-100" placeholder="Chọn thời gian" value-format="YYYY-MM-DDTHH:mm:ss" />
+              <el-date-picker v-model="form.ngayKetThuc" type="datetime" class="w-100" placeholder="Chọn thời gian"
+                value-format="YYYY-MM-DDTHH:mm:ss" />
             </el-form-item>
           </div>
         </div>
@@ -264,7 +205,8 @@
       </template>
       <template #footer v-else>
         <div class="d-flex justify-content-end">
-          <el-button @click="dialogVisible = false" class="btn-premium-secondary border-secondary-subtle">ĐÓNG</el-button>
+          <el-button @click="dialogVisible = false"
+            class="btn-premium-secondary border-secondary-subtle">ĐÓNG</el-button>
         </div>
       </template>
     </el-dialog>
@@ -272,13 +214,49 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
 import { Search, Plus, Edit, Delete, View, Refresh } from '@element-plus/icons-vue';
 import { voucherService } from '@/services/api/admin/voucherService';
 import debounce from 'lodash/debounce';
+
+const voucherColumns = [
+  { label: 'MÃ GIẢM GIÁ', key: 'maPhieuGiamGia', width: '130px' },
+  { label: 'TÊN PHIẾU GIẢM GIÁ', key: 'tenPhieu', minWidth: '200px' },
+  { label: 'ĐƠN TỐI THIỂU', key: 'giaTriHoaDonToiThieu', width: '140px' },
+  { label: 'GIẢM GIÁ', key: 'loaiPhieu', width: '150px' },
+  { label: 'SỐ LƯỢNG', key: 'soLuong', width: '80px' },
+  { label: 'THỜI GIAN', key: 'time', width: '170px' },
+  { label: 'TRẠNG THÁI', key: 'trangThai', width: '130px' },
+];
+
+const selectedObjects = ref([]);
+const selectedIds = computed(() => selectedObjects.value.map(item => item.id));
+
+const handleBulkDelete = () => {
+    ElMessageBox.confirm(
+        `Xác nhận xóa <b>${selectedIds.value.length}</b> voucher đã chọn?`,
+        'Xóa hàng loạt',
+        {
+            dangerouslyUseHTMLString: true,
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy',
+            type: 'warning'
+        }
+    ).then(async () => {
+        try {
+            await Promise.all(selectedIds.value.map(id => voucherService.delete(id)));
+            ElMessage.success(`Đã xóa ${selectedIds.value.length} voucher thành công`);
+            selectedObjects.value = [];
+            fetchVouchers();
+        } catch (error) {
+            ElMessage.error('Có lỗi khi xóa hàng loạt');
+        }
+    }).catch(() => {});
+};
 
 const loading = ref(false);
 const vouchers = ref([]);
@@ -287,7 +265,7 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const filterStatus = ref('');
 const searchQuery = ref('');
-const selectedIds = ref([]);
+
 const stats = ref({ active: 0, expired: 0, inactive: 0 });
 
 const dialogVisible = ref(false);
@@ -317,13 +295,92 @@ const form = ref({
   trangThai: 1
 });
 
+
+// ===== RULES (CHỈ SỬA trigger thành blur + change) =====
 const rules = {
-  maPhieuGiamGia: [{ required: true, message: 'Vui lòng nhập mã', trigger: 'blur' }],
-  tenPhieu: [{ required: true, message: 'Vui lòng nhập tên', trigger: 'blur' }],
-  ngayBatDau: [{ required: true, message: 'Vui lòng chọn ngày bắt đầu', trigger: 'change' }],
-  ngayKetThuc: [{ required: true, message: 'Vui lòng chọn ngày kết thúc', trigger: 'change' }],
-  soLuong: [{ required: true, message: 'Vui lòng nhập số lượng', trigger: 'blur' }]
+  maPhieuGiamGia: [
+    { required: true, message: 'Mã phiếu không được để trống', trigger: ['blur', 'change'] },
+    { min: 3, max: 30, message: 'Mã phiếu phải từ 3 - 30 ký tự', trigger: ['blur', 'change'] },
+    { pattern: /^[A-Z0-9-]+$/, message: 'Chỉ cho phép chữ in hoa, số và dấu gạch ngang', trigger: ['blur', 'change'] }
+  ],
+
+  tenPhieu: [
+    { required: true, message: 'Vui lòng nhập tên phiếu', trigger: ['blur', 'change'] },
+    { min: 3, max: 50, message: 'Tên phải từ 3 đến 50 ký tự', trigger: ['blur', 'change'] }
+  ],
+
+  loaiPhieu: [
+    { required: true, message: 'Loại phiếu không được để trống', trigger: ['change'] }
+  ],
+
+  phanTramGiamGia: [
+    {
+      validator: (rule, value, callback) => {
+        if (form.value.loaiPhieu === 1) {
+          if (!value) return callback(new Error('Phần trăm giảm không được để trống'));
+          if (value < 1) return callback(new Error('Phần trăm phải >= 1'));
+        }
+        callback();
+      },
+      trigger: ['blur', 'change']
+    }
+  ],
+
+  soTienGiam: [
+    {
+      validator: (rule, value, callback) => {
+        if (form.value.loaiPhieu === 2) {
+          if (!value) return callback(new Error('Số tiền giảm không được để trống'));
+          if (value < 0) return callback(new Error('Số tiền giảm phải >= 0'));
+        }
+        callback();
+      },
+      trigger: ['blur', 'change']
+    }
+  ],
+
+  giamToiDa: [
+    {
+      validator: (rule, value, callback) => {
+        if (value != null && value < 0) {
+          return callback(new Error('Giảm tối đa không được âm'));
+        }
+        callback();
+      },
+      trigger: ['blur', 'change']
+    }
+  ],
+
+  giaTriHoaDonToiThieu: [
+    { required: true, message: 'Đơn tối thiểu không được để trống', trigger: ['blur', 'change'] },
+    { type: 'number', min: 0, message: 'Đơn tối thiểu phải >= 0', trigger: ['blur', 'change'] }
+  ],
+
+  soLuong: [
+    { required: true, message: 'Số lượng không được để trống', trigger: ['blur', 'change'] },
+    { type: 'number', min: 1, message: 'Số lượng phải >= 1', trigger: ['blur', 'change'] }
+  ],
+
+  ngayBatDau: [
+    { required: true, message: 'Ngày bắt đầu không được để trống', trigger: ['change'] }
+  ],
+
+  ngayKetThuc: [
+    { required: true, message: 'Ngày kết thúc không được để trống', trigger: ['change'] },
+    {
+      validator: (rule, value, callback) => {
+        if (!value) return callback();
+        if (new Date(value) <= new Date(form.value.ngayBatDau)) {
+          callback(new Error('Ngày kết thúc phải sau ngày bắt đầu'));
+        } else {
+          callback();
+        }
+      },
+      trigger: ['change']
+    }
+  ]
 };
+
 
 const fetchVouchers = async () => {
   loading.value = true;
@@ -337,13 +394,11 @@ const fetchVouchers = async () => {
     const res = await voucherService.getAll(params);
     vouchers.value = res.data?.data?.content || [];
     total.value = res.data?.data?.totalElements || 0;
-    
-    // Tạm thời tính stats từ dữ liệu trả về (nếu backend chưa trả về riêng)
-    // Thực tế nên có endpoint stats riêng
+
     stats.value = {
-        active: vouchers.value.filter(v => v.trangThai === 1).length,
-        inactive: vouchers.value.filter(v => v.trangThai === 0).length,
-        expired: vouchers.value.filter(v => v.trangThai === 2).length
+      active: res.data?.data?.activeCount || 0,
+      inactive: res.data?.data?.inactiveCount || 0,
+      expired: res.data?.data?.expiredCount || 0
     };
   } catch (e) {
     ElMessage.error('Không thể tải danh sách voucher');
@@ -365,7 +420,7 @@ const resetFilter = () => {
 };
 
 const handleSelectionChange = (val) => {
-  selectedIds.value = val.map(item => item.id);
+  selectedObjects.value = val;
 };
 
 const openDialog = (row = null) => {
@@ -393,8 +448,26 @@ const openDialog = (row = null) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
+
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
+
+    const actionText = editingId.value ? 'cập nhật' : 'phát hành';
+
+    try {
+      await ElMessageBox.confirm(
+        `Bạn có chắc muốn ${actionText} voucher này không?`,
+        'Xác nhận thao tác',
+        {
+          confirmButtonText: 'Đồng ý',
+          cancelButtonText: 'Hủy',
+          type: 'warning'
+        }
+      );
+    } catch {
+      return; // bấm hủy thì dừng
+    }
+
     saving.value = true;
     try {
       if (editingId.value) {
@@ -404,6 +477,7 @@ const handleSubmit = async () => {
         await voucherService.create(form.value);
         ElMessage.success('Phát hành voucher thành công');
       }
+
       dialogVisible.value = false;
       fetchVouchers();
     } catch (e) {
@@ -413,10 +487,9 @@ const handleSubmit = async () => {
     }
   });
 };
-
 const handleDelete = (row) => {
   ElMessageBox.confirm(`Xác nhận xóa voucher "${row.maPhieuGiamGia}"?`, 'Cảnh báo', {
-    confirmButtonText: 'Xóa',
+    confirmButtonText: 'Đồng ý',
     cancelButtonText: 'Hủy',
     type: 'warning'
   }).then(async () => {
@@ -428,21 +501,6 @@ const handleDelete = (row) => {
       ElMessage.error('Xóa thất bại');
     }
   });
-};
-
-const handleBulkDelete = () => {
-    ElMessageBox.confirm(`Xóa ${selectedIds.value.length} voucher đã chọn?`, 'Cảnh báo', {
-        type: 'warning'
-    }).then(async () => {
-        try {
-            await Promise.all(selectedIds.value.map(id => voucherService.delete(id)));
-            ElMessage.success('Xóa hàng loạt thành công');
-            selectedIds.value = [];
-            fetchVouchers();
-        } catch (e) {
-            ElMessage.error('Có lỗi khi xóa hàng loạt');
-        }
-    });
 };
 
 const getStatusTag = (status) => {
@@ -458,7 +516,7 @@ const getStatusLabel = (status) => {
 const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleString('vi-VN', { 
+  return new Date(dateStr).toLocaleString('vi-VN', {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
@@ -475,7 +533,7 @@ watch([currentPage, pageSize], () => {
 
 <style scoped>
 .admin-voucher-container {
-    height: calc(100vh - 84px);
+  height: calc(100vh - 84px);
 }
 
 .extra-small {

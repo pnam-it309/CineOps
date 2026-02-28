@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import service.cinema.be.entity.LoaiSanPham;
 
 @Repository
-public interface LoaiSanPhamRepository extends JpaRepository<LoaiSanPham, Long> {
+public interface LoaiSanPhamRepository extends JpaRepository<LoaiSanPham, String> {
 
     boolean existsByTenLoaiIgnoreCase(String tenLoai);
 
