@@ -120,6 +120,7 @@ public class SecurityConfig {
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()
+                        //.anyRequest().permitAll()
         );
 
         // Add our custom Token based authentication filter
