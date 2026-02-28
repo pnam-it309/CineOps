@@ -45,21 +45,7 @@ CREATE TABLE khach_hang (
     FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id)
 );
 
--- 4. BẢNG TOKEN
-CREATE TABLE token (
-    id VARCHAR(36) PRIMARY KEY,
-    id_khach_hang VARCHAR(36),
-    ma_token TEXT,
-    ngay_het_han DATETIME,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id)
-);
-
--- 5. BẢNG NHÂN VIÊN
+-- 4. BẢNG NHÂN VIÊN
 CREATE TABLE nhan_vien (
     id VARCHAR(36) PRIMARY KEY,
     id_phan_quyen VARCHAR(36),
@@ -81,6 +67,23 @@ CREATE TABLE nhan_vien (
     nguoi_cap_nhat VARCHAR(100),
     FOREIGN KEY (id_phan_quyen) REFERENCES phan_quyen(id)
 );
+
+-- 5. BẢNG TOKEN
+CREATE TABLE token (
+    id VARCHAR(36) PRIMARY KEY,
+    id_khach_hang VARCHAR(36),
+    id_nhan_vien VARCHAR(36),
+    ma_token TEXT,
+    ngay_het_han DATETIME,
+    trang_thai INT DEFAULT 1,
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    nguoi_tao VARCHAR(100),
+    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    nguoi_cap_nhat VARCHAR(100),
+    FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id),
+    FOREIGN KEY (id_nhan_vien) REFERENCES nhan_vien(id)
+);
+
 
 -- 6. BẢNG ĐỊA CHỈ
 CREATE TABLE dia_chi (
@@ -255,6 +258,7 @@ CREATE TABLE gia_ve_chi_tiet (
 -- 16. BẢNG PHIẾU GIẢM GIÁ
 CREATE TABLE phieu_giam_gia (
     id VARCHAR(36) PRIMARY KEY,
+    ma_phieu_giam_gia VARCHAR(50) UNIQUE,
     ten_phieu VARCHAR(100),
     loai_phieu INT,
     phan_tram_giam_gia DECIMAL(5,2),
@@ -265,6 +269,8 @@ CREATE TABLE phieu_giam_gia (
     ngay_bat_dau DATETIME,
     ngay_ket_thuc DATETIME,
     trang_thai INT DEFAULT 1,
+    so_luong INT,
+    dieu_kien_ap_dung TEXT,
     ghi_chu TEXT,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),

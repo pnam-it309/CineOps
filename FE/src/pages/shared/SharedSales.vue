@@ -2,9 +2,8 @@
 import { ref, computed } from 'vue';
 import { ShoppingCart, ArrowRight, ArrowLeft } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { mockMovies } from '@/assets/mock';
 
-// Mock Data
+// Mock Data (Local)
 const showtimes = [
   { id: 1, time: '14:30', room: 'Hall 1' },
   { id: 2, time: '17:00', room: 'Hall 2' },
@@ -16,8 +15,10 @@ const combos = [
   { id: 2, name: 'Couple Combo', price: 175000, desc: '1 Popcorn L + 2 Coke L' }
 ];
 
+const mockMovies = ref([]);
+
 // State
-const selectedMovie = ref(mockMovies[0]);
+const selectedMovie = ref({});
 const selectedShowtime = ref(showtimes[0]);
 const selectedSeats = ref(['H1', 'H2']);
 const selectedCombos = ref([]);

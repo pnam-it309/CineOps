@@ -1,6 +1,6 @@
 import axios from '@/services/axios';
 
-const BASE_URL = '/admin/phieu-giam-gia';
+const BASE_URL = 'api/v1/admin/phieu-giam-gia';
 
 export const voucherService = {
     getAll(params) {

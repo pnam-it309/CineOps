@@ -2,7 +2,7 @@
 import {ref, onMounted, watch} from 'vue';
 import {Search, Plus, Refresh} from '@element-plus/icons-vue';
 import {ElMessage, ElMessageBox} from 'element-plus';
-import {phimApi} from '@/services/phimapi';
+import {phimApi} from '@/services/api/admin/phimService';
 import BaseTable from '@/components/common/BaseTable.vue';
 
 // ==================== STATE ====================

@@ -9,8 +9,8 @@ const CustomerLayout = () => import('@/layout/CustomerLayout.vue');
 
 // Pages
 const Home = () => import('@/pages/customer/HomePage.vue');
-const Login = () => import('@/pages/LoginPage.vue');
-const OAuthCallback = () => import('@/pages/OAuthCallbackPage.vue');
+const Login = () => import('@/pages/auth/LoginPage.vue');
+const OAuthCallback = () => import('@/pages/auth/OAuthCallbackPage.vue');
 const Showtimes = () => import('@/pages/customer/ShowtimesPage.vue');
 const Promotions = () => import('@/pages/customer/PromotionsPage.vue');
 const CinemaInfo = () => import('@/pages/customer/CinemaInfoPage.vue');
@@ -55,13 +55,13 @@ const routes = [
             {
                 path: ROUTES_CONSTANTS.REGISTER.path,
                 name: ROUTES_CONSTANTS.REGISTER.name,
-                component: () => import('@/pages/RegisterPage.vue'),
+                component: () => import('@/pages/auth/RegisterPage.vue'),
                 meta: { guestOnly: true }
             },
             {
                 path: ROUTES_CONSTANTS.FORGOT_PASSWORD.path,
                 name: ROUTES_CONSTANTS.FORGOT_PASSWORD.name,
-                component: () => import('@/pages/ForgotPasswordPage.vue'),
+                component: () => import('@/pages/auth/ForgotPasswordPage.vue'),
                 meta: { guestOnly: true }
             },
             {
@@ -207,7 +207,7 @@ const routes = [
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.name,
-                component: () => import('@/pages/admin/AdminMovies.vue'),
+                component: () => import('@/pages/admin/quanliphim/AdminMovies.vue'),
                 meta: { title: 'Phim & Lịch chiếu' }
             },
             {
@@ -219,25 +219,25 @@ const routes = [
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.FOOD.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.FOOD.name,
-                component: () => import('@/pages/admin/AdminFood.vue'),
+                component: () => import('@/pages/admin/sanphamdikem/AdminFood.vue'),
                 meta: { title: 'Sản phẩm & Combo' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.name,
-                component: () => import('@/pages/admin/AdminVouchers.vue'),
+                component: () => import('@/pages/admin/quanliphieugiamgia/AdminVouchers.vue'),
                 meta: { title: 'Phiếu giảm giá' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.name,
-                component: () => import('@/pages/admin/AdminCustomers.vue'),
+                component: () => import('@/pages/admin/quanlikhachhang/AdminCustomers.vue'),
                 meta: { title: 'Khách hàng' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.STAFF.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.STAFF.name,
-                component: () => import('@/pages/admin/AdminStaff.vue'),
+                component: () => import('@/pages/admin/quanlinhanvien/AdminStaff.vue'),
                 meta: { title: 'Nhân viên' }
             },
         ]

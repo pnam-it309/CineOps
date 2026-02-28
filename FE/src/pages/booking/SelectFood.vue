@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Minus, Plus, ShoppingCart, Search } from '@element-plus/icons-vue';
 import { useBookingStore } from '@/stores/booking';
-import { mockFood } from '@/mock';
+// import { mockFood } from '@/mock';
 import { formatCurrency } from '@/utils/formatters';
 
 const router = useRouter();
@@ -12,24 +12,24 @@ const bookingStore = useBookingStore();
 // ── State ──
 const activeCategory = ref('All');
 const searchQuery = ref('');
-const items = ref(mockFood);
+const items = ref([]);
 
 // ── Filter logic ──
 const filteredItems = computed(() => {
-  let result = items.value;
+  let result = items.value || [];
   if (activeCategory.value !== 'All') {
     result = result.filter(i => i.category === activeCategory.value);
   }
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
-    result = result.filter(i => i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q));
+    result = result.filter(i => i.name.toLowerCase().includes(q) || (i.description && i.description.toLowerCase().includes(q)));
   }
   return result;
 });
 
 // Featured combo
 const featuredItem = computed(() =>
-  items.value.find(i => i.featured) || items.value.find(i => i.category === 'Combo') || items.value[0]
+  items.value.find(i => i.featured) || items.value.find(i => i.category === 'Combo') || items.value[0] || {}
 );
 
 // Regular items

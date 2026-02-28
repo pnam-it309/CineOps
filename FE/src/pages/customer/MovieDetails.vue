@@ -166,13 +166,14 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Star, Tickets, VideoPlay, User, Edit } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { mockMovies } from '@/mock';
+// import { mockMovies } from '@/mock';
 
 const route = useRoute();
 const router = useRouter();
 
 // State
-const movie = ref(null);
+// Local state for movie details
+const movie = ref({});
 const reviewDialogVisible = ref(false);
 const trailerDialogVisible = ref(false);
 const reviewForm = ref({
@@ -180,7 +181,7 @@ const reviewForm = ref({
   comment: ''
 });
 
-// Mock reviews
+// Mock reviews (Local)
 const mockReviews = ref([
   {
     id: 1,

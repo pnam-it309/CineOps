@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import service.cinema.be.entity.base.PrimaryEntity;
+import service.cinema.be.entity.base.SimpleEntity;
 
 @Getter
 @Setter
@@ -13,7 +13,7 @@ import service.cinema.be.entity.base.PrimaryEntity;
 @AllArgsConstructor
 @Entity
 @Table(name = "phim_the_loai")
-public class PhimTheLoai extends PrimaryEntity {
+public class PhimTheLoai extends SimpleEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_phim")

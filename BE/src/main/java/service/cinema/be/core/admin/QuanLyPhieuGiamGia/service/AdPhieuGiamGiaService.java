@@ -125,8 +125,8 @@ public class AdPhieuGiamGiaService {
 
     @Transactional(readOnly = true)
     public Page<AdPhieuGiamGiaResponse> getAll(String keyword, Integer trangThai, int page, int size) {
-        // Sắp xếp theo ngày tạo (nếu có trường createdDate) hoặc id giảm dần để bản ghi mới lên đầu
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+        // Sắp xếp theo ngày tạo (ngayTao từ AuditEntity) giảm dần để bản ghi mới lên đầu
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
         return repository.search(keyword, trangThai, pageable).map(this::toResponse);
     }
 

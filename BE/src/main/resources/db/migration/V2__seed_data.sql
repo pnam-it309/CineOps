@@ -243,12 +243,12 @@ VALUES
 
 -- 6. SUẤT CHIẾU
 INSERT INTO suat_chieu (id, id_khung_gio, id_phong_chieu, id_phim, ngay_chieu, so_ghe_trong, trang_thai, nguoi_tao) VALUES 
-(UUID(), 'kg-02-uuid', 'pc-001-uuid-001', 'phim-01-uuid', CURDATE(), 40, 1, 'system'),
-(UUID(), 'kg-04-uuid', 'pc-001-uuid-001', 'phim-01-uuid', CURDATE(), 40, 1, 'system'),
-(UUID(), 'kg-03-uuid', 'pc-002-uuid-002', 'phim-02-uuid', CURDATE(), 30, 1, 'system'),
-(UUID(), 'kg-05-uuid', 'pc-002-uuid-002', 'phim-02-uuid', CURDATE(), 30, 2, 'system'),
-(UUID(), 'kg-01-uuid', 'pc-001-uuid-001', 'phim-01-uuid', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 40, 1, 'system'),
-(UUID(), 'kg-02-uuid', 'pc-001-uuid-001', 'phim-03-uuid', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 40, 1, 'system');
+(UUID(), 'kg-02-uuid', 'pc-001-uuid-001', 'P1', CURDATE(), 40, 1, 'system'),
+(UUID(), 'kg-04-uuid', 'pc-001-uuid-001', 'P1', CURDATE(), 40, 1, 'system'),
+(UUID(), 'kg-03-uuid', 'pc-002-uuid-002', 'P2', CURDATE(), 30, 1, 'system'),
+(UUID(), 'kg-05-uuid', 'pc-002-uuid-002', 'P2', CURDATE(), 30, 2, 'system'),
+(UUID(), 'kg-01-uuid', 'pc-001-uuid-001', 'P1', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 40, 1, 'system'),
+(UUID(), 'kg-02-uuid', 'pc-001-uuid-001', 'P3', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 40, 1, 'system');
 
 -- 7. LOẠI KHÁCH HÀNG
 INSERT INTO loai_khach_hang (id, ten_loai, he_so_giam_gia, mo_ta, nguoi_tao) VALUES 
@@ -262,11 +262,164 @@ INSERT INTO khach_hang (id, id_loai_khach_hang, ma_khach_hang, ten_khach_hang, e
 ('kh-002-uuid', 'lkh-vip-uuid', 'KH002', 'Trần Thị B', 'btt@example.com', '0123456789', 0, 1, 'system');
 
 -- 9. PHIẾU GIẢM GIÁ
-INSERT INTO phieu_giam_gia (id, ten_phieu, loai_phieu, phan_tram_giam_gia, so_tien_giam, gia_tri_hoa_don_toi_thieu, co_cho_cong_don, giam_toi_da, ngay_bat_dau, ngay_ket_thuc, trang_thai, ghi_chu, nguoi_tao) VALUES 
-('pgg-01-uuid', 'Chào mừng thành viên mới', 1, 10.00, 0, 100000, 0, 50000, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 'Giảm 10% cho hóa đơn từ 100k', 'system'),
-('pgg-02-uuid', 'Tri ân khách hàng VIP', 2, 0, 50000, 200000, 1, 50000, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 'Giảm trực tiếp 50k cho khách VIP', 'system');
+INSERT INTO phieu_giam_gia (id, ma_phieu_giam_gia, ten_phieu, loai_phieu, phan_tram_giam_gia, so_tien_giam, gia_tri_hoa_don_toi_thieu, co_cho_cong_don, giam_toi_da, ngay_bat_dau, ngay_ket_thuc, trang_thai, so_luong, dieu_kien_ap_dung, ghi_chu, nguoi_tao) VALUES 
+('pgg-01-uuid', 'PGG001', 'Chào mừng thành viên mới', 1, 10.00, 0, 100000, 0, 50000, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 100, 'Áp dụng cho KH mới', 'Voucher dành cho khách hàng lần đầu thực hiện giao dịch', 'system'),
+('pgg-02-uuid', 'PGG002', 'Tri ân khách hàng VIP', 2, 0, 50000, 200000, 1, 50000, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 50, 'Áp dụng cho hạng VIP trở lên', 'Ưu đãi đặc biệt tri ân các khách hành thân thiết', 'system');
 
 -- 10. PHIẾU GIẢM GIÁ CHI TIẾT
 INSERT INTO phieu_giam_gia_chi_tiet (id, id_phieu_giam_gia, id_khach_hang, ma_phieu_giam_gia_chi_tiet, so_luong_dung, trang_thai, nguoi_tao) VALUES 
 (UUID(), 'pgg-01-uuid', 'kh-001-uuid', 'PGGCT-001', 0, 1, 'system'),
 (UUID(), 'pgg-02-uuid', 'kh-002-uuid', 'PGGCT-002', 0, 1, 'system');
+
+-- 11. THỂ LOẠI
+INSERT INTO the_loai (id, ten_the_loai, nguoi_tao)
+VALUES ('TL1', 'Hành động', 'admin'),
+       ('TL2', 'Hoạt hình', 'admin'),
+       ('TL3', 'Kinh dị', 'admin'),
+       ('TL4', 'Tình cảm', 'admin'),
+       ('TL5', 'Hài', 'admin'),
+       ('TL6', 'Phiêu lưu', 'admin'),
+       ('TL7', 'Gia đình', 'admin'),
+       ('TL8', 'Giả tưởng', 'admin'),
+       ('TL9', 'Tâm lý', 'admin'),
+       ('TL10', 'Khoa học viễn tưởng', 'admin');
+
+-- 12. PHIM THỂ LOẠI
+
+INSERT INTO phim_the_loai (id, id_phim, id_the_loai) VALUES
+
+-- P1 - Thỏ Ơi!! → Hoạt hình, Hài, Gia đình
+('PTL001', 'P1', 'TL2'),
+('PTL002', 'P1', 'TL5'),
+('PTL003', 'P1', 'TL7'),
+
+-- P2 - Mùi Phở → Hài, Gia đình, Tâm lý
+('PTL004', 'P2', 'TL5'),
+('PTL005', 'P2', 'TL7'),
+('PTL006', 'P2', 'TL9'),
+
+-- P3 - Tài → Tâm lý, Tình cảm
+('PTL007', 'P3', 'TL9'),
+('PTL008', 'P3', 'TL4'),
+
+-- P4 - Quỷ Nhập Tràng 2 → Kinh dị
+('PTL009', 'P4', 'TL3'),
+
+-- P5 - Avatar: Lửa và Tro Tàn → Hành động, Khoa học viễn tưởng, Phiêu lưu
+('PTL010', 'P5', 'TL1'),
+('PTL011', 'P5', 'TL10'),
+('PTL012', 'P5', 'TL6'),
+
+-- P6 - Khủng Long Đón Tết → Hoạt hình, Gia đình, Hài
+('PTL013', 'P6', 'TL2'),
+('PTL014', 'P6', 'TL7'),
+('PTL015', 'P6', 'TL5'),
+
+-- P7 - Tuyển Thủ Dê → Hoạt hình, Gia đình
+('PTL016', 'P7', 'TL2'),
+('PTL017', 'P7', 'TL7'),
+
+-- P8 - Doraemon Movie → Hoạt hình, Phiêu lưu, Gia đình
+('PTL018', 'P8', 'TL2'),
+('PTL019', 'P8', 'TL6'),
+('PTL020', 'P8', 'TL7'),
+
+-- P9 - Conan Movie → Hành động, Phiêu lưu
+('PTL021', 'P9', 'TL1'),
+('PTL022', 'P9', 'TL6'),
+
+-- P10 - One Piece Film → Hành động, Phiêu lưu, Giả tưởng
+('PTL023', 'P10', 'TL1'),
+('PTL024', 'P10', 'TL6'),
+('PTL025', 'P10', 'TL8'),
+
+-- P11 - Fast & Furious 10 → Hành động
+('PTL026', 'P11', 'TL1'),
+
+-- P12 - Spider-Man: New World → Hành động, Giả tưởng, Phiêu lưu
+('PTL027', 'P12', 'TL1'),
+('PTL028', 'P12', 'TL8'),
+('PTL029', 'P12', 'TL6'),
+
+-- P13 - Frozen 3 → Hoạt hình, Gia đình, Giả tưởng
+('PTL030', 'P13', 'TL2'),
+('PTL031', 'P13', 'TL7'),
+('PTL032', 'P13', 'TL8'),
+
+-- P14 - The Nun 3 → Kinh dị
+('PTL033', 'P14', 'TL3'),
+
+-- P15 - Joker 2 → Tâm lý, Hành động
+('PTL034', 'P15', 'TL9'),
+('PTL035', 'P15', 'TL1'),
+
+-- P16 - Avengers: Endgame → Hành động, Giả tưởng, Khoa học viễn tưởng
+('PTL036', 'P16', 'TL1'),
+('PTL037', 'P16', 'TL8'),
+('PTL038', 'P16', 'TL10'),
+
+-- P17 - Titanic → Tình cảm
+('PTL039', 'P17', 'TL4'),
+
+-- P18 - Interstellar → Khoa học viễn tưởng, Tâm lý, Phiêu lưu
+('PTL040', 'P18', 'TL10'),
+('PTL041', 'P18', 'TL9'),
+('PTL042', 'P18', 'TL6'),
+
+-- P19 - The Lion King → Hoạt hình, Gia đình
+('PTL043', 'P19', 'TL2'),
+('PTL044', 'P19', 'TL7'),
+
+-- P20 - Minions → Hoạt hình, Hài, Gia đình
+('PTL045', 'P20', 'TL2'),
+('PTL046', 'P20', 'TL5'),
+('PTL047', 'P20', 'TL7'),
+
+-- P21 - Transformers → Hành động, Khoa học viễn tưởng
+('PTL048', 'P21', 'TL1'),
+('PTL049', 'P21', 'TL10'),
+
+-- P22 - Jurassic World → Hành động, Phiêu lưu, Khoa học viễn tưởng
+('PTL050', 'P22', 'TL1'),
+('PTL051', 'P22', 'TL6'),
+('PTL052', 'P22', 'TL10'),
+
+-- P23 - Frozen → Hoạt hình, Gia đình, Giả tưởng
+('PTL053', 'P23', 'TL2'),
+('PTL054', 'P23', 'TL7'),
+('PTL055', 'P23', 'TL8'),
+
+-- P24 - Inception → Hành động, Khoa học viễn tưởng, Tâm lý
+('PTL056', 'P24', 'TL1'),
+('PTL057', 'P24', 'TL10'),
+('PTL058', 'P24', 'TL9'),
+
+-- P25 - Doctor Strange → Hành động, Giả tưởng
+('PTL059', 'P25', 'TL1'),
+('PTL060', 'P25', 'TL8'),
+
+-- P26 - Aquaman → Hành động, Phiêu lưu, Giả tưởng
+('PTL061', 'P26', 'TL1'),
+('PTL062', 'P26', 'TL6'),
+('PTL063', 'P26', 'TL8'),
+
+-- P27 - Black Panther → Hành động, Giả tưởng
+('PTL064', 'P27', 'TL1'),
+('PTL065', 'P27', 'TL8'),
+
+-- P28 - Aladdin → Hoạt hình, Phiêu lưu, Gia đình, Giả tưởng
+('PTL066', 'P28', 'TL2'),
+('PTL067', 'P28', 'TL6'),
+('PTL068', 'P28', 'TL7'),
+('PTL069', 'P28', 'TL8'),
+
+-- P29 - Toy Story 4 → Hoạt hình, Hài, Gia đình
+('PTL070', 'P29', 'TL2'),
+('PTL071', 'P29', 'TL5'),
+('PTL072', 'P29', 'TL7'),
+
+-- P30 - Kung Fu Panda → Hoạt hình, Hành động, Hài, Gia đình
+('PTL073', 'P30', 'TL2'),
+('PTL074', 'P30', 'TL1'),
+('PTL075', 'P30', 'TL5'),
+('PTL076', 'P30', 'TL7');

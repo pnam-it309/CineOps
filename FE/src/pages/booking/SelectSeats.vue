@@ -2,7 +2,10 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBookingStore } from '@/stores/booking';
-import { mockMovies, mockShowtimes } from '@/mock';
+// import { mockMovies, mockShowtimes } from '@/mock';
+const mockMovies = ref([]);
+const mockShowtimes = ref([]);
+
 import { formatCurrency } from '@/utils/formatters';
 import { SEAT_TYPES, SEAT_PRICES } from '@/utils/constants';
 
@@ -12,10 +15,10 @@ const bookingStore = useBookingStore();
 
 // State
 const showtimeId = ref(null);
-const movie = ref(null);
-const showtime = ref(null);
+const movie = ref({ title: 'Đang tải...' });
+const showtime = ref({});
 
-// Seat matrix generation (Mock 8x12)
+// Seat matrix generation (Local)
 const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const cols = 12;
 
@@ -67,10 +70,10 @@ const goToNextStep = () => {
 
 onMounted(() => {
   showtimeId.value = parseInt(route.params.showtimeId);
-  showtime.value = mockShowtimes.find(s => s.id === showtimeId.value);
-  movie.value = mockMovies.find(m => m.id === showtime.value?.movieId);
+  showtime.value = mockShowtimes.value?.find(s => s.id === showtimeId.value) || {};
+  movie.value = mockMovies.value?.find(m => m.id === showtime.value?.movieId) || { title: 'Đang tải...' };
   
-  if (showtime.value) {
+  if (showtime.value?.id) {
     bookingStore.setBasicInfo({
       movieId: movie.value.id,
       movieTitle: movie.value.title,

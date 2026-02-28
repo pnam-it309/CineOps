@@ -177,18 +177,18 @@
               <i :class="editingId ? 'bi bi-pencil-square' : 'bi bi-ticket-perforated'"></i>
             </div>
             <div class="header-text">
-              <h5 class="title">{{ editingId ? 'Cập nhật Voucher' : 'Phát hành Voucher mới' }}</h5>
-              <p class="subtitle opacity-75">Tạo chương trình ưu đãi và mã giảm giá</p>
+              <h5 class="title">{{ isReadonly ? 'Chi tiết Voucher' : (editingId ? 'Cập nhật Voucher' : 'Phát hành Voucher mới') }}</h5>
+              <p class="subtitle opacity-75">{{ isReadonly ? 'Xem thông tin đầy đủ về mã ưu đãi' : 'Tạo chương trình ưu đãi và mã giảm giá' }}</p>
             </div>
           </div>
           <div class="premium-header-bg"></div>
         </div>
       </template>
-      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="premium-form">
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="premium-form" :disabled="isReadonly">
         <div class="row g-3">
           <div class="col-md-6">
             <el-form-item label="Mã Voucher" prop="maPhieuGiamGia">
-              <el-input v-model="form.maPhieuGiamGia" placeholder="VD: TET2026" :disabled="!!editingId">
+              <el-input v-model="form.maPhieuGiamGia" placeholder="VD: TET2026" :disabled="!!editingId || isReadonly">
                  <template #prefix><i class="bi bi-tag me-1"></i></template>
               </el-input>
             </el-form-item>
@@ -254,12 +254,17 @@
           </div>
         </div>
       </el-form>
-      <template #footer>
+      <template #footer v-if="!isReadonly">
         <div class="d-flex gap-2 justify-content-end">
           <el-button @click="dialogVisible = false" class="btn-premium-secondary">HỦY BỎ</el-button>
           <el-button type="primary" @click="handleSubmit" :loading="saving" class="btn-premium-primary">
             {{ editingId ? 'CẬP NHẬT' : 'PHÁT HÀNH NGAY' }}
           </el-button>
+        </div>
+      </template>
+      <template #footer v-else>
+        <div class="d-flex justify-content-end">
+          <el-button @click="dialogVisible = false" class="btn-premium-secondary border-secondary-subtle">ĐÓNG</el-button>
         </div>
       </template>
     </el-dialog>
@@ -288,7 +293,15 @@ const stats = ref({ active: 0, expired: 0, inactive: 0 });
 const dialogVisible = ref(false);
 const saving = ref(false);
 const editingId = ref(null);
+const isReadonly = ref(false);
 const formRef = ref(null);
+
+const handleView = (row) => {
+  isReadonly.value = true;
+  editingId.value = row.id;
+  form.value = { ...row };
+  dialogVisible.value = true;
+};
 
 const form = ref({
   maPhieuGiamGia: '',
@@ -356,6 +369,7 @@ const handleSelectionChange = (val) => {
 };
 
 const openDialog = (row = null) => {
+  isReadonly.value = false;
   editingId.value = row?.id || null;
   if (row) {
     form.value = { ...row };

@@ -125,7 +125,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { mockMovies } from '@/assets/mock';
+// import { mockMovies } from '@/assets/mock';
 
 const router = useRouter();
 const scrollContainer = ref(null);
@@ -156,6 +156,7 @@ const generateDates = () => {
 const dates = generateDates();
 const selectedDateIndex = ref(0);
 const timelineTrack = ref(null);
+const moviesList = ref([]); // Local state to be populated by API
 
 const selectDate = (index) => {
   selectedDateIndex.value = index;
@@ -167,7 +168,7 @@ const selectDate = (index) => {
 
 // Only show "now-showing" movies on showtimes page
 const movies = computed(() => {
-  return mockMovies
+  return (moviesList.value || [])
     .filter(m => m.status === 'now-showing')
     .map(m => ({
       ...m,

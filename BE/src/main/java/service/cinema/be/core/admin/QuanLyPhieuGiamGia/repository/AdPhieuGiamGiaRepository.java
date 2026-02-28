@@ -13,21 +13,6 @@ import java.time.LocalDateTime;
 @Repository
 public interface AdPhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia, String> {
 
-//    boolean existsByMaPhieuGiamGia(String maPhieuGiamGia);
-//
-//    @Query("""
-//    SELECT p FROM PhieuGiamGia p
-//    WHERE (:ma IS NULL OR LOWER(p.maPhieuGiamGia) LIKE LOWER(CONCAT('%', :ma, '%')))
-//    AND (:trangThai IS NULL OR p.trangThai = :trangThai)
-//    AND (:loai IS NULL OR p.loaiPhieu = :loai)
-//    AND (:fromDate IS NULL OR p.ngayBatDau >= :fromDate)
-//    AND (:toDate IS NULL OR p.ngayKetThuc <= :toDate)
-//""")
-//    Page<PhieuGiamGia> search(
-//            String keyword,
-//            Integer trangThai,
-//            Pageable pageable
-//    );
 boolean existsByMaPhieuGiamGia(String maPhieuGiamGia);
 
     @Query("""

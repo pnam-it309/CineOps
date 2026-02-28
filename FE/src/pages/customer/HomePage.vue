@@ -225,7 +225,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Calendar, ArrowRight } from '@element-plus/icons-vue';
 import MovieCard from '@/components/common/MovieCard.vue';
-import { mockMovies, mockPromotions } from '@/assets/mock';
+// import { mockMovies, mockPromotions } from '@/assets/mock';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
@@ -234,8 +234,8 @@ import 'swiper/css/navigation';
 const router = useRouter();
 const activeTab = ref('now-showing');
 
-const movies = ref(mockMovies);
-const promotions = ref(mockPromotions);
+const movies = ref([]); // Local state to be populated by API
+const promotions = ref([]); // Local state to be populated by API
 const latestNews = ref([
   { id: 1, title: "Ưu đãi cuối tuần: Giảm giá 20%", date: "14 Th2, 2026", summary: "Nhận ngay ưu đãi giảm giá 20% cho mỗi vé đặt qua website hoặc ứng dụng di động. Áp dụng cho tất cả các suất chiếu từ thứ 6 đến chủ nhật.", image: "https://images.unsplash.com/photo-1542204172-3c35b6999679?auto=format&fit=crop&w=600" },
   { id: 2, title: "Sự kiện Fan: Fantastic Four Premiere", date: "12 Th2, 2026", summary: "Tham gia sự kiện ra mắt phim Fantastic Four với các diễn viên và đạo diễn. Nhận quà tặng độc quyền và cơ hội chụp ảnh cùng dàn cast.", image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed0083c?auto=format&fit=crop&w=600" },
@@ -262,10 +262,11 @@ const trendingMovies = computed(() => {
 // ── Hero auto-rotate ──
 const heroIndex = ref(0);
 let heroInterval = null;
-const currentHero = computed(() => featuredMovies.value[heroIndex.value] || featuredMovies.value[0]);
+const currentHero = computed(() => featuredMovies.value[heroIndex.value] || featuredMovies.value[0] || {});
 
 function startHeroRotation() {
   heroInterval = setInterval(() => {
+    if (featuredMovies.value.length === 0) return;
     heroIndex.value = (heroIndex.value + 1) % featuredMovies.value.length;
   }, 5000);
 }
@@ -283,10 +284,11 @@ watch(heroIndex, () => {
 // ── Trending auto-rotate ──
 const trendingIndex = ref(0);
 let trendingInterval = null;
-const currentTrending = computed(() => trendingMovies.value[trendingIndex.value] || trendingMovies.value[0]);
+const currentTrending = computed(() => trendingMovies.value[trendingIndex.value] || trendingMovies.value[0] || {});
 
 function startTrendingRotation() {
   trendingInterval = setInterval(() => {
+    if (trendingMovies.value.length === 0) return;
     trendingIndex.value = (trendingIndex.value + 1) % trendingMovies.value.length;
   }, 4000);
 }

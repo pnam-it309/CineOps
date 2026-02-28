@@ -20,15 +20,6 @@ import java.util.List;
 @Entity
 @Table(name = "phieu_giam_gia")
 public class PhieuGiamGia extends PrimaryEntity {
-    //thêm
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
-
-    @CreationTimestamp
-    @Column(name = "created_date", updatable = false)
-    private LocalDateTime createdDate;
-
 
     @Column(name = "ma_phieu_giam_gia", length = 50, unique = true)
     private String maPhieuGiamGia;
@@ -66,6 +57,9 @@ public class PhieuGiamGia extends PrimaryEntity {
     @Column(name = "dieu_kien_ap_dung", columnDefinition = "TEXT")
     private String dieuKienApDung;
 
+    @Column(name = "ghi_chu", columnDefinition = "TEXT")
+    private String ghiChu;
+
     @Column(name = "trang_thai")
     private Integer trangThai;
 
@@ -74,8 +68,5 @@ public class PhieuGiamGia extends PrimaryEntity {
 
     @OneToMany(mappedBy = "phieuGiamGia")
     private List<HoaDon> hoaDons = new ArrayList<>();
-//trang thêm vào
-//    @OneToMany(mappedBy = "loaiSanPham", cascade = CascadeType.ALL)
-//    private List<SanPhamDichVu> sanPhamDichVus = new ArrayList<>();
 
 }

@@ -2,7 +2,10 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Location, Calendar, Timer } from '@element-plus/icons-vue';
-import { mockMovies, mockCinemas, mockShowtimes } from '@/mock';
+// import { mockMovies, mockCinemas, mockShowtimes } from '@/mock';
+const mockMovies = ref([]);
+const mockCinemas = ref([]);
+const mockShowtimes = ref([]);
 
 const route = useRoute();
 const router = useRouter();
@@ -14,9 +17,9 @@ const selectedDate = ref(new Date());
 const activeDateIndex = ref(0);
 
 // Data
-const movie = computed(() => mockMovies.find(m => m.id === selectedMovieId.value) || mockMovies[0]);
+const movie = computed(() => mockMovies.value.find(m => m.id === selectedMovieId.value) || { title: 'Đang tải...' });
 const filteredShowtimes = computed(() => {
-  return mockShowtimes.filter(s => 
+  return mockShowtimes.value.filter(s => 
     s.movieId === selectedMovieId.value && 
     (selectedCinemaId.value ? s.cinemaId === selectedCinemaId.value : true)
   );
@@ -45,10 +48,13 @@ const selectShowtime = (showtime) => {
 onMounted(() => {
   if (route.params.movieId) {
     selectedMovieId.value = parseInt(route.params.movieId);
-  } else {
-    selectedMovieId.value = mockMovies[0].id;
+  } else if (mockMovies.value.length > 0) {
+    selectedMovieId.value = mockMovies.value[0].id;
   }
-  selectedCinemaId.value = mockCinemas[0].id;
+  
+  if (mockCinemas.value.length > 0) {
+    selectedCinemaId.value = mockCinemas.value[0].id;
+  }
 });
 </script>
 

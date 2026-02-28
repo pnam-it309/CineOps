@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import service.cinema.be.entity.base.PrimaryEntity;
+import service.cinema.be.entity.base.SimpleEntity;
 
 @Getter
 @Setter
@@ -15,7 +15,7 @@ import service.cinema.be.entity.base.PrimaryEntity;
 @AllArgsConstructor
 @Entity
 @Table(name = "kich_co")
-public class KichCo extends PrimaryEntity {
+public class KichCo extends SimpleEntity {
 
     @Column(name = "ten_kich_co", length = 100)
     private String tenKichCo;
