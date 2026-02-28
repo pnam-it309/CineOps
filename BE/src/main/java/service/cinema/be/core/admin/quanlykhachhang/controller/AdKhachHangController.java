@@ -1,42 +1,44 @@
-package service.cinema.be.core.admin.quanlykhachhang.controller;
+package service.cinema.be.core.admin.quanlynhanvien.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import service.cinema.be.core.admin.quanlykhachhang.dto.request.AdKhachHangRequest;
-import service.cinema.be.core.admin.quanlykhachhang.dto.response.AdKhachHangResponse;
-import service.cinema.be.core.admin.quanlykhachhang.service.AdKhachHangService;
+import service.cinema.be.core.admin.quanlynhanvien.dto.request.AdNhanVienRequest;
+import service.cinema.be.core.admin.quanlynhanvien.service.AdNhanVienService;
 import service.cinema.be.core.common.response.ApiResponse;
 import service.cinema.be.infrastructure.constant.MappingConstants;
 
-import java.util.List;
-
 @RestController
-@RequestMapping(MappingConstants.API_ADMIN_PREFIX + "/khach-hang")
+@RequestMapping(MappingConstants.API_ADMIN_PREFIX + "/nhan-vien")
 @RequiredArgsConstructor
-public class AdKhachHangController {
-    private final AdKhachHangService adKhachHangService;
+public class AdNhanVienController {
+
+    private final AdNhanVienService adNhanVienService;
 
     @GetMapping
-    public ResponseEntity<?> getAll(@RequestParam(required = false) String search,
-                                    @RequestParam(required = false) Integer trangThai) {
-        return ResponseEntity.ok(ApiResponse.success(adKhachHangService.getAllKhachHang(search, trangThai)));
+    public ResponseEntity<?> getAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String idPhanQuyen,
+            @RequestParam(required = false) Integer trangThai) {
+        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.getAll(search, idPhanQuyen, trangThai)));
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody AdKhachHangRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(adKhachHangService.createKhachHang(request)));
+    public ResponseEntity<?> create(@Valid @RequestBody AdNhanVienRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.create(request)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable String id, @Valid @RequestBody AdKhachHangRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(adKhachHangService.updateKhachHang(id, request)));
+    public ResponseEntity<?> update(
+            @PathVariable String id,
+            @Valid @RequestBody AdNhanVienRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable String id) {
-        adKhachHangService.deleteKhachHang(id);
+        adNhanVienService.delete(id); // Giả định bạn đã thêm hàm delete vào Service
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
