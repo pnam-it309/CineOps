@@ -256,9 +256,9 @@
       </el-form>
       <template #footer>
         <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false" class="btn-premium-secondary">Hủy</el-button>
+          <el-button @click="dialogVisible = false" class="btn-premium-secondary">HỦY BỎ</el-button>
           <el-button type="primary" @click="handleSubmit" :loading="saving" class="btn-premium-primary">
-            {{ editingId ? 'Cập nhật' : 'Phát hành ngay' }}
+            {{ editingId ? 'CẬP NHẬT' : 'PHÁT HÀNH NGAY' }}
           </el-button>
         </div>
       </template>

@@ -230,8 +230,16 @@ const handleDelete = (item) => {
                     <el-tag :type="getCategoryType(item.category)" effect="dark" size="small" class="rounded-pill border-0 shadow-sm">{{ getCategoryLabel(item.category) }}</el-tag>
                   </div>
                   <div class="card-actions position-absolute top-50 start-50 translate-middle d-flex gap-2 opacity-0">
-                    <el-button type="primary" circle :icon="Edit" @click="openDialog(item)" class="shadow-lg" />
-                    <el-button type="danger" circle :icon="Delete" @click="handleDelete(item)" class="shadow-lg" />
+                    <el-tooltip content="Chỉnh sửa" placement="top">
+                      <button class="btn-action-icon btn-action-edit shadow-lg" @click="openDialog(item)">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </el-tooltip>
+                    <el-tooltip content="Xóa" placement="top">
+                      <button class="btn-action-icon btn-action-delete shadow-lg" @click="handleDelete(item)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </el-tooltip>
                   </div>
                 </div>
                 <div class="p-3 d-flex flex-column flex-grow-1">
@@ -318,9 +326,9 @@ const handleDelete = (item) => {
       </el-form>
       <template #footer>
         <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false" class="btn-premium-secondary">Hủy</el-button>
-          <el-button type="primary" @click="saveItem" class="btn-premium-primary">
-            {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+          <el-button @click="dialogVisible = false" class="btn-premium-secondary">HỦY BỎ</el-button>
+          <el-button @click="saveItem" class="btn-premium-primary">
+            {{ isEditMode ? 'CẬP NHẬT' : 'THÊM MỚI' }}
           </el-button>
         </div>
       </template>
