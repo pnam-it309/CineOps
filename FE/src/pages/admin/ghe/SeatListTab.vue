@@ -57,6 +57,7 @@
     <!-- Filters Slot -->
     <template #filters>
       <div class="filter-item search-input-wrapper">
+        <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
         <el-input 
           v-model="searchQuery" 
           placeholder="Tìm kiếm số ghế..." 
@@ -67,6 +68,7 @@
       </div>
 
       <div class="filter-item">
+        <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
         <el-select 
           :model-value="selectedRoom" 
           @update:model-value="val => $emit('update:selectedRoom', val)" 
@@ -80,6 +82,7 @@
       </div>
 
       <div class="filter-item">
+        <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
         <el-select v-model="filterLoaiGhe" placeholder="Loại ghế" style="width: 150px;">
           <template #prefix><el-icon><PriceTag /></el-icon></template>
           <el-option value="" label="Tất cả loại" />
@@ -114,6 +117,10 @@
           <span class="text-dark small">Hàng <b>{{ row.soHang }}</b> - Cột <b>{{ row.soCot }}</b></span>
         </template>
 
+        <template #cell-tenPhongChieu="{ row }">
+          <span class="text-secondary small">{{ row.tenPhongChieu }}</span>
+        </template>
+
         <template #cell-loaiGhe="{ row }">
           <el-tag :type="getSeatTypeTag(row.tenLoaiGhe)" round size="small" effect="plain">{{ row.tenLoaiGhe }}</el-tag>
         </template>
@@ -126,6 +133,20 @@
           <el-tag :type="row.trangThai === 1 ? 'success' : 'warning'" round size="small">
             {{ row.trangThai === 1 ? 'Hoạt động' : 'Bảo trì' }}
           </el-tag>
+        </template>
+        <template #actions="{ row }">
+          <div class="d-flex justify-content-center gap-1">
+            <el-tooltip content="Sửa ghế" placement="top">
+              <button class="btn-action-icon btn-action-edit" @click="$emit('open-dialog', row)">
+                <i class="bi bi-pencil"></i>
+              </button>
+            </el-tooltip>
+            <el-tooltip content="Xóa ghế" placement="top">
+              <button class="btn-action-icon btn-action-delete" @click="$emit('delete-seat', row)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </el-tooltip>
+          </div>
         </template>
       </BaseTable>
     </template>

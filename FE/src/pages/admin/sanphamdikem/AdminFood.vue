@@ -1,81 +1,168 @@
 <template>
-  <div class="admin-food-container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div class="d-flex align-items-center gap-3">
-        <h2 class="fw-bold m-0" style="font-size:18px">Quản Lý Sản Phẩm Đi Kèm</h2>
-        <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
-          Xóa {{ selectedIds.length }} sản phẩm
-        </el-button>
-      </div>
-      <el-button type="primary" :icon="Plus" @click="openDialog()">
-        Thêm sản phẩm mới
-      </el-button>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm">
-      <el-radio-group v-model="activeCategory" size="large" @change="handleSearch">
-        <el-radio-button value="All">Tất cả</el-radio-button>
-        <el-radio-button v-for="cat in categories" :key="cat.id" :value="cat.id">
-          {{ cat.tenLoai }}
-        </el-radio-button>
-      </el-radio-group>
-
-      <el-input
-        v-model="searchQuery"
-        placeholder="Tìm kiếm sản phẩm..."
-        :prefix-icon="Search"
-        clearable
-        style="width:300px"
-      />
-    </div>
-
-    <el-row :gutter="20" v-if="filteredItems.length" v-loading="loading">
-      <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in filteredItems" :key="item.id" class="mb-4">
-        <div class="food-card bg-white rounded shadow-sm h-100 d-flex flex-column position-relative" :class="{'selected-card': isSelected(item.id)}">
-          <div class="selection-checkbox">
-            <el-checkbox :model-value="isSelected(item.id)" @change="toggleSelection(item)" />
-          </div>
-          <div class="card-image-wrapper">
-            <img :src="item.image || 'https://via.placeholder.com/150'" class="w-100 h-100 object-fit-cover" />
-            <el-tag effect="dark" class="size-badge" type="warning">Size {{ item.sizeName }}</el-tag>
-          </div>
-          <div class="p-3 d-flex flex-column flex-grow-1">
-            <h6 class="fw-bold mb-1">{{ item.name }}</h6>
-            
-            <p class="text-muted small mb-2 description-text">
-              {{ item.description || 'Chưa có mô tả cho sản phẩm này.' }}
-            </p>
-
-            <div class="mt-auto">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="text-primary fw-bold fs-5">{{ formatCurrency(item.price) }}</span>
-                <span class="text-muted small">{{ item.quantityValue }} {{ item.unitName }}</span>
-              </div>
-              <div class="text-success small mt-1">Tồn kho: {{ item.stock }}</div>
-            </div>
-            
-            <div class="mt-3 d-flex justify-content-end gap-2">
-              <el-button size="small" :icon="Edit" @click="openDialog(item)">Sửa</el-button>
-              <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(item)" />
-            </div>
-          </div>
+  <div class="admin-food-container">
+    <AdminTableLayout
+      title="Quản lý sản phẩm đi kèm"
+      titleIcon="bi bi-box-seam-fill"
+      addButtonLabel="Thêm sản phẩm"
+      :data="filteredItems"
+      :loading="loading"
+      :total="filteredItems.length"
+      hide-pagination
+      @add-click="openDialog()"
+    >
+      <!-- Header Actions Left Slot -->
+      <template #header-actions-left>
+        <div class="d-flex align-items-center gap-2">
+          <el-button 
+            :type="selectedIds.length === filteredItems.length && filteredItems.length > 0 ? 'warning' : 'info'" 
+            plain round 
+            :icon="Check" 
+            @click="handleSelectAll"
+          >
+            {{ selectedIds.length === filteredItems.length && filteredItems.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả' }}
+          </el-button>
+          <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
+            Xóa {{ selectedIds.length }} sản phẩm
+          </el-button>
         </div>
-      </el-col>
-    </el-row>
+      </template>
 
-    <el-empty v-else description="Không có sản phẩm nào" />
+      <!-- Stats Slot -->
+      <template #stats>
+        <div class="col-md-3">
+          <StatCard 
+            label="Tổng sản phẩm" 
+            :value="items.length" 
+            icon="bi bi-grid-fill"
+            type="dark"
+          />
+        </div>
+        <div class="col-md-3">
+          <StatCard 
+            label="Đang bán" 
+            :value="items.length" 
+            icon="bi bi-check-circle-fill"
+            type="success"
+          />
+        </div>
+        <div class="col-md-3">
+          <StatCard 
+            label="Sắp hết hàng" 
+            :value="items.filter(s => s.stock < 10 && s.stock > 0).length" 
+            icon="bi bi-exclamation-triangle-fill"
+            type="warning"
+          />
+        </div>
+        <div class="col-md-3">
+          <StatCard 
+            label="Hết hàng" 
+            :value="items.filter(s => s.stock === 0).length" 
+            icon="bi bi-x-circle-fill"
+            type="danger"
+          />
+        </div>
+      </template>
 
-    <el-dialog
+      <!-- Filters Slot -->
+      <template #filters>
+        <div class="filter-item flex-grow-1 search-input-wrapper" style="max-width: 400px;">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
+          <el-input
+            v-model="searchQuery"
+            placeholder="Tìm kiếm sản phẩm..."
+            :prefix-icon="Search"
+            clearable
+            @input="handleSearch"
+          />
+        </div>
+
+        <div class="filter-item">
+          <el-radio-group v-model="activeCategory" size="default" @change="handleSearch">
+            <el-radio-button value="All">Tất cả</el-radio-button>
+            <el-radio-button v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.tenLoai }}
+            </el-radio-button>
+          </el-radio-group>
+        </div>
+      </template>
+
+      <!-- Content Slot -->
+      <template #content>
+        <div class="food-grid-container p-2 h-100 overflow-auto no-scroll">
+          <el-row :gutter="20" v-if="filteredItems.length">
+            <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in filteredItems" :key="item.id" class="mb-4">
+              <div 
+                class="food-card bg-white rounded-4 shadow-sm h-100 d-flex flex-column position-relative cursor-pointer" 
+                :class="{'selected-card': isSelected(item.id)}"
+                @click="toggleSelection(item)"
+              >
+                <div class="selection-checkbox" @click.stop>
+                  <el-checkbox :model-value="isSelected(item.id)" @change="toggleSelection(item)" />
+                </div>
+                <div class="card-image-wrapper">
+                  <img :src="item.image || 'https://via.placeholder.com/150'" class="w-100 h-100 object-fit-cover" />
+                  <el-tag effect="dark" class="size-badge" type="warning" round>Size {{ item.sizeName }}</el-tag>
+                </div>
+                <div class="p-3 d-flex flex-column flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="fw-bold m-0 text-dark" style="font-size: 15px;">{{ item.name }}</h6>
+                    <el-tag size="small" type="info" effect="plain" class="rounded-pill border-0 bg-light">{{ item.category }}</el-tag>
+                  </div>
+                  
+                  <p class="text-secondary small mb-3 description-text">
+                    {{ item.description || 'Chưa có mô tả cho sản phẩm này.' }}
+                  </p>
+
+                  <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="text-primary fw-bold fs-5">{{ formatCurrency(item.price) }}</span>
+                      <span class="text-secondary opacity-75 small fw-semibold">{{ item.quantityValue }} {{ item.unitName }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 small" :class="item.stock > 0 ? 'text-success' : 'text-danger'">
+                      <i class="bi" :class="item.stock > 0 ? 'bi-check-circle' : 'bi-x-circle'"></i>
+                      Tồn kho: <b>{{ item.stock }}</b>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-3 pt-3 border-top d-flex justify-content-end gap-2">
+                    <el-tooltip content="Xem chi tiết" placement="top">
+                      <button class="btn-action-icon btn-action-view" @click.stop="handleViewDetail(item)">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </el-tooltip>
+                    <el-tooltip content="Chỉnh sửa" placement="top">
+                      <button class="btn-action-icon btn-action-edit" @click.stop="openDialog(item)">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </el-tooltip>
+                    <el-tooltip content="Xóa" placement="top">
+                      <button class="btn-action-icon btn-action-delete" @click.stop="handleDelete(item)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </el-tooltip>
+                  </div>
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+          <el-empty v-else description="Không có sản phẩm nào" />
+        </div>
+      </template>
+    </AdminTableLayout>
+
+    <BaseModal
       v-model="dialogVisible"
       :title="isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'"
+      icon="bi bi-box-seam"
       width="1000px"
-      destroy-on-close
+      :confirmText="isEditMode ? 'Cập nhật' : 'Xác nhận thêm'"
+      @confirm="saveProduct"
     >
-      <el-form :model="itemForm" label-position="top">
+      <el-form :model="itemForm" label-position="top" class="premium-form">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="Tên sản phẩm chung">
-              <el-input v-model="itemForm.tenSanPham" placeholder="Ví dụ: Bắp Phô Mai" />
+              <el-input v-model="itemForm.tenSanPham" placeholder="Ví dụ: Bắp Phô Mai" :prefix-icon="Plus" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -92,117 +179,172 @@
         </el-form-item>
 
         <el-form-item label="Hình ảnh URL">
-          <el-input v-model="itemForm.hinhAnh" />
+          <el-input v-model="itemForm.hinhAnh" :prefix-icon="Search" />
         </el-form-item>
 
-        <hr class="my-4" />
+        <div class="variant-section-premium mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold m-0 text-primary">Biến thể & Định lượng</h6>
+            <el-button type="success" size="small" :icon="Plus" plain @click="addNewVariantRow" class="btn-add-premium">
+              Thêm biến thể (Size)
+            </el-button>
+          </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="fw-bold m-0">Biến thể & Định lượng</h6>
-          <el-button type="success" size="small" :icon="Plus" plain @click="addNewVariantRow">
-            Thêm biến thể (Size)
-          </el-button>
-        </div>
+          <el-table :data="itemForm.variants" border stripe class="premium-table-inside">
+            <el-table-column width="55" align="center" label="Chọn">
+              <template #default="scope">
+                <el-checkbox v-model="scope.row.active" :disabled="isEditMode" />
+              </template>
+            </el-table-column>
 
-        <el-table :data="itemForm.variants" border stripe>
-          <el-table-column width="55" align="center" label="Chọn">
-            <template #default="scope">
-              <el-checkbox v-model="scope.row.active" :disabled="isEditMode" />
-            </template>
-          </el-table-column>
-
-          <el-table-column label="Kích cỡ" width="150">
-            <template #default="scope">
-              <el-select v-model="scope.row.idKichCo" size="small" :disabled="!scope.row.isEditing">
-                <el-option v-for="s in sizes" :key="s.id" :label="s.tenKichCo" :value="s.id" />
-              </el-select>
-            </template>
-          </el-table-column>
-
-          <el-table-column label="Định lượng (Số | Đơn vị)">
-            <template #default="scope">
-              <div class="d-flex align-items-center gap-1">
-                <el-input-number 
-                  v-model="scope.row.giaTriDinhLuong" 
-                  size="small" 
-                  :disabled="!scope.row.isEditing"
-                  :controls="false"
-                  style="width: 80px"
-                />
-                <el-select v-model="scope.row.idDonViTinh" size="small" style="width: 90px" :disabled="!scope.row.isEditing">
-                  <el-option v-for="u in units" :key="u.id" :label="u.tenDonViTinh" :value="u.id" />
+            <el-table-column label="Kích cỡ" width="150">
+              <template #default="scope">
+                <el-select v-model="scope.row.idKichCo" size="small" :disabled="!scope.row.isEditing">
+                  <el-option v-for="s in sizes" :key="s.id" :label="s.tenKichCo" :value="s.id" />
                 </el-select>
-              </div>
-            </template>
-          </el-table-column>
+              </template>
+            </el-table-column>
 
-          <el-table-column label="Giá bán (VNĐ)">
-            <template #default="scope">
-              <el-input-number
-                v-model="scope.row.price"
-                size="small"
-                :disabled="!scope.row.isEditing"
-                style="width: 130px"
-              />
-            </template>
-          </el-table-column>
+            <el-table-column label="Định lượng (Số | Đơn vị)">
+              <template #default="scope">
+                <div class="d-flex align-items-center gap-1">
+                  <el-input-number 
+                    v-model="scope.row.giaTriDinhLuong" 
+                    size="small" 
+                    :disabled="!scope.row.isEditing"
+                    :controls="false"
+                    style="width: 80px"
+                  />
+                  <el-select v-model="scope.row.idDonViTinh" size="small" style="width: 90px" :disabled="!scope.row.isEditing">
+                    <el-option v-for="u in units" :key="u.id" :label="u.tenDonViTinh" :value="u.id" />
+                  </el-select>
+                </div>
+              </template>
+            </el-table-column>
 
-          <el-table-column label="Tồn kho">
-            <template #default="scope">
-              <el-input-number
-                v-model="scope.row.soLuongTon"
-                size="small"
-                :disabled="!scope.row.isEditing"
-                style="width: 100px"
-              />
-            </template>
-          </el-table-column>
-
-          <el-table-column label="Thao tác" width="120" align="center">
-            <template #default="scope">
-              <div class="d-flex justify-content-center gap-2">
-                <el-button 
-                  v-if="!scope.row.isEditing"
-                  type="primary" :icon="Edit" size="small" circle 
-                  @click="scope.row.isEditing = true"
+            <el-table-column label="Giá bán (VNĐ)">
+              <template #default="scope">
+                <el-input-number
+                  v-model="scope.row.price"
+                  size="small"
+                  :disabled="!scope.row.isEditing"
+                  style="width: 130px"
                 />
-                <el-button 
-                  v-else
-                  type="success" :icon="Check" size="small" circle 
-                  @click="confirmUpdateVariant(scope.row)"
-                />
-                <el-button
-                  type="danger" :icon="Delete" size="small" circle
-                  @click="removeVariantRow(scope.$index)"
-                />
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-form>
+              </template>
+            </el-table-column>
 
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="dialogVisible = false">Hủy bỏ</el-button>
-          <el-button type="primary" @click="saveProduct">
-            {{ isEditMode ? 'Cập nhật' : 'Xác nhận thêm' }}
-          </el-button>
+            <el-table-column label="Tồn kho">
+              <template #default="scope">
+                <el-input-number
+                  v-model="scope.row.soLuongTon"
+                  size="small"
+                  :disabled="!scope.row.isEditing"
+                  style="width: 100px"
+                />
+              </template>
+            </el-table-column>
+
+            <el-table-column label="Thao tác" width="120" align="center">
+              <template #default="scope">
+                <div class="d-flex justify-content-center gap-2">
+                  <el-button 
+                    v-if="!scope.row.isEditing"
+                    type="primary" :icon="Edit" size="small" circle 
+                    @click="scope.row.isEditing = true"
+                  />
+                  <el-button 
+                    v-else
+                    type="success" :icon="Check" size="small" circle 
+                    @click="confirmUpdateVariant(scope.row)"
+                  />
+                  <el-button
+                    type="danger" :icon="Delete" size="small" circle
+                    @click="removeVariantRow(scope.$index)"
+                  />
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
         </div>
-      </template>
-    </el-dialog>
+      </el-form>
+    </BaseModal>
+
+    <!-- Detail Modal -->
+    <BaseModal
+      v-model="detailVisible"
+      title="Chi tiết sản phẩm"
+      icon="bi bi-info-circle"
+      width="600px"
+    >
+      <div v-if="selectedItemDetail" class="p-2">
+        <div class="d-flex gap-4 mb-4 pb-4 border-bottom">
+          <div class="detail-img-wrapper">
+            <img :src="selectedItemDetail.image || 'https://via.placeholder.com/150'" class="rounded-4 shadow-sm" style="width: 140px; height: 140px; object-fit: cover;" />
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h4 class="fw-bold text-dark m-0">{{ selectedItemDetail.name }}</h4>
+              <el-tag type="warning" effect="dark" round>Size {{ selectedItemDetail.sizeName }}</el-tag>
+            </div>
+            <p class="text-secondary mb-3">{{ selectedItemDetail.description || 'Sản phẩm chưa có mô tả chi tiết.' }}</p>
+            <div class="d-flex align-items-center gap-2">
+              <el-tag size="small" type="info" round>{{ selectedItemDetail.category }}</el-tag>
+              <el-tag size="small" :type="selectedItemDetail.stock > 0 ? 'success' : 'danger'" round>
+                {{ selectedItemDetail.stock > 0 ? 'Đang kinh doanh' : 'Tạm hết hàng' }}
+              </el-tag>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-6">
+            <div class="detail-info-item">
+              <div class="lbl mb-1 text-secondary small">Giá bán lẻ</div>
+              <div class="val fw-bold text-primary fs-5">{{ formatCurrency(selectedItemDetail.price) }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-info-item">
+              <div class="lbl mb-1 text-secondary small">Định lượng</div>
+              <div class="val fw-semibold">{{ selectedItemDetail.quantityValue }} {{ selectedItemDetail.unitName }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-info-item">
+              <div class="lbl mb-1 text-secondary small">Tồn kho hiện tại</div>
+              <div class="val fw-bold" :class="selectedItemDetail.stock < 10 ? 'text-warning' : 'text-dark'">
+                {{ selectedItemDetail.stock }} sản phẩm
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-info-item">
+              <div class="lbl mb-1 text-secondary small">Mã biến thể</div>
+              <div class="val text-secondary font-monospace">#{{ selectedItemDetail.id }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer></template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Plus, Edit, Delete, Search, Check } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { sanPhamDiKemService } from '@/services/api/admin/sanPhamDiKemService'
+import AdminTableLayout from '@/components/AdminTableLayout.vue'
+import StatCard from '@/components/common/StatCard.vue'
+import notification from '@/utils/notifications'
+import BaseModal from '@/components/common/BaseModal.vue'
 import debounce from 'lodash/debounce'
 
 const activeCategory = ref('All')
 const searchQuery = ref('')
 const dialogVisible = ref(false)
+const detailVisible = ref(false)
+const selectedItemDetail = ref(null)
 const isEditMode = ref(false)
 const loading = ref(false)
 
@@ -224,6 +366,18 @@ const toggleSelection = (item) => {
   }
 }
 
+const handleSelectAll = () => {
+  if (selectedItems.value.length === filteredItems.value.length) {
+    selectedItems.value = []
+  } else {
+    selectedItems.value = [...filteredItems.value]
+  }
+}
+
+const handleViewDetail = (item) => {
+  selectedItemDetail.value = item
+  detailVisible.value = true
+}
 const itemForm = ref({
   id: null, tenSanPham: '', idLoaiSanPham: '', moTa: '', hinhAnh: '', variants: []
 })
@@ -285,7 +439,7 @@ const fetchItems = async () => {
     })
     items.value = flattened
   } catch (error) {
-    ElMessage.error('Lỗi tải danh sách sản phẩm')
+    notification.error('Lỗi tải danh sách sản phẩm')
   } finally {
     loading.value = false
   }
@@ -353,16 +507,16 @@ const removeVariantRow = (index) => {
 }
 
 const confirmUpdateVariant = (row) => {
-  if(!row.idKichCo) return ElMessage.warning('Vui lòng chọn kích cỡ')
+  if(!row.idKichCo) return notification.warning('Vui lòng chọn kích cỡ')
   row.isEditing = false
 }
 
 const saveProduct = async () => {
-  if (!itemForm.value.tenSanPham) return ElMessage.error('Vui lòng nhập tên sản phẩm')
-  if (!itemForm.value.idLoaiSanPham) return ElMessage.error('Vui lòng chọn danh mục')
+  if (!itemForm.value.tenSanPham) return notification.error('Vui lòng nhập tên sản phẩm')
+  if (!itemForm.value.idLoaiSanPham) return notification.error('Vui lòng chọn danh mục')
   
   const selected = itemForm.value.variants.filter(v => v.active)
-  if (!selected.length) return ElMessage.warning('Vui lòng chọn ít nhất 1 biến thể')
+  if (!selected.length) return notification.warning('Vui lòng chọn ít nhất 1 biến thể')
 
   try {
     const payload = {
@@ -382,15 +536,15 @@ const saveProduct = async () => {
 
     if (isEditMode.value) {
       await sanPhamDiKemService.update(itemForm.value.id, payload)
-      ElMessage.success('Cập nhật sản phẩm thành công')
+      notification.updateSuccess('sản phẩm')
     } else {
       await sanPhamDiKemService.create(payload)
-      ElMessage.success('Thêm sản phẩm thành công')
+      notification.addSuccess('sản phẩm')
     }
     dialogVisible.value = false
     fetchItems()
   } catch (error) {
-    ElMessage.error(error.response?.data?.message || 'Có lỗi xảy ra khi lưu sản phẩm')
+    notification.error(error.response?.data?.message || 'Có lỗi xảy ra khi lưu sản phẩm')
   }
 }
 
@@ -410,11 +564,11 @@ const handleBulkDelete = () => {
             // Lấy danh sách ID sản phẩm chính duy nhất
             const productIds = [...new Set(selectedItems.value.map(i => i.productId))];
             await Promise.all(productIds.map(id => sanPhamDiKemService.delete(id)));
-            ElMessage.success(`Đã xóa ${productIds.length} sản phẩm`);
+            notification.success(`Đã xóa ${productIds.length} sản phẩm`);
             selectedItems.value = [];
             fetchItems();
         } catch (error) {
-            ElMessage.error('Có lỗi khi xóa hàng loạt');
+            notification.error('Có lỗi khi xóa hàng loạt');
         }
     }).catch(() => {});
 };
@@ -427,10 +581,10 @@ const handleDelete = item => {
   }).then(async () => {
     try {
       await sanPhamDiKemService.delete(item.productId)
-      ElMessage.success('Đã xóa sản phẩm')
+      notification.deleteSuccess('sản phẩm')
       fetchItems()
     } catch (error) {
-      ElMessage.error('Không thể xóa sản phẩm')
+      notification.error('Không thể xóa sản phẩm')
     }
   })
 }
@@ -442,17 +596,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-food-container { background: #f8f9fa; min-height: 100vh; }
-.card-image-wrapper { height: 180px; overflow: hidden; position: relative; border-radius: 8px 8px 0 0; background: #eee; }
+.admin-food-container { 
+  overflow: hidden;
+}
+.food-grid-container {
+  max-height: calc(100vh - 380px); /* Điều chỉnh dựa trên chiều cao header/stats/filters */
+}
+.card-image-wrapper { height: 180px; overflow: hidden; position: relative; border-radius: 12px 12px 0 0; background: #eee; }
 .size-badge { position: absolute; top: 10px; right: 10px; font-weight: bold; }
 .food-card { transition: 0.3s; border: 1px solid #eee; }
-.food-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.food-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
 .description-text {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  height: 32px; /* Đảm bảo các card đều nhau */
+  height: 32px;
 }
 .selection-checkbox {
   position: absolute;
@@ -460,12 +620,51 @@ onMounted(() => {
   left: 10px;
   z-index: 10;
   background: white;
-  padding: 2px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   line-height: 1;
+  border: 1px solid #efefef;
+  transition: all 0.2s;
+}
+.food-card:hover .selection-checkbox {
+  border-color: #4f46e5;
+  transform: scale(1.05);
 }
 .selected-card {
   border: 2px solid #4f46e5 !important;
+  background-color: #f5f3ff !important;
+}
+.selected-card .selection-checkbox {
+  background: #4f46e5;
+  border-color: #4f46e5;
+}
+.selected-card .selection-checkbox :deep(.el-checkbox__inner) {
+  background-color: #4f46e5;
+  border-color: #fff;
+}
+.selected-card .selection-checkbox :deep(.el-checkbox__inner::after) {
+  border-color: #fff;
+}
+
+/* Biến thể section styling */
+.variant-section-premium {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.detail-img-wrapper {
+  transition: all 0.3s;
+}
+.detail-img-wrapper:hover {
+  transform: scale(1.02);
+}
+.detail-info-item {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
 }
 </style>

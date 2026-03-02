@@ -57,7 +57,7 @@
         </el-header>
 
         <!-- Main Content Area -->
-        <el-main class="p-0 flex-fill overflow-y-auto text-dark">
+        <el-main class="px-4 py-0 flex-fill overflow-y-auto text-dark">
           <router-view v-slot="{ Component }">
             <transition name="page-fade" mode="out-in">
               <component :is="Component" />

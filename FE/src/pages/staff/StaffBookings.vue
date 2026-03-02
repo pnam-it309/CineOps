@@ -38,7 +38,7 @@
           />
         </el-col>
         <el-col :xs="24" :sm="12" :md="4">
-          <el-button type="primary" :icon="Search" style="width: 100%">Tìm kiếm</el-button>
+          <el-button type="primary" :icon="Search" style="width: 100%"></el-button>
         </el-col>
       </el-row>
     </el-card>

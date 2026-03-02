@@ -208,7 +208,7 @@ const routes = [
                 path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.name,
                 component: () => import('@/pages/admin/quanliphim/AdminMovies.vue'),
-                meta: { title: 'Phim & Lịch chiếu' }
+                meta: { title: 'Phim & lịch chiếu' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.path,

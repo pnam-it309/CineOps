@@ -1,10 +1,12 @@
 <script setup>
 import { ref, reactive, computed } from 'vue';
 import { Plus, Edit, Delete, Location, House, Setting, View } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
+import notification from '@/utils/notifications';
+import BaseModal from '@/components/common/BaseModal.vue';
+import { House, Monitor, PieChart } from '@element-plus/icons-vue';
 
 // Define columns
 const roomColumns = [
@@ -29,7 +31,7 @@ const handleBulkDelete = () => {
         }
     ).then(() => {
         rooms.value = rooms.value.filter(r => !selectedIds.value.includes(r.id));
-        ElMessage.success(`Đã xóa ${selectedIds.value.length} phòng chiếu`);
+        notification.success(`Đã xóa ${selectedIds.value.length} phòng chiếu`);
         selectedRooms.value = [];
     }).catch(() => {});
 };
@@ -77,14 +79,14 @@ const handleCreateRoom = () => {
   };
   rooms.value.push(newRoom);
   designerVisible.value = false;
-  ElMessage.success('Room created successfully');
+  notification.success('Room created successfully');
 };
 
 const handleUpdateRoom = () => {
   const index = rooms.value.findIndex(r => r.id === activeRoom.value.id);
   rooms.value[index] = { ...activeRoom.value, ...roomConfig };
   designerVisible.value = false;
-  ElMessage.success('Room updated');
+  notification.success('Room updated');
 };
 
 const deleteRoom = (id) => {
@@ -92,7 +94,7 @@ const deleteRoom = (id) => {
       type: 'warning'
   }).then(() => {
     rooms.value = rooms.value.filter(r => r.id !== id);
-    ElMessage.success('Đã xóa phòng chiếu');
+    notification.success('Đã xóa phòng chiếu');
   });
 };
 
@@ -164,7 +166,7 @@ const handleSave = () => {
     const index = rooms.value.findIndex(r => r.id === editingId.value);
     if (index !== -1) {
       rooms.value[index] = { ...roomForm, id: editingId.value, capacity: roomForm.rows * roomForm.cols };
-      ElMessage.success('Cập nhật phòng thành công!');
+      notification.updateSuccess('phòng');
     }
   } else {
     const newRoom = {
@@ -173,7 +175,7 @@ const handleSave = () => {
       capacity: roomForm.rows * roomForm.cols
     };
     rooms.value.push(newRoom);
-    ElMessage.success('Thêm phòng mới thành công!');
+    notification.addSuccess('phòng');
   }
   dialogVisible.value = false;
 };
@@ -183,7 +185,7 @@ const handleDelete = (room) => {
     type: 'warning'
   }).then(() => {
     rooms.value = rooms.value.filter(r => r.id !== room.id);
-    ElMessage.success('Đã xóa phòng chiếu!');
+    notification.deleteSuccess('phòng');
   }).catch(() => {
     // User cancelled
   });
@@ -222,6 +224,7 @@ const handleDelete = (room) => {
 
       <template #filters>
         <div class="filter-item" style="width: 350px;">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-input
             v-model="searchQuery"
             placeholder="Tìm theo tên phòng hoặc mô tả..."
@@ -231,6 +234,7 @@ const handleDelete = (room) => {
           />
         </div>
         <div class="filter-item" style="width: 200px;">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-select v-model="filterStatus" placeholder="Trạng thái" size="default" class="w-100">
             <el-option label="Tất cả trạng thái" value="all" />
             <el-option label="Sẵn sàng" value="Sẵn sàng" />
@@ -299,36 +303,26 @@ const handleDelete = (room) => {
     </AdminTableLayout>
 
     <!-- Room Dialog -->
-    <el-dialog
+    <BaseModal
       v-model="dialogVisible"
+      :title="editingId ? 'Cập nhật Phòng' : 'Thêm Phòng mới'"
+      subtitle="Cấu hình thông số kỹ thuật phòng chiếu"
+      icon="bi bi-door-open"
       width="550px"
-      class="premium-dialog"
-      destroy-on-close
+      confirmText="Lưu thông tin"
+      @confirm="handleSave"
     >
-      <template #header>
-        <div class="premium-header">
-          <div class="premium-header-content">
-            <div class="header-icon-box">
-              <i class="bi bi-door-open"></i>
-            </div>
-            <div class="header-text">
-              <h5 class="title">{{ editingId ? 'Cập nhật Phòng' : 'Thêm Phòng mới' }}</h5>
-              <p class="subtitle opacity-75">Cấu hình thông số kỹ thuật phòng chiếu</p>
-            </div>
-          </div>
-        </div>
-      </template>
-
       <el-form :model="roomForm" label-position="top" class="premium-form">
         <div class="row g-3">
           <div class="col-8">
             <el-form-item label="Tên phòng" required>
-              <el-input v-model="roomForm.name" placeholder="VD: Phòng chiếu 01" />
+              <el-input v-model="roomForm.name" placeholder="VD: Phòng chiếu 01" :prefix-icon="House" />
             </el-form-item>
           </div>
           <div class="col-4">
             <el-form-item label="Loại phòng">
               <el-select v-model="roomForm.type" class="w-100">
+                <template #prefix><el-icon><Monitor /></el-icon></template>
                 <el-option label="2D/3D Standard" value="2D/3D Standard" />
                 <el-option label="IMAX" value="IMAX" />
                 <el-option label="Gold Class" value="Gold Class" />
@@ -348,6 +342,7 @@ const handleDelete = (room) => {
           <div class="col-12">
             <el-form-item label="Trạng thái">
               <el-select v-model="roomForm.status" class="w-100">
+                <template #prefix><el-icon><PieChart /></el-icon></template>
                 <el-option label="Sẵn sàng" value="Sẵn sàng" />
                 <el-option label="Đang bảo trì" value="Đang bảo trì" />
               </el-select>
@@ -360,13 +355,7 @@ const handleDelete = (room) => {
           </div>
         </div>
       </el-form>
-      <template #footer>
-        <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false" class="btn-premium-secondary">Hủy</el-button>
-          <el-button type="primary" @click="handleSave" class="btn-premium-primary">Lưu thông tin</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    </BaseModal>
   </div>
 </template>
 

@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Check, Close, Search, FullScreen } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import notification from '@/utils/notifications';
 
 const ticketCode = ref('');
 const scanResult = ref(null);
@@ -16,13 +16,13 @@ const handleCheckin = () => {
       seats: 'G8, G9',
       user: 'Nguyễn Văn A'
     };
-    ElMessage.success('Xác thực vé thành công');
+    notification.success('Xác thực vé thành công');
   } else if (ticketCode.value === 'TUSED') {
     scanResult.value = { status: 'Đã dùng', message: 'Vé này đã được sử dụng lúc 14:12 hôm nay.' };
-    ElMessage.error('Vé đã được sử dụng');
+    notification.error('Vé đã được sử dụng');
   } else {
     scanResult.value = { status: 'Không hợp lệ', message: 'Không tìm thấy vé với mã này.' };
-    ElMessage.error('Mã vé không hợp lệ');
+    notification.error('Mã vé không hợp lệ');
   }
 };
 </script>

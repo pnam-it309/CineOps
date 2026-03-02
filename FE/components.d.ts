@@ -13,7 +13,9 @@ declare module 'vue' {
   export interface GlobalComponents {
     AdminSidebar: typeof import('./src/components/AdminSidebar.vue')['default']
     AdminTableLayout: typeof import('./src/components/AdminTableLayout.vue')['default']
+    BaseModal: typeof import('./src/components/common/BaseModal.vue')['default']
     BaseTable: typeof import('./src/components/common/BaseTable.vue')['default']
+    CCCDScanner: typeof import('./src/components/common/CCCDScanner.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
@@ -26,6 +28,7 @@ declare module 'vue' {
     ElCheckboxButton: typeof import('element-plus/es')['ElCheckboxButton']
     ElCheckboxGroup: typeof import('element-plus/es')['ElCheckboxGroup']
     ElCol: typeof import('element-plus/es')['ElCol']
+    ElCollapseTransition: typeof import('element-plus/es')['ElCollapseTransition']
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']
     ElContainer: typeof import('element-plus/es')['ElContainer']
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Search, Printer, Close, RefreshRight } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import notification from '@/utils/notifications';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 const invoices = ref([
@@ -34,7 +34,7 @@ const handleView = (row) => {
 };
 
 const handlePrint = (row) => {
-  ElMessage.success(`Đang xử lý in hóa đơn ${row.id}...`);
+  notification.success(`Đang xử lý in hóa đơn ${row.id}...`);
 };
 
 const getStatusType = (status) => {

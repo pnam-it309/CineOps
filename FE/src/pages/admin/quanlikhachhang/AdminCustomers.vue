@@ -1,12 +1,15 @@
 
 <script setup>
 import { ref, onMounted, computed, reactive, watch } from 'vue';
-import { Search, Plus, Edit, Delete, View, Filter } from '@element-plus/icons-vue';
+import { Search, Plus, Edit, Delete, View, Filter, Message, User, Phone } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
+import CCCDScanner from '@/components/common/CCCDScanner.vue'; // <-- Integrate Scanner
 import { khachHangService } from '@/services/api/admin/khachHangService';
+import notification from '@/utils/notifications';
+import BaseModal from '@/components/common/BaseModal.vue';
 
 // --- State ---
 const customers = ref([]);
@@ -18,6 +21,7 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 
 const customerColumns = [
+  { label: 'STT', key: 'stt', width: '70px' },
   { label: 'KHÁCH HÀNG', key: 'customer', minWidth: '220px' },
   { label: 'LIÊN HỆ', key: 'contact', minWidth: '200px' },
   { label: 'GIỚI TÍNH', key: 'gender', width: '120px' },
@@ -26,9 +30,16 @@ const customerColumns = [
 
 // State điều khiển Modal
 const dialogVisible = ref(false);
+const detailVisible = ref(false);
+const selectedCustomer = ref(null);
 const isEdit = ref(false);
 const currentId = ref(null);
 const formRef = ref(null);
+
+const handleView = (row) => {
+  selectedCustomer.value = row;
+  detailVisible.value = true;
+};
 
 const form = reactive({
   tenKhachHang: '',
@@ -61,7 +72,7 @@ const fetchCustomers = async () => {
       customers.value = Array.isArray(res.data) ? res.data : (res.data.data || []);
     }
   } catch (error) {
-    ElMessage.error('Không thể tải danh sách khách hàng');
+    notification.error('Không thể tải danh sách khách hàng');
   } finally {
     loading.value = false;
   }
@@ -99,6 +110,12 @@ const handleEdit = (row) => {
   dialogVisible.value = true;
 };
 
+// Handle data returned from Scanner
+const handleCCCDScanned = (data) => {
+  if (data.name) form.tenKhachHang = data.name;
+  if (data.dob) form.ngaySinh = data.dob;
+};
+
 // --- Logic Lưu Dữ Liệu ---
 const submitForm = async () => {
   if (!formRef.value) return;
@@ -107,16 +124,16 @@ const submitForm = async () => {
       try {
         if (isEdit.value) {
           await khachHangService.update(currentId.value, form);
-          ElMessage.success('Cập nhật khách hàng thành công');
+          notification.updateSuccess('khách hàng');
         } else {
           await khachHangService.create(form);
-          ElMessage.success('Thêm khách hàng thành công');
+          notification.addSuccess('khách hàng');
         }
         dialogVisible.value = false;
         await fetchCustomers();
       } catch (error) {
         const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra';
-        ElMessage.error(errorMsg);
+        notification.error(errorMsg);
       }
     }
   });
@@ -135,10 +152,10 @@ const handleDelete = (row) => {
   ).then(async () => {
     try {
       await khachHangService.delete(row.id);
-      ElMessage.success('Xóa khách hàng thành công');
+      notification.deleteSuccess('khách hàng');
       fetchCustomers();
     } catch (error) {
-      ElMessage.error('Lỗi khi xóa khách hàng');
+      notification.error('Lỗi khi xóa khách hàng');
     }
   }).catch(() => {});
 };
@@ -165,11 +182,11 @@ const handleBulkDelete = () => {
   ).then(async () => {
     try {
       await Promise.all(selectedIds.value.map(id => khachHangService.delete(id)));
-      ElMessage.success(`Đã xóa ${selectedIds.value.length} khách hàng`);
+      notification.success(`Đã xóa ${selectedIds.value.length} khách hàng`);
       selectedCustomers.value = [];
       fetchCustomers();
     } catch (error) {
-      ElMessage.error('Có lỗi khi xóa hàng loạt');
+      notification.error('Có lỗi khi xóa hàng loạt');
     }
   }).catch(() => { });
 };
@@ -188,7 +205,7 @@ watch([currentPage, pageSize], fetchCustomers);
 <template>
   <div class="admin-customers-page">
     <AdminTableLayout
-        title="Quản Lý Khách Hàng"
+        title="Quản lý khách hàng"
         titleIcon="bi bi-people-fill"
         addButtonLabel="Thêm khách hàng"
         :data="customers"
@@ -222,11 +239,11 @@ watch([currentPage, pageSize], fetchCustomers);
   
       <template #filters>
         <div class="filter-item flex-grow-1 search-input-wrapper" style="max-width: 400px;">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block">Tìm kiếm</span>
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable @input="fetchCustomers" />
         </div>
         <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block">Trạng thái</span>
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-select v-model="filterTrangThai" placeholder="Trạng thái" style="width: 170px;" clearable @change="fetchCustomers">
             <template #prefix><el-icon><Filter /></el-icon></template>
             <el-option label="Tất cả trạng thái" value="" />
@@ -249,10 +266,14 @@ watch([currentPage, pageSize], fetchCustomers);
           @edit="handleEdit"
           @delete="handleDelete"
         >
+          <template #cell-stt="{ index }">
+            <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+          </template>
+
           <template #cell-customer="{ row }">
-            <div class="d-flex align-items-center gap-2 text-start">
-              <el-avatar :size="32" class="bg-primary shadow-sm border border-white">{{ row.tenKhachHang?.charAt(0) }}</el-avatar>
-              <div>
+            <div class="d-flex align-items-center justify-content-center gap-2">
+              <el-avatar :size="32" class="bg-primary shadow-sm border border-white flex-shrink-0">{{ row.tenKhachHang?.charAt(0) }}</el-avatar>
+              <div class="text-start">
                 <div class="fw-bold text-dark small">{{ row.tenKhachHang }}</div>
                 <div class="text-secondary" style="font-size: 11px;">{{ row.maKhachHang }}</div>
               </div>
@@ -260,7 +281,7 @@ watch([currentPage, pageSize], fetchCustomers);
           </template>
 
           <template #cell-contact="{ row }">
-            <div class="small text-start">
+            <div class="small">
               <div class="text-dark"><i class="bi bi-envelope me-2 text-primary"></i>{{ row.email || '—' }}</div>
               <div class="text-secondary"><i class="bi bi-telephone me-2"></i>{{ row.sdt || '—' }}</div>
             </div>
@@ -280,33 +301,115 @@ watch([currentPage, pageSize], fetchCustomers);
 
           <template #actions="{ row }">
             <div class="d-flex gap-1 justify-content-center">
-              <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)" title="Chỉnh sửa">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)" title="Xóa">
-                <i class="bi bi-trash"></i>
-              </button>
+              <el-tooltip content="Chi tiết" placement="top">
+                <button class="btn-action-icon btn-action-view" @click="handleView(row)">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Chỉnh sửa" placement="top">
+                <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Xóa" placement="top">
+                <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </el-tooltip>
             </div>
           </template>
         </BaseTable>
       </template>
     </AdminTableLayout>
   
-    <el-dialog v-model="dialogVisible" :title="isEdit ? 'Cập nhật khách hàng' : 'Thêm khách hàng mới'" width="500px" destroy-on-close>
-      <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
+    <BaseModal
+      v-model="detailVisible"
+      title="Chi tiết khách hàng"
+      icon="bi bi-person-badge"
+      width="500px"
+    >
+      <div v-if="selectedCustomer" class="p-2">
+        <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
+          <el-avatar :size="70" class="bg-primary fs-2 border border-white shadow">{{ selectedCustomer.tenKhachHang?.charAt(0) }}</el-avatar>
+          <div>
+            <h4 class="fw-bold text-dark mb-1">{{ selectedCustomer.tenKhachHang }}</h4>
+            <div class="text-secondary small">Mã KH: <span class="fw-bold">{{ selectedCustomer.maKhachHang }}</span></div>
+            <el-tag :type="selectedCustomer.trangThai === 1 ? 'success' : 'info'" size="small" class="mt-2" round>
+              {{ getStatusLabel(selectedCustomer.trangThai) }}
+            </el-tag>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-12">
+            <div class="detail-info-item">
+              <div class="lbl mb-1"><i class="bi bi-envelope me-2 text-primary"></i>Email liên hệ</div>
+              <div class="val fw-semibold">{{ selectedCustomer.email || '—' }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-info-item">
+              <div class="lbl mb-1"><i class="bi bi-telephone me-2 text-primary"></i>Số điện thoại</div>
+              <div class="val fw-semibold">{{ selectedCustomer.sdt || '—' }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-info-item">
+              <div class="lbl mb-1"><i class="bi bi-gender-ambiguous me-2 text-primary"></i>Giới tính</div>
+              <div class="val fw-semibold">{{ getGenderText(selectedCustomer.gioiTinh) }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-info-item">
+              <div class="lbl mb-1"><i class="bi bi-calendar-event me-2 text-primary"></i>Ngày sinh</div>
+              <div class="val fw-semibold">{{ selectedCustomer.ngaySinh || '—' }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-info-item">
+              <div class="lbl mb-1"><i class="bi bi-clock me-2 text-primary"></i>Ngày tham gia</div>
+              <div class="val fw-semibold">{{ selectedCustomer.ngayTao ? new Date(selectedCustomer.ngayTao).toLocaleDateString('vi-VN') : '—' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      v-model="dialogVisible"
+      :title="isEdit ? 'Cập nhật khách hàng' : 'Thêm khách hàng mới'"
+      :icon="isEdit ? 'bi bi-person-gear' : 'bi bi-person-plus'"
+      width="550px"
+      confirmText="XÁC NHẬN"
+      @confirm="submitForm"
+    >
+      <template #header-extra v-if="!isEdit">
+        <CCCDScanner @scanned="handleCCCDScanned" />
+      </template>
+
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="premium-form">
         <el-form-item label="Tên khách hàng" prop="tenKhachHang">
-          <el-input v-model="form.tenKhachHang" placeholder="Nguyễn Văn A" />
+          <el-input v-model="form.tenKhachHang" placeholder="Nguyễn Văn A" :prefix-icon="User" />
         </el-form-item>
         <el-form-item label="Email" prop="email">
-          <el-input v-model="form.email" placeholder="example@gmail.com" />
+          <el-input v-model="form.email" placeholder="example@gmail.com" :prefix-icon="Message" />
         </el-form-item>
-        <el-form-item label="Số điện thoại" prop="sdt">
-          <el-input v-model="form.sdt" placeholder="09xxx" />
-        </el-form-item>
-        <el-form-item label="Ngày sinh">
-          <el-date-picker v-model="form.ngaySinh" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày sinh" style="width: 100%" />
-        </el-form-item>
-        <div class="row">
+        <div class="row g-2">
+          <div class="col-6">
+            <el-form-item label="Số điện thoại" prop="sdt">
+              <el-input v-model="form.sdt" placeholder="09xxx" :prefix-icon="Phone" />
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Ngày sinh">
+              <el-date-picker v-model="form.ngaySinh" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày sinh" style="width: 100%" />
+            </el-form-item>
+          </div>
+        </div>
+        
+        <div class="row g-2">
           <div class="col-6">
             <el-form-item label="Giới tính">
               <el-radio-group v-model="form.gioiTinh">
@@ -325,12 +428,6 @@ watch([currentPage, pageSize], fetchCustomers);
           </div>
         </div>
       </el-form>
-      <template #footer>
-        <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false" class="btn-premium-secondary">HỦY BỎ</el-button>
-          <el-button @click="submitForm" class="btn-premium-primary">XÁC NHẬN</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    </BaseModal>
   </div>
 </template>

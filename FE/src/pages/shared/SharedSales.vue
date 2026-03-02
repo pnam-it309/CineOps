@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { ShoppingCart, ArrowRight, ArrowLeft } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import notification from '@/utils/notifications';
 
 // Mock Data (Local)
 const showtimes = [
@@ -67,7 +67,7 @@ const handleConcessionPageChange = (delta) => {
 };
 
 const handleCheckout = () => {
-  ElMessage.success('Đơn hàng đã hoàn tất! Đang in vé...');
+  notification.success('Đơn hàng đã hoàn tất! Đang in vé...');
   // Reset
   selectedSeats.value = [];
   selectedCombos.value = [];

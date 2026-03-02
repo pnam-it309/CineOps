@@ -292,7 +292,7 @@ import {
   CaretTop,
   CaretBottom
 } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import notification from '@/utils/notifications';
 
 const activeTab = ref('week');
 const revenueData = ref([45, 62, 55, 80, 75, 95, 88]);
@@ -327,10 +327,7 @@ const topMovies = ref([
 ]);
 
 const handleAction = (action) => {
-  ElMessage({
-    message: `Action "${action}" will be implemented soon!`,
-    type: 'info'
-  });
+  notification.info(`Chức năng "${action}" đang được phát triển!`);
 };
 </script>
 

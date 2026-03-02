@@ -10,6 +10,18 @@
       </div>
       <div class="d-flex gap-2 align-items-center">
         <slot name="header-actions-left"></slot>
+        <div class="filter-item border-start ps-3 ms-2">
+          <el-button 
+            @click="showFilter = !showFilter" 
+            :class="[showFilter ? 'btn-premium-toggle-active' : 'btn-premium-toggle']"
+            class="rounded-3"
+          >
+            <template #icon>
+              <el-icon><Filter /></el-icon>
+            </template>
+            {{ showFilter ? 'Ẩn bộ lọc' : 'Hiện bộ lọc' }}
+          </el-button>
+        </div>
         <div class="filter-item border-start ps-3 ms-2" v-if="addButtonLabel">
           <el-button @click="$emit('add-click')" class="btn-add-premium">
             <template #icon>
@@ -28,19 +40,22 @@
     </div>
 
     <!-- Filter Bar Section -->
-    <div class="filter-card p-3 mb-4 bg-white flex-shrink-0 shadow-sm border">
-      <div class="d-flex align-items-center gap-3 w-100 px-1">
-          <slot name="filters"></slot>
-          
-          <div class="filter-item border-start ps-3 ms-1 d-flex align-items-center">
-              <button @click="$emit('reset-filter')" class="btn-reset-square" title="Làm mới bộ lọc">
-                <el-icon><Refresh /></el-icon>
-              </button>
-          </div>
+    <el-collapse-transition>
+      <div v-show="showFilter" class="filter-card p-3 mb-4 bg-white flex-shrink-0 shadow-sm border">
+        <div class="d-flex align-items-end gap-3 w-100 px-1">
+            <slot name="filters"></slot>
+            
+            <div class="filter-item border-start ps-3 ms-1">
+                <span class="filter-label mb-1 d-block"></span>
+                <button @click="$emit('reset-filter')" class="btn-reset-square" title="Làm mới bộ lọc">
+                  <el-icon><Refresh /></el-icon>
+                </button>
+            </div>
 
-          <slot name="filter-right"></slot>
+            <slot name="filter-right"></slot>
+        </div>
       </div>
-    </div>
+    </el-collapse-transition>
 
     <!-- Content or Table Section -->
     <div class="table-container flex-grow-1 overflow-hidden d-flex flex-column">
@@ -72,7 +87,7 @@
     </div>
 
     <!-- Pagination Section (Refined to match image 1) -->
-    <div class="pagination-footer d-flex align-items-center pt-4 px-1 flex-shrink-0 flex-wrap gap-3 mt-auto">
+    <div v-if="!hidePagination" class="pagination-footer d-flex align-items-center pt-4 px-1 flex-shrink-0 flex-wrap gap-3 mt-auto">
       <!-- Left: Total and Page Size -->
       <div class="pagination-left d-flex align-items-center gap-3" style="flex: 1; min-width: 200px;">
         <div class="text-dark fw-bold small">
@@ -130,8 +145,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { Plus, Refresh } from '@element-plus/icons-vue';
+import { ref, computed } from 'vue';
+import { Plus, Refresh, Filter } from '@element-plus/icons-vue';
 
 const props = defineProps({
   title: String,
@@ -146,8 +161,14 @@ const props = defineProps({
   selectable: {
     type: Boolean,
     default: true
+  },
+  hidePagination: {
+    type: Boolean,
+    default: false
   }
 });
+
+const showFilter = ref(true);
 
 const emit = defineEmits(['add-click', 'reset-filter', 'update:currentPage', 'update:pageSize', 'selection-change']);
 
@@ -258,9 +279,9 @@ const pagesToShow = computed(() => {
 
 .btn-reset-square:hover {
     transform: rotate(360deg);
-    color: #4f46e5;
-    border-color: #4f46e5;
-    background-color: #f0efff;
+    color: #E31E24;
+    border-color: #E31E24;
+    background-color: #fff1f1;
 }
 
 /* Custom Pagination Style (Matched with Image 1) */
@@ -284,7 +305,7 @@ const pagesToShow = computed(() => {
 }
 
 .page-link-btn.active {
-    color: #4f46e5 !important;
+    color: #E31E24 !important;
     font-weight: 700 !important;
 }
 

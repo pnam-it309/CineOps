@@ -59,7 +59,7 @@
 
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
         <el-icon><Film /></el-icon>
-        <template #title>Quản lý Phim & Lịch chiếu</template>
+        <template #title>Quản lý phim & lịch chiếu</template>
       </el-menu-item>
 
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">

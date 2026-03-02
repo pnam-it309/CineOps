@@ -124,11 +124,11 @@ const pagesToShow = computed(() => {
 <template>
   <div class="base-table-container h-100 d-flex flex-column overflow-hidden">
     <div class="table-content-wrapper flex-grow-1 overflow-auto no-scroll rounded-4 border bg-white shadow-sm">
-      <table class="table table-hover align-middle mb-0 text-center w-100">
+      <table class="table table-hover align-middle mb-0 text-center w-100" style="border-collapse: separate; border-spacing: 0; table-layout: auto;">
         <!-- Sticky Header -->
-        <thead class="sticky-top shadow-sm" style="z-index: 10;">
+        <thead class="sticky-top shadow-sm" style="z-index: 20;">
           <tr class="border-bottom">
-            <th v-if="showCheckbox" class="py-3 px-2 table-header-bg" style="width: 50px; min-width: 50px;">
+            <th v-if="showCheckbox" class="py-3 px-2 table-header-bg sticky-col-check" style="width: 50px; min-width: 50px; max-width: 50px;">
               <div class="form-check d-flex justify-content-center ps-0 mb-0" style="min-height: auto;">
                 <input 
                   class="form-check-input m-0 cursor-pointer" 
@@ -138,15 +138,24 @@ const pagesToShow = computed(() => {
                 >
               </div>
             </th>
-            <th v-for="col in columns" :key="col.key" class="py-3 px-3 fw-bold text-nowrap text-center table-header-bg" :style="{ width: col.width || 'auto' }">
+            <th v-for="(col, colIdx) in columns" :key="col.key" 
+                class="py-3 px-3 fw-bold text-nowrap text-center table-header-bg" 
+                :class="{ 
+                  'sticky-col-stt': colIdx === 0 && !showCheckbox,
+                  'sticky-col-stt-with-check': colIdx === 0 && showCheckbox
+                }"
+                :style="{ 
+                  width: col.width || 'auto',
+                  minWidth: col.width || 'auto'
+                }">
               {{ col.label }}
             </th>
-            <th v-if="showActions" class="py-3 px-3 fw-bold text-center table-header-bg" style="width: 140px;">Thao tác</th>
+            <th v-if="showActions" class="py-3 px-3 fw-bold text-center table-header-bg sticky-col-actions" style="width: 140px; min-width: 140px;">Thao tác</th>
           </tr>
         </thead>
         <tbody v-if="!loading && data.length > 0">
           <tr v-for="(item, index) in data" :key="item.id || index" class="border-bottom border-light-subtle">
-            <td v-if="showCheckbox" class="py-3 px-2" style="width: 50px;">
+            <td v-if="showCheckbox" class="py-3 px-2 td-sticky-check" style="width: 50px; min-width: 50px; max-width: 50px;">
               <div class="form-check d-flex justify-content-center ps-0 mb-0" style="min-height: auto;">
                 <input 
                   class="form-check-input m-0 cursor-pointer" 
@@ -156,12 +165,22 @@ const pagesToShow = computed(() => {
                 >
               </div>
             </td>
-            <td v-for="col in columns" :key="col.key" class="py-3 px-3 text-secondary" style="font-size: 13px;">
+            <td v-for="(col, colIdx) in columns" :key="col.key" 
+                class="py-3 px-3 text-secondary" 
+                :class="{ 
+                  'table-cell-sticky-stt': colIdx === 0 && !showCheckbox,
+                  'table-cell-sticky-stt-with-check': colIdx === 0 && showCheckbox
+                }"
+                :style="{ 
+                  width: col.width || 'auto',
+                  minWidth: col.width || 'auto',
+                  fontSize: '13px'
+                }">
               <slot :name="'cell-' + col.key" :row="item" :index="index">
                 {{ item[col.key] }}
               </slot>
             </td>
-            <td v-if="showActions" class="py-3 px-3">
+            <td v-if="showActions" class="py-3 px-3 td-sticky-actions" style="width: 140px; min-width: 140px;">
               <div class="d-flex justify-content-center gap-2">
                 <slot name="actions" :row="item">
                   <el-tooltip content="Chi tiết" placement="top">
@@ -257,7 +276,7 @@ const pagesToShow = computed(() => {
 <style scoped>
 .base-table-container { min-height: 0; }
 .table-content-wrapper { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
-.table-header-bg { background-color: #ffffff !important; color: #475569 !important; font-size: 12px; letter-spacing: 0.025em; text-transform: uppercase; }
+.table-header-bg { background-color: #ffffff !important; color: #475569 !important; font-size: 12px; letter-spacing: 0.025em; text-transform: uppercase; border-bottom: 1px solid #f1f5f9 !important; }
 .cursor-pointer { cursor: pointer; }
 .simple-page-btn { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0 8px; border: none; background: transparent; color: #475569; font-size: 14px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
 .simple-page-btn:hover:not(.active):not(.arrow) { color: #4f46e5; background: #f8fafc; border-radius: 6px; }
@@ -270,29 +289,64 @@ const pagesToShow = computed(() => {
 .btn-action-icon:hover { background-color: #f1f5f9; }
 .spinner-premium { width: 32px; height: 32px; border: 3px solid #f1f5f9; border-top: 3px solid #4f46e5; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-:deep(.compact-select-simple .el-input__wrapper) { border-radius: 6px !important; background-color: #ffffff !important; box-shadow: none !important; border: 1px solid #e2e8f0 !important; height: 30px !important; }
-:deep(.compact-select-simple .el-input__wrapper.is-focus) { border-color: #4f46e5 !important; }
+:deep(.compact-select-simple .el-input__wrapper) { border-radius:6px !important; background-color:#ffffff !important; box-shadow:none !important; border:1px solid #e2e8f0 !important; height:30px !important; }
+:deep(.compact-select-simple .el-input__wrapper.is-focus) { border-color:#4f46e5 !important; }
 
-/* Force clean white checkbox style like image 2 */
+/* Sticky Column Styles */
+.sticky-col-check,
+.sticky-col-stt,
+.sticky-col-stt-with-check,
+.sticky-col-actions,
+.table-cell-sticky-stt,
+.table-cell-sticky-stt-with-check {
+  position: sticky !important;
+  background-color: #fff !important;
+}
+
+/* Individual Positions */
+.sticky-col-check { left: 0; z-index: 12; }
+.td-sticky-check { position: sticky; left: 0; z-index: 10; background-color: #fff !important; }
+
+.sticky-col-stt { left: 0; z-index: 12; border-right: 1px solid #f1f5f9 !important; }
+.table-cell-sticky-stt { left: 0; z-index: 10; border-right: 1px solid #f1f5f9 !important; }
+
+.sticky-col-stt-with-check { left: 50px; z-index: 12; border-right: 1px solid #f1f5f9 !important; }
+.table-cell-sticky-stt-with-check { left: 50px; z-index: 10; border-right: 1px solid #f1f5f9 !important; }
+
+.sticky-col-actions { right: 0; z-index: 12; border-left: 1px solid #f1f5f9 !important; }
+.td-sticky-actions { position: sticky; right: 0; z-index: 10; background-color: #fff !important; border-left: 1px solid #f1f5f9 !important; }
+
+/* Group Boundary Indicators (Shadows) */
+.sticky-col-stt::after,
+.sticky-col-stt-with-check::after,
+.table-cell-sticky-stt::after,
+.table-cell-sticky-stt-with-check::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -10px;
+  bottom: 0;
+  width: 10px;
+  background: linear-gradient(to right, rgba(0,0,0,0.05), transparent);
+  pointer-events: none;
+}
+
+.sticky-col-actions::before,
+.td-sticky-actions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -10px;
+  bottom: 0;
+  width: 10px;
+  background: linear-gradient(to left, rgba(0,0,0,0.05), transparent);
+  pointer-events: none;
+}
+
 :deep(.form-check-input) {
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid #dcdfe6;
-  border-radius: 5px;
-  background-color: #ffffff;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: none !important;
+  width: 18px; height: 18px; border: 1.5px solid #dcdfe6; border-radius: 5px; background-color: #ffffff; cursor: pointer; transition: all 0.2s; box-shadow: none !important;
 }
-
 :deep(.form-check-input:checked) {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
-}
-
-:deep(.form-check-input:focus) {
-  border-color: #dcdfe6;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
+  background-color: #4f46e5; border-color: #4f46e5; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
 }
 </style>

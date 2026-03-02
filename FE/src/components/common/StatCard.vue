@@ -1,5 +1,5 @@
 <template>
-  <div class="stat-card border shadow-sm rounded-4 p-3 bg-white h-100 d-flex align-items-center">
+  <div class="stat-card border shadow-sm rounded-4 p-3 bg-white h-100 d-flex align-items-center" :class="'stat-style-' + type">
     <div v-if="icon" class="stat-icon-wrapper rounded-3 me-3 d-flex align-items-center justify-content-center" :class="iconBgClass">
       <i :class="[icon, iconColorClass]" style="font-size: 1.2rem;"></i>
     </div>
@@ -40,6 +40,7 @@ const subTextColorClass = computed(() => `text-${props.subTextType}`);
 .stat-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-color: #f1f5f9 !important;
+  border-left-width: 5px !important;
 }
 
 .stat-card:hover {
@@ -47,6 +48,13 @@ const subTextColorClass = computed(() => `text-${props.subTextType}`);
   box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05) !important;
   border-color: var(--el-color-primary-light-8) !important;
 }
+
+/* Dynamic Left Border Colors */
+.stat-style-primary { border-left-color: #E31E24 !important; }
+.stat-style-success { border-left-color: #10b981 !important; }
+.stat-style-warning { border-left-color: #f59e0b !important; }
+.stat-style-danger { border-left-color: #ef4444 !important; }
+.stat-style-info { border-left-color: #3b82f6 !important; }
 
 .stat-icon-wrapper {
   width: 42px;

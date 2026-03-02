@@ -1,6 +1,6 @@
 <template>
   <div class="admin-vouchers-page">
-    <AdminTableLayout title="Quản Lý Phiếu Giảm Giá" titleIcon="bi bi-ticket-perforated-fill"
+    <AdminTableLayout title="Quản lý phiếu giảm giá" titleIcon="bi bi-ticket-perforated-fill"
       addButtonLabel="Thêm Voucher" :data="vouchers" :loading="loading" :total="total" v-model:currentPage="currentPage"
       v-model:pageSize="pageSize" @add-click="openDialog()" @reset-filter="resetFilter">
       <!-- Header Actions Left Slot -->
@@ -30,7 +30,7 @@
       <!-- Filters Slot -->
       <template #filters>
         <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block">Trạng thái</span>
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-select v-model="filterStatus" placeholder="Tất cả" style="width: 150px;" @change="fetchVouchers">
             <el-option label="Tất cả" value="" />
             <el-option label="Đang hoạt động" :value="1" />
@@ -40,7 +40,7 @@
         </div>
 
         <div class="filter-item flex-grow-1 search-input-wrapper">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block">Tìm kiếm</span>
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-input v-model="searchQuery" placeholder="Nhập mã hoặc tên phiếu..." style="width: 100%;" clearable
             @input="handleSearch" />
         </div>
@@ -61,6 +61,10 @@
           @delete="handleDelete"
           @view="handleView"
         >
+          <template #cell-stt="{ index }">
+            <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+          </template>
+
           <template #cell-maPhieuGiamGia="{ row }">
             <el-tag type="primary" effect="light" round size="small" style="font-weight: 600; letter-spacing: 0.5px;">
               {{ row.maPhieuGiamGia }}
@@ -105,42 +109,35 @@
       </template>
     </AdminTableLayout>
 
-    <!-- Create/Edit Dialog -->
-    <el-dialog v-model="dialogVisible" width="680px" destroy-on-close class="premium-dialog">
-      <template #header>
-        <div class="premium-header">
-          <div class="premium-header-content">
-            <div class="header-icon-box">
-              <i :class="editingId ? 'bi bi-pencil-square' : 'bi bi-ticket-perforated'"></i>
-            </div>
-            <div class="header-text">
-              <h5 class="title">
-                {{ isReadonly ? 'Chi tiết Voucher' : (editingId ? 'Cập nhật Voucher' : 'Phát hành Voucher mới') }}</h5>
-              <p class="subtitle opacity-75">{{ isReadonly ? 'Xem thông tin đầy đủ về mã ưu đãi' : 'Tạo chương trình ưu đãi và mã giảm giá' }}</p>
-            </div>
-          </div>
-          <div class="premium-header-bg"></div>
-        </div>
-      </template>
+    <BaseModal
+      v-model="dialogVisible"
+      :title="isReadonly ? 'Chi tiết Voucher' : (editingId ? 'Cập nhật Voucher' : 'Phát hành Voucher mới')"
+      :icon="editingId ? 'bi bi-pencil-square' : 'bi bi-ticket-perforated'"
+      width="680px"
+      :confirmText="editingId ? 'CẬP NHẬT' : 'PHÁT HÀNH'"
+      :loading="saving"
+      @confirm="handleSubmit"
+    >
+      <template #footer v-if="isReadonly"></template>
+
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="premium-form"
         :disabled="isReadonly">
         <div class="row g-3">
           <div class="col-md-6">
             <el-form-item label="Mã Voucher" prop="maPhieuGiamGia">
-              <el-input v-model="form.maPhieuGiamGia" placeholder="VD: TET2026" :disabled="!!editingId || isReadonly">
-                <template #prefix><i class="bi bi-tag me-1"></i></template>
-              </el-input>
+              <el-input v-model="form.maPhieuGiamGia" placeholder="VD: TET2026" :disabled="!!editingId || isReadonly" :prefix-icon="PriceTag" />
             </el-form-item>
           </div>
           <div class="col-md-6">
             <el-form-item label="Tên chương trình" prop="tenPhieu">
-              <el-input v-model="form.tenPhieu" placeholder="Nhập tên chương trình..." />
+              <el-input v-model="form.tenPhieu" placeholder="Nhập tên chương trình..." :prefix-icon="Document" />
             </el-form-item>
           </div>
 
           <div class="col-md-4">
             <el-form-item label="Loại giảm giá" prop="loaiPhieu">
               <el-select v-model="form.loaiPhieu" class="w-100">
+                <template #prefix><el-icon><Opportunity /></el-icon></template>
                 <el-option label="Phần trăm (%)" :value="1" />
                 <el-option label="Tiền mặt (đ)" :value="2" />
               </el-select>
@@ -184,46 +181,34 @@
           <div class="col-md-6">
             <el-form-item label="Ngày bắt đầu" prop="ngayBatDau">
               <el-date-picker v-model="form.ngayBatDau" type="datetime" class="w-100" placeholder="Chọn thời gian"
-                value-format="YYYY-MM-DDTHH:mm:ss" />
+                value-format="YYYY-MM-DDTHH:mm:ss" :prefix-icon="Calendar" />
             </el-form-item>
           </div>
           <div class="col-md-6">
             <el-form-item label="Ngày kết thúc" prop="ngayKetThuc">
               <el-date-picker v-model="form.ngayKetThuc" type="datetime" class="w-100" placeholder="Chọn thời gian"
-                value-format="YYYY-MM-DDTHH:mm:ss" />
+                value-format="YYYY-MM-DDTHH:mm:ss" :prefix-icon="Calendar" />
             </el-form-item>
           </div>
         </div>
       </el-form>
-      <template #footer v-if="!isReadonly">
-        <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="dialogVisible = false" class="btn-premium-secondary">HỦY BỎ</el-button>
-          <el-button type="primary" @click="handleSubmit" :loading="saving" class="btn-premium-primary">
-            {{ editingId ? 'CẬP NHẬT' : 'PHÁT HÀNH NGAY' }}
-          </el-button>
-        </div>
-      </template>
-      <template #footer v-else>
-        <div class="d-flex justify-content-end">
-          <el-button @click="dialogVisible = false"
-            class="btn-premium-secondary border-secondary-subtle">ĐÓNG</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { Search, Plus, Edit, Delete, View, Refresh, Ticket, PriceTag, Calendar, Opportunity, Document } from '@element-plus/icons-vue';
+import { voucherService } from '@/services/api/admin/voucherService';
+import notification from '@/utils/notifications';
+import debounce from 'lodash/debounce';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
-import { Search, Plus, Edit, Delete, View, Refresh } from '@element-plus/icons-vue';
-import { voucherService } from '@/services/api/admin/voucherService';
-import debounce from 'lodash/debounce';
+import BaseModal from '@/components/common/BaseModal.vue';
 
 const voucherColumns = [
+  { label: 'STT', key: 'stt', width: '70px' },
   { label: 'MÃ GIẢM GIÁ', key: 'maPhieuGiamGia', width: '130px' },
   { label: 'TÊN PHIẾU GIẢM GIÁ', key: 'tenPhieu', minWidth: '200px' },
   { label: 'ĐƠN TỐI THIỂU', key: 'giaTriHoaDonToiThieu', width: '140px' },
@@ -249,11 +234,11 @@ const handleBulkDelete = () => {
     ).then(async () => {
         try {
             await Promise.all(selectedIds.value.map(id => voucherService.delete(id)));
-            ElMessage.success(`Đã xóa ${selectedIds.value.length} voucher thành công`);
+            notification.success(`Đã xóa ${selectedIds.value.length} voucher thành công`);
             selectedObjects.value = [];
             fetchVouchers();
         } catch (error) {
-            ElMessage.error('Có lỗi khi xóa hàng loạt');
+            notification.error('Có lỗi khi xóa hàng loạt');
         }
     }).catch(() => {});
 };
@@ -401,7 +386,7 @@ const fetchVouchers = async () => {
       expired: res.data?.data?.expiredCount || 0
     };
   } catch (e) {
-    ElMessage.error('Không thể tải danh sách voucher');
+    notification.error('Không thể tải danh sách voucher');
   } finally {
     loading.value = false;
   }
@@ -472,16 +457,16 @@ const handleSubmit = async () => {
     try {
       if (editingId.value) {
         await voucherService.update(editingId.value, form.value);
-        ElMessage.success('Cập nhật thành công');
+        notification.updateSuccess('voucher');
       } else {
         await voucherService.create(form.value);
-        ElMessage.success('Phát hành voucher thành công');
+        notification.addSuccess('voucher');
       }
 
       dialogVisible.value = false;
       fetchVouchers();
     } catch (e) {
-      ElMessage.error(e.response?.data?.message || 'Có lỗi xảy ra');
+      notification.error(e.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
       saving.value = false;
     }
@@ -495,10 +480,10 @@ const handleDelete = (row) => {
   }).then(async () => {
     try {
       await voucherService.delete(row.id);
-      ElMessage.success('Đã xóa thành công');
+      notification.deleteSuccess('voucher');
       fetchVouchers();
     } catch (e) {
-      ElMessage.error('Xóa thất bại');
+      notification.error('Xóa thất bại');
     }
   });
 };

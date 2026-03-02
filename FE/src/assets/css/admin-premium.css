@@ -2,28 +2,24 @@
 
 /* 1. Modal / Dialog Styling */
 .premium-dialog {
-    border-radius: 20px !important;
-    overflow: visible !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-    border: none !important;
-    max-height: none !important;
+    border-radius: 12px !important; /* Square-ish but professional */
+    overflow: hidden !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid #e2e8f0 !important;
 }
 
 .premium-dialog .el-dialog__header {
-    margin: 0 !important;
     padding: 0 !important;
-    border-bottom: none !important;
+    margin: 0 !important;
 }
 
 .premium-dialog .el-dialog__body {
-    padding: 24px 30px !important;
-    overflow: visible !important;
-    max-height: none !important;
+    padding: 24px !important;
 }
 
 .premium-dialog .el-dialog__footer {
-    padding: 20px 30px !important;
-    background: #f8fafc;
+    padding: 16px 24px !important;
+    background: #fff;
     border-top: 1px solid #f1f5f9;
 }
 
@@ -46,66 +42,87 @@
     max-height: none !important;
 }
 
-.premium-header {
-    padding: 30px 30px 20px;
-    background: #fff;
+/* Modern Header with Close button */
+.premium-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
     border-bottom: 1px solid #f1f5f9;
+    background: #fff;
 }
 
-.premium-header-content {
+.header-left {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
-.header-icon-box {
-    width: 48px;
-    height: 48px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
+.header-icon-box-modern {
+    width: 40px;
+    height: 40px;
+    background: #fff1f1;
+    color: #E31E24;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #475569;
-    font-size: 20px;
-}
-
-.header-text .title {
-    color: #1e293b;
     font-size: 18px;
-    margin-bottom: 2px;
-    font-weight: 700;
 }
 
-.header-text .subtitle {
+.header-text-modern .title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.header-text-modern .subtitle {
+    margin: 0;
+    font-size: 12px;
     color: #64748b;
-    font-size: 13px;
-    margin-bottom: 0;
+}
+
+.header-right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-close-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-close-btn:hover {
+    background: #f1f5f9;
+    color: #475569;
 }
 
 /* 2. Form Styling */
 .premium-form .el-form-item__label {
     font-weight: 600 !important;
-    color: #475569 !important;
-    padding-bottom: 8px !important;
+    color: #334155 !important;
+    padding-bottom: 4px !important;
     font-size: 13px !important;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-/* Global Overrides for Element Plus inside Premium Form */
 .premium-form .el-input__wrapper,
-.premium-form .el-select__wrapper,
-.premium-form .el-date-editor.el-input__wrapper,
-.premium-form .el-input-number .el-input__wrapper {
-    border-radius: 12px !important;
-    height: 48px !important;
+.premium-form .el-select__wrapper {
+    border-radius: 6px !important;
     background-color: #f8fafc !important;
     border: 1px solid #e2e8f0 !important;
     box-shadow: none !important;
-    transition: all 0.2s;
-    padding: 0 15px !important;
+    height: 40px !important;
 }
 
 .premium-form .el-input__inner,
@@ -119,10 +136,11 @@
 }
 
 .premium-form .el-input__wrapper.is-focus,
-.premium-form .el-select__wrapper.is-focused {
-    border-color: #4f46e5 !important;
+.premium-form .el-select__wrapper.is-focused,
+.premium-form .el-textarea__inner:focus {
+    border-color: #E31E24 !important;
     background-color: #fff !important;
-    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+    box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1) !important;
 }
 
 /* 3. Filter Bar Styling */
@@ -131,10 +149,16 @@
     border-radius: 16px !important;
     background: #fff !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    transition: all 0.3s ease;
+}
+
+.filter-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
 
 .filter-card .el-input__wrapper,
-.filter-card .el-select__wrapper {
+.filter-card .el-select__wrapper,
+.filter-card .el-date-editor.el-input {
     border-radius: 10px !important;
     background-color: #f8fafc !important;
     height: 40px !important;
@@ -144,40 +168,44 @@
 
 .filter-card .el-input__wrapper.is-focus,
 .filter-card .el-select__wrapper.is-focused {
-    border-color: #4f46e5 !important;
+    border-color: #E31E24 !important;
     background-color: #fff !important;
+    box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1) !important;
 }
 
 /* 4. Action Buttons */
-.btn-premium-primary {
-    background: #fff !important;
-    border: 1px solid #ff914d !important;
-    color: #ff914d !important;
-    border-radius: 8px !important;
+/* 4. Modern Buttons (Square-ish) */
+.btn-modern-primary {
+    background: #3b82f6 !important;
+    border: 1px solid #3b82f6 !important;
+    color: #fff !important;
+    border-radius: 6px !important;
     font-weight: 600 !important;
+    height: 40px !important;
     padding: 0 20px !important;
-    height: 38px !important;
-    font-size: 13px !important;
-    transition: all 0.2s !important;
-    text-transform: uppercase;
+    transition: all 0.2s;
 }
 
-.btn-premium-primary:hover {
-    background: #fff5f0 !important;
-    border-color: #ff7d2d !important;
-    color: #ff7d2d !important;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(255, 145, 77, 0.15) !important;
+.btn-modern-primary:hover {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
 }
 
-.btn-premium-secondary {
-    border-radius: 12px !important;
-    padding: 10px 24px !important;
-    height: 45px !important;
-    font-weight: 600 !important;
+.btn-modern-secondary {
     background: #fff !important;
     border: 1px solid #e2e8f0 !important;
-    color: #64748b !important;
+    color: #475569 !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    height: 40px !important;
+    padding: 0 20px !important;
+}
+
+.btn-modern-secondary:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
 }
 
 /* Utility */
@@ -192,9 +220,9 @@
 
 .btn-premium-toggle-active {
     background: #ffffff !important;
-    border: none !important;
-    color: #ff914d !important;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #E31E24 !important;
+    color: #E31E24 !important;
+    box-shadow: 0 4px 10px rgba(227, 30, 36, 0.1) !important;
     font-size: 13px !important;
 }
 
@@ -301,4 +329,105 @@
 
 .btn-action-print:hover {
     color: #2563eb !important;
+}
+
+/* 5. CineOps Premium Notifications */
+.cine-notification {
+    border-radius: 16px !important;
+    border: none !important;
+    padding: 16px 20px !important;
+    backdrop-filter: blur(10px) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    overflow: hidden !important;
+    width: 360px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-left: 6px solid #4f46e5 !important;
+    animation: cine-slide-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+}
+
+@keyframes cine-slide-in {
+    from {
+        transform: translateX(120%) scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.cine-notification .el-notification__group {
+    margin-left: 12px !important;
+}
+
+.cine-notification .el-notification__title {
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    margin-bottom: 2px !important;
+    color: #1e293b !important;
+}
+
+.cine-notification .el-notification__content {
+    font-size: 13px !important;
+    color: #475569 !important;
+    margin: 0 !important;
+}
+
+.cine-notification-icon {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    animation: cine-icon-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+}
+
+@keyframes cine-icon-pop {
+    0% { transform: scale(0) rotate(-45deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+/* Success - Cine Style (Green/Film) */
+.cine-notification.success {
+    border-left-color: #10b981 !important;
+    background: linear-gradient(to right, rgba(16, 185, 129, 0.05), rgba(255, 255, 255, 0.95)) !important;
+}
+.cine-notification.success .cine-notification-icon {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+/* Error - Cine Style (Red/Stop) */
+.cine-notification.error {
+    border-left-color: #ef4444 !important;
+    background: linear-gradient(to right, rgba(239, 68, 68, 0.05), rgba(255, 255, 255, 0.95)) !important;
+}
+.cine-notification.error .cine-notification-icon {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+/* Warning - Cine Style (Orange/Alert) */
+.cine-notification.warning {
+    border-left-color: #f59e0b !important;
+    background: linear-gradient(to right, rgba(245, 158, 11, 0.05), rgba(255, 255, 255, 0.95)) !important;
+}
+.cine-notification.warning .cine-notification-icon {
+    background: #fffbeb;
+    color: #f59e0b;
+}
+
+/* Info - Cine Style (Blue/Note) */
+.cine-notification.info {
+    border-left-color: #3b82f6 !important;
+    background: linear-gradient(to right, rgba(59, 130, 246, 0.05), rgba(255, 255, 255, 0.95)) !important;
+}
+.cine-notification.info .cine-notification-icon {
+    background: #eff6ff;
+    color: #3b82f6;
 }

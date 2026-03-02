@@ -1,19 +1,14 @@
 <template>
-    <el-dialog :model-value="visible" @update:model-value="val => $emit('update:visible', val)" width="520px" destroy-on-close class="premium-dialog">
-        <template #header>
-            <div class="premium-header">
-                <div class="premium-header-content">
-                    <div class="header-icon-box">
-                        <i :class="editingId ? 'bi bi-pencil-square' : 'bi bi-plus-lg'"></i>
-                    </div>
-                    <div class="header-text">
-                        <h5 class="title">{{ editingId ? 'Chỉnh sửa Ghế' : 'Thêm Ghế mới' }}</h5>
-                        <p class="subtitle opacity-75">Quản lý sơ đồ vị trí ngồi</p>
-                    </div>
-                </div>
-                <div class="premium-header-bg"></div>
-            </div>
-        </template>
+    <BaseModal
+        :model-value="visible"
+        @update:model-value="val => $emit('update:visible', val)"
+        :title="editingId ? 'Chỉnh sửa Ghế' : 'Thêm Ghế mới'"
+        :icon="editingId ? 'bi bi-pencil-square' : 'bi bi-plus-lg'"
+        width="520px"
+        :confirmText="editingId ? 'Lưu thay đổi' : 'Thêm ghế'"
+        :loading="saving"
+        @confirm="submit"
+    >
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="premium-form">
             <div class="row g-2">
                 <div class="col-6">
@@ -33,7 +28,7 @@
                 </div>
                 <div class="col-4">
                     <el-form-item label="Số ghế" prop="soGhe">
-                        <el-input v-model="form.soGhe" placeholder="Tự động" disabled />
+                        <el-input v-model="form.soGhe" placeholder="Tự động" disabled :prefix-icon="Monitor" />
                     </el-form-item>
                 </div>
                 <div class="col-4">
@@ -56,19 +51,13 @@
                 </div>
             </div>
         </el-form>
-        <template #footer>
-            <div class="dialog-footer">
-                <el-button @click="$emit('update:visible', false)" class="btn-premium-secondary">Hủy bỏ</el-button>
-                <el-button @click="submit" :loading="saving" class="btn-premium-primary">
-                    {{ editingId ? 'Lưu thay đổi' : 'Thêm ghế' }}
-                </el-button>
-            </div>
-        </template>
-    </el-dialog>
+    </BaseModal>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue';
+import BaseModal from '@/components/common/BaseModal.vue';
+import { Monitor } from '@element-plus/icons-vue';
 
 const props = defineProps({
     visible: Boolean,
