@@ -16,5 +16,6 @@ public class AdHoaDonResponse {
     private LocalDateTime ngayTao;
     private String tenNhanVien; // Sau này nối bảng NhanVien
     private String tenKhachHang; // Sau này nối bảng KhachHang
-    private Integer kemBanHang;
+    private Integer kenhBanHang;
+    private String sdt;
 }

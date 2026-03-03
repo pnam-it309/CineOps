@@ -48,8 +48,8 @@ public class HoaDon extends PrimaryEntity {
     @Column(name = "phuong_thuc_thanh_toan")
     private Integer phuongThucThanhToan;
 
-    @Column(name = "kem_ban_hang")
-    private Integer kemBanHang;
+    @Column(name = "kenh_ban_hang")
+    private Integer kenhBanHang;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

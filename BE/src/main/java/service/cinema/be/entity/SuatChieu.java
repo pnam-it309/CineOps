@@ -25,7 +25,7 @@ public class SuatChieu extends PrimaryEntity {
     private Phim phim;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_phong_chieu")
+    @JoinColumn(name = "id_phong_chieu") // <-- CHÚ Ý CHỖ NÀY: Phải đúng tên cột trong DB
     private PhongChieu phongChieu;
 
     @ManyToOne(fetch = FetchType.LAZY)

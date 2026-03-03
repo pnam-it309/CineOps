@@ -6,6 +6,11 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import service.cinema.be.core.admin.quanlyhoadon.repository.AdHoaDonChiTietRepository;
+import service.cinema.be.core.admin.quanlyhoadon.repository.AdHoaDonRepository;
+import service.cinema.be.core.admin.quanlyhoadon.repository.AdLichSuHoaDonRepository;
+import service.cinema.be.core.admin.quanlyhoadon.repository.AdThanhToanRepository;
+import service.cinema.be.core.admin.quanlykhachhang.repository.AdKhachHangRepository;
 import service.cinema.be.core.admin.quanlyve.dto.request.AdDatVeRequest;
 import service.cinema.be.core.admin.quanlyve.dto.response.AdVeResponse;
 import service.cinema.be.core.admin.quanlyve.dto.response.AdVeThongKeResponse;
@@ -16,6 +21,7 @@ import service.cinema.be.entity.Ghe;
 import service.cinema.be.entity.SuatChieu;
 import service.cinema.be.entity.Ve;
 import service.cinema.be.repository.GheRepository;
+import service.cinema.be.repository.KhachHangRepository;
 import service.cinema.be.repository.SuatChieuRepository;
 
 import java.math.BigDecimal;
@@ -27,10 +33,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdVeServiceImpl implements AdVeService {
 
+    private final AdHoaDonRepository adHoaDonRepository;
+    private final AdHoaDonChiTietRepository adHoaDonChiTietRepository;
     private final AdVeRepository adVeRepository;
-    private final AdGiaVeChiTietRepository adGiaVeChiTietRepository;
     private final SuatChieuRepository suatChieuRepository;
     private final GheRepository gheRepository;
+    private final AdGiaVeChiTietRepository adGiaVeChiTietRepository;
+    private final AdThanhToanRepository adThanhToanRepository;
+    private final AdLichSuHoaDonRepository adLichSuHoaDonRepository;
+
+    // CHÈN DÒNG NÀY VÀO ĐỂ HẾT BÁO ĐỎ
+    private final AdKhachHangRepository khachHangRepository; // Nhớ check đúng tên class Repo của bạn
 
     /**
      * ==========================
@@ -105,27 +118,26 @@ public class AdVeServiceImpl implements AdVeService {
                 Sort.by(Sort.Direction.DESC, "ngayTao")
         );
 
+        // Trong hàm timKiemVe
         Specification<Ve> specification = (root, query, cb) -> {
-
             List<Predicate> predicates = new ArrayList<>();
 
-            // Tìm theo mã vé
             if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
-                predicates.add(
-                        cb.like(
-                                cb.lower(root.get("maVe")),
-                                "%" + tuKhoa.trim().toLowerCase() + "%"
-                        )
-                );
+                String search = "%" + tuKhoa.trim().toLowerCase() + "%";
+
+                // Tìm kiếm đa năng: Mã vé HOẶC Tên phim HOẶC Số điện thoại
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("maVe")), search),
+                        cb.like(cb.lower(root.get("suatChieu").get("phim").get("tenPhim")), search),
+                        cb.like(cb.lower(root.join("hoaDonChiTiets").join("hoaDon").join("khachHang").get("sdt")), search)
+                ));
             }
 
-            // Lọc theo trạng thái
             if (trangThai != null) {
-                predicates.add(
-                        cb.equal(root.get("trangThai"), trangThai)
-                );
+                predicates.add(cb.equal(root.get("trangThai"), trangThai));
             }
 
+            query.distinct(true); // Đảm bảo không bị lặp dòng dữ liệu khi Join
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
@@ -192,6 +204,19 @@ public class AdVeServiceImpl implements AdVeService {
                 );
             }
         }
+        if (ve.getHoaDonChiTiets() != null && !ve.getHoaDonChiTiets().isEmpty()) {
+            // Lấy hóa đơn từ chi tiết đầu tiên gắn với vé này
+            var hoaDon = ve.getHoaDonChiTiets().get(0).getHoaDon();
+            if (hoaDon != null && hoaDon.getKhachHang() != null) {
+                dto.setTenKhachHang(hoaDon.getKhachHang().getTenKhachHang());
+                dto.setSoDienThoai(hoaDon.getKhachHang().getSdt());
+            } else {
+                dto.setTenKhachHang("Khách lẻ");
+            }
+        } else {
+            dto.setTenKhachHang("Khách lẻ");
+        }
+
 
         if (ve.getGhe() != null) {
             dto.setViTriGhe(
@@ -206,5 +231,12 @@ public class AdVeServiceImpl implements AdVeService {
         dto.setNguoiTao(ve.getNguoiTao());
 
         return dto;
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public AdVeResponse layChiTietVe(String id) {
+        Ve ve = adVeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy vé"));
+        return mapToResponse(ve); // Tận dụng luôn hàm mapToResponse bạn đã viết rất chuẩn
     }
 }

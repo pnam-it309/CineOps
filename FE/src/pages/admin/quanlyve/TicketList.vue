@@ -1,10 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { adVeService } from '@/services/api/admin/ad-ve-service.js';
-import { 
-  Search, Plus, Monitor, Place, Refresh, Printer, Delete,
-  Calendar, Timer, Download, Ticket, CircleCheck, CircleClose, Money
-} from '@element-plus/icons-vue';
+import { Search, Plus, Printer, Delete, Download, Phone } from '@element-plus/icons-vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
@@ -12,31 +9,35 @@ import debounce from 'lodash/debounce';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
-// Data & State
+// --- TRẠNG THÁI DỮ LIỆU ---
 const tickets = ref([]);
 const totalElements = ref(0);
 const loading = ref(false);
 const statsData = reactive({ tongVe: 0, veHopLe: 0, veDaHuy: 0, doanhThu: 0 });
+const ticketToPrint = ref(null); // Thông tin vé đơn lẻ để in
 
-// Filters
 const params = reactive({ 
   tuKhoa: '', 
   trangThai: null, 
-  page: 1, // Đổi về 1 để khớp với AdminTableLayout
+  page: 1, 
   size: 10 
 });
 
-// Load Data
+// --- HÀM TẢI DỮ LIỆU ---
 const loadData = async () => {
   loading.value = true;
   try {
-    // Chuyển đổi page về index 0 cho Backend
-    const apiParams = { ...params, page: params.page - 1 };
-    const res = await adVeService.timKiemVe(apiParams);
+    // 1. Loại bỏ các tham số null/rỗng để tránh lỗi 400
+    const cleanParams = Object.fromEntries(
+      Object.entries({ ...params, page: params.page - 1 })
+        .filter(([_, v]) => v !== null && v !== '')
+    );
+    
+    const res = await adVeService.timKiemVe(cleanParams);
     tickets.value = res.data?.content || [];
     totalElements.value = res.data?.totalElements || 0;
   } catch (e) {
-    ElMessage.error('Không thể kết nối Backend.');
+    ElMessage.error('Lỗi kết nối máy chủ hoặc tham số không hợp lệ.');
   } finally { loading.value = false; }
 };
 
@@ -44,11 +45,12 @@ const loadStats = async () => {
   try {
     const res = await adVeService.getThongKe();
     if (res.data) Object.assign(statsData, res.data);
-  } catch (e) { console.error(e); }
+  } catch (e) { console.error('Không thể tải thống kê:', e); }
 };
 
-// Handlers
+// --- XỬ LÝ SỰ KIỆN ---
 const onSearch = debounce(() => { params.page = 1; loadData(); }, 500);
+
 const resetFilter = () => { 
   params.tuKhoa = ''; 
   params.trangThai = null; 
@@ -56,9 +58,27 @@ const resetFilter = () => {
   loadData(); 
 };
 
+// Logic in vé cô lập hoàn toàn
+const handlePrint = async (id) => {
+  loading.value = true;
+  try {
+    const res = await adVeService.getChiTietVe(id);
+    if (res.data) {
+      ticketToPrint.value = res.data;
+      // Đợi Vue render xong dữ liệu mới gọi lệnh in
+      setTimeout(() => {
+        window.print();
+        ticketToPrint.value = null; // Xóa dữ liệu in sau khi đóng hộp thoại
+      }, 500); 
+    }
+  } catch (e) {
+    ElMessage.error('Không thể lấy dữ liệu vé để in');
+  } finally { loading.value = false; }
+};
+
 const confirmCancel = (id) => {
-  ElMessageBox.confirm('Hủy vé sẽ hoàn lại ghế trống vào phòng. Bạn chắc chắn chứ?', 'Xác nhận hủy vé', {
-    confirmButtonText: 'Đồng ý hủy',
+  ElMessageBox.confirm('Hủy vé sẽ hoàn lại ghế vào phòng chiếu. Bạn chắc chắn chứ?', 'Xác nhận hủy', {
+    confirmButtonText: 'Đồng ý',
     cancelButtonText: 'Quay lại',
     type: 'warning'
   }).then(async () => {
@@ -66,16 +86,15 @@ const confirmCancel = (id) => {
       await adVeService.huyVe(id);
       ElMessage.success('Đã hủy vé thành công');
       loadData(); loadStats();
-    } catch (e) { ElMessage.error('Lỗi khi hủy vé'); }
+    } catch (e) { ElMessage.error('Lỗi khi thực hiện hủy vé'); }
   });
 };
 
-// Formatters
+// --- ĐỊNH DẠNG HIỂN THỊ ---
 const formatPrice = (v) => new Intl.NumberFormat('vi-VN').format(v || 0);
 const formatDate = (d) => d ? format(new Date(d), 'dd/MM/yyyy', { locale: vi }) : '---';
 const formatTime = (d) => d ? format(new Date(d), 'HH:mm', { locale: vi }) : '---';
 
-// Stats Configuration
 const summaryStats = computed(() => [
   { label: 'TỔNG VÉ XUẤT', value: statsData.tongVe.toString(), icon: 'bi bi-ticket-detailed-fill', type: 'primary' },
   { label: 'VÉ HỢP LỆ', value: statsData.veHopLe.toString(), icon: 'bi bi-check-circle-fill', type: 'success' },
@@ -90,7 +109,7 @@ onMounted(() => { loadData(); loadStats(); });
   <div class="admin-ticket-page">
     <AdminTableLayout
       title="Quản Lý Giao Dịch Vé"
-      subtitle="Quản lý và theo dõi toàn bộ hóa đơn từ hệ thống CineOps"
+      subtitle="Theo dõi toàn bộ hóa đơn từ hệ thống CineOps"
       titleIcon="bi bi-ticket-perforated-fill"
       :data="tickets"
       :total="totalElements"
@@ -102,74 +121,62 @@ onMounted(() => { loadData(); loadStats(); });
       @reset-filter="resetFilter"
     >
       <template #header-actions-left>
-        <el-button type="primary" :icon="Plus" @click="$router.push('/admin/pos')">
-          Xuất vé mới
-        </el-button>
-        <el-button class="btn-premium-secondary text-success border-success-subtle" :icon="Download">
-          Xuất Excel
-        </el-button>
+        <el-button type="primary" :icon="Plus" @click="$router.push('/admin/pos')">Xuất vé mới</el-button>
+        <el-button class="btn-premium-secondary" :icon="Download">Xuất Excel</el-button>
       </template>
 
       <template #stats>
         <div v-for="s in summaryStats" :key="s.label" class="col-md-3">
-          <StatCard 
-            :label="s.label" 
-            :value="s.value" 
-            :icon="s.icon"
-            :type="s.type"
-          />
+          <StatCard :label="s.label" :value="s.value" :icon="s.icon" :type="s.type" />
         </div>
       </template>
 
       <template #filters>
         <div class="filter-item" style="width: 200px;">
           <el-select v-model="params.trangThai" @change="loadData" placeholder="Trạng thái" clearable>
-  <el-option label="Tất cả trạng thái" value="" /> <el-option label="Thành công" :value="1" />
-  <el-option label="Đã hủy" :value="0" />
-</el-select>
+            <el-option label="Tất cả trạng thái" value="" />
+            <el-option label="Thành công" :value="1" />
+            <el-option label="Đã hủy" :value="0" />
+          </el-select>
         </div>
         <div class="filter-item flex-grow-1">
-          <el-input 
-            v-model="params.tuKhoa" 
-            placeholder="Tìm mã vé, tên phim, SĐT khách hàng..." 
-            :prefix-icon="Search" 
-            clearable 
-            @input="onSearch"
-          />
+          <el-input v-model="params.tuKhoa" placeholder="Tìm mã vé, tên phim, SĐT..." :prefix-icon="Search" clearable @input="onSearch" />
         </div>
       </template>
 
       <template #columns>
-        <el-table-column label="MÃ VÉ" width="120">
+        <el-table-column label="MÃ VÉ" width="130">
           <template #default="{ row }">
-            <span class="fw-bold text-indigo-500">#{{ row.maVe }}</span>
+            <span class="ticket-code">#{{ row.maVe }}</span>
           </template>
         </el-table-column>
 
         <el-table-column label="KHÁCH HÀNG" min-width="180">
           <template #default="{ row }">
-            <div class="fw-bold text-dark">{{ row.tenKhachHang || 'Khách lẻ' }}</div>
-            <div class="text-muted small">{{ row.soDienThoai || '---' }}</div>
+            <div class="customer-name">{{ row.tenKhachHang || 'Khách lẻ' }}</div>
+            <div class="customer-phone-info" v-if="row.soDienThoai">
+              <el-icon><Phone /></el-icon> <span>{{ row.soDienThoai }}</span>
+            </div>
           </template>
         </el-table-column>
 
         <el-table-column label="PHIM & PHÒNG" min-width="220">
           <template #default="{ row }">
-            <div class="fw-bold text-dark text-truncate">{{ row.tenPhim }}</div>
-            <div class="text-muted small">
+            <div class="movie-title-row">{{ row.tenPhim }}</div>
+            <div class="room-details">
               <i class="bi bi-display me-1"></i>{{ row.tenPhongChieu }}
-              <span class="ms-2 fw-bold text-danger">Ghế: {{ row.viTriGhe }}</span>
+              <span class="seat-badge">Ghế: {{ row.viTriGhe }}</span>
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column label="THANH TOÁN" width="150" align="center">
+        <el-table-column label="GIÁ VÉ" width="130" align="center">
           <template #default="{ row }">
-            <span class="fw-bold text-primary">{{ formatPrice(row.giaThanhToan) }}đ</span>
+            <span class="price-text">{{ formatPrice(row.giaThanhToan) }}đ</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="TRẠNG THÁI" width="130" align="center">
+        <el-table-column label="TRẠNG THÁI" width="120" align="center">
           <template #default="{ row }">
             <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="small" round effect="light">
               {{ row.trangThai === 1 ? 'Thành công' : 'Đã hủy' }}
@@ -179,30 +186,84 @@ onMounted(() => { loadData(); loadStats(); });
 
         <el-table-column label="THỜI GIAN" width="160" align="center">
           <template #default="{ row }">
-            <div class="small text-secondary"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }}</div>
-            <div class="small text-muted"><i class="bi bi-clock me-1"></i>{{ formatTime(row.ngayTao) }}</div>
+            <div class="time-stamp">{{ formatDate(row.ngayTao) }}</div>
+            <div class="time-stamp-sub">{{ formatTime(row.ngayTao) }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column label="THAO TÁC" width="120" align="center" fixed="right">
+        <el-table-column label="THAO TÁC" width="110" align="center" fixed="right">
           <template #default="{ row }">
-            <div class="d-flex justify-content-center gap-2">
-              <el-tooltip content="In vé" placement="top">
-                <el-button type="primary" size="small" :icon="Printer" plain circle />
-              </el-tooltip>
-              <el-tooltip content="Hủy vé" placement="top" v-if="row.trangThai === 1">
-                <el-button type="danger" size="small" :icon="Delete" circle @click="confirmCancel(row.id)" />
-              </el-tooltip>
+            <div class="action-buttons">
+              <el-button type="primary" size="small" :icon="Printer" plain circle @click="handlePrint(row.id)" />
+              <el-button v-if="row.trangThai === 1" type="danger" size="small" :icon="Delete" circle @click="confirmCancel(row.id)" />
             </div>
           </template>
         </el-table-column>
       </template>
     </AdminTableLayout>
+
+    <div id="print-section" v-if="ticketToPrint">
+      <div class="ticket-box">
+        <h2 class="cinema-title">CINEOPS THEATER</h2>
+        <div class="print-divider">---------------------------</div>
+        <div class="print-row"><strong>MÃ VÉ:</strong> {{ ticketToPrint.maVe }}</div>
+        <div class="print-row"><strong>PHIM:</strong> {{ ticketToPrint.tenPhim }}</div>
+        <div class="print-row"><strong>PHÒNG:</strong> {{ ticketToPrint.tenPhongChieu }}</div>
+        <div class="print-row"><strong>GHẾ:</strong> {{ ticketToPrint.viTriGhe }}</div>
+        <div class="print-row"><strong>GIÁ:</strong> {{ formatPrice(ticketToPrint.giaThanhToan) }}đ</div>
+        <div class="print-divider">---------------------------</div>
+        <p class="print-footer">Chúc bạn xem phim vui vẻ!</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.text-indigo-500 { color: #4f46e5; }
-.admin-ticket-page { padding: 0; }
-:deep(.el-table th.el-table__cell) { background-color: #f8f9fa !important; }
+/* --- 1. CSS GIAO DIỆN WEB --- */
+.admin-ticket-page { padding: 24px; background-color: #f8fafc; min-height: 100vh; }
+.ticket-code { color: #6366f1; font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #eff6ff; padding: 4px 10px; border-radius: 6px; border: 1px solid #dbeafe; }
+.customer-name { color: #0f172a !important; font-weight: 700; }
+.customer-phone-info { display: flex; align-items: center; color: #64748b; font-size: 0.85rem; margin-top: 2px; }
+.movie-title-row { color: #1e293b !important; font-weight: 700; }
+.room-details { color: #64748b; font-size: 0.85rem; display: flex; align-items: center; margin-top: 4px; }
+.seat-badge { margin-left: 8px; color: #ef4444 !important; background: #fef2f2; padding: 1px 6px; border-radius: 4px; border: 1px solid #fee2e2; }
+.price-text { color: #4f46e5; font-weight: 700; }
+.time-stamp { font-size: 0.85rem; color: #475569; }
+.time-stamp-sub { font-size: 0.8rem; color: #94a3b8; }
+
+/* --- 2. CSS ĐẶC TRỊ LỖI IN (CHUẨN CGV) --- */
+@media screen {
+  #print-section { display: none; }
+}
+
+@media print {
+  /* ẨN TUYỆT ĐỐI Dashboard và các phần tử web */
+  body > *:not(#print-section),
+  #app > *:not(#print-section),
+  .admin-ticket-page > *:not(#print-section),
+  .sidebar-container, .el-aside, .el-header, .navbar {
+    display: none !important;
+  }
+
+  html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+
+  /* ĐƯA VÙNG IN LÊN VỊ TRÍ ĐẦU TRANG */
+  #print-section {
+    display: block !important;
+    position: absolute;
+    top: 0; left: 0; width: 100%;
+    background: #fff;
+  }
+
+  .ticket-box {
+    width: 80mm; margin: 0 auto; padding: 10mm 2mm;
+    text-align: center; color: #000;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  .cinema-title { font-size: 20pt; font-weight: bold; margin-bottom: 5pt; }
+  .print-divider { border-top: 1pt dashed #000; margin: 8pt 0; width: 100%; }
+  .print-row { text-align: left; font-size: 11pt; margin: 5pt 0; line-height: 1.4; }
+  .print-footer { margin-top: 15pt; font-style: italic; font-size: 10pt; }
+}
 </style>

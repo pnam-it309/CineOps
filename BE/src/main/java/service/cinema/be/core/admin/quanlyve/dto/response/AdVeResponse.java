@@ -24,4 +24,7 @@ public class AdVeResponse {
     private Integer trangThai;
     private LocalDateTime ngayTao;
     private String nguoiTao;
+    // Thêm để hiển thị tên khách hàng ra bảng quản lý vé
+    private String tenKhachHang;
+    private String soDienThoai;
 }

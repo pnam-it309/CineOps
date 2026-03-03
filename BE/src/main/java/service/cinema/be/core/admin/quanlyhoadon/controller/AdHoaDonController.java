@@ -25,6 +25,7 @@ public class AdHoaDonController {
 
     private final AdHoaDonService adHoaDonService;
 
+
     /**
      * ==========================
      * THANH TOÁN TẠI QUẦY (POS)
@@ -53,7 +54,10 @@ public class AdHoaDonController {
                     .body("Đã xảy ra lỗi hệ thống trong quá trình thanh toán!");
         }
     }
-    @GetMapping("")
+    /**
+     * TÌM KIẾM + LỌC HÓA ĐƠN
+     */
+    @GetMapping("/tim-kiem") // Đổi từ "" thành "/tim-kiem" cho đồng bộ
     public ResponseEntity<Page<AdHoaDonResponse>> getDanhSachHoaDon(
             @RequestParam(defaultValue = "") String tuKhoa,
             @RequestParam(required = false) Integer trangThai,
@@ -61,14 +65,17 @@ public class AdHoaDonController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate tuNgay,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate denNgay,
-            @RequestParam(required = false) String kyThoiGian, // Vd: THIS_WEEK, THIS_MONTH
-            @RequestParam(required = false) Integer phuongThucThanhToan, // 0: Tiền mặt, 1: CK
+            @RequestParam(required = false) Integer kenhBanHang, // Chính là kemBanHang
+            @RequestParam(required = false) String kyThoiGian,
+            @RequestParam(required = false) Integer phuongThucThanhToan,
+            @RequestParam(required = false) String idKhachHang,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
+        // ĐẢM BẢO THỨ TỰ THAM SỐ KHỚP VỚI SERVICE
         return ResponseEntity.ok(adHoaDonService.timKiemHoaDon(
                 tuKhoa, trangThai, minPrice, maxPrice, tuNgay, denNgay,
-                kyThoiGian, phuongThucThanhToan, page, size
+                kyThoiGian, phuongThucThanhToan, kenhBanHang, idKhachHang, page, size
         ));
     }
 

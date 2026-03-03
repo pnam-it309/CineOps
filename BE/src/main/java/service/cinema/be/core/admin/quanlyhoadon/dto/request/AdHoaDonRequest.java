@@ -25,4 +25,6 @@ public class AdHoaDonRequest {
 
     @NotEmpty(message = "Vui lòng chọn ít nhất 1 ghế")
     private List<AdDatVeRequest.ChiTietGheDat> danhSachGhe;
+    // Thêm trường này vào class
+    private String idKhachHang;
 }

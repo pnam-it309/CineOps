@@ -14,5 +14,5 @@ public interface AdVeService {
     List<AdVeResponse> datVeMoi(AdDatVeRequest request);
     void huyVe(String idVe);
     AdVeThongKeResponse getThongKe();
-
+    AdVeResponse layChiTietVe(String id);
 }

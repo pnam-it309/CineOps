@@ -93,4 +93,8 @@ public class AdVeController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<AdVeResponse> getChiTietVe(@PathVariable String id) {
+        return ResponseEntity.ok(adVeService.layChiTietVe(id));
+    }
 }

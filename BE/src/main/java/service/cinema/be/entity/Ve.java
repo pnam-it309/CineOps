@@ -20,6 +20,9 @@ public class Ve extends PrimaryEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_loai_khach_hang")
     private LoaiKhachHang loaiKhachHang;
+    // THÊM QUAN HỆ NÀY ĐỂ Backend "HIỂU" ĐƯỢC HÀM getHoaDonChiTiets()
+    @OneToMany(mappedBy = "ve", fetch = FetchType.LAZY)
+    private java.util.List<HoaDonChiTiet> hoaDonChiTiets;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_ghe")
@@ -40,5 +43,6 @@ public class Ve extends PrimaryEntity {
 
     @Column(name = "trang_thai")
     private Integer trangThai;
+
 
 }

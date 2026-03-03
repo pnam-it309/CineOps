@@ -16,16 +16,14 @@ public interface AdHoaDonService {
 
     // 2. Tìm kiếm hóa đơn (ĐÃ CẬP NHẬT ĐỦ THAM SỐ)
     Page<AdHoaDonResponse> timKiemHoaDon(
-            String tuKhoa,
-            Integer trangThai,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
-            LocalDate tuNgay,
-            LocalDate denNgay,
+            String tuKhoa, Integer trangThai,
+            BigDecimal minPrice, BigDecimal maxPrice,
+            LocalDate tuNgay, LocalDate denNgay,
             String kyThoiGian,
             Integer phuongThucThanhToan,
-            int page,
-            int size
+            Integer kenhBan, // Bổ sung tham số này vào vị trí thứ 9
+            String idKhachHang,
+            int page, int size
     );
 
     // 3. Lấy chi tiết hóa đơn
