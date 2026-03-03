@@ -129,8 +129,6 @@ public class AdPhimService {
         phim.setNgayKhoiChieu(request.getNgayKhoiChieu());
         phim.setNgayKetThuc(request.getNgayKetThuc());
         phim.setLichChieu(request.getLichChieu());
-        phim.setDaoDien(request.getDaoDien());
-        phim.setDienVien(request.getDienVien());
         phim.setTrailer(request.getTrailer());
         phim.setPoster(request.getPoster());
         phim.setNgonNgu(request.getNgonNgu());
@@ -167,8 +165,6 @@ public class AdPhimService {
                 .ngayKhoiChieu(phim.getNgayKhoiChieu())
                 .ngayKetThuc(phim.getNgayKetThuc())  // ngay kett thuc
                 .lichChieu(phim.getLichChieu()) // lich chieu
-                .daoDien(phim.getDaoDien())
-                .dienVien(phim.getDienVien())
                 .trailer(phim.getTrailer())
                 .poster(phim.getPoster())
                 .ngonNgu(phim.getNgonNgu())

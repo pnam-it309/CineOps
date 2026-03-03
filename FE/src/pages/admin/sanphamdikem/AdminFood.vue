@@ -225,10 +225,12 @@
             <el-table-column label="Giá bán (VNĐ)">
               <template #default="scope">
                 <el-input-number
-                  v-model="scope.row.price"
+                  v-model="scope.row.giaBan"
                   size="small"
                   :disabled="!scope.row.isEditing"
                   style="width: 130px"
+                  :min="1000"
+                  :step="1000"
                 />
               </template>
             </el-table-column>
@@ -515,8 +517,21 @@ const saveProduct = async () => {
   if (!itemForm.value.tenSanPham) return notification.error('Vui lòng nhập tên sản phẩm')
   if (!itemForm.value.idLoaiSanPham) return notification.error('Vui lòng chọn danh mục')
   
+  if (itemForm.value.hinhAnh) {
+    const imgRegex = /^(https?:\/\/).+\.(jpg|jpeg|png|webp)$/i;
+    if (!imgRegex.test(itemForm.value.hinhAnh)) {
+      return notification.error('URL hình ảnh không hợp lệ (phải có đuôi jpg/png/webp)')
+    }
+  }
+
   const selected = itemForm.value.variants.filter(v => v.active)
   if (!selected.length) return notification.warning('Vui lòng chọn ít nhất 1 biến thể')
+
+  for (const v of selected) {
+    if (!v.giaBan || v.giaBan <= 0) {
+      return notification.error('Giá bán của các biến thể phải lớn hơn 0')
+    }
+  }
 
   try {
     const payload = {
@@ -600,7 +615,7 @@ onMounted(() => {
   overflow: hidden;
 }
 .food-grid-container {
-  max-height: calc(100vh - 380px); /* Điều chỉnh dựa trên chiều cao header/stats/filters */
+  flex: 1;
 }
 .card-image-wrapper { height: 180px; overflow: hidden; position: relative; border-radius: 12px 12px 0 0; background: #eee; }
 .size-badge { position: absolute; top: 10px; right: 10px; font-weight: bold; }

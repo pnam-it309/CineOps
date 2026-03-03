@@ -32,11 +32,6 @@ public class AdPhimRequest {
     )
     private String lichChieu;
 
-    @Size(max = 100, message = "Đạo diễn tối đa 100 ký tự.")
-    private String daoDien;
-
-    private String dienVien;
-
     @Size(max = 255, message = "Link trailer tối đa 255 ký tự.")
     private String trailer;
 

@@ -18,8 +18,6 @@ public class AdPhimResponse {
     private LocalDate ngayKhoiChieu;
     private LocalDate ngayKetThuc;
     private String lichChieu;
-    private String daoDien;
-    private String dienVien;
     private String trailer;
     private String poster;
     private String ngonNgu;

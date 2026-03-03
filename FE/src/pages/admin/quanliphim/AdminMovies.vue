@@ -76,7 +76,7 @@ const defaultForm = () => ({
   idTheLoais: [],
   giaVeGoc: null, trangThai: 1,
   poster: '', trailer: '', moTa: '',
-  daoDien: '', dienVien: '', ngonNgu: '', doTuoi: 0, danhGia: 0
+  ngonNgu: '', doTuoi: 0, danhGia: 0
 });
 const movieForm = ref(defaultForm());
 const selectedPhim = ref([]);
@@ -717,11 +717,6 @@ const tableColumnsLC = [
             </div>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Đạo diễn">
-              <el-input v-model="movieForm.daoDien" placeholder="Tên đạo diễn" :prefix-icon="User" />
-            </el-form-item>
-          </div>
-          <div class="col-md-6">
             <el-form-item label="Ngôn ngữ">
               <el-input v-model="movieForm.ngonNgu" placeholder="VD: Tiếng Anh" :prefix-icon="Tickets" />
             </el-form-item>
@@ -734,11 +729,6 @@ const tableColumnsLC = [
           <div class="col-md-6">
             <el-form-item label="Điểm đánh giá (0–10)">
               <el-input-number v-model="movieForm.danhGia" :min="0" :max="10" :precision="1" :step="0.1" class="w-100"/>
-            </el-form-item>
-          </div>
-          <div class="col-12">
-            <el-form-item label="Diễn viên">
-              <el-input v-model="movieForm.dienVien" placeholder="Phân cách bằng dấu phẩy" :prefix-icon="User" />
             </el-form-item>
           </div>
           <div class="col-12">
@@ -776,7 +766,6 @@ const tableColumnsLC = [
           </div>
           <div class="flex-grow-1 d-flex flex-column justify-content-center">
             <h4 class="fw-bold text-dark mb-1" style="font-size:17px;">{{ selectedMovie.tenPhim }}</h4>
-            <div class="text-secondary fst-italic mb-3" style="font-size:12px;">{{ selectedMovie.daoDien || 'Đạo diễn chưa cập nhật' }}</div>
             <div class="d-flex gap-1 flex-wrap mb-3">
               <span class="badge rounded-pill px-3 py-1" :class="getTrangThaiClass(selectedMovie.trangThai)" style="font-size:11px;">{{ getTrangThaiLabel(selectedMovie.trangThai) }}</span>
               <el-tag v-for="g in (selectedMovie.theLoais||[])" :key="g.id" size="small" effect="plain" class="genre-tag rounded-pill">{{ g.tenTheLoai }}</el-tag>
@@ -807,13 +796,6 @@ const tableColumnsLC = [
           <div class="lbl mb-1">Trailer</div>
           <a v-if="selectedMovie.trailer" :href="selectedMovie.trailer" target="_blank" class="text-danger fw-bold text-decoration-none" style="font-size:13px;"><i class="bi bi-youtube me-1"></i>Xem trailer</a>
           <span v-else class="text-secondary" style="font-size:12px;">—</span>
-        </div>
-        <div class="mb-3">
-          <div class="lbl mb-2">Diễn viên</div>
-          <div class="d-flex flex-wrap gap-1">
-            <el-tag v-for="a in (selectedMovie.dienVien?.split(',') || [])" :key="a" effect="plain" class="rounded-3" size="small">{{ a.trim() }}</el-tag>
-            <span v-if="!selectedMovie.dienVien" class="text-secondary" style="font-size:12px;">—</span>
-          </div>
         </div>
         <div class="lbl mb-2">Nội dung</div>
         <div class="p-3 bg-light rounded-4 lh-base text-secondary" style="font-size:12px;">{{ selectedMovie.moTa || '—' }}</div>

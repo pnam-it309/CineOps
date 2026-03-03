@@ -35,12 +35,6 @@ public class Phim extends PrimaryEntity {
     @Column(name = "lich_chieu")
     private String lichChieu;
 
-    @Column(name = "dao_dien", length = 100)
-    private String daoDien;
-
-    @Column(name = "dien_vien", columnDefinition = "TEXT")
-    private String dienVien;
-
     @Column(name = "trailer", length = 255)
     private String trailer;
 

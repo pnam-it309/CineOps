@@ -167,8 +167,6 @@ CREATE TABLE phim (
     ngay_khoi_chieu DATE,
     ngay_ket_thuc DATE,
     lich_chieu VARCHAR(50),
-    dao_dien VARCHAR(100),
-    dien_vien TEXT,
     mo_ta TEXT,
     trailer VARCHAR(255),
     poster VARCHAR(255),
