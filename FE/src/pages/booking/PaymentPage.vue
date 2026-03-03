@@ -106,7 +106,7 @@ const backToFood = () => {
                 <img src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo-vnpay.svg" height="24">
                 <span class="fw-bold">Ví VNPay / Ngân hàng</span>
               </div>
-              <el-radio v-model="selectedPayment" label="vnpay">{{''}}</el-radio>
+              <el-radio v-model="selectedPayment" value="vnpay">{{''}}</el-radio>
             </div>
 
             <div 
@@ -118,7 +118,7 @@ const backToFood = () => {
                 <el-icon size="24" class="text-secondary"><CreditCard /></el-icon>
                 <span class="fw-bold">Thẻ tín dụng/ghi nợ quốc tế</span>
               </div>
-              <el-radio v-model="selectedPayment" label="card">{{''}}</el-radio>
+              <el-radio v-model="selectedPayment" value="card">{{''}}</el-radio>
             </div>
           </div>
         </div>

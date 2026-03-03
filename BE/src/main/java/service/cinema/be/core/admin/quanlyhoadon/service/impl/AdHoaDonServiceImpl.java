@@ -62,7 +62,7 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
         // 2. Khởi tạo Hóa Đơn
         HoaDon hoaDon = new HoaDon();
         hoaDon.setMaHoaDon("HD-" + System.currentTimeMillis());
-        hoaDon.setKemBanHang(0); // 0: Bán tại quầy (POS)
+        hoaDon.setKenhBanHang(0); // 0: Bán tại quầy (POS)
         hoaDon.setTrangThai(1);  // 1: Đã thanh toán
         hoaDon.setPhuongThucThanhToan(request.getPhuongThucThanhToan());
 
@@ -232,7 +232,7 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
 
             // Lấy ngayTao từ PrimaryEntity (Giả sử PrimaryEntity có hàm getNgayTao())
             dto.setNgayTao(hoaDon.getNgayTao());
-            dto.setKemBanHang(hoaDon.getKemBanHang());
+            dto.setKemBanHang(hoaDon.getKenhBanHang());
 
             // Map an toàn NhanVien và KhachHang (Tránh lỗi NullPointerException)
             if (hoaDon.getNhanVien() != null) {

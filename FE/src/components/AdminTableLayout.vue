@@ -42,7 +42,7 @@
     <!-- Filter Bar Section -->
     <el-collapse-transition>
       <div v-show="showFilter" class="filter-card p-3 mb-4 bg-white flex-shrink-0 shadow-sm border">
-        <div class="d-flex align-items-end gap-3 w-100 px-1">
+        <div class="d-flex align-items-center gap-3 w-100 px-1">
             <slot name="filters"></slot>
             
             <div class="filter-item border-start ps-3 ms-1">
@@ -57,11 +57,13 @@
       </div>
     </el-collapse-transition>
 
-    <!-- Content or Table Section -->
-    <div class="table-container flex-grow-1 overflow-hidden d-flex flex-column">
-      <div v-if="$slots.content" class="content-wrapper flex-grow-1 overflow-auto no-scroll">
+    <!-- Content or Table Section — flex-grow fills remaining space, min-height:0 allows shrink -->
+    <div class="table-container d-flex flex-column" style="flex: 1 1 0; min-height: 0; overflow: hidden;">
+      <!-- #content slot (used by pages with BaseTable) -->
+      <div v-if="$slots.content" class="content-wrapper d-flex flex-column" style="flex: 1 1 0; min-height: 0; overflow: hidden;">
           <slot name="content"></slot>
       </div>
+      <!-- #columns slot (used by pages with el-table directly) -->
       <div v-else class="table-wrapper flex-grow-1 bg-white rounded-4 border shadow-sm overflow-hidden">
         <el-table 
           :data="data" 
@@ -86,18 +88,18 @@
       </div>
     </div>
 
-    <!-- Pagination Section (Refined to match image 1) -->
-    <div v-if="!hidePagination" class="pagination-footer d-flex align-items-center pt-4 px-1 flex-shrink-0 flex-wrap gap-3 mt-auto">
+    <!-- Pagination Section — luôn bám đáy, không cuộn theo bảng -->
+    <div v-if="!hidePagination" class="pagination-footer d-flex align-items-center pt-4 px-1 flex-shrink-0 flex-wrap gap-3">
       <!-- Left: Total and Page Size -->
       <div class="pagination-left d-flex align-items-center gap-3" style="flex: 1; min-width: 200px;">
-        <div class="text-dark fw-bold small">
+        <div class="text-dark fw-bold" style="font-size: 25px;">
           Tổng cộng: {{ total || 0 }}
         </div>
         
         <el-select 
           :model-value="pageSize || 10" 
-          size="small" 
-          style="width: 110px"
+          size="default" 
+          style="width: 140px; font-size: 25px;"
           class="compact-select no-border-select"
           @update:model-value="handlePageSizeChange"
         >
@@ -114,7 +116,7 @@
           <ul class="pagination-premium-list mb-0 list-unstyled d-flex align-items-center gap-1">
             <li class="page-item" :class="{ disabled: currentPage <= 1 }">
               <el-button class="page-link-btn" @click="handlePageChange(currentPage - 1)" :disabled="currentPage <= 1" link>
-                <i class="bi bi-chevron-left small"></i>
+                <i class="bi bi-chevron-left"></i>
               </el-button>
             </li>
             
@@ -131,7 +133,7 @@
 
             <li class="page-item" :class="{ disabled: currentPage >= totalPages || total === 0 }">
               <el-button class="page-link-btn" @click="handlePageChange(currentPage + 1)" :disabled="currentPage >= totalPages || total === 0" link>
-                <i class="bi bi-chevron-right small"></i>
+                <i class="bi bi-chevron-right"></i>
               </el-button>
             </li>
           </ul>
@@ -172,7 +174,6 @@ const showFilter = ref(true);
 
 const emit = defineEmits(['add-click', 'reset-filter', 'update:currentPage', 'update:pageSize', 'selection-change']);
 
-// Pagination Logic (Old Style)
 const totalPages = computed(() => {
   if (!props.pageSize || props.pageSize <= 0) return 0;
   return Math.ceil((props.total || 0) / props.pageSize);
@@ -216,10 +217,6 @@ const pagesToShow = computed(() => {
   background-color: #ffffff;
 }
 
-.table-container {
-  min-height: 0;
-}
-
 .table-wrapper {
     position: relative;
 }
@@ -235,21 +232,22 @@ const pagesToShow = computed(() => {
   background-color: #ffffff !important;
   font-weight: 700 !important;
   color: #475569 !important;
-  height: 54px !important;
-  font-size: 12px !important;
+  height: 64px !important;
+  font-size: 25px !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid #f1f5f9 !important;
 }
 
 :deep(.el-table__row) {
-  height: 64px !important;
+  height: 72px !important;
 }
 
 :deep(.el-table td) {
     color: #1e293b;
-    font-size: 14px;
+    font-size: 25px !important;
     border-bottom: 1px solid #f8fafc !important;
+    vertical-align: middle;
 }
 
 :deep(.el-table__body-wrapper::-webkit-scrollbar) {
@@ -263,8 +261,8 @@ const pagesToShow = computed(() => {
 }
 
 .btn-reset-square {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -284,15 +282,35 @@ const pagesToShow = computed(() => {
     background-color: #fff1f1;
 }
 
-/* Custom Pagination Style (Matched with Image 1) */
+/* Tăng font-size cho thanh bộ lọc */
+:deep(.filter-card .el-input__inner),
+:deep(.filter-card .el-select__wrapper),
+:deep(.filter-card .el-select__placeholder),
+:deep(.filter-card .el-select__selected-item) {
+    font-size: 25px !important;
+    color: #1e293b !important;
+}
+
+:deep(.filter-card .el-input__wrapper),
+:deep(.filter-card .el-select__wrapper) {
+    height: 50px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 0 1px #e2e8f0 inset !important;
+}
+
+:deep(.filter-card .el-select__wrapper.is-focused) {
+    box-shadow: 0 0 0 1px #E31E24 inset !important;
+}
+
+/* Custom Pagination Style */
 .page-link-btn {
-    width: 32px !important;
-    height: 32px !important;
+    width: 45px !important;
+    height: 45px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     color: #475569 !important;
-    font-size: 14px !important;
+    font-size: 25px !important;
     font-weight: 500 !important;
     transition: all 0.2s !important;
     padding: 0 !important;
@@ -314,9 +332,13 @@ const pagesToShow = computed(() => {
     background: transparent !important;
 }
 
-:deep(.page-item.disabled .page-link-btn) {
-    opacity: 0.3;
-    cursor: not-allowed;
+:deep(.compact-select .el-input__inner),
+:deep(.compact-select .el-select__wrapper),
+:deep(.compact-select .el-select__placeholder),
+:deep(.compact-select .el-select__selected-item) {
+    font-size: 25px !important;
+    line-height: normal !important;
+    color: #1e293b !important;
 }
 
 :deep(.compact-select .el-input__wrapper) {
@@ -324,7 +346,7 @@ const pagesToShow = computed(() => {
     background-color: #ffffff !important;
     box-shadow: none !important;
     border: 1px solid #e2e8f0 !important;
-    height: 32px !important;
+    height: 45px !important;
 }
 
 :deep(.no-border-select .el-input__wrapper) {

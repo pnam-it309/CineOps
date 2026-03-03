@@ -123,7 +123,7 @@ const pagesToShow = computed(() => {
 
 <template>
   <div class="base-table-container h-100 d-flex flex-column overflow-hidden">
-    <div class="table-content-wrapper flex-grow-1 overflow-auto no-scroll rounded-4 border bg-white shadow-sm">
+    <div class="table-content-wrapper rounded-4 border bg-white shadow-sm" style="flex: 1 1 0; min-height: 0; overflow: auto; width: 100%;">
       <table class="table table-hover align-middle mb-0 text-center w-100" style="border-collapse: separate; border-spacing: 0; table-layout: auto;">
         <!-- Sticky Header -->
         <thead class="sticky-top shadow-sm" style="z-index: 20;">
@@ -222,53 +222,6 @@ const pagesToShow = computed(() => {
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <div v-if="!hidePagination" class="table-footer-pagination d-flex justify-content-between align-items-center pt-3 px-2 w-100 flex-shrink-0">
-      <div class="pagination-left d-flex align-items-center gap-3">
-        <div class="total-badge highlight-total py-1 px-3 rounded-pill bg-light border">
-          <span class="text-secondary small fw-bold">Tổng cộng:</span> 
-          <span class="text-dark fw-bold ms-1" style="font-size: 14px;">{{ total }}</span>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <el-select 
-            :model-value="pageSize" 
-            size="small" 
-            style="width: 100px"
-            class="compact-select-simple"
-            @update:model-value="handlePageSizeChange"
-          >
-            <el-option label="10 / trang" :value="10" />
-            <el-option label="20 / trang" :value="20" />
-            <el-option label="50 / trang" :value="50" />
-          </el-select>
-        </div>
-      </div>
-      <div class="pagination-right">
-        <nav v-if="total > 0" aria-label="Table navigation">
-          <ul class="pagination-simple mb-0 list-unstyled d-flex align-items-center gap-1">
-            <li class="page-item" :class="{ disabled: currentPage === 1 }">
-              <button class="simple-page-btn arrow" @click="handlePageChange(currentPage - 1)">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-            </li>
-            <li v-for="page in pagesToShow" :key="page" class="page-item">
-              <button 
-                class="simple-page-btn" 
-                :class="{ active: currentPage === page }"
-                @click="handlePageChange(page)"
-              >
-                {{ page }}
-              </button>
-            </li>
-            <li class="page-item" :class="{ disabled: currentPage === totalPages || total === 0 }">
-              <button class="simple-page-btn arrow" @click="handlePageChange(currentPage + 1)">
-                <i class="bi bi-chevron-right"></i>
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
     </div>
   </div>
 </template>

@@ -5,7 +5,7 @@
     </div>
 
     <el-menu :default-active="activeMenu" :collapse="isCollapse" :collapse-transition="false" background-color="#ffffff"
-      text-color="#475569" active-text-color="#E31E24" class="flex-grow-1 border-0 overflow-auto py-2"
+      text-color="#475569" active-text-color="#E31E24" class="border-0 overflow-auto py-2"
       style="--el-menu-bg-color: #ffffff; --el-menu-text-color: #475569; --el-menu-active-color: #E31E24;" router
       menu-trigger="hover">
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.DASHBOARD)">

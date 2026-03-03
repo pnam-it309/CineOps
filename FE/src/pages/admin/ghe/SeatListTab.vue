@@ -113,8 +113,12 @@
           <span class="badge bg-dark text-white fw-bold px-2 py-1 rounded-2" style="font-size: 11px;">{{ row.soGhe }}</span>
         </template>
 
-        <template #cell-viTri="{ row }">
-          <span class="text-dark small">Hàng <b>{{ row.soHang }}</b> - Cột <b>{{ row.soCot }}</b></span>
+        <template #cell-soHang="{ row }">
+          <span class="text-dark small">Hàng <b>{{ row.soHang }}</b></span>
+        </template>
+
+        <template #cell-soCot="{ row }">
+          <span class="text-dark small">Cột <b>{{ row.soCot }}</b></span>
         </template>
 
         <template #cell-tenPhongChieu="{ row }">
@@ -164,12 +168,13 @@ import { gheService } from '@/services/api/admin/gheService';
 
 const seatColumns = [
   { label: 'STT', key: 'index', width: '60px' },
-  { label: 'SỐ GHẾ', key: 'soGhe', width: '100px' },
-  { label: 'VỊ TRÍ', key: 'viTri', width: '150px' },
-  { label: 'PHÒNG', key: 'tenPhongChieu', minWidth: '150px' },
-  { label: 'LOẠI GHẾ', key: 'loaiGhe', width: '140px' },
-  { label: 'PHỤ PHÍ', key: 'phuPhi', width: '120px' },
-  { label: 'TRẠNG THÁI', key: 'trangThai', width: '120px' },
+  { label: 'SỐ GHẾ', key: 'soGhe', width: '120px' },
+  { label: 'HÀNG', key: 'soHang', width: '150px' },
+  { label: 'CỘT', key: 'soCot', width: '120px' },
+  { label: 'PHÒNG', key: 'tenPhongChieu', minWidth: '200px' },
+  { label: 'LOẠI GHẾ', key: 'loaiGhe', width: '150px' },
+  { label: 'PHỤ PHÍ', key: 'phuPhi', width: '150px' },
+  { label: 'TRẠNG THÁI', key: 'trangThai', width: '150px' },
 ];
 
 const props = defineProps({

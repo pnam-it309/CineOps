@@ -1,17 +1,17 @@
 <template>
-  <div class="stat-card border shadow-sm rounded-4 p-3 bg-white h-100 d-flex align-items-center" :class="'stat-style-' + type">
-    <div v-if="icon" class="stat-icon-wrapper rounded-3 me-3 d-flex align-items-center justify-content-center" :class="iconBgClass">
-      <i :class="[icon, iconColorClass]" style="font-size: 1.2rem;"></i>
+  <div class="stat-card border shadow-sm rounded-4 px-3 py-2 bg-white d-flex align-items-center" :class="'stat-style-' + type">
+    <div v-if="icon" class="stat-icon-wrapper rounded-3 me-2 d-flex align-items-center justify-content-center" :class="iconBgClass">
+      <i :class="[icon, iconColorClass]" style="font-size: 1.5rem;"></i>
     </div>
     <div class="stat-content flex-grow-1">
-      <div class="stat-label text-secondary fw-semibold mb-1" style="font-size: 12px; letter-spacing: 0.3px;">
+      <div class="stat-label text-secondary fw-semibold mb-0" style="font-size: 22px; line-height: 1.2; letter-spacing: 0.3px;">
         {{ label }}
       </div>
-      <div class="stat-value fw-bold text-dark d-flex align-items-baseline" style="font-size: 22px;">
+      <div class="stat-value fw-bold text-dark d-flex align-items-baseline" style="font-size: 28px; line-height: 1.2;">
         {{ value }}
-        <span v-if="suffix" class="ms-1 small text-secondary fw-normal" style="font-size: 14px;">{{ suffix }}</span>
+        <span v-if="suffix" class="ms-1 small text-secondary fw-normal" style="font-size: 20px;">{{ suffix }}</span>
       </div>
-      <div v-if="subText" class="stat-subtext mt-1 text-truncate" :class="subTextColorClass" style="font-size: 11px;">
+      <div v-if="subText" class="stat-subtext mt-0 text-truncate" :class="subTextColorClass" style="font-size: 18px; line-height: 1.2;">
         {{ subText }}
       </div>
     </div>

@@ -90,7 +90,6 @@ onMounted(() => { loadData(); loadStats(); });
   <div class="admin-ticket-page">
     <AdminTableLayout
       title="Quản Lý Giao Dịch Vé"
-      subtitle="Quản lý và theo dõi toàn bộ hóa đơn từ hệ thống CineOps"
       titleIcon="bi bi-ticket-perforated-fill"
       :data="tickets"
       :total="totalElements"
@@ -140,36 +139,54 @@ onMounted(() => { loadData(); loadStats(); });
       </template>
 
       <template #columns>
-        <el-table-column label="MÃ VÉ" width="120">
+        <el-table-column label="MÃ VÉ" width="150" fixed="left" align="center">
           <template #default="{ row }">
             <span class="fw-bold text-indigo-500">#{{ row.maVe }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="KHÁCH HÀNG" min-width="180">
+        <el-table-column label="LOẠI KHÁCH" width="200" align="center">
           <template #default="{ row }">
-            <div class="fw-bold text-dark">{{ row.tenKhachHang || 'Khách lẻ' }}</div>
-            <div class="text-muted small">{{ row.soDienThoai || '---' }}</div>
+            <el-tag v-if="row.tenLoaiKhachHang" type="warning" size="small" effect="plain" round>
+              {{ row.tenLoaiKhachHang }}
+            </el-tag>
+            <span v-else class="text-muted small">—</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="PHIM & PHÒNG" min-width="220">
+        <el-table-column label="TÊN PHIM" min-width="220" align="center">
           <template #default="{ row }">
-            <div class="fw-bold text-dark text-truncate">{{ row.tenPhim }}</div>
-            <div class="text-muted small">
-              <i class="bi bi-display me-1"></i>{{ row.tenPhongChieu }}
-              <span class="ms-2 fw-bold text-danger">Ghế: {{ row.viTriGhe }}</span>
-            </div>
+            <div class="fw-bold text-dark">{{ row.tenPhim || '—' }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column label="THANH TOÁN" width="150" align="center">
+        <el-table-column label="PHÒNG" width="120" align="center">
+          <template #default="{ row }">
+            <div class="text-muted small" style="white-space: nowrap;"><i class="bi bi-display me-1"></i>{{ row.tenPhongChieu || '---' }}</div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="GHẾ" width="100" align="center">
+          <template #default="{ row }">
+            <div class="fw-bold text-danger" style="white-space: nowrap;">{{ row.viTriGhe || '—' }}</div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="KÊNH BÁN" width="180" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.loaiVe === 0 ? 'info' : 'success'" size="small" effect="dark">
+              {{ row.loaiVe === 0 ? '🏠 Tại quầy' : '🌐 Online' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="THANH TOÁN" width="220" align="center">
           <template #default="{ row }">
             <span class="fw-bold text-primary">{{ formatPrice(row.giaThanhToan) }}đ</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="TRẠNG THÁI" width="130" align="center">
+        <el-table-column label="TRẠNG THÁI" width="190" align="center">
           <template #default="{ row }">
             <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="small" round effect="light">
               {{ row.trangThai === 1 ? 'Thành công' : 'Đã hủy' }}
@@ -177,21 +194,30 @@ onMounted(() => { loadData(); loadStats(); });
           </template>
         </el-table-column>
 
-        <el-table-column label="THỜI GIAN" width="160" align="center">
+        <el-table-column label="THỜI GIAN" width="320" align="center">
           <template #default="{ row }">
-            <div class="small text-secondary"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }}</div>
-            <div class="small text-muted"><i class="bi bi-clock me-1"></i>{{ formatTime(row.ngayTao) }}</div>
+            <div class="small text-secondary" style="white-space: nowrap;"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }} {{ formatTime(row.ngayTao) }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column label="THAO TÁC" width="120" align="center" fixed="right">
+        <el-table-column label="NGƯỜI TẠO" width="300" align="center">
           <template #default="{ row }">
-            <div class="d-flex justify-content-center gap-2">
+            <div class="small text-muted" style="white-space: nowrap;"><i class="bi bi-person me-1"></i>{{ row.nguoiTao || '—' }}</div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="THAO TÁC" width="100" align="center" fixed="right">
+          <template #default="{ row }">
+            <div class="d-flex justify-content-center gap-1">
               <el-tooltip content="In vé" placement="top">
-                <el-button type="primary" size="small" :icon="Printer" plain circle />
+                <button class="btn-action-icon btn-action-print" @click="">
+                  <i class="bi bi-printer"></i>
+                </button>
               </el-tooltip>
               <el-tooltip content="Hủy vé" placement="top" v-if="row.trangThai === 1">
-                <el-button type="danger" size="small" :icon="Delete" circle @click="confirmCancel(row.id)" />
+                <button class="btn-action-icon btn-action-delete" @click="confirmCancel(row.id)">
+                  <i class="bi bi-trash"></i>
+                </button>
               </el-tooltip>
             </div>
           </template>
@@ -204,5 +230,25 @@ onMounted(() => { loadData(); loadStats(); });
 <style scoped>
 .text-indigo-500 { color: #4f46e5; }
 .admin-ticket-page { padding: 0; }
-:deep(.el-table th.el-table__cell) { background-color: #f8f9fa !important; }
+
+/* Action buttons — đồng bộ với BaseTable.vue */
+.btn-action-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  transition: all 0.2s;
+  padding: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+.btn-action-icon:hover { background-color: #f1f5f9; }
+.btn-action-print { color: #3b82f6; }
+.btn-action-print:hover { color: #1d4ed8; background-color: #eff6ff !important; }
+.btn-action-delete { color: #ef4444; }
+.btn-action-delete:hover { color: #b91c1c; background-color: #fef2f2 !important; }
 </style>

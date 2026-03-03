@@ -8,7 +8,6 @@ import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,8 +47,8 @@ public class HoaDon extends PrimaryEntity {
     @Column(name = "phuong_thuc_thanh_toan")
     private Integer phuongThucThanhToan;
 
-    @Column(name = "kem_ban_hang")
-    private Integer kemBanHang;
+    @Column(name = "kenh_ban_hang")
+    private Integer kenhBanHang;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

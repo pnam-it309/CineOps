@@ -275,7 +275,7 @@ import notification from '@/utils/notifications';
 const showtimeColumns = [
   { label: 'STT', key: 'index', width: '60px' },
   { label: 'PHIM', key: 'phim', minWidth: '250px' },
-  { label: 'PHÒNG CHIẾU', key: 'phongChieu', width: '180px' },
+  { label: 'PHÒNG CHIẾU', key: 'phongChieu', width: '190px' },
   { label: 'NGÀY CHIẾU', key: 'ngayChieu', width: '110px' },
   { label: 'GIỜ CHIẾU', key: 'gioChieu', width: '170px' },
   { label: 'TRẠNG THÁI', key: 'trangThai', width: '110px' },

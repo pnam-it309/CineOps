@@ -362,25 +362,26 @@
   const tableColumnsPhim = [
     {label: 'STT', key: 'stt', width: '70px'},
     {label: 'POSTER', key: 'poster', width: '80px'},
-    {label: 'THÔNG TIN', key: 'tenPhim'},
-    {label: 'THỂ LOẠI', key: 'theLoais', width: '160px'},
-    {label: 'THỜI LƯỢNG', key: 'thoiLuong', width: '100px'},
-    {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '115px'},
-    {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '115px'},
-    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '160px'},
-    {label: 'GIÁ PHIM', key: 'giaPhim', width: '115px'},
-    {label: 'TRẠNG THÁI', key: 'trangThai', width: '115px'},
+    {label: 'TÊN PHIM', key: 'tenPhim', minWidth: '500px'},
+    {label: 'ĐÁNH GIÁ', key: 'danhGia', width: '130px'},
+    {label: 'THỂ LOẠI', key: 'theLoais', width: '450px'},
+    {label: 'THỜI LƯỢNG', key: 'thoiLuong', width: '160px'},
+    {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '180px'},
+    {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '180px'},
+    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '220px'},
+    {label: 'GIÁ PHIM', key: 'giaPhim', width: '180px'},
+    {label: 'TRẠNG THÁI', key: 'trangThai', width: '200px'},
   ];
 
   const tableColumnsLC = [
     {label: 'STT', key: 'stt', width: '70px'},
     {label: 'POSTER', key: 'poster', width: '80px'},
-    {label: 'TÊN PHIM', key: 'tenPhim'},
-    {label: 'THỂ LOẠI', key: 'theLoais', width: '160px'},
-    {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '115px'},
-    {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '115px'},
-    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '180px'},
-    {label: 'TRẠNG THÁI', key: 'trangThai', width: '115px'},
+    {label: 'TÊN PHIM', key: 'tenPhim', minWidth: '500px'},
+    {label: 'THỂ LOẠI', key: 'theLoais', width: '450px'},
+    {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '180px'},
+    {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '180px'},
+    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '250px'},
+    {label: 'TRẠNG THÁI', key: 'trangThai', width: '150px'},
   ];
   </script>
 
@@ -514,34 +515,37 @@
                     </template>
           
                     <template #cell-tenPhim="{ row }">
+                      <div class="text-start">
+                        <div class="fw-bold" style="color:#344767;">{{ row.tenPhim }}</div>
+                      </div>
+                    </template>
+          
+                    <template #cell-danhGia="{ row }">
                       <div class="text-center">
-                        <div class="fw-bold" style="font-size:13px;color:#344767;">{{ row.tenPhim }}</div>
-                        <div class="text-secondary" style="font-size:11px;">
-                          <span v-if="row.danhGia > 0">⭐ {{ row.danhGia }}/10</span>
-                          <span v-else>—</span>
-                        </div>
+                        <span v-if="row.danhGia > 0" class="text-warning fw-bold">⭐ {{ row.danhGia }}</span>
+                        <span v-else class="text-secondary">—</span>
                       </div>
                     </template>
           
                     <template #cell-theLoais="{ row }">
                       <div class="d-flex flex-wrap gap-1 justify-content-center">
                         <el-tag v-for="g in (row.theLoais || [])" :key="g.id"
-                                size="small" effect="plain" class="genre-tag">{{ g.tenTheLoai }}
+                                size="large" effect="plain" class="genre-tag">{{ g.tenTheLoai }}
                         </el-tag>
-                        <span v-if="!row.theLoais?.length" class="text-secondary" style="font-size:12px;">—</span>
+                        <span v-if="!row.theLoais?.length" class="text-secondary">—</span>
                       </div>
                     </template>
           
                     <template #cell-thoiLuong="{ row }">
-                      <span style="font-size:12px;color:#606266;">{{ row.thoiLuong }} phút</span>
+                      <span style="color:#606266;">{{ row.thoiLuong }} phút</span>
                     </template>
           
                     <template #cell-ngayKhoiChieu="{ row }">
-                      <span style="font-size:12px;color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
+                      <span style="color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
                     </template>
           
                     <template #cell-ngayKetThuc="{ row }">
-                      <span style="font-size:12px;color:#ff4d4f;font-weight:600;">{{ row.ngayKetThuc || '—' }}</span>
+                      <span style="color:#ff4d4f;font-weight:600;">{{ row.ngayKetThuc || '—' }}</span>
                     </template>
           
                     <template #cell-lichChieu="{ row }">
@@ -550,7 +554,7 @@
                           <i class="bi bi-calendar3 me-1"></i>Xem lịch chiếu
                         </button>
                       </div>
-                      <span v-else class="text-secondary" style="font-size:12px;">Chưa có</span>
+                      <span v-else class="text-secondary">Chưa có</span>
                     </template>
           
                     <template #cell-giaPhim="{ row }">
@@ -558,8 +562,7 @@
                     </template>
           
                     <template #cell-trangThai="{ row }">
-                      <span class="badge rounded-pill px-2 py-1" :class="getTrangThaiClass(row.trangThai)"
-                            style="font-size:11px;">
+                      <span class="badge rounded-pill px-2 py-1" :class="getTrangThaiClass(row.trangThai)">
                         {{ getTrangThaiLabel(row.trangThai) }}
                       </span>
                     </template>
@@ -606,38 +609,37 @@
                     </template>
           
                     <template #cell-tenPhim="{ row }">
-                      <div class="fw-bold" style="font-size:13px;color:#344767;">{{ row.tenPhim }}</div>
+                      <div class="fw-bold" style="color:#344767;">{{ row.tenPhim }}</div>
                     </template>
           
                     <template #cell-theLoais="{ row }">
                       <div class="d-flex flex-wrap gap-1 justify-content-center">
                         <el-tag v-for="g in (row.theLoais || [])" :key="g.id"
-                                size="small" effect="plain" class="genre-tag">{{ g.tenTheLoai }}
+                                size="large" effect="plain" class="genre-tag">{{ g.tenTheLoai }}
                         </el-tag>
-                        <span v-if="!row.theLoais?.length" class="text-secondary" style="font-size:12px;">—</span>
+                        <span v-if="!row.theLoais?.length" class="text-secondary">—</span>
                       </div>
                     </template>
           
                     <template #cell-ngayKhoiChieu="{ row }">
-                      <span style="font-size:12px;color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
+                      <span style="color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
                     </template>
           
                     <template #cell-ngayKetThuc="{ row }">
-                      <span style="font-size:12px;color:#ff4d4f;font-weight:600;">{{ row.ngayKetThuc || '—' }}</span>
+                      <span style="color:#ff4d4f;font-weight:600;">{{ row.ngayKetThuc || '—' }}</span>
                     </template>
           
                     <template #cell-lichChieu="{ row }">
                       <div v-if="row.lichChieu" class="d-flex flex-wrap gap-1 justify-content-center">
                         <el-tag v-for="t in getLichChieuTags(row.lichChieu)" :key="t"
-                                size="small" effect="light" type="primary" class="tag-thu">{{ t }}
+                                size="large" effect="light" type="primary" class="tag-thu">{{ t }}
                         </el-tag>
                       </div>
-                      <span v-else class="text-secondary" style="font-size:12px;">Chưa có</span>
+                      <span v-else class="text-secondary">Chưa có</span>
                     </template>
           
                     <template #cell-trangThai="{ row }">
-                      <span class="badge rounded-pill px-2 py-1" :class="getTrangThaiClass(row.trangThai)"
-                            style="font-size:11px;">
+                      <span class="badge rounded-pill px-2 py-1" :class="getTrangThaiClass(row.trangThai)">
                         {{ getTrangThaiLabel(row.trangThai) }}
                       </span>
                     </template>
@@ -767,14 +769,15 @@
             <div class="flex-grow-1 d-flex flex-column justify-content-center">
               <h4 class="fw-bold text-dark mb-1" style="font-size:17px;">{{ selectedMovie.tenPhim }}</h4>
               <div class="d-flex gap-1 flex-wrap mb-3">
-                <span class="badge rounded-pill px-3 py-1" :class="getTrangThaiClass(selectedMovie.trangThai)" style="font-size:11px;">{{ getTrangThaiLabel(selectedMovie.trangThai) }}</span>
-                <el-tag v-for="g in (selectedMovie.theLoais||[])" :key="g.id" size="small" effect="plain" class="genre-tag rounded-pill">{{ g.tenTheLoai }}</el-tag>
+                <span class="badge rounded-pill px-3 py-1" :class="getTrangThaiClass(selectedMovie.trangThai)">{{ getTrangThaiLabel(selectedMovie.trangThai) }}</span>
+                <el-tag v-for="g in (selectedMovie.theLoais||[])" :key="g.id" size="large" effect="plain" class="genre-tag rounded-pill">{{ g.tenTheLoai }}</el-tag>
               </div>
-              <div class="d-flex flex-wrap gap-3 mb-3" style="font-size:13px;color:#606266;">
+              <div class="d-flex flex-wrap gap-3 mb-3" style="color:#606266;">
                 <span><i class="bi bi-clock me-1"></i>{{ selectedMovie.thoiLuong }} phút</span>
                 <span><i class="bi bi-calendar me-1"></i>{{ selectedMovie.ngayKhoiChieu || '—' }}</span>
                 <span v-if="selectedMovie.danhGia > 0" style="color:#f59e0b;"><i class="bi bi-star-fill me-1"></i>{{ selectedMovie.danhGia }}/10</span>
               </div>
+              <div class="row g-3">
                 <div class="col-6">
                   <div class="lbl">Giá phim</div>
                   <div class="val text-price">{{ selectedMovie.giaPhim?.toLocaleString('vi-VN') }} đ</div>
@@ -919,7 +922,6 @@
 
   .text-price {
     color: #00b341;
-    font-size: 13px;
   }
 
   .status-now {
@@ -942,7 +944,6 @@
     color: #909399 !important;
     background: #fff;
     border-radius: 6px;
-    font-size: 11px !important;
   }
 
   /* Action buttons are now using unified classes from admin-premium.css */
@@ -960,7 +961,6 @@
     color: #409eff;
     border-radius: 6px;
     padding: 2px 8px;
-    font-size: 11px;
     cursor: pointer;
     transition: .15s;
   }
@@ -972,7 +972,6 @@
 
   /* Tag thứ nhỏ */
   .tag-thu {
-    font-size: 11px !important;
     padding: 0 6px !important;
   }
 
@@ -1061,7 +1060,6 @@
   :deep(.el-checkbox-button__inner) {
     border-radius: 6px !important;
     margin: 2px;
-    font-size: 12px !important;
   }
 
   /* Poster trong dialog chi tiết */

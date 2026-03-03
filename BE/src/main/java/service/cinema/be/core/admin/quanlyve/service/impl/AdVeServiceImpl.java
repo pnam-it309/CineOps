@@ -205,6 +205,10 @@ public class AdVeServiceImpl implements AdVeService {
         dto.setNgayTao(ve.getNgayTao());
         dto.setNguoiTao(ve.getNguoiTao());
 
+        if (ve.getLoaiKhachHang() != null) {
+            dto.setTenLoaiKhachHang(ve.getLoaiKhachHang().getTenLoai());
+        }
+
         return dto;
     }
 }

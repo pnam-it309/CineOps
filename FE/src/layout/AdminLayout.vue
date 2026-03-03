@@ -1,15 +1,16 @@
 <template>
   <MainLayout>
-    <el-container class="vh-100 overflow-hidden admin-staff-layout">
+    <div class="admin-scale-wrapper">
+    <el-container class="admin-staff-layout">
       <!-- Sidebar -->
-      <el-aside :width="isCollapse ? '64px' : '240px'" class="bg-white shadow transition-width overflow-hidden">
+      <el-aside :width="isCollapse ? '64px' : '280px'" class="bg-white shadow transition-width overflow-hidden">
         <AdminSidebar :is-collapse="isCollapse" />
       </el-aside>
 
       <!-- Main Container -->
-      <el-container class="d-flex flex-column vh-100 overflow-hidden bg-white">
+      <el-container class="d-flex flex-column bg-white" style="height: 100%; overflow-x: hidden;">
         <!-- Top Navigation Bar -->
-        <el-header class="d-flex align-items-center justify-content-between bg-white shadow-sm px-3 border-bottom border-light" style="height: 60px;">
+        <el-header class="d-flex align-items-center justify-content-between bg-white shadow-sm px-3 border-bottom border-light" style="height: 100px;">
           <div class="d-flex align-items-center gap-3">
             <el-icon class="fs-4 cursor-pointer text-dark" @click="toggleSidebar">
               <Fold v-if="!isCollapse" />
@@ -66,6 +67,7 @@
         </el-main>
       </el-container>
     </el-container>
+    </div>
   </MainLayout>
 </template>
 
@@ -130,6 +132,19 @@ if (window.innerWidth < 768) {
 </script>
 
 <style scoped>
+.admin-scale-wrapper {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.admin-scale-wrapper > * {
+  transform: scale(0.75);
+  transform-origin: top left;
+  width: calc(100% / 0.75);
+  height: calc(100% / 0.75);
+}
+
 .admin-staff-layout {
   /* Force light theme variables within admin/staff scope */
   --text-primary: #1e293b !important;
@@ -159,8 +174,17 @@ if (window.innerWidth < 768) {
 }
 
 /* Breadcrumb overrides for light mode */
+:deep(.el-header) {
+  font-size: 23px;
+}
+
+:deep(.el-breadcrumb) {
+  font-size: 23px;
+}
+
 :deep(.el-breadcrumb__inner) {
   color: #64748b !important;
+  font-size: 23px !important;
 }
 
 :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
@@ -181,46 +205,63 @@ if (window.innerWidth < 768) {
   --el-table-header-text-color: #475569;
 }
 
+/* QUY TẮC ĐỒNG BỘ FONT CHỮ TOÀN CỤC */
+:global(.el-table),
+:global(.el-table .cell),
+:global(.el-table .cell *),
+:global(.el-tag),
+:global(.el-tag__content),
+:global(.badge),
+:global(.small),
+:global(small) {
+  font-size: 25px !important;
+  line-height: 1.5 !important;
+}
+
+:global(.el-table th .cell) {
+  font-size: 25px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  text-transform: uppercase;
+}
+
+/* Tăng kích thước icon và button để cân đối với chữ 25px */
+:global(.btn-action-icon i) {
+  font-size: 26px !important;
+}
+
+:global(.el-tag--large) {
+  height: auto !important;
+  padding: 8px 15px !important;
+}
+
+/* ✅ Fix: Buộc tất cả page wrapper bên trong el-main fill đúng 100% chiều cao
+   Một số trang không có h-100 trên wrapper div → AdminTableLayout không có chiều cao */
+:deep(.el-main) {
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.el-main) > * {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
 /* Global Pagination Overrides */
 :deep(.el-pagination) {
-  --el-pagination-font-size: 15px !important;
-  --el-pagination-button-width: 36px !important;
-  --el-pagination-button-height: 36px !important;
   font-weight: 600;
-  padding: 0 !important; /* Clean padding for nested parts */
+  padding: 0 !important;
 }
 
-:deep(.el-pager li) {
-  font-size: 15px !important;
-  min-width: 36px !important;
-  height: 36px !important;
-  line-height: 36px !important;
-  margin: 0 4px !important;
-}
-
-:deep(.el-pagination button) {
-  width: 36px !important;
-  height: 36px !important;
-}
-
-/* Remove large margins as they are now in separate containers */
 :deep(.el-pagination__sizes) {
   margin: 0 !important;
 }
 
 :deep(.el-pagination__jump) {
   margin: 0 !important;
-  font-size: 14px !important;
   color: #000 !important;
-}
-
-:deep(.el-pagination .el-select .el-input) {
-  width: 110px !important;
-}
-
-:deep(.el-pagination__jump .el-input) {
-  width: 50px !important;
-  margin: 0 8px !important;
 }
 
 /* Standardize inputs to prevent jiggling */
@@ -259,6 +300,52 @@ if (window.innerWidth < 768) {
 .page-fade-leave-to {
   opacity: 0;
   transform: translateX(-20px) scale(1.02);
+}
+/* Global Modal & Popup Overrides */
+:global(.el-dialog),
+:global(.el-message-box),
+:global(.el-notification) {
+  --el-dialog-font-size: 25px !important;
+  --el-dialog-title-font-size: 28px !important;
+  --el-message-box-font-size: 25px !important;
+  --el-notification-title-font-size: 25px !important;
+  --el-notification-content-font-size: 25px !important;
+}
+
+:global(.el-dialog__title),
+:global(.el-message-box__title) {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+}
+
+:global(.el-dialog__body),
+:global(.el-message-box__content),
+:global(.el-message-box__message) {
+  font-size: 25px !important;
+  color: #1e293b !important;
+}
+
+:global(.el-form-item__label) {
+  font-size: 25px !important;
+  color: #475569 !important;
+}
+
+:global(.el-input__inner),
+:global(.el-select__placeholder),
+:global(.el-button) {
+  font-size: 25px !important;
+}
+
+:global(.el-dialog .el-input__wrapper),
+:global(.el-dialog .el-select__wrapper) {
+  height: 55px !important;
+  border-radius: 10px !important;
+}
+
+:global(.el-dialog .el-button) {
+  height: 55px !important;
+  padding: 0 30px !important;
+  border-radius: 10px !important;
 }
 </style>
 

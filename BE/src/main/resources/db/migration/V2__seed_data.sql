@@ -230,11 +230,12 @@ VALUES
  'Tiếng Anh', 13, 8.8, 65000, 0, 'admin'),
 
 ('P28', 'Aladdin', 128, '2019-05-24', '2019-08-01', '0,1,2,3,4',
+ 'Phim phiêu lưu kỳ ảo',
  'https://www.youtube.com/watch?v=wmiIUN-7qhE',
  'https://image.tmdb.org/t/p/w500/w9kR8qbmQ01HwnvK4alvnQ2ca0L.jpg',
  'Tiếng Anh', 0, 8.9, 65000, 0, 'admin'),
 ('P30', 'Kung Fu Panda', 95, '2008-06-06', '2008-09-01', '1,3,5,6',
- 'DreamWorks', 'Po', 'Hoạt hình võ thuật',
+ 'Hoạt hình võ thuật',
  'https://www.youtube.com/watch?v=PXi3Mv6KMzY',
  'https://image.tmdb.org/t/p/w500/wWt5JEXUIhFBMVMDruAzBwlSMhc.jpg',
  'Tiếng Anh', 0, 8.8, 65000, 0, 'admin');
@@ -410,11 +411,6 @@ INSERT INTO phim_the_loai (id, id_phim, id_the_loai) VALUES
 ('PTL067', 'P28', 'TL6'),
 ('PTL068', 'P28', 'TL7'),
 ('PTL069', 'P28', 'TL8'),
-
--- P29 - Toy Story 4 → Hoạt hình, Hài, Gia đình
-('PTL070', 'P29', 'TL2'),
-('PTL071', 'P29', 'TL5'),
-('PTL072', 'P29', 'TL7'),
 
 -- P30 - Kung Fu Panda → Hoạt hình, Hành động, Hài, Gia đình
 ('PTL073', 'P30', 'TL2'),

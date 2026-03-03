@@ -316,7 +316,7 @@ CREATE TABLE hoa_don (
     so_tien_giam DECIMAL(20,2),
     tong_tien_thanh_toan DECIMAL(20,2),
     phuong_thuc_thanh_toan INT,
-    kem_ban_hang INT DEFAULT 0,
+    kenh_ban_hang INT DEFAULT 0,
     trang_thai INT DEFAULT 1,
     ghi_chu TEXT,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,

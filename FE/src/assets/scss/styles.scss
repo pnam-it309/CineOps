@@ -21,6 +21,57 @@ $body-color: #ffffff;
 $dark: #121212;
 $light: #f8f9fa;
 
+// Sidebar font size
+.el-aside, 
+.el-menu, 
+.el-menu-item, 
+.el-sub-menu__title, 
+.el-menu-item span {
+  font-size: 20px !important;
+  --el-font-size-base: 20px !important;
+}
+
+// Main content and Table font size
+.el-main {
+  font-size: 25px !important;
+  --el-font-size-base: 25px !important;
+  
+  // Force table content to 25px
+  .el-table, 
+  .el-table th.el-table__cell, 
+  .el-table td.el-table__cell,
+  .el-table .cell,
+  .el-table__empty-text,
+  .el-table th,
+  .el-table .cell *,
+  .el-pagination__total {
+    font-size: 25px !important;
+    line-height: normal !important;
+  }
+  
+  // Also force some hardcoded small labels and tags to scale up inside main
+  .small, small, .badge, .el-tag, .el-tag--small, .el-tag--default {
+    font-size: 25px !important;
+    line-height: normal !important;
+    height: auto !important;
+    padding: 2px 12px !important;
+  }
+  
+  .el-button, .el-input__inner, .el-form-item__label {
+    font-size: 25px !important;
+  }
+}
+
+// Global rule for Element Plus Select Dropdowns (they append to body, so must be outside .el-main)
+.el-select-dropdown__item, 
+.el-dropdown-menu__item,
+.el-select-dropdown__item span {
+  font-size: 25px !important;
+  height: auto !important;
+  line-height: normal !important;
+  padding: 8px 16px !important;
+}
+
 // Component Backgrounds
 $card-bg: #242424;
 $card-border-color: rgba(255, 255, 255, 0.1);

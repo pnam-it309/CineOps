@@ -22,10 +22,12 @@ const pageSize = ref(10);
 
 const customerColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'KHÁCH HÀNG', key: 'customer', minWidth: '220px' },
-  { label: 'LIÊN HỆ', key: 'contact', minWidth: '200px' },
-  { label: 'GIỚI TÍNH', key: 'gender', width: '120px' },
-  { label: 'TRẠNG THÁI', key: 'trangThai', width: '130px' },
+  { label: 'MÃ KH', key: 'maKhachHang', width: '130px' },
+  { label: 'KHÁCH HÀNG', key: 'customer', minWidth: '450px' },
+  { label: 'EMAIL', key: 'email', minWidth: '350px' },
+  { label: 'SỐ ĐIỆN THOẠI', key: 'sdt', width: '220px' },
+  { label: 'GIỚI TÍNH', key: 'gender', width: '150px' },
+  { label: 'TRẠNG THÁI', key: 'trangThai', width: '160px' },
 ];
 
 // State điều khiển Modal
@@ -230,9 +232,6 @@ watch([currentPage, pageSize], fetchCustomers);
           <StatCard label="Đang Hoạt Động" :value="customers.filter(c => c.trangThai === 1).length" icon="bi bi-person-check" type="success" />
         </div>
         <div class="col-md-3">
-          <StatCard label="Thành Viên Mới" value="12" icon="bi bi-person-plus" type="warning" subText="Trong tháng này" />
-        </div>
-        <div class="col-md-3">
           <StatCard label="Ngừng Hoạt Động" :value="customers.filter(c => c.trangThai === 0).length" icon="bi bi-person-x" type="danger" />
         </div>
       </template>
@@ -270,21 +269,22 @@ watch([currentPage, pageSize], fetchCustomers);
             <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
           </template>
 
+          <template #cell-maKhachHang="{ row }">
+            <span class="text-secondary small">{{ row.maKhachHang }}</span>
+          </template>
+
           <template #cell-customer="{ row }">
-            <div class="d-flex align-items-center justify-content-center gap-2">
-              <el-avatar :size="32" class="bg-primary shadow-sm border border-white flex-shrink-0">{{ row.tenKhachHang?.charAt(0) }}</el-avatar>
-              <div class="text-start">
-                <div class="fw-bold text-dark small">{{ row.tenKhachHang }}</div>
-                <div class="text-secondary" style="font-size: 11px;">{{ row.maKhachHang }}</div>
-              </div>
+            <div class="text-start">
+              <div class="fw-bold text-dark small" style="white-space: nowrap;">{{ row.tenKhachHang }}</div>
             </div>
           </template>
 
-          <template #cell-contact="{ row }">
-            <div class="small">
-              <div class="text-dark"><i class="bi bi-envelope me-2 text-primary"></i>{{ row.email || '—' }}</div>
-              <div class="text-secondary"><i class="bi bi-telephone me-2"></i>{{ row.sdt || '—' }}</div>
-            </div>
+          <template #cell-email="{ row }">
+            <div class="text-dark small"><i class="bi bi-envelope me-2 text-primary"></i>{{ row.email || '—' }}</div>
+          </template>
+
+          <template #cell-sdt="{ row }">
+            <div class="text-secondary small"><i class="bi bi-telephone me-2"></i>{{ row.sdt || '—' }}</div>
           </template>
 
           <template #cell-gender="{ row }">
@@ -413,16 +413,16 @@ watch([currentPage, pageSize], fetchCustomers);
           <div class="col-6">
             <el-form-item label="Giới tính">
               <el-radio-group v-model="form.gioiTinh">
-                <el-radio :label="1">Nam</el-radio>
-                <el-radio :label="0">Nữ</el-radio>
+                <el-radio :value="1">Nam</el-radio>
+                <el-radio :value="0">Nữ</el-radio>
               </el-radio-group>
             </el-form-item>
           </div>
           <div class="col-6" v-if="isEdit">
             <el-form-item label="Trạng thái">
               <el-radio-group v-model="form.trangThai">
-                <el-radio :label="1">Hoạt động</el-radio>
-                <el-radio :label="0">Ngừng</el-radio>
+                <el-radio :value="1">Hoạt động</el-radio>
+                <el-radio :value="0">Ngừng</el-radio>
               </el-radio-group>
             </el-form-item>
           </div>

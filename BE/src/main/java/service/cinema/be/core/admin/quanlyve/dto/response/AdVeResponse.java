@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AdVeResponse {
 
-    // ĐỔI TỪ Long SANG String Ở ĐÂY NHÉ:
     private String id;
 
     private String maVe;
@@ -24,4 +23,5 @@ public class AdVeResponse {
     private Integer trangThai;
     private LocalDateTime ngayTao;
     private String nguoiTao;
+    private String tenLoaiKhachHang;
 }

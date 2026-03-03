@@ -115,9 +115,9 @@
                 Thống kê Doanh thu
               </span>
               <el-radio-group v-model="activeTab" size="small">
-                <el-radio-button label="Tuần" value="week" />
-                <el-radio-button label="Tháng" value="month" />
-                <el-radio-button label="Năm" value="year" />
+                <el-radio-button value="week">Tuần</el-radio-button>
+                <el-radio-button value="month">Tháng</el-radio-button>
+                <el-radio-button value="year">Năm</el-radio-button>
               </el-radio-group>
             </div>
           </template>
@@ -169,8 +169,8 @@
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-bold fs-5">Phân tích Doanh thu</span>
               <el-radio-group v-model="activeTab" size="small">
-                <el-radio-button label="Tuần" value="week" />
-                <el-radio-button label="Tháng" value="month" />
+                <el-radio-button value="week">Tuần</el-radio-button>
+                <el-radio-button value="month">Tháng</el-radio-button>
               </el-radio-group>
             </div>
           </template>

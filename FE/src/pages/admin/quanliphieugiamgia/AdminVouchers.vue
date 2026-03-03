@@ -72,7 +72,7 @@
           </template>
 
           <template #cell-tenPhieu="{ row }">
-            <span class="fw-semibold text-dark small">{{ row.tenPhieu }}</span>
+            <span class="fw-semibold text-dark small" style="white-space: nowrap;">{{ row.tenPhieu }}</span>
           </template>
 
           <template #cell-giaTriHoaDonToiThieu="{ row }">
@@ -82,20 +82,29 @@
           <template #cell-loaiPhieu="{ row }">
             <div v-if="row.loaiPhieu === 1">
               <el-tag type="warning" effect="dark" round size="small">{{ row.phanTramGiamGia }}%</el-tag>
-              <div class="text-dark extra-small mt-1" style="font-size: 10px;">Tối đa: {{ formatCurrency(row.giamToiDa) }}</div>
             </div>
             <div v-else>
               <el-tag type="danger" effect="dark" round size="small">-{{ formatCurrency(row.soTienGiam) }}</el-tag>
             </div>
           </template>
 
+          <template #cell-giamToiDa="{ row }">
+            <span v-if="row.loaiPhieu === 1" class="text-dark fw-bold small">{{ formatCurrency(row.giamToiDa) }}</span>
+            <span v-else class="text-secondary small">—</span>
+          </template>
+
           <template #cell-soLuong="{ row }">
             <span class="text-dark fw-bold small">{{ row.soLuong }}</span>
           </template>
 
-          <template #cell-time="{ row }">
+          <template #cell-ngayBatDau="{ row }">
             <div class="small text-secondary" style="font-size: 11px;">
               <div class="text-nowrap"><i class="bi bi-calendar-check me-1"></i>{{ formatDate(row.ngayBatDau) }}</div>
+            </div>
+          </template>
+
+          <template #cell-ngayKetThuc="{ row }">
+            <div class="small text-secondary" style="font-size: 11px;">
               <div class="text-nowrap"><i class="bi bi-calendar-x me-1"></i>{{ formatDate(row.ngayKetThuc) }}</div>
             </div>
           </template>
@@ -209,13 +218,15 @@ import BaseModal from '@/components/common/BaseModal.vue';
 
 const voucherColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'MÃ GIẢM GIÁ', key: 'maPhieuGiamGia', width: '130px' },
-  { label: 'TÊN PHIẾU GIẢM GIÁ', key: 'tenPhieu', minWidth: '200px' },
-  { label: 'ĐƠN TỐI THIỂU', key: 'giaTriHoaDonToiThieu', width: '140px' },
+  { label: 'MÃ GIẢM GIÁ', key: 'maPhieuGiamGia', width: '160px' },
+  { label: 'TÊN PHIẾU GIẢM GIÁ', key: 'tenPhieu', minWidth: '700px' },
+  { label: 'ĐƠN TỐI THIỂU', key: 'giaTriHoaDonToiThieu', width: '180px' },
   { label: 'GIẢM GIÁ', key: 'loaiPhieu', width: '150px' },
-  { label: 'SỐ LƯỢNG', key: 'soLuong', width: '80px' },
-  { label: 'THỜI GIAN', key: 'time', width: '170px' },
-  { label: 'TRẠNG THÁI', key: 'trangThai', width: '130px' },
+  { label: 'GIẢM TỐI ĐA', key: 'giamToiDa', width: '180px' },
+  { label: 'SỐ LƯỢNG', key: 'soLuong', width: '120px' },
+  { label: 'TỪ NGÀY', key: 'ngayBatDau', width: '180px' },
+  { label: 'ĐẾN NGÀY', key: 'ngayKetThuc', width: '180px' },
+  { label: 'TRẠNG THÁI', key: 'trangThai', width: '160px' },
 ];
 
 const selectedObjects = ref([]);

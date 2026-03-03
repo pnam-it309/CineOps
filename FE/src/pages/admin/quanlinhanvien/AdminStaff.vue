@@ -17,12 +17,13 @@ const loading = ref(false);
 
 const staffColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'NHÂN VIÊN', key: 'staff', minWidth: '250px' },
-  { label: 'TÊN ĐĂNG NHẬP', key: 'username', width: '180px' },
-  { label: 'VAI TRÒ', key: 'role', width: '150px' },
-  { label: 'SỐ ĐIỆN THOẠI', key: 'phone', width: '150px' },
-  { label: 'NGÀY THAM GIA', key: 'joinDate', width: '150px' },
-  { label: 'TRẠNG THÁI', key: 'status', width: '150px' },
+  { label: 'NHÂN VIÊN', key: 'staff', minWidth: '450px' },
+  { label: 'EMAIL', key: 'email', minWidth: '400px' },
+  { label: 'TÊN ĐĂNG NHẬP', key: 'username', width: '250px' },
+  { label: 'VAI TRÒ', key: 'role', width: '250px' },
+  { label: 'SỐ ĐIỆN THOẠI', key: 'phone', width: '200px' },
+  { label: 'NGÀY THAM GIA', key: 'joinDate', width: '200px' },
+  { label: 'TRẠNG THÁI', key: 'status', width: '200px' },
 ];
 
 const roles = ref([]);
@@ -314,15 +315,13 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           </template>
 
           <template #cell-staff="{ row }">
-            <div class="d-flex align-items-center justify-content-center gap-3">
-              <el-avatar :size="36" class="flex-shrink-0 border border-white shadow-sm" :style="{ background: getAvatarColor(row.tenPhanQuyen) }">
-                {{ (row.tenNhanVien || '').charAt(0) }}
-              </el-avatar>
-              <div class="text-start">
-                <div class="fw-bold text-dark small">{{ row.tenNhanVien }}</div>
-                <div class="text-secondary extra-small" style="font-size: 11px;">{{ row.email }}</div>
-              </div>
+            <div class="text-start">
+              <div class="fw-bold text-dark small">{{ row.tenNhanVien }}</div>
             </div>
+          </template>
+
+          <template #cell-email="{ row }">
+            <div class="text-secondary small">{{ row.email }}</div>
           </template>
 
           <template #cell-username="{ row }">
@@ -344,10 +343,9 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           </template>
 
           <template #cell-status="{ row }">
-            <div class="d-flex align-items-center justify-content-center gap-2 cursor-pointer" @click="handleToggleStatus(row)" title="Bấm để đổi trạng thái">
-              <span class="status-dot" :class="row.trangThai === 1 ? 'bg-success shadow-success-lite' : 'bg-secondary'"></span>
-              <span class="extra-small" :class="row.trangThai === 1 ? 'text-success' : 'text-secondary'">{{ row.trangThai === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động' }}</span>
-            </div>
+            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round class="cursor-pointer" @click="handleToggleStatus(row)" title="Bấm để đổi trạng thái">
+              {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
+            </el-tag>
           </template>
 
           <template #actions="{ row }">
@@ -393,10 +391,9 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
               <el-tag :type="getRoleType(selectedStaffDetail.tenPhanQuyen)" effect="dark" round>{{ selectedStaffDetail.tenPhanQuyen }}</el-tag>
             </div>
             <div class="d-flex align-items-center gap-3 mt-1">
-               <div class="d-flex align-items-center gap-1">
-                <span class="status-dot" :class="selectedStaffDetail.trangThai === 1 ? 'bg-success shadow-success-lite' : 'bg-secondary'"></span>
-                <span class="small fw-semibold" :class="selectedStaffDetail.trangThai === 1 ? 'text-success' : 'text-secondary'">{{ selectedStaffDetail.trangThai === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động' }}</span>
-              </div>
+              <el-tag :type="selectedStaffDetail.trangThai === 1 ? 'success' : 'info'" size="small" round>
+                {{ selectedStaffDetail.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
+              </el-tag>
             </div>
           </div>
         </div>
