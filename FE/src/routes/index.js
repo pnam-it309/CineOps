@@ -189,13 +189,13 @@ const routes = [
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.INVOICES.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.INVOICES.name,
-                component: () => import('@/pages/admin/AdminInvoices.vue'),
+                component: () => import('@/pages/admin/quanlyhoadon/AdminInvoices.vue'),
                 meta: { title: 'Quản lý hóa đơn' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.TICKETS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.TICKETS.name,
-                component: () => import('@/pages/admin/AdminReports.vue'), // Using reports as placeholder for tickets
+                component: () => import('@/pages/admin/quanlyve/TicketList.vue'),
                 meta: { title: 'Quản lý vé' }
             },
             {

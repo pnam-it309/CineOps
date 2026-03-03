@@ -57,7 +57,7 @@ public class AdPhimRequest {
 
     @NotNull(message = "Giá vé gốc không được để trống!")
     @DecimalMin(value = "0.0", inclusive = false, message = "Giá vé gốc phải lớn hơn 0.")
-    private BigDecimal giaVeGoc;
+    private BigDecimal giaPhim;
 
     private Integer trangThai = 1;
 

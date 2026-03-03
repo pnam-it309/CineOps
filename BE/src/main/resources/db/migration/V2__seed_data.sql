@@ -61,7 +61,7 @@ VALUES ('kg-01-uuid', 'Sáng sớm', '08:00:00', '10:30:00', 'system'),
 -- 5. PHIM
 INSERT INTO phim (id, ten_phim, thoi_luong, ngay_khoi_chieu, ngay_ket_thuc, lich_chieu,
                   dao_dien, dien_vien, mo_ta, trailer, poster, ngon_ngu, do_tuoi,
-                  danh_gia, gia_ve_goc, trang_thai, nguoi_tao)
+                  danh_gia, gia_phim, trang_thai, nguoi_tao)
 VALUES
 
 -- ===== 15 PHIM ĐANG CHIẾU / SẮP CHIẾU (GIỐNG RẠP)
@@ -496,3 +496,58 @@ INSERT INTO chi_tiet_san_pham_di_kem (id, id_san_pham, id_kich_co, id_don_vi_tin
 
 -- Nước Suối: S
 ('ct-ns-s', 'sp-nuoc-suoi', 'kc-s', 'dvt-ml', 500, NULL, 15000, 300, 'system');
+-- =================================================================
+-- 18. BẢNG PHÂN QUYỀN (Bắt buộc để đăng nhập)
+-- =================================================================
+INSERT INTO phan_quyen (id, ma_phan_quyen, ten_vai_tro, quyen_han, nguoi_tao) VALUES
+                                                                                  ('pq-admin', 'ROLE_ADMIN', 'Quản trị viên', 'ALL', 'system'),
+                                                                                  ('pq-staff', 'ROLE_STAFF', 'Nhân viên bán vé', 'POS,CHECKIN', 'system');
+
+-- =================================================================
+-- 19. BẢNG NHÂN VIÊN (Để lưu người tạo Hóa đơn)
+-- =================================================================
+INSERT INTO nhan_vien (id, id_phan_quyen, ma_nhan_vien, ten_nhan_vien, chuc_vu, email, mat_khau, so_dien_thoai, nguoi_tao) VALUES
+                                                                                                                               ('nv-admin', 'pq-admin', 'NV001', 'Nguyễn Huy Đức', 'Quản lý', 'admin@cineops.com', '$2a$12$7k...', '0988888888', 'system'),
+                                                                                                                               ('nv-staff', 'pq-staff', 'NV002', 'Lê Thị Nhân Viên', 'Bán vé', 'staff@cineops.com', '$2a$12$7k...', '0911111111', 'system');
+
+-- =================================================================
+-- 20. BẢNG GIÁ VÉ CHI TIẾT (Bắt buộc để hàm Tính Giá Vé không bị lỗi Null)
+-- Map chuẩn với các ID loại ngày, khách, ghế, khung giờ trong script của Đức
+-- =================================================================
+INSERT INTO gia_ve_chi_tiet (id, id_loai_ngay, id_loai_khach_hang, id_loai_ghe, id_khung_gio, gia_tien, nguoi_tao) VALUES
+                                                                                                                       ('gvct-1', 'ln-thuong', 'lkh-member-uuid', 'lg-normal-uuid', 'kg-02-uuid', 0, 'system'),
+                                                                                                                       ('gvct-2', 'ln-thuong', 'lkh-member-uuid', 'lg-vip-uuid', 'kg-02-uuid', 20000, 'system'),
+                                                                                                                       ('gvct-3', 'ln-cuoituan', 'lkh-member-uuid', 'lg-normal-uuid', 'kg-04-uuid', 10000, 'system'),
+                                                                                                                       ('gvct-4', 'ln-cuoituan', 'lkh-member-uuid', 'lg-vip-uuid', 'kg-04-uuid', 30000, 'system');
+
+-- =================================================================
+-- 21. TẠO 1 SUẤT CHIẾU CÓ ID CỐ ĐỊNH (Dùng làm mồi cho Hóa Đơn)
+-- =================================================================
+INSERT INTO suat_chieu (id, id_khung_gio, id_phong_chieu, id_phim, ngay_chieu, so_ghe_trong, trang_thai, nguoi_tao) VALUES
+    ('sc-fix-001', 'kg-04-uuid', 'pc-001-uuid-001', 'P1', CURDATE(), 40, 1, 'system');
+
+-- =================================================================
+-- 22. TẠO HÓA ĐƠN & GIAO DỊCH MẪU (Để xem được trên màn hình Vue 3)
+-- =================================================================
+-- a. Tạo 1 Vé (Dùng subquery để dò tìm đúng cái UUID() của ghế A1)
+INSERT INTO ve (id, id_loai_khach_hang, id_ghe, id_suat_chieu, ma_ve, gia_thanh_toan, loai_ve, trang_thai) VALUES
+                                                                                                               ('ve-001', 'lkh-member-uuid', (SELECT id FROM ghe WHERE so_ghe = 'A1' AND id_phong_chieu = 'pc-001-uuid-001' LIMIT 1), 'sc-fix-001', 'VE-001', 65000, 0, 1);
+
+-- b. Tạo Hóa Đơn (Mua 1 vé phim 65K + 1 Bắp Phô Mai M giá 49K = 114,000đ)
+INSERT INTO hoa_don (id, id_nhan_vien, id_khach_hang, ma_hoa_don, tong_tien, so_tien_giam, tong_tien_thanh_toan, phuong_thuc_thanh_toan, trang_thai) VALUES
+    ('hd-001', 'nv-staff', 'kh-001-uuid', 'HD-1700000000', 114000, 0, 114000, 1, 1);
+
+-- c. Tạo Chi tiết Hóa Đơn (1 dòng vé phim, 1 dòng bắp)
+INSERT INTO hoa_don_chi_tiet (id, id_hoa_don, id_ve, loai, so_luong, don_gia, thanh_tien) VALUES
+    ('hdct-ve1', 'hd-001', 've-001', 0, 1, 65000, 65000);
+
+-- Map với id 'ct-pc-m' (Bắp Phô Mai size M) trong script của Đức
+INSERT INTO hoa_don_chi_tiet (id, id_hoa_don, id_chi_tiet_san_pham_di_kem, loai, so_luong, don_gia, thanh_tien) VALUES
+    ('hdct-sp1', 'hd-001', 'ct-pc-m', 1, 1, 49000, 49000);
+
+-- d. Ghi nhận Thanh toán và Lịch sử
+INSERT INTO thanh_toan (id, id_hoa_don, ma_giao_dich, phuong_thuc_thanh_toan, so_tien, trang_thai) VALUES
+    ('tt-001', 'hd-001', 'VNPay-12345', 1, 114000, 1);
+
+INSERT INTO lich_su_hoa_don (id, hoa_don_id, hanh_dong, trang_thai) VALUES
+    ('lshd-001', 'hd-001', 'Tạo hóa đơn tại quầy', 1);

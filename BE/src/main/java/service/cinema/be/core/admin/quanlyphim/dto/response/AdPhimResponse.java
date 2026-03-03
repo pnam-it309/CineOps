@@ -26,7 +26,7 @@ public class AdPhimResponse {
     private Integer doTuoi;
     private String moTa;
     private BigDecimal danhGia;
-    private BigDecimal giaVeGoc;
+    private BigDecimal giaPhim;
     private Integer trangThai;
     private List<AdTheLoaiResponse> theLoais;
 }

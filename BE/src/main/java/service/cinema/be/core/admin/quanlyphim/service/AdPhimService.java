@@ -137,7 +137,7 @@ public class AdPhimService {
         phim.setDoTuoi(request.getDoTuoi());
         phim.setMoTa(request.getMoTa());
         phim.setDanhGia(request.getDanhGia());
-        phim.setGiaVeGoc(request.getGiaVeGoc()); // giaVeGoc
+        phim.setGiaPhim(request.getGiaPhim()); // giaVeGoc
         phim.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : 1);
     }
 
@@ -175,7 +175,7 @@ public class AdPhimService {
                 .doTuoi(phim.getDoTuoi())
                 .moTa(phim.getMoTa())
                 .danhGia(phim.getDanhGia())
-                .giaVeGoc(phim.getGiaVeGoc()) // giaVeGoc
+                .giaPhim(phim.getGiaPhim()) // giaVeGoc
                 .trangThai(phim.getTrangThai())
                 .theLoais(theLoais)
                 .build();

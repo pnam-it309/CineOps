@@ -62,8 +62,8 @@ public class Phim extends PrimaryEntity {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @Column(name = "gia_ve_goc", precision = 20, scale = 2)
-    private BigDecimal giaVeGoc;
+    @Column(name = "gia_phim", precision = 20, scale = 2)
+    private BigDecimal giaPhim;
 
     @OneToMany(mappedBy = "phim", fetch = FetchType.EAGER)
     private List<PhimTheLoai> phimTheLoais;

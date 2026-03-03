@@ -58,7 +58,7 @@ const defaultForm = () => ({
   ngayKhoiChieu: '', ngayKetThuc: '',
   lichChieu: [],
   idTheLoais: [],
-  giaVeGoc: null, trangThai: 1,
+  giaPhim: null, trangThai: 1,
   poster: '', trailer: '', moTa: '',
   daoDien: '', dienVien: '', ngonNgu: '', doTuoi: 0, danhGia: 0
 });
@@ -243,7 +243,7 @@ const handleSave = async () => {
           : movieForm.value.lichChieu || null,
       ngayKetThuc: movieForm.value.ngayKetThuc || null,
       ngayKhoiChieu: movieForm.value.ngayKhoiChieu || null,
-      giaVeGoc: movieForm.value.giaVeGoc,
+      giaPhim: movieForm.value.giaPhim,
       danhGia: movieForm.value.danhGia || null,
       doTuoi: movieForm.value.doTuoi || null,
     };
@@ -350,7 +350,7 @@ const tableColumnsPhim = [
   {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '115px'},
   {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '115px'},
   {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '160px'},
-  {label: 'GIÁ VÉ GỐC', key: 'giaVeGoc', width: '115px'},
+  {label: 'GIÁ PHIM', key: 'giaPhim', width: '115px'},
   {label: 'TRẠNG THÁI', key: 'trangThai', width: '115px'},
 ];
 
@@ -523,8 +523,8 @@ const tableColumnsLC = [
                     <span v-else class="text-secondary" style="font-size:12px;">Chưa có</span>
                   </template>
         
-                  <template #cell-giaVeGoc="{ row }">
-                    <span class="fw-bold text-price">{{ row.giaVeGoc?.toLocaleString('vi-VN') }} đ</span>
+                  <template #cell-giaPhim="{ row }">
+                    <span class="fw-bold text-price">{{ row.giaPhim?.toLocaleString('vi-VN') }} đ</span>
                   </template>
         
                   <template #cell-trangThai="{ row }">
@@ -645,8 +645,8 @@ const tableColumnsLC = [
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Giá vé gốc (VNĐ) *">
-              <el-input-number v-model="movieForm.giaVeGoc" :min="1000" :step="5000" :precision="0" class="w-100"/>
+            <el-form-item label="Giá phim (VNĐ) *">
+              <el-input-number v-model="movieForm.giaPhim" :min="1000" :step="5000" :precision="0" class="w-100"/>
             </el-form-item>
           </div>
           <div class="col-md-6">
@@ -779,8 +779,8 @@ const tableColumnsLC = [
             <!-- Grid 2 cột -->
             <div class="row g-2">
               <div class="col-6">
-                <div class="lbl">Giá vé gốc</div>
-                <div class="val text-price">{{ selectedMovie.giaVeGoc?.toLocaleString('vi-VN') }} đ</div>
+                <div class="lbl">Giá phim</div>
+                <div class="val text-price">{{ selectedMovie.giaPhim?.toLocaleString('vi-VN') }} đ</div>
               </div>
               <div class="col-6">
                 <div class="lbl">Ngôn ngữ</div>

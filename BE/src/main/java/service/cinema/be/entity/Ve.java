@@ -32,8 +32,8 @@ public class Ve extends PrimaryEntity {
     @Column(name = "ma_ve", length = 50)
     private String maVe;
 
-    @Column(name = "gia_ve_goc", precision = 20, scale = 2)
-    private BigDecimal giaVeGoc;
+    @Column(name = "gia_thanh_toan", precision = 20, scale = 2)
+    private BigDecimal giaThanhToan;
 
     @Column(name = "loai_ve")
     private Integer loaiVe;
