@@ -17,5 +17,11 @@ export const hoaDonService = {
 
   createInvoice(payload) {
     return api.post(`${API_URL}/thanh-toan`, payload)
+  },
+  exportExcel(params) {
+    return api.get(`${API_URL}/export-excel`, { 
+      params, 
+      responseType: 'blob' // Rất quan trọng để tải file [cite: 2025-10-14]
+    });
   }
 }

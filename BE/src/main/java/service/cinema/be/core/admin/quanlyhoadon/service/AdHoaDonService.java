@@ -21,11 +21,12 @@ public interface AdHoaDonService {
             LocalDate tuNgay, LocalDate denNgay,
             String kyThoiGian,
             Integer phuongThucThanhToan,
-            Integer kenhBan, // Bổ sung tham số này vào vị trí thứ 9
+            Integer kenhBanHang, // Bổ sung tham số này vào vị trí thứ 9
             String idKhachHang,
             int page, int size
     );
 
     // 3. Lấy chi tiết hóa đơn
     List<AdHoaDonChiTietResponse> layChiTietHoaDon(String idHoaDon);
+    byte[] xuatExcelHoaDon(String tuKhoa, Integer trangThai, Integer kenhBanHang, String kyThoiGian);
 }

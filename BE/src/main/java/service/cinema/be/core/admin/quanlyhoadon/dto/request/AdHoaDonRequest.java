@@ -27,4 +27,6 @@ public class AdHoaDonRequest {
     private List<AdDatVeRequest.ChiTietGheDat> danhSachGhe;
     // Thêm trường này vào class
     private String idKhachHang;
+    private String idVoucher;
+    private String ghiChu;
 }

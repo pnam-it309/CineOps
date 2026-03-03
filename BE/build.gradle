@@ -80,6 +80,8 @@ dependencies {
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // ===== Apache POI cho xuất Excel =====
+    implementation 'org.apache.poi:poi-ooxml:5.2.5' // Phiên bản mới nhất và ổn định [cite: 2026-03-03]
 }
 
 

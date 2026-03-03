@@ -122,7 +122,6 @@ onMounted(() => { loadData(); loadStats(); });
     >
       <template #header-actions-left>
         <el-button type="primary" :icon="Plus" @click="$router.push('/admin/pos')">Xuất vé mới</el-button>
-        <el-button class="btn-premium-secondary" :icon="Download">Xuất Excel</el-button>
       </template>
 
       <template #stats>
