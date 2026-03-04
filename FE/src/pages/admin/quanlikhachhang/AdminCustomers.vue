@@ -4,7 +4,7 @@ import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { Search, Plus, Edit, Delete, View, Filter, Message, User, Phone } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
-import StatCard from '@/components/common/StatCard.vue';
+
 import BaseTable from '@/components/common/BaseTable.vue';
 import CCCDScanner from '@/components/common/CCCDScanner.vue'; // <-- Integrate Scanner
 import { khachHangService } from '@/services/api/admin/khachHangService';
@@ -23,26 +23,22 @@ const pageSize = ref(10);
 
 const customerColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'MÃ KH', key: 'maKhachHang', width: '130px' },
-  { label: 'KHÁCH HÀNG', key: 'customer', minWidth: '350px' },
-  { label: 'EMAIL', key: 'email', minWidth: '350px' },
-  { label: 'SỐ ĐIỆN THOẠI', key: 'sdt', width: '220px' },
-  { label: 'GIỚI TÍNH', key: 'gender', width: '150px' },
-  { label: 'TRẠNG THÁI', key: 'trangThai', width: '160px' },
+  { label: 'Mã KH', key: 'maKhachHang', width: '130px' },
+  { label: 'Khách hàng', key: 'customer', minWidth: '350px' },
+  { label: 'Email', key: 'email', minWidth: '350px' },
+  { label: 'Số điện thoại', key: 'sdt', width: '220px' },
+  { label: 'Giới tính', key: 'gender', width: '150px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '160px' },
 ];
 
 // State điều khiển Modal
 const dialogVisible = ref(false);
-const detailVisible = ref(false);
 const selectedCustomer = ref(null);
 const isEdit = ref(false);
 const currentId = ref(null);
 const formRef = ref(null);
 
-const handleView = (row) => {
-  selectedCustomer.value = row;
-  detailVisible.value = true;
-};
+
 
 const form = reactive({
   tenKhachHang: '',
@@ -156,13 +152,21 @@ const submitForm = async () => {
 
 // --- Logic Xóa ---
 const handleDelete = (row) => {
-  confirmDialog.delete('khách hàng', row.tenKhachHang).then(async () => {
+  const isInactive = row.trangThai === 0;
+  const newStatus = isInactive ? 1 : 0;
+  const label = isInactive ? 'kích hoạt' : 'vô hiệu hóa';
+  
+  confirmDialog.custom(
+    `Thay đổi trạng thái khách hàng <b>${row.tenKhachHang}</b> thành <b>${label}</b>?`,
+    'Cập nhật trạng thái',
+    'Xác nhận'
+  ).then(async () => {
     try {
-      await khachHangService.delete(row.id);
-      notification.deleteSuccess('khách hàng');
+      await khachHangService.update(row.id, { ...row, trangThai: newStatus });
+      notification.success(`Đã ${label} khách hàng thành công`);
       fetchCustomers();
     } catch (error) {
-      notification.error('Lỗi khi xóa khách hàng');
+      notification.error('Cập nhật thất bại');
     }
   }).catch(() => {});
 };
@@ -178,17 +182,20 @@ const selectedIds = computed(() => selectedCustomers.value.map(item => item.id))
 
 const handleBulkDelete = () => {
   confirmDialog.custom(
-    `Xác nhận xóa <b>${selectedIds.value.length}</b> khách hàng đã chọn?`,
-    'Xóa hàng loạt',
+    `Thay đổi trạng thái cho <b>${selectedIds.value.length}</b> khách hàng đã chọn?`,
+    'Cập nhật hàng loạt',
     'Đồng ý'
   ).then(async () => {
     try {
-      await Promise.all(selectedIds.value.map(id => khachHangService.delete(id)));
-      notification.success(`Đã xóa ${selectedIds.value.length} khách hàng`);
+      await Promise.all(selectedCustomers.value.map(item => {
+        const newStatus = item.trangThai === 1 ? 0 : 1;
+        return khachHangService.update(item.id, { ...item, trangThai: newStatus });
+      }));
+      notification.success(`Đã cập nhật trạng thái cho ${selectedIds.value.length} khách hàng`);
       selectedCustomers.value = [];
       fetchCustomers();
     } catch (error) {
-      notification.error('Có lỗi khi xóa hàng loạt');
+      notification.error('Có lỗi khi cập nhật hàng loạt');
     }
   }).catch(() => { });
 };
@@ -219,22 +226,12 @@ watch([currentPage, pageSize], fetchCustomers);
         @reset-filter="resetFilter"
     >
       <template #header-actions-left>
-        <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
-          Xóa {{ selectedIds.length }} khách hàng
+        <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
+          Đổi trạng thái {{ selectedIds.length }} khách hàng
         </el-button>
       </template>
 
-      <template #stats>
-        <div class="col-md-3">
-          <StatCard label="Tổng Khách Hàng" :value="customers.length" icon="bi bi-people" type="primary" />
-        </div>
-        <div class="col-md-3">
-          <StatCard label="Đang Hoạt Động" :value="customers.filter(c => c.trangThai === 1).length" icon="bi bi-person-check" type="success" />
-        </div>
-        <div class="col-md-3">
-          <StatCard label="Ngừng Hoạt Động" :value="customers.filter(c => c.trangThai === 0).length" icon="bi bi-person-x" type="danger" />
-        </div>
-      </template>
+
   
       <template #filters>
         <div class="filter-item search-input-wrapper">
@@ -299,19 +296,15 @@ watch([currentPage, pageSize], fetchCustomers);
 
           <template #actions="{ row }">
             <div class="d-flex gap-1 justify-content-center">
-              <el-tooltip content="Chi tiết" placement="top">
-                <button class="btn-action-icon btn-action-view" @click="handleView(row)">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </el-tooltip>
+
               <el-tooltip content="Chỉnh sửa" placement="top">
                 <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
                   <i class="bi bi-pencil"></i>
                 </button>
               </el-tooltip>
-              <el-tooltip content="Xóa" placement="top">
-                <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
-                  <i class="bi bi-trash"></i>
+              <el-tooltip :content="row.trangThai === 1 ? 'Vô hiệu hóa' : 'Kích hoạt'" placement="top">
+                <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
+                  <i class="bi bi-arrow-repeat"></i>
                 </button>
               </el-tooltip>
             </div>
@@ -320,66 +313,7 @@ watch([currentPage, pageSize], fetchCustomers);
       </template>
     </AdminTableLayout>
   
-    <BaseModal
-      v-model="detailVisible"
-      title="Chi tiết khách hàng"
-      icon="bi bi-person-badge"
-      width="550px"
-    >
-      <div v-if="selectedCustomer" class="p-2">
-        <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
-          <el-avatar :size="70" :src="selectedCustomer.hinhAnh" class="bg-primary fs-2 border border-white shadow">{{ selectedCustomer.tenKhachHang?.charAt(0) }}</el-avatar>
-          <div>
-            <h4 class="fw-bold text-dark mb-1">{{ selectedCustomer.tenKhachHang }}</h4>
-            <div class="text-secondary small">Mã KH: <span class="fw-bold">{{ selectedCustomer.maKhachHang }}</span></div>
-            <el-tag :type="selectedCustomer.trangThai === 1 ? 'success' : 'info'" size="small" class="mt-2" round>
-              {{ getStatusLabel(selectedCustomer.trangThai) }}
-            </el-tag>
-          </div>
-        </div>
 
-        <div class="row g-4">
-          <div class="col-12">
-            <div class="detail-info-item">
-              <div class="lbl mb-1"><i class="bi bi-envelope me-2 text-primary"></i>Email liên hệ</div>
-              <div class="val fw-semibold">{{ selectedCustomer.email || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1"><i class="bi bi-telephone me-2 text-primary"></i>Số điện thoại</div>
-              <div class="val fw-semibold">{{ selectedCustomer.sdt || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1"><i class="bi bi-gender-ambiguous me-2 text-primary"></i>Giới tính</div>
-              <div class="val fw-semibold">{{ getGenderText(selectedCustomer.gioiTinh) }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1"><i class="bi bi-calendar-event me-2 text-primary"></i>Ngày sinh</div>
-              <div class="val fw-semibold">{{ selectedCustomer.ngaySinh || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1"><i class="bi bi-clock me-2 text-primary"></i>Ngày tham gia</div>
-              <div class="val fw-semibold">{{ selectedCustomer.ngayTao ? new Date(selectedCustomer.ngayTao).toLocaleDateString('vi-VN') : '—' }}</div>
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="detail-info-item">
-              <div class="lbl mb-1"><i class="bi bi-sticky me-2 text-primary"></i>Ghi chú</div>
-              <div class="val small text-secondary lh-base">{{ selectedCustomer.ghiChu || 'Không có ghi chú nào.' }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-      </template>
-    </BaseModal>
 
     <BaseModal
       v-model="dialogVisible"

@@ -1,5 +1,6 @@
-  <script setup>
-  import {ref, onMounted, watch, computed} from 'vue';
+<script setup>
+  import { ref, onMounted, watch, computed } from 'vue';
+  import { useRouter, useRoute } from 'vue-router';
   import {Search, Plus, Refresh, Delete} from '@element-plus/icons-vue';
   import {phimApi} from '@/services/api/admin/phimService';
   import BaseTable from '@/components/common/BaseTable.vue';
@@ -43,7 +44,12 @@
 
 
   // ==================== STATE ====================
-  const activeTab = ref('phim');
+  const route = useRoute();
+  const activeTab = ref(route.query.tab || 'phim');
+
+  watch(() => route.query.tab, (newTab) => {
+    activeTab.value = newTab || 'phim';
+  });
   const moviesList = ref([]);
   const loading = ref(false);
   const totalElements = ref(0);
@@ -61,6 +67,7 @@
   const lcTotalElements = ref(0);
   const lcMoviesList = ref([]);
   const lcLoading = ref(false);
+  const router = useRouter();
 
   // ==================== DIALOG STATE ====================
   const dialogVisible = ref(false);
@@ -70,26 +77,7 @@
   const editingMovie = ref(null);
   const selectedMovie = ref(null);
 
-  const generateMovieCode = () => {
-    const chars = '0123456789';
-    let code = 'MP-';
-    for (let i = 0; i < 4; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-  };
 
-  const defaultForm = () => ({
-    tenPhim: '', thoiLuong: 120,
-    ngayKhoiChieu: '', ngayKetThuc: '',
-    lichChieu: [],
-    idTheLoais: [],
-    giaPhim: null, trangThai: 1,
-    poster: '', trailer: '', moTa: '',
-    ngonNgu: '', doTuoi: 0, danhGia: 0,
-    maPhim: generateMovieCode(), loaiPhim: '', phuPhiLoaiPhim: 0
-  });
-  const movieForm = ref(defaultForm());
   const selectedPhim = ref([]);
   const selectedLC = ref([]);
 
@@ -112,19 +100,22 @@
       const label = isPhim ? 'phim' : 'lịch chiếu';
       
       confirmDialog.custom(
-          `Xác nhận xóa <b>${count}</b> ${label} đã chọn?`,
-          'Xóa hàng loạt',
+          `Xác nhận <b>thay đổi trạng thái</b> của <b>${count}</b> ${label} đã chọn?`,
+          'Cập nhật hàng loạt',
           'Đồng ý'
       ).then(async () => {
           try {
-              await Promise.all(selection.map(item => phimApi.delete(item.id)));
-              notification.success(`Đã xóa ${count} ${label} thành công`);
+              await Promise.all(selection.map(item => {
+                  const newStatus = item.trangThai === 0 ? 1 : 0;
+                  return phimApi.updateTrangThai(item.id, newStatus);
+              }));
+              notification.success(`Đã cập nhật ${count} ${label} thành công`);
               if (isPhim) selectedPhim.value = [];
               else selectedLC.value = [];
               fetchMovies();
               if (activeTab.value === 'lichChieu') fetchLichChieu();
           } catch (error) {
-              notification.error('Có lỗi khi xóa hàng loạt');
+              notification.error('Có lỗi khi cập nhật hàng loạt');
           }
       }).catch(() => {});
   };
@@ -237,79 +228,37 @@
 
   // ==================== CRUD ====================
   const handleAdd = () => {
-    editingMovie.value = null;
-    movieForm.value = defaultForm();
-    dialogVisible.value = true;
+    router.push('/admin/movies/add');
   };
 
   const handleEdit = (row) => {
-    editingMovie.value = row;
-    movieForm.value = {
-      ...row,
-      idTheLoais: (row.theLoais || []).map(t => t.id),
-      lichChieu: row.lichChieu ? row.lichChieu.split(',').map(t => t.trim()) : [],
-    };
-    dialogVisible.value = true;
+    router.push(`/admin/movies/edit/${row.id}`);
   };
 
-  const onLichChieuChange = (val) => {
-    if (val.length > 5) {
-      movieForm.value.lichChieu = val.slice(0, 5);
-      notification.warning('Lịch chiếu tối đa 5 thứ trong tuần!');
-    }
-  };
 
-  const handleSave = async () => {
-    if (!movieForm.value.tenPhim) {
-      notification.error('Tên phim không được để trống!');
-      return;
-    }
-    if (movieForm.value.ngayKhoiChieu && movieForm.value.ngayKetThuc
-        && movieForm.value.ngayKetThuc < movieForm.value.ngayKhoiChieu) {
-      notification.error('Ngày kết thúc phải sau ngày khởi chiếu!');
-      return;
-    }
-    
-    try {
-      if (editingMovie.value) await confirmDialog.update('phim');
-      else await confirmDialog.add('phim');
-    } catch { return; }
-
-    try {
-      // ✅ FIX: convert array lichChieu → string trước khi gửi BE
-      const payload = {
-        ...movieForm.value,
-        lichChieu: Array.isArray(movieForm.value.lichChieu)
-            ? (movieForm.value.lichChieu.length > 0 ? movieForm.value.lichChieu.sort().join(',') : null)
-            : movieForm.value.lichChieu || null,
-        ngayKetThuc: movieForm.value.ngayKetThuc || null,
-        ngayKhoiChieu: movieForm.value.ngayKhoiChieu || null,
-        giaPhim: movieForm.value.giaPhim,
-        danhGia: movieForm.value.danhGia || null,
-        doTuoi: movieForm.value.doTuoi || null,
-      };
-      if (editingMovie.value) await phimApi.update(editingMovie.value.id, payload);
-      else await phimApi.create(payload);
-      dialogVisible.value = false;
-      if (editingMovie.value) notification.updateSuccess('phim');
-      else notification.addSuccess('phim');
-      fetchMovies();
-      if (activeTab.value === 'lichChieu') fetchLichChieu();
-    } catch (e) {
-      const msg = e?.response?.data?.message || 'Lỗi lưu phim, vui lòng thử lại!';
-      notification.error(msg);
-    }
-  };
 
   const handleDelete = (row) => {
-    confirmDialog.delete('phim', row.tenPhim).then(async () => {
-      await phimApi.delete(row.id);
-      notification.deleteSuccess('phim');
-      fetchMovies();
-      if (detailVisible.value) detailVisible.value = false;
-    }).catch(() => {
-    });
+    const isInactive = row.trangThai === 0;
+    const newStatus = isInactive ? 1 : 0;
+    const label = isInactive ? 'kích hoạt' : 'ngừng chiếu';
+    
+    confirmDialog.custom(
+      `Xác nhận <b>${label}</b> phim "${row.tenPhim}"?`,
+      'Thay đổi trạng thái',
+      'Xác nhận'
+    ).then(async () => {
+      try {
+        await phimApi.updateTrangThai(row.id, newStatus);
+        notification.success(`Đã ${label} phim thành công`);
+        fetchMovies();
+        fetchLichChieu();
+      } catch (e) {
+        notification.error('Thay đổi trạng thái thất bại');
+      }
+    }).catch(() => {});
   };
+
+
 
   // ==================== SỬA LỊCH CHIẾU ====================
   const handleEditLichChieu = (row) => {
@@ -389,37 +338,37 @@
   // ==================== COLUMNS ====================
   const tableColumnsPhim = [
     {label: 'STT', key: 'stt', width: '70px'},
-    {label: 'MÃ PHIM', key: 'maPhim', width: '120px'},
-    {label: 'POSTER', key: 'poster', width: '80px'},
-    {label: 'TÊN PHIM', key: 'tenPhim', minWidth: '350px'},
-    {label: 'ĐÁNH GIÁ', key: 'danhGia', width: '130px'},
-    {label: 'THỂ LOẠI', key: 'theLoais', width: '600px'},
-    {label: 'THỜI LƯỢNG', key: 'thoiLuong', width: '160px'},
-    {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '180px'},
-    {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '180px'},
-    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '280px'},
-    {label: 'GIÁ PHIM', key: 'giaPhim', width: '150px'},
-    {label: 'NGÀY TẠO', key: 'ngayTao', width: '180px'},
-    {label: 'TRẠNG THÁI', key: 'trangThai', width: '180px'},
+    {label: 'Mã phim', key: 'maPhim', width: '120px'},
+    {label: 'Poster', key: 'poster', width: '80px'},
+    {label: 'Tên phim', key: 'tenPhim', minWidth: '350px'},
+    {label: 'Đánh giá', key: 'danhGia', width: '130px'},
+    {label: 'Thể loại', key: 'theLoais', width: '600px'},
+    {label: 'Thời lượng', key: 'thoiLuong', width: '160px'},
+    {label: 'Ngày bắt đầu', key: 'ngayKhoiChieu', width: '180px'},
+    {label: 'Ngày kết thúc', key: 'ngayKetThuc', width: '180px'},
+    {label: 'Lịch chiếu', key: 'lichChieu', width: '280px'},
+    {label: 'Gía phim', key: 'giaPhim', width: '150px'},
+    {label: 'Ngày tạo', key: 'ngayTao', width: '180px'},
+    {label: 'Trạng thái', key: 'trangThai', width: '180px'},
   ];
 
   const tableColumnsLC = [
     {label: 'STT', key: 'stt', width: '70px'},
-    {label: 'POSTER', key: 'poster', width: '80px'},
-    {label: 'TÊN PHIM', key: 'tenPhim', minWidth: '500px'},
-    {label: 'THỂ LOẠI', key: 'theLoais', width: '550px'},
-    {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '180px'},
-    {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '180px'},
-    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '350px'},
-    {label: 'TRẠNG THÁI', key: 'trangThai', width: '150px'},
+    {label: 'Poster', key: 'poster', width: '80px'},
+    {label: 'Tên phim', key: 'tenPhim', minWidth: '500px'},
+    {label: 'Thể loại', key: 'theLoais', width: '550px'},
+    {label: 'Ngày bắt đầu', key: 'ngayKhoiChieu', width: '180px'},
+    {label: 'Ngày kết thúc', key: 'ngayKetThuc', width: '180px'},
+    {label: 'Lịch chiếu', key: 'lichChieu', width: '350px'},
+    {label: 'Trạng thái', key: 'trangThai', width: '150px'},
   ];
   </script>
 
   <template>
     <div class="movie-management w-100 h-100 bg-transparent overflow-hidden">
       <AdminTableLayout
-        title="Phim & lịch chiếu"
-        titleIcon="bi bi-film"
+        :title="activeTab === 'phim' ? 'Phim' : 'Lịch chiếu'"
+        :titleIcon="activeTab === 'phim' ? 'bi bi-film' : 'bi bi-calendar-event'"
         addButtonLabel="Thêm phim mới"
         :data="currentData"
         :loading="currentLoading"
@@ -429,27 +378,11 @@
         @add-click="handleAdd"
         @reset-filter="activeTab === 'phim' ? handleReset : handleResetLC"
       >
-        <!-- Tabs in header left -->
+        <!-- Header actions -->
         <template #header-actions-left>
-          <el-button v-if="selectedIdsCount" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
-            Xóa {{ selectedIdsCount }} {{ activeTab === 'phim' ? 'phim' : 'lịch chiếu' }}
+          <el-button v-if="selectedIdsCount" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
+            Đổi trạng thái {{ selectedIdsCount }} mục
           </el-button>
-          <div class="ms-3 segmented-control shadow-sm">
-            <button 
-              @click="activeTab = 'phim'" 
-              class="segmented-tab" 
-              :class="{ active: activeTab === 'phim' }"
-            >
-              <i class="bi bi-film me-2"></i>Phim
-            </button>
-            <button 
-              @click="activeTab = 'lichChieu'" 
-              class="segmented-tab" 
-              :class="{ active: activeTab === 'lichChieu' }"
-            >
-              <i class="bi bi-calendar-event me-2"></i>Lịch chiếu
-            </button>
-          </div>
         </template>
 
         <!-- Filters Slot -->
@@ -514,9 +447,9 @@
 
                     <template #actions="{ row }">
                       <div class="d-flex gap-1 justify-content-center align-items-center">
-                        <el-tooltip content="Chi tiết" placement="top">
-                          <button class="btn-action-icon btn-action-view" @click="selectedMovie=row; detailVisible=true">
-                            <i class="bi bi-eye"></i>
+                        <el-tooltip content="Xếp lịch chiếu" placement="top">
+                          <button class="btn-action-icon btn-action-view" @click="$router.push({ path: '/admin/showtimes', query: { movieId: row.id } })">
+                            <i class="bi bi-calendar-plus"></i>
                           </button>
                         </el-tooltip>
                         <el-tooltip content="Chỉnh sửa" placement="top">
@@ -524,9 +457,9 @@
                             <i class="bi bi-pencil"></i>
                           </button>
                         </el-tooltip>
-                        <el-tooltip content="Xóa" placement="top">
-                          <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
-                            <i class="bi bi-trash"></i>
+                        <el-tooltip :content="row.trangThai === 0 ? 'Kích hoạt' : 'Ngừng chiếu'" placement="top">
+                          <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
+                            <i class="bi bi-arrow-repeat"></i>
                           </button>
                         </el-tooltip>
                       </div>
@@ -630,14 +563,19 @@
 
                     <template #actions="{ row }">
                       <div class="d-flex gap-1 justify-content-center align-items-center">
+                        <el-tooltip content="Xếp lịch chiếu" placement="top">
+                          <button class="btn-action-icon btn-action-view" @click="$router.push({ path: '/admin/showtimes', query: { movieId: row.id } })">
+                            <i class="bi bi-calendar-plus"></i>
+                          </button>
+                        </el-tooltip>
                         <el-tooltip content="Sửa lịch chiếu" placement="top">
                           <button class="btn-action-icon btn-action-edit" @click="handleEditLichChieu(row)">
                             <i class="bi bi-pencil"></i>
                           </button>
                         </el-tooltip>
-                        <el-tooltip content="Xóa phim" placement="top">
-                          <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
-                            <i class="bi bi-trash"></i>
+                        <el-tooltip :content="row.trangThai === 0 ? 'Kích hoạt' : 'Vô hiệu hóa'" placement="top">
+                          <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
+                            <i class="bi bi-arrow-repeat"></i>
                           </button>
                         </el-tooltip>
                       </div>
@@ -697,202 +635,9 @@
       </AdminTableLayout>
 
 
-      <!-- ===== DIALOG THÊM / SỬA PHIM ===== -->
-      <BaseModal
-        v-model="dialogVisible"
-        :title="editingMovie ? 'Chỉnh sửa phim' : 'Thêm phim mới'"
-        :icon="editingMovie ? 'bi bi-pencil-square' : 'bi bi-plus-lg'"
-        width="640px"
-        :confirmText="editingMovie ? 'Cập nhật' : 'Thêm phim'"
-        @confirm="handleSave"
-      >
-        <el-form :model="movieForm" label-position="top" class="premium-form px-1">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <el-form-item label="Tên phim *">
-                <el-input v-model="movieForm.tenPhim" placeholder="VD: Dune: Part Two" :prefix-icon="Files" />
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Mã phim">
-                <el-input v-model="movieForm.maPhim" placeholder="Hệ thống tự tạo..." readonly :prefix-icon="Tickets">
-                  <template #append>
-                    <el-button :icon="Refresh" @click="movieForm.maPhim = generateMovieCode()" v-if="!editingMovie" />
-                  </template>
-                </el-input>
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Thể loại">
-                <el-select v-model="movieForm.idTheLoais" multiple placeholder="Chọn thể loại" class="w-100">
-                  <template #prefix><el-icon><Opportunity /></el-icon></template>
-                  <el-option v-for="g in genreOptions" :key="g.id" :label="g.tenTheLoai" :value="g.id"/>
-                </el-select>
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Trạng thái">
-                <el-select v-model="movieForm.trangThai" class="w-100">
-                  <template #prefix><el-icon><Monitor /></el-icon></template>
-                  <el-option label="Đang chiếu" :value="1"/>
-                  <el-option label="Sắp chiếu" :value="2"/>
-                  <el-option label="Ngừng chiếu" :value="0"/>
-                </el-select>
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Thời lượng (phút) *">
-                <el-input-number v-model="movieForm.thoiLuong" :min="1" class="w-100" />
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Giá phim (VNĐ) *">
-                <el-input-number v-model="movieForm.giaPhim" :min="1000" :step="5000" :precision="0" class="w-100"/>
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Ngày khởi chiếu">
-                <el-date-picker v-model="movieForm.ngayKhoiChieu" type="date" class="w-100" value-format="YYYY-MM-DD" :prefix-icon="Calendar" />
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Ngày kết thúc">
-                <el-date-picker v-model="movieForm.ngayKetThuc" type="date" class="w-100" value-format="YYYY-MM-DD" :prefix-icon="Calendar" />
-              </el-form-item>
-            </div>
-            <!-- ✅ Checkbox lịch chiếu -->
-            <div class="col-12">
-              <label class="form-label small fw-bold mb-2">Lịch chiếu trong tuần <span class="text-secondary ms-1">(tối đa 5 thứ)</span></label>
-              <div class="p-3 bg-light rounded-3 shadow-none border">
-                <el-checkbox-group v-model="movieForm.lichChieu" @change="onLichChieuChange" class="d-flex flex-wrap gap-2">
-                  <el-checkbox-button v-for="t in thuOptions" :key="t.value" :value="t.value">
-                    {{ t.label }}
-                  </el-checkbox-button>
-                </el-checkbox-group>
-                <div class="text-secondary mt-2 small" v-if="movieForm.lichChieu.length > 0">
-                  Đã chọn: <span class="text-primary fw-bold">{{ movieForm.lichChieu.map(t => thuLabels[t]).join(', ') }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Ngôn ngữ">
-                <el-input v-model="movieForm.ngonNgu" placeholder="VD: Tiếng Anh" :prefix-icon="Tickets" />
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Giới hạn độ tuổi">
-                <el-input-number v-model="movieForm.doTuoi" :min="0" :max="18" class="w-100"/>
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Điểm đánh giá (0–10)">
-                <el-input-number v-model="movieForm.danhGia" :min="0" :max="10" :precision="1" :step="0.1" class="w-100"/>
-              </el-form-item>
-            </div>
-            <div class="col-12">
-              <el-form-item label="Link ảnh Poster">
-                <el-input v-model="movieForm.poster" placeholder="https://..." :prefix-icon="Link" />
-              </el-form-item>
-            </div>
-            <div class="col-12">
-              <el-form-item label="Link Trailer">
-                <el-input v-model="movieForm.trailer" placeholder="https://youtube.com/..." :prefix-icon="VideoPlay" />
-              </el-form-item>
-            </div>
-            <div class="col-12">
-              <el-form-item label="Mô tả nội dung">
-                <el-input v-model="movieForm.moTa" type="textarea" :rows="3" placeholder="Nhập tóm tắt nội dung phim..." />
-              </el-form-item>
-            </div>
-          </div>
-        </el-form>
-      </BaseModal>
 
-      <!-- ===== DIALOG CHI TIẾT PHIM ===== -->
-      <BaseModal
-        v-model="detailVisible"
-        title="Chi tiết phim"
-        subtitle="Thông tin chuyên sâu về nội dung và định dạng"
-        icon="bi bi-info-circle-fill"
-        width="780px"
-      >
-        <div v-if="selectedMovie" class="p-2">
-          <div class="d-flex gap-4 mb-4 pb-4 border-bottom">
-            <div class="poster-wrap flex-shrink-0">
-              <img :src="selectedMovie.poster || ''" class="detail-poster" @error="e => e.target.style.display='none'"/>
-              <div class="detail-poster-fallback"><i class="bi bi-film"></i></div>
-            </div>
-            <div class="flex-grow-1 d-flex flex-column justify-content-center">
-              <h4 class="fw-bold text-dark mb-1" style="font-size:22px;">{{ selectedMovie.tenPhim }}</h4>
-              <div class="d-flex gap-1 flex-wrap mb-3">
-                <span class="badge rounded-pill px-3 py-1" :class="getTrangThaiClass(selectedMovie.trangThai)">{{ getTrangThaiLabel(selectedMovie.trangThai) }}</span>
-                <el-tag v-for="g in (selectedMovie.theLoais||[])" :key="g.id" size="large" effect="plain" class="genre-tag rounded-pill">{{ g.tenTheLoai }}</el-tag>
-              </div>
-              <div class="d-flex flex-wrap gap-3 mb-3" style="color:#606266;">
-                <span><i class="bi bi-clock me-1"></i>{{ selectedMovie.thoiLuong }} phút</span>
-                <span><i class="bi bi-calendar me-1"></i>{{ selectedMovie.ngayKhoiChieu || '—' }}</span>
-                <span v-if="selectedMovie.danhGia > 0" style="color:#f59e0b;"><i class="bi bi-star-fill me-1"></i>{{ selectedMovie.danhGia }}/10</span>
-              </div>
-              <div class="row g-3">
-                <div class="col-6">
-                  <div class="lbl">Giá phim</div>
-                  <div class="val text-price">{{ selectedMovie.giaPhim?.toLocaleString('vi-VN') }} đ</div>
-                </div>
-                <div class="col-6">
-                  <div class="lbl">Ngôn ngữ</div>
-                  <div class="val">{{ selectedMovie.ngonNgu || '—' }}</div>
-                </div>
-                <div class="col-6">
-                  <div class="lbl">Ngày kết thúc</div>
-                  <div class="val" style="color:#ff4d4f;">{{ selectedMovie.ngayKetThuc || '—' }}</div>
-                </div>
-                <div class="col-6">
-                  <div class="lbl">Giới hạn tuổi</div>
-                  <div class="val">{{ selectedMovie.doTuoi ? 'T' + selectedMovie.doTuoi + '+' : '—' }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="mb-4">
-            <div class="lbl mb-3" style="font-size:23px !important; color:#1e293b;">Lịch chiếu trong tuần</div>
-            <div v-if="selectedMovie.lichChieu" class="d-flex flex-wrap gap-3">
-              <div v-for="item in getDatesFromSchedule(selectedMovie.lichChieu)" :key="item.ngay" class="date-card-mini">
-                <div class="card-thu">{{ item.thu }}</div><div class="card-ngay">{{ item.ngay }}</div>
-              </div>
-            </div>
-            <div v-else class="text-secondary" style="font-size:18px;">Chưa có lịch chiếu</div>
-          </div>
-          <div class="mb-4">
-            <div class="lbl mb-2" style="font-size:23px !important; color:#1e293b;">Trailer</div>
-            <a v-if="selectedMovie.trailer" :href="selectedMovie.trailer" target="_blank" class="text-danger fw-bold text-decoration-none" style="font-size:23px;"><i class="bi bi-youtube me-2"></i>Xem trailer</a>
-            <span v-else class="text-secondary" style="font-size:18px;">—</span>
-          </div>
-          <div class="lbl mb-2" style="font-size:23px !important; color:#1e293b;">Nội dung</div>
-          <div class="p-4 bg-light rounded-4 lh-lg text-dark fw-medium" style="font-size:23px;">{{ selectedMovie.moTa || '—' }}</div>
 
-          <div class="mt-4 pt-4 border-top">
-            <div class="row g-3 px-2">
-              <div class="col-6">
-                <div class="text-muted extra-small text-uppercase fw-bold mb-1">Người tạo</div>
-                <div class="small fw-semibold text-dark"><i class="bi bi-person me-1"></i>{{ selectedMovie.nguoiTao || 'Hệ thống' }}</div>
-              </div>
-              <div class="col-6">
-                <div class="text-muted extra-small text-uppercase fw-bold mb-1">Ngày tạo</div>
-                <div class="small fw-semibold text-dark"><i class="bi bi-clock me-1"></i>{{ formatDate(selectedMovie.ngayTao) }}</div>
-              </div>
-              <div v-if="selectedMovie.nguoiCapNhat" class="col-6">
-                <div class="text-muted extra-small text-uppercase fw-bold mb-1">Người cập nhật</div>
-                <div class="small fw-semibold text-dark"><i class="bi bi-person-check me-1"></i>{{ selectedMovie.nguoiCapNhat }}</div>
-              </div>
-              <div v-if="selectedMovie.ngayCapNhat" class="col-6">
-                <div class="text-muted extra-small text-uppercase fw-bold mb-1">Cập nhật lúc</div>
-                <div class="small fw-semibold text-dark"><i class="bi bi-arrow-repeat me-1"></i>{{ formatDate(selectedMovie.ngayCapNhat) }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <template #footer></template>
-      </BaseModal>
+
 
       <!-- ===== DIALOG XEM LỊCH CHIẾU ===== -->
       <BaseModal
@@ -974,7 +719,6 @@
           </el-form>
         </div>
       </BaseModal>
-
     </div>
   </template>
 
@@ -1178,51 +922,5 @@
     position: absolute;
     top: 0;
     left: 0;
-  }
-
-  /* Segmented Control */
-  .segmented-control {
-    background: #f1f3f4;
-    padding: 4px;
-    border-radius: 12px;
-    display: flex;
-    gap: 2px;
-    border: 1px solid rgba(0,0,0,0.05);
-  }
-
-  .segmented-tab {
-    padding: 8px 24px;
-    border: none;
-    background: transparent;
-    border-radius: 9px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #5f6368;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-  }
-
-  .segmented-tab.active {
-    background: #ffffff;
-    color: #409eff;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  }
-
-  .segmented-tab i {
-    font-size: 14px;
-    transition: transform 0.2s;
-  }
-
-  .segmented-tab.active i {
-    transform: scale(1.1);
-  }
-
-  .segmented-tab:not(.active):hover {
-    background: rgba(0,0,0,0.03);
-    color: #202124;
   }
   </style>

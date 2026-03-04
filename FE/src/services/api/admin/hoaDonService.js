@@ -13,6 +13,10 @@ export const hoaDonService = {
     return api.get(`${API_URL}/${id}/chi-tiet`)
   },
 
+  getInvoiceById(id) {
+    return api.get(`${API_URL}/${id}`);
+  },
+
   // 3. Tạo hóa đơn mới (Thanh toán tại quầy)
   createInvoice(payload) {
     return api.post(`${API_URL}/thanh-toan`, payload)

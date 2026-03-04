@@ -117,7 +117,9 @@ public class AdGheServiceImpl implements AdGheService {
     @Override
     @Transactional
     public void deleteGhe(String id) {
-        adGheRepository.deleteById(id);
+        Ghe g = adGheRepository.findById(id).orElseThrow();
+        g.setTrangThai(0); // 0 = Ngừng hoạt động
+        adGheRepository.save(g);
     }
 
     private AdGheResponse toResponse(Ghe g) {

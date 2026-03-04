@@ -82,14 +82,21 @@ export const ROUTES_CONSTANTS = {
       POS: { path: 'pos', name: 'AdminPOS' },
       CHECKIN: { path: 'checkin', name: 'AdminCheckin' },
       INVOICES: { path: 'invoices', name: 'AdminInvoices' },
+      INVOICES_DETAIL: { path: 'invoices/:id', name: 'AdminInvoiceDetail' },
       TICKETS: { path: 'tickets', name: 'AdminTickets' },
       SEATS: { path: 'seats', name: 'AdminSeats' },
       MOVIES_SCHEDULE: { path: 'movies-schedule', name: 'AdminMoviesSchedule' },
+      MOVIES_ADD: { path: 'movies/add', name: 'AdminMoviesAdd' },
+      MOVIES_EDIT: { path: 'movies/edit/:id', name: 'AdminMoviesEdit' },
       SHOWTIMES: { path: 'showtimes', name: 'AdminShowtimes' },
       FOOD: { path: 'food', name: 'AdminFood' },
       VOUCHERS: { path: 'vouchers', name: 'AdminVouchers' },
+      VOUCHERS_ADD: { path: 'vouchers/add', name: 'AdminVouchersAdd' },
+      VOUCHERS_EDIT: { path: 'vouchers/edit/:id', name: 'AdminVouchersEdit' },
       CUSTOMERS: { path: 'customers', name: 'AdminCustomers' },
-      STAFF: { path: 'staff', name: 'AdminStaff' }
+      STAFF: { path: 'staff', name: 'AdminStaff' },
+      STAFF_ADD: { path: 'staff/add', name: 'AdminStaffAdd' },
+      STAFF_EDIT: { path: 'staff/edit/:id', name: 'AdminStaffEdit' }
     }
   },
 

@@ -193,6 +193,12 @@ const routes = [
                 meta: { title: 'Quản lý hóa đơn' }
             },
             {
+                path: ROUTES_CONSTANTS.ADMIN.children.INVOICES_DETAIL.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.INVOICES_DETAIL.name,
+                component: () => import('@/pages/admin/quanlyhoadon/AdminInvoiceDetail.vue'),
+                meta: { title: 'Chi tiết hóa đơn' }
+            },
+            {
                 path: ROUTES_CONSTANTS.ADMIN.children.TICKETS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.TICKETS.name,
                 component: () => import('@/pages/admin/quanlyve/TicketList.vue'),
@@ -209,6 +215,18 @@ const routes = [
                 name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.name,
                 component: () => import('@/pages/admin/quanliphim/AdminMovies.vue'),
                 meta: { title: 'Phim & lịch chiếu' }
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.name,
+                component: () => import('@/pages/admin/quanliphim/MovieFormPage.vue'),
+                meta: { title: 'Thêm phim mới' }
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.name,
+                component: () => import('@/pages/admin/quanliphim/MovieFormPage.vue'),
+                meta: { title: 'Chỉnh sửa phim' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.path,
@@ -229,6 +247,18 @@ const routes = [
                 meta: { title: 'Phiếu giảm giá' }
             },
             {
+                path: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS_ADD.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS_ADD.name,
+                component: () => import('@/pages/admin/quanliphieugiamgia/VoucherFormPage.vue'),
+                meta: { title: 'Phát hành phiếu giảm giá' }
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS_EDIT.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS_EDIT.name,
+                component: () => import('@/pages/admin/quanliphieugiamgia/VoucherFormPage.vue'),
+                meta: { title: 'Chỉnh sửa phiếu giảm giá' }
+            },
+            {
                 path: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.name,
                 component: () => import('@/pages/admin/quanlikhachhang/AdminCustomers.vue'),
@@ -239,6 +269,18 @@ const routes = [
                 name: ROUTES_CONSTANTS.ADMIN.children.STAFF.name,
                 component: () => import('@/pages/admin/quanlinhanvien/AdminStaff.vue'),
                 meta: { title: 'Nhân viên' }
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.STAFF_ADD.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.STAFF_ADD.name,
+                component: () => import('@/pages/admin/quanlinhanvien/StaffFormPage.vue'),
+                meta: { title: 'Thêm nhân viên mới' }
+            },
+            {
+                path: ROUTES_CONSTANTS.ADMIN.children.STAFF_EDIT.path,
+                name: ROUTES_CONSTANTS.ADMIN.children.STAFF_EDIT.name,
+                component: () => import('@/pages/admin/quanlinhanvien/StaffFormPage.vue'),
+                meta: { title: 'Chỉnh sửa nhân viên' }
             },
         ]
     },

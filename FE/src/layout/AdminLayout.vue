@@ -3,7 +3,7 @@
     <div class="admin-scale-wrapper">
     <el-container class="admin-staff-layout">
       <!-- Sidebar -->
-      <el-aside :width="isCollapse ? '64px' : '280px'" class="bg-white shadow transition-width overflow-hidden">
+      <el-aside :width="isCollapse ? '90px' : '308px'" class="bg-white shadow transition-width overflow-hidden">
         <AdminSidebar :is-collapse="isCollapse" />
       </el-aside>
 
@@ -227,7 +227,7 @@ if (window.innerWidth < 768) {
   font-size: 25px !important;
   font-weight: 700 !important;
   color: #1e293b !important;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 /* Tăng kích thước icon và button để cân đối với chữ 25px */
@@ -266,12 +266,12 @@ if (window.innerWidth < 768) {
 
 :deep(.el-pagination__jump) {
   margin: 0 !important;
-  color: #000 !important;
+  color: #1e293b !important;
 }
 
 /* Standardize inputs to prevent jiggling */
 :deep(.el-pagination .el-input__wrapper) {
-  border: 1px solid #000 !important;
+  border: 1px solid #e2e8f0 !important;
   box-shadow: none !important;
   border-radius: 6px !important;
 }

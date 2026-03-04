@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { Plus, User, Edit, Delete, Lock, Key, Setting, Search, Phone, Message, Clock, Check, Close } from '@element-plus/icons-vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
-import StatCard from '@/components/common/StatCard.vue';
+
 import BaseTable from '@/components/common/BaseTable.vue';
 import CCCDScanner from '@/components/common/CCCDScanner.vue'; // <-- Integrate Scanner
 import { nhanVienService } from '@/services/api/admin/nhanVienService';
@@ -17,13 +18,13 @@ const loading = ref(false);
 
 const staffColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'NHÂN VIÊN', key: 'staff', minWidth: '250px' },
-  { label: 'EMAIL', key: 'email', minWidth: '400px' },
-  { label: 'TÊN ĐĂNG NHẬP', key: 'username', width: '250px' },
-  { label: 'VAI TRÒ', key: 'role', width: '250px' },
-  { label: 'SỐ ĐIỆN THOẠI', key: 'phone', width: '200px' },
-  { label: 'NGÀY THAM GIA', key: 'joinDate', width: '200px' },
-  { label: 'TRẠNG THÁI', key: 'status', width: '200px' },
+  { label: 'Nhân viên', key: 'staff', minWidth: '250px' },
+  { label: 'Email', key: 'email', minWidth: '400px' },
+  { label: 'Tên đăng nhập', key: 'username', width: '250px' },
+  { label: 'Vai trò', key: 'role', width: '250px' },
+  { label: 'Số điện thoại', key: 'phone', width: '200px' },
+  { label: 'Ngày tham gia', key: 'joinDate', width: '200px' },
+  { label: 'Trạng thái', key: 'status', width: '200px' },
 ];
 
 const roles = ref([]);
@@ -52,53 +53,17 @@ const fetchChucVu = async () => {
 };
 
 const dialogVisible = ref(false);
-const detailStaffVisible = ref(false);
-const selectedStaffDetail = ref(null);
-const roleDialogVisible = ref(false);
-const searchQuery = ref('');
 
-const handleView = (row) => {
-  selectedStaffDetail.value = row;
-  detailStaffVisible.value = true;
-};
 const filterRole = ref('');
 const filterStatus = ref('');
 const currentPage = ref(1);
 const pageSize = ref(10);
 const phanQuyenList = ref([]);
+const router = useRouter();
+const searchQuery = ref('');
+const roleDialogVisible = ref(false);
 
-const staffForm = ref({
-  tenNhanVien: '',
-  email: '',
-  soDienThoai: '',
-  cccd: '',
-  ngaySinh: '',
-  queQuan: '',
-  gioiTinh: 1,
-  chucVu: '',
-  anhNhanVien: '',
-  idPhanQuyen: '',
-  trangThai: 1,
-  matKhau: '',
-});
 
-const resetForm = () => {
-  staffForm.value = {
-    id: null,
-    tenNhanVien: '',
-    email: '',
-    soDienThoai: '',
-    cccd: '',
-    ngaySinh: '',
-    queQuan: '',
-    gioiTinh: 1,
-    chucVu: '',
-    anhNhanVien: '',
-    idPhanQuyen: '',
-    trangThai: 1,
-    matKhau: '',
-  };
-};
 
 const fetchStaff = async () => {
   loading.value = true;
@@ -136,99 +101,19 @@ const getAvatarColor = (role) => {
   return '#409eff';
 };
 
+const handleAdd = () => {
+  router.push('/admin/staff/add');
+};
+
 const handleEdit = (row) => {
-  staffForm.value = {
-    id: row.id,
-    tenNhanVien: row.tenNhanVien,
-    email: row.email,
-    soDienThoai: row.soDienThoai,
-    cccd: row.cccd || '',
-    ngaySinh: row.ngaySinh || '',
-    queQuan: row.queQuan || '',
-    gioiTinh: row.gioiTinh ?? 1,
-    chucVu: row.chucVu || '',
-    anhNhanVien: row.anhNhanVien || '',
-    idPhanQuyen: row.idPhanQuyen || '',
-    trangThai: row.trangThai,
-    matKhau: '',
-  };
-  dialogVisible.value = true;
+  router.push(`/admin/staff/edit/${row.id}`);
 };
 
 const handleDelete = (row) => {
-  confirmDialog.delete('nhân viên', row.tenNhanVien).then(async () => {
-    try {
-      await nhanVienService.delete(row.id);
-      notification.deleteSuccess('nhân viên');
-      fetchStaff();
-    } catch {
-      notification.error('Xóa nhân viên thất bại');
-    }
-  }).catch(() => {});
+  handleToggleStatus(row);
 };
 
-const handleSave = async () => {
-  // 1. Kiểm tra các trường bắt buộc trên FE
-  const requiredFields = [
-    { key: 'tenNhanVien', label: 'Họ và tên' },
-    { key: 'email', label: 'Email' },
-    { key: 'soDienThoai', label: 'Số điện thoại' },
-    { key: 'cccd', label: 'CCCD' },
-    { key: 'ngaySinh', label: 'Ngày sinh' },
-    { key: 'chucVu', label: 'Chức vụ' },
-    { key: 'idPhanQuyen', label: 'Vai trò hệ thống' }
-  ];
 
-  const missingFields = requiredFields
-    .filter(f => !staffForm.value[f.key])
-    .map(f => f.label);
-
-  if (missingFields.length > 0) {
-    notification.validationError(`Vui lòng điền: ${missingFields.join(', ')}`);
-    return;
-  }
-
-  // Nếu là thêm mới, bắt buộc phải có mật khẩu
-  if (!staffForm.value.id && !staffForm.value.matKhau) {
-    notification.validationError('Vui lòng nhập mật khẩu cho nhân viên mới');
-    return;
-  }
-
-  try {
-    if (staffForm.value.id) {
-      await confirmDialog.update('nhân viên');
-    } else {
-      await confirmDialog.add('nhân viên');
-    }
-  } catch { return; }
-
-  try {
-    const payload = { ...staffForm.value };
-    delete payload.id;
-    
-    if (staffForm.value.id) {
-      if (!payload.matKhau) delete payload.matKhau;
-      await nhanVienService.update(staffForm.value.id, payload);
-      notification.updateSuccess('nhân viên');
-    } else {
-      await nhanVienService.create(payload);
-      notification.addSuccess('nhân viên');
-    }
-    dialogVisible.value = false;
-    resetForm();
-    fetchStaff();
-  } catch (error) {
-    // Xử lý lỗi từ Server (Lỗi validate của Spring Boot)
-    const errorData = error.response?.data;
-    if (errorData?.message && Array.isArray(errorData.message)) {
-      notification.badRequest(errorData.message);
-    } else if (errorData?.errors) {
-      notification.badRequest(errorData.errors);
-    } else {
-      notification.error(errorData?.message || 'Lưu nhân viên thất bại');
-    }
-  }
-};
 
 const handleToggleStatus = async (row) => {
   const newStatus = row.trangThai === 1 ? 0 : 1;
@@ -241,33 +126,26 @@ const handleToggleStatus = async (row) => {
   }
 };
 
-const openAddDialog = () => {
-  resetForm();
-  dialogVisible.value = true;
-};
 
-// Handle data returned from Scanner
-const handleCCCDScanned = (data) => {
-  if (data.cccd) staffForm.value.cccd = data.cccd;
-  if (data.name) staffForm.value.tenNhanVien = data.name;
-  if (data.dob) staffForm.value.ngaySinh = data.dob;
-};
 
 const selectedIds = computed(() => selectedStaff.value.map(item => item.id));
 
 const handleBulkDelete = () => {
     confirmDialog.custom(
-        `Xác nhận xóa <b>${selectedIds.value.length}</b> nhân viên đã chọn?`,
-        'Xóa hàng loạt',
+        `Thay đổi trạng thái cho <b>${selectedIds.value.length}</b> nhân viên đã chọn?`,
+        'Cập nhật hàng loạt',
         'Đồng ý'
     ).then(async () => {
         try {
-            await Promise.all(selectedIds.value.map(id => nhanVienService.delete(id)));
-            notification.success(`Đã xóa ${selectedIds.value.length} nhân viên`);
+            await Promise.all(selectedStaff.value.map(item => {
+                const newStatus = item.trangThai === 1 ? 0 : 1;
+                return nhanVienService.update(item.id, { ...item, trangThai: newStatus, matKhau: undefined });
+            }));
+            notification.success(`Đã cập nhật trạng thái cho ${selectedIds.value.length} nhân viên`);
             selectedStaff.value = [];
             fetchStaff();
         } catch (error) {
-            notification.error('Có lỗi khi xóa hàng loạt');
+            notification.error('Có lỗi khi cập nhật hàng loạt');
         }
     }).catch(() => {});
 };
@@ -295,13 +173,13 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
       :total="filteredStaff.length"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
-      @add-click="openAddDialog"
+      @add-click="handleAdd"
       @reset-filter="() => { searchQuery = ''; filterRole = ''; filterStatus = ''; }"
     >
       <template #header-actions-left>
         <div class="d-flex align-items-center gap-2">
-          <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
-            Xóa {{ selectedIds.length }} nhân viên
+          <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
+            Đổi trạng thái {{ selectedIds.length }} nhân viên
           </el-button>
           <el-button class="btn-premium-secondary" :icon="Setting" @click="roleDialogVisible = true" round>Vai trò & Quyền</el-button>
         </div>
@@ -348,6 +226,20 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           @edit="handleEdit"
           @delete="handleDelete"
         >
+          <template #actions="{ row }">
+            <div class="d-flex justify-content-center gap-2">
+                <el-tooltip content="Chỉnh sửa" placement="top">
+                  <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+                    <i class="bi bi-pencil fs-6"></i>
+                  </button>
+                </el-tooltip>
+                <el-tooltip :content="row.trangThai === 1 ? 'Vô hiệu hóa' : 'Kích hoạt'" placement="top">
+                  <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
+                    <i class="bi bi-arrow-repeat fs-6"></i>
+                  </button>
+                </el-tooltip>
+            </div>
+          </template>
           <template #cell-stt="{ index }">
             <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
           </template>
@@ -384,211 +276,13 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
             </el-tag>
           </template>
 
-          <template #actions="{ row }">
-            <div class="d-flex justify-content-center gap-1">
-              <el-tooltip content="Xem chi tiết" placement="top">
-                <button class="btn-action-icon btn-action-view" @click="handleView(row)">
-                  <i class="bi bi-eye fs-6"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Kiểm tra/Sửa" placement="top">
-                <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
-                  <i class="bi bi-pencil fs-6"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Xóa nhân viên" placement="top">
-                <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
-                  <i class="bi bi-trash fs-6"></i>
-                </button>
-              </el-tooltip>
-            </div>
-          </template>
         </BaseTable>
       </template>
     </AdminTableLayout>
 
-    <BaseModal
-      v-model="detailStaffVisible"
-      title="Chi tiết nhân viên"
-      icon="bi bi-person-badge-fill"
-      width="600px"
-    >
-      <div v-if="selectedStaffDetail" class="p-2">
-        <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
-          <el-avatar :size="80" class="border border-white shadow-sm" :style="{ background: getAvatarColor(selectedStaffDetail.tenPhanQuyen) }">
-            {{ (selectedStaffDetail.tenNhanVien || '').charAt(0) }}
-          </el-avatar>
-          <div class="flex-grow-1">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <h4 class="fw-bold text-dark mb-1">{{ selectedStaffDetail.tenNhanVien }}</h4>
-                <div class="text-secondary small mb-2">Mã NV: <span class="fw-bold">{{ selectedStaffDetail.maNhanVien }}</span></div>
-              </div>
-              <el-tag :type="getRoleType(selectedStaffDetail.tenPhanQuyen)" effect="dark" round>{{ selectedStaffDetail.tenPhanQuyen }}</el-tag>
-            </div>
-            <div class="d-flex align-items-center gap-3 mt-1">
-              <el-tag :type="selectedStaffDetail.trangThai === 1 ? 'success' : 'info'" size="small" round>
-                {{ selectedStaffDetail.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
-              </el-tag>
-            </div>
-          </div>
-        </div>
 
-        <div class="row g-4">
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-envelope me-2 text-primary"></i>Email cá nhân</div>
-              <div class="val fw-semibold">{{ selectedStaffDetail.email || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-telephone me-2 text-primary"></i>Số điện thoại</div>
-              <div class="val fw-semibold">{{ selectedStaffDetail.soDienThoai || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-briefcase me-2 text-primary"></i>Chức vụ</div>
-              <div class="val fw-semibold">{{ selectedStaffDetail.chucVu || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-card-text me-2 text-primary"></i>Số CCCD</div>
-              <div class="val fw-semibold">{{ selectedStaffDetail.cccd || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-calendar-event me-2 text-primary"></i>Ngày sinh</div>
-              <div class="val fw-semibold">{{ selectedStaffDetail.ngaySinh || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-gender-ambiguous me-2 text-primary"></i>Giới tính</div>
-              <div class="val fw-semibold">{{ selectedStaffDetail.gioiTinh === 1 ? 'Nam' : 'Nữ' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-geo-alt me-2 text-primary"></i>Quê quán</div>
-              <div class="val fw-semibold">{{ selectedStaffDetail.queQuan || '—' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-clock me-2 text-primary"></i>Ngày tham gia</div>
-              <div class="val fw-semibold">{{ selectedStaffDetail.ngayTao ? new Date(selectedStaffDetail.ngayTao).toLocaleDateString('vi-VN') : '—' }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-      </template>
-    </BaseModal>
 
-    <!-- Add/Edit Staff Dialog -->
-    <BaseModal
-      v-model="dialogVisible"
-      :title="staffForm.id ? 'Chỉnh sửa Nhân viên' : 'Thêm Nhân viên mới'"
-      :icon="staffForm.id ? 'bi bi-person-gear' : 'bi bi-person-plus'"
-      width="660px"
-      confirmText="Lưu lại"
-      @confirm="handleSave"
-    >
-      <template #header-extra v-if="!staffForm.id">
-        <CCCDScanner @scanned="handleCCCDScanned" />
-      </template>
 
-      <el-form :model="staffForm" label-position="top" class="premium-form">
-        <el-form-item label="Họ và tên" required>
-          <el-input v-model="staffForm.tenNhanVien" placeholder="VD: Nguyễn Văn A" :prefix-icon="User" />
-        </el-form-item>
-        <el-form-item label="Địa chỉ Email" required>
-          <el-input v-model="staffForm.email" placeholder="vanna@cineops.com" :prefix-icon="Message" />
-        </el-form-item>
-        <div class="row g-2">
-          <div class="col-6">
-            <el-form-item label="Số điện thoại" required>
-              <el-input v-model="staffForm.soDienThoai" placeholder="0901234567" :prefix-icon="Phone" />
-            </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="CCCD" required>
-              <el-input v-model="staffForm.cccd" placeholder="012345678901" />
-            </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="Ngày sinh" required>
-              <el-date-picker 
-                v-model="staffForm.ngaySinh" 
-                type="date" 
-                class="w-100" 
-                value-format="YYYY-MM-DD" 
-                placeholder="Chọn ngày" 
-                :disabled-date="disabledDate"
-              />
-            </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="Giới tính">
-              <el-select v-model="staffForm.gioiTinh" class="w-100">
-                <el-option label="Nam" :value="1" />
-                <el-option label="Nữ" :value="0" />
-              </el-select>
-            </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="Chức vụ" required>
-              <el-select 
-                v-model="staffForm.chucVu" 
-                placeholder="Chọn hoặc nhập chức vụ" 
-                filterable 
-                allow-create
-                default-first-option
-                class="w-100"
-              >
-                <el-option v-for="item in chucVuOptions" :key="item" :label="item" :value="item" />
-              </el-select>
-            </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="Quê quán">
-              <el-input v-model="staffForm.queQuan" placeholder="Hà Nội" />
-            </el-form-item>
-          </div>
-          <div class="col-12">
-            <el-form-item label="Ảnh nhân viên (URL)">
-              <el-input v-model="staffForm.anhNhanVien" placeholder="https://example.com/anh.jpg" clearable>
-                <template #prefix><i class="bi bi-image"></i></template>
-              </el-input>
-            </el-form-item>
-          </div>
-          <div class="col-6" v-if="staffForm.id">
-            <el-form-item label="Trạng thái">
-              <el-select v-model="staffForm.trangThai" class="w-100">
-                <el-option label="Đang hoạt động" :value="1" />
-                <el-option label="Ngừng hoạt động" :value="0" />
-              </el-select>
-            </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="Vai trò hệ thống" required>
-              <el-select v-model="staffForm.idPhanQuyen" class="w-100" placeholder="Chọn vai trò">
-                <el-option v-for="r in roles" :key="r.id" :label="r.tenVaiTro" :value="r.id" />
-              </el-select>
-            </el-form-item>
-          </div>
-          <div class="col-12">
-            <el-form-item :label="staffForm.id ? 'Mật khẩu mới (để trống nếu không đổi)' : 'Mật khẩu'" :required="!staffForm.id">
-              <el-input v-model="staffForm.matKhau" type="password" placeholder="Tối thiểu 6 ký tự" show-password />
-            </el-form-item>
-          </div>
-        </div>
-      </el-form>
-    </BaseModal>
 
     <!-- Roles Dialog -->
     <el-dialog v-model="roleDialogVisible" width="600px" class="premium-dialog">

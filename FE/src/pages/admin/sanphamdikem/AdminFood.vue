@@ -21,47 +21,13 @@
           >
             {{ selectedIds.length === filteredItems.length && filteredItems.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả' }}
           </el-button>
-          <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
-            Xóa {{ selectedIds.length }} sản phẩm
+          <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
+            Đổi trạng thái {{ selectedIds.length }} sản phẩm
           </el-button>
         </div>
       </template>
 
-      <!-- Stats Slot -->
-      <template #stats>
-        <div class="col-md-3">
-          <StatCard 
-            label="Tổng sản phẩm" 
-            :value="items.length" 
-            icon="bi bi-grid-fill"
-            type="dark"
-          />
-        </div>
-        <div class="col-md-3">
-          <StatCard 
-            label="Đang bán" 
-            :value="items.length" 
-            icon="bi bi-check-circle-fill"
-            type="success"
-          />
-        </div>
-        <div class="col-md-3">
-          <StatCard 
-            label="Sắp hết hàng" 
-            :value="items.filter(s => s.stock < 10 && s.stock > 0).length" 
-            icon="bi bi-exclamation-triangle-fill"
-            type="warning"
-          />
-        </div>
-        <div class="col-md-3">
-          <StatCard 
-            label="Hết hàng" 
-            :value="items.filter(s => s.stock === 0).length" 
-            icon="bi bi-x-circle-fill"
-            type="danger"
-          />
-        </div>
-      </template>
+
 
       <!-- Filters Slot -->
       <template #filters>
@@ -76,12 +42,10 @@
         </div>
 
         <div class="filter-item">
-          <el-radio-group v-model="activeCategory" size="default" @change="handleSearch">
-            <el-radio-button value="All">Tất cả</el-radio-button>
-            <el-radio-button v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ cat.tenLoai }}
-            </el-radio-button>
-          </el-radio-group>
+          <el-select v-model="activeCategory" placeholder="Tất cả danh mục" @change="handleSearch">
+            <el-option label="Tất cả danh mục" value="All"/>
+            <el-option v-for="cat in categories" :key="cat.id" :label="cat.tenLoai" :value="cat.id"/>
+          </el-select>
         </div>
       </template>
 
@@ -139,9 +103,9 @@
                         <i class="bi bi-pencil"></i>
                       </button>
                     </el-tooltip>
-                    <el-tooltip content="Xóa" placement="top">
-                      <button class="btn-action-icon btn-action-delete" @click.stop="handleDelete(item)">
-                        <i class="bi bi-trash"></i>
+                    <el-tooltip :content="item.trangThai === 0 ? 'Kích hoạt' : 'Ngừng kinh doanh'" placement="top">
+                      <button class="btn-action-icon btn-action-refresh" @click.stop="handleDelete(item)">
+                        <i class="bi bi-arrow-repeat"></i>
                       </button>
                     </el-tooltip>
                   </div>
@@ -284,7 +248,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column width="70" align="center">
+          <el-table-column width="100" align="center">
             <template #default="scope">
               <button class="btn-action-icon btn-action-delete" @click="removeVariantRow(scope.$index)">
                 <i class="bi bi-trash"></i>
@@ -367,7 +331,7 @@ import { ref, computed, onMounted } from 'vue'
 import { Plus, Edit, Delete, Search, Check } from '@element-plus/icons-vue'
 import { sanPhamDiKemService } from '@/services/api/admin/sanPhamDiKemService'
 import AdminTableLayout from '@/components/AdminTableLayout.vue'
-import StatCard from '@/components/common/StatCard.vue'
+
 import notification from '@/utils/notifications'
 import confirmDialog from '@/utils/confirm'
 import BaseModal from '@/components/common/BaseModal.vue'
@@ -638,34 +602,44 @@ const saveVariants = async () => {
 
 const handleBulkDelete = () => {
     confirmDialog.custom(
-        `Xác nhận xóa <b>${selectedIds.value.length}</b> sản phẩm và tất cả kích cỡ liên quan?`,
-        'Xóa hàng loạt',
+        `Thay đổi trạng thái cho <b>${selectedIds.value.length}</b> sản phẩm đã chọn?`,
+        'Cập nhật hàng loạt',
         'Đồng ý'
     ).then(async () => {
         try {
-            // Backend endpoint Xóa sản phẩm là xóa ID của sản phẩm chính (productId)
-            // Lấy danh sách ID sản phẩm chính duy nhất
             const productIds = [...new Set(selectedItems.value.map(i => i.productId))];
-            await Promise.all(productIds.map(id => sanPhamDiKemService.delete(id)));
-            notification.success(`Đã xóa ${productIds.length} sản phẩm`);
+            await Promise.all(productIds.map(async (id) => {
+                const sp = items.value.find(i => i.productId === id)?.rawProduct;
+                const newStatus = sp.trangThai === 1 ? 0 : 1;
+                return sanPhamDiKemService.update(id, { ...sp, trangThai: newStatus });
+            }));
+            notification.success(`Đã cập nhật trạng thái cho ${productIds.length} sản phẩm`);
             selectedItems.value = [];
             fetchItems();
         } catch (error) {
-            notification.error('Có lỗi khi xóa hàng loạt');
+            notification.error('Có lỗi khi cập nhật trạng thái hàng loạt');
         }
     }).catch(() => {});
 };
 
 const handleDelete = item => {
-  confirmDialog.delete('sản phẩm', item.name).then(async () => {
+  const isInactive = item.rawProduct.trangThai === 0;
+  const newStatus = isInactive ? 1 : 0;
+  const label = isInactive ? 'kích hoạt' : 'ngừng kinh doanh';
+  
+  confirmDialog.custom(
+    `Thay đổi trạng thái sản phẩm <b>${item.name}</b> thành <b>${label}</b>?`,
+    'Cập nhật trạng thái',
+    'Xác nhận'
+  ).then(async () => {
     try {
-      await sanPhamDiKemService.delete(item.productId)
-      notification.deleteSuccess('sản phẩm')
-      fetchItems()
+      await sanPhamDiKemService.update(item.productId, { ...item.rawProduct, trangThai: newStatus });
+      notification.success(`Đã ${label} sản phẩm thành công`);
+      fetchItems();
     } catch (error) {
-      notification.error('Không thể xóa sản phẩm')
+      notification.error('Cập nhật trạng thái thất bại');
     }
-  })
+  }).catch(() => {});
 }
 
 onMounted(() => {
@@ -762,8 +736,8 @@ onMounted(() => {
 :deep(.variant-compact-table th.el-table__cell) {
   font-weight: 700;
   font-size: 11px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
   padding: 7px 6px !important;
   color: #475569;
 }

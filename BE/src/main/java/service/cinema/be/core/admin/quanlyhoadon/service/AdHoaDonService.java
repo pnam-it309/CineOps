@@ -30,4 +30,6 @@ public interface AdHoaDonService {
 
     // 3. Lấy chi tiết hóa đơn
     List<AdHoaDonChiTietResponse> layChiTietHoaDon(String idHoaDon);
+
+    AdHoaDonResponse getHoaDonById(String id);
 }

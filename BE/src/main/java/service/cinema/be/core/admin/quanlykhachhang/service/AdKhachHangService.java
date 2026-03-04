@@ -62,10 +62,10 @@ public class AdKhachHangService {
 
     @Transactional
     public void deleteKhachHang(String id) {
-        if (!adKhachHangRepository.existsById(id)) {
-            throw new IllegalArgumentException("Khách hàng không tồn tại để xóa!");
-        }
-        adKhachHangRepository.deleteById(id);
+        KhachHang kh = adKhachHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khách hàng có ID: " + id));
+        kh.setTrangThai(0); // 0 = Ngừng hoạt động
+        adKhachHangRepository.save(kh);
     }
 
     /**

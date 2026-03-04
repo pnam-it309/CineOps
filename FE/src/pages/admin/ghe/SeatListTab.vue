@@ -18,41 +18,7 @@
         Xóa {{ selectedIds.length }} ghế
       </el-button>
     </template>
-    <!-- Stats Slot -->
-    <template #stats>
-      <div class="col-md-3">
-        <StatCard 
-          label="Tổng số ghế" 
-          :value="filteredSeats.length" 
-          icon="bi bi-grid-3x3-gap-fill"
-          type="dark"
-        />
-      </div>
-      <div class="col-md-3">
-        <StatCard 
-          label="Đang hoạt động" 
-          :value="filteredSeats.filter(s => s.trangThai === 1).length" 
-          icon="bi bi-check-circle-fill"
-          type="success"
-        />
-      </div>
-      <div class="col-md-3">
-        <StatCard 
-          label="Đang bảo trì" 
-          :value="filteredSeats.filter(s => s.trangThai === 0).length" 
-          icon="bi bi-exclamation-triangle-fill"
-          type="warning"
-        />
-      </div>
-      <div class="col-md-3">
-        <StatCard 
-          label="Loại ghế" 
-          :value="loaiGheList.length" 
-          icon="bi bi-tags-fill"
-          type="primary"
-        />
-      </div>
-    </template>
+
 
     <!-- Filters Slot -->
     <template #filters>
@@ -162,7 +128,7 @@ import { ref, computed, watch } from 'vue';
 import { Search, Monitor, PriceTag, Delete } from '@element-plus/icons-vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
-import StatCard from '@/components/common/StatCard.vue';
+
 import BaseTable from '@/components/common/BaseTable.vue';
 import { gheService } from '@/services/api/admin/gheService';
 

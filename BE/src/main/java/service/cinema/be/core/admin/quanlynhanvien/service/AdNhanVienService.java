@@ -84,10 +84,10 @@ public class AdNhanVienService {
 
     @Transactional
     public void delete(String id) {
-        if (!adNhanVienRepository.existsById(id)) {
-            throw new IllegalArgumentException("Không tìm thấy nhân viên để xóa!");
-        }
-        adNhanVienRepository.deleteById(id);
+        NhanVien nv = adNhanVienRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên có ID: " + id));
+        nv.setTrangThai(0); // 0 = Ngừng hoạt động
+        adNhanVienRepository.save(nv);
     }
 
     /**

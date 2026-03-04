@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-table-layout d-flex flex-column h-100 p-4">
+  <div class="admin-table-layout d-flex flex-column h-100" :class="{ 'p-4': !disablePadding }">
     <!-- Header Section -->
     <div class="page-header d-flex justify-content-between align-items-end mb-4 flex-shrink-0">
       <div>
@@ -10,7 +10,7 @@
       </div>
       <div class="d-flex gap-2 align-items-center">
         <slot name="header-actions-left"></slot>
-        <div class="filter-item border-start ps-3 ms-2">
+        <div class="filter-item border-start ps-3 ms-2" v-if="!hideFilter">
           <el-button @click="showFilter = !showFilter"
             :class="[showFilter ? 'btn-premium-toggle-active' : 'btn-premium-toggle']" class="rounded-3">
             <template #icon>
@@ -41,7 +41,7 @@
     </div>
 
     <!-- Filter Bar Section -->
-    <el-collapse-transition>
+    <el-collapse-transition v-if="!hideFilter">
       <div v-show="showFilter" class="filter-card p-3 mb-4 bg-white flex-shrink-0 shadow-sm border">
         <div class="d-flex align-items-end gap-3 w-100 px-1 flex-wrap">
           <slot name="filters"></slot>
@@ -158,10 +158,18 @@ const props = defineProps({
   hidePagination: {
     type: Boolean,
     default: false
+  },
+  hideFilter: {
+    type: Boolean,
+    default: false
+  },
+  disablePadding: {
+    type: Boolean,
+    default: false
   }
 });
 
-const showFilter = ref(true);
+const showFilter = ref(!props.hideFilter);
 
 const emit = defineEmits(['add-click', 'reset-filter', 'update:currentPage', 'update:pageSize', 'selection-change']);
 
@@ -225,8 +233,8 @@ const pagesToShow = computed(() => {
   color: #475569 !important;
   height: 64px !important;
   font-size: 25px !important;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-transform: none;
+  letter-spacing: normal;
   border-bottom: 1px solid #f1f5f9 !important;
 }
 

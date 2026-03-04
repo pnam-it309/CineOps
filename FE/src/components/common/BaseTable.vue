@@ -229,7 +229,7 @@ const pagesToShow = computed(() => {
 <style scoped>
 .base-table-container { min-height: 0; }
 .table-content-wrapper { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
-.table-header-bg { background-color: #ffffff !important; color: #475569 !important; font-size: 16px; letter-spacing: 0.025em; text-transform: uppercase; border-bottom: 1px solid #f1f5f9 !important; }
+.table-header-bg { background-color: #ffffff !important; color: #475569 !important; font-size: 16px; letter-spacing: 0.025em; text-transform: none; border-bottom: 1px solid #f1f5f9 !important; }
 .cursor-pointer { cursor: pointer; }
 .simple-page-btn { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0 8px; border: none; background: transparent; color: #475569; font-size: 14px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
 .simple-page-btn:hover:not(.active):not(.arrow) { color: #4f46e5; background: #f8fafc; border-radius: 6px; }

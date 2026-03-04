@@ -117,6 +117,9 @@ public class AdSanPhamDiKemService {
 
     @Transactional
     public void delete(String id) {
-        repository.deleteById(id);
+        SanPhamDichVu sp = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+        sp.setTrangThai(0); // 0 = Ngừng kinh doanh
+        repository.save(sp);
     }
 }

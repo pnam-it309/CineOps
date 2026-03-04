@@ -57,15 +57,35 @@
         </el-menu-item>
       </el-sub-menu>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
-        <el-icon><Film /></el-icon>
-        <template #title>Quản lý phim & lịch chiếu</template>
-      </el-menu-item>
+      <el-sub-menu index="admin-movies-submenu">
+        <template #title>
+          <el-icon><Film /></el-icon>
+          <span>Quản lý phim & lịch chiếu</span>
+        </template>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE) + '?tab=phim'">
+          <el-icon><VideoPlay /></el-icon>
+          <template #title>Danh sách phim</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE) + '?tab=lichChieu'">
+          <el-icon><Calendar /></el-icon>
+          <template #title>Lịch chiếu phim</template>
+        </el-menu-item>
+      </el-sub-menu>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">
-        <el-icon><Calendar /></el-icon>
-        <template #title>Quản lý suất chiếu</template>
-      </el-menu-item>
+      <el-sub-menu index="admin-showtimes-submenu">
+        <template #title>
+          <el-icon><Calendar /></el-icon>
+          <span>Quản lý suất chiếu</span>
+        </template>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES) + '?tab=list'">
+          <el-icon><Tickets /></el-icon>
+          <template #title>Danh sách suất chiếu</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES) + '?tab=visual'">
+          <el-icon><Monitor /></el-icon>
+          <template #title>Sơ đồ lịch chiếu</template>
+        </el-menu-item>
+      </el-sub-menu>
 
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.FOOD)">
         <el-icon><Coffee /></el-icon>
@@ -127,7 +147,8 @@ import {
   User,
   Tickets,
   Monitor,
-  Setting
+  Setting,
+  VideoPlay
 } from '@element-plus/icons-vue';
 
 const props = defineProps({
@@ -169,6 +190,8 @@ const handleCommand = async (command) => {
   height: 65px !important;
   line-height: 65px !important;
   transition: background-color 0.3s !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 /* Text animation */
@@ -201,6 +224,28 @@ const handleCommand = async (command) => {
   color: #E31E24 !important;
   transform: scale(1.2) rotate(5deg);
 }
+
+/* Fix misalignment and size for the arrow icon */
+:deep(.el-sub-menu__icon-arrow) {
+  position: static !important;
+  margin: 0 !important;
+  margin-left: auto !important;
+  font-size: 18px !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+:deep(.el-sub-menu__title:hover .el-sub-menu__icon-arrow) {
+  transform: rotateZ(-90deg) !important; /* Standard EL arrow rotation on hover/open */
+}
+
+:deep(.el-sub-menu.is-opened > .el-sub-menu__title .el-sub-menu__icon-arrow) {
+  transform: rotateZ(0deg) !important; 
+}
+/* Note: Element Plus handles rotation internally, 
+   but since we forced position static and font-size, 
+   we might need to ensure it still looks good. 
+   Actually, usually just removing the 28px inheritance fixes it. */
 
 /* Active State indicator like Sample 2 (usually side border or just color) */
 :deep(.el-menu-item.is-active) {

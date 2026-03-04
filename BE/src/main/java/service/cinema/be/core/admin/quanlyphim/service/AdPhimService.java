@@ -114,11 +114,10 @@ public class AdPhimService {
 
     @Transactional
     public void deletePhim(String id) {
-        if (!adPhimRepository.existsById(id)) {
-            throw new IllegalArgumentException("Không tìm thấy phim với id: " + id);
-        }
-        adPhimTheLoaiRepository.deleteByPhimId(id);
-        adPhimRepository.deleteById(id);
+        Phim phim = adPhimRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phim với id: " + id));
+        phim.setTrangThai(0); // 0 = Ngừng chiếu
+        adPhimRepository.save(phim);
     }
 
     // ==================== HELPER ====================

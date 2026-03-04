@@ -2,7 +2,7 @@
 import { ref, reactive, computed } from 'vue';
 import { Plus, Edit, Delete, Location, House, Setting, View } from '@element-plus/icons-vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
-import StatCard from '@/components/common/StatCard.vue';
+
 import BaseTable from '@/components/common/BaseTable.vue';
 import notification from '@/utils/notifications';
 import BaseModal from '@/components/common/BaseModal.vue';
@@ -20,18 +20,18 @@ const selectedRooms = ref([]);
 const selectedIds = computed(() => selectedRooms.value.map(r => r.id));
 
 const handleBulkDelete = () => {
-    ElMessageBox.confirm(
-        `Xác nhận xóa <b>${selectedIds.value.length}</b> phòng chiếu đã chọn?`,
-        'Xóa hàng loạt',
-        {
-            dangerouslyUseHTMLString: true,
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy',
-            type: 'warning'
-        }
+    confirmDialog.custom(
+        `Thay đổi trạng thái cho <b>${selectedIds.value.length}</b> phòng chiếu đã chọn?`,
+        'Cập nhật hàng loạt',
+        'Đồng ý'
     ).then(() => {
-        rooms.value = rooms.value.filter(r => !selectedIds.value.includes(r.id));
-        notification.success(`Đã xóa ${selectedIds.value.length} phòng chiếu`);
+        rooms.value = rooms.value.map(r => {
+            if (selectedIds.value.includes(r.id)) {
+                return { ...r, status: r.status === 'Sẵn sàng' ? 'Đang bảo trì' : 'Sẵn sàng' };
+            }
+            return r;
+        });
+        notification.success(`Đã cập nhật trạng thái cho ${selectedIds.value.length} phòng chiếu`);
         selectedRooms.value = [];
     }).catch(() => {});
 };
@@ -138,12 +138,7 @@ const filteredRooms = computed(() => {
   return filtered;
 });
 
-const stats = computed(() => [
-  { label: 'Tổng số phòng', value: rooms.value.length, icon: 'bi bi-door-open-fill', type: 'primary' },
-  { label: 'Phòng sẵn sàng', value: rooms.value.filter(r => r.status === 'Sẵn sàng').length, icon: 'bi bi-check-circle-fill', type: 'success' },
-  { label: 'Phòng bảo trì', value: rooms.value.filter(r => r.status === 'Đang bảo trì').length, icon: 'bi bi-tools', type: 'warning' },
-  { label: 'Tổng số ghế', value: rooms.value.reduce((acc, r) => acc + r.capacity, 0), icon: 'bi bi-grid-3x3-gap-fill', type: 'info' }
-]);
+
 
 const openDialog = (room = null) => {
   if (room) {
@@ -181,14 +176,21 @@ const handleSave = () => {
 };
 
 const handleDelete = (room) => {
-  ElMessageBox.confirm(`Bạn có chắc chắn muốn xóa phòng "${room.name}"?`, 'Cảnh báo', {
-    type: 'warning'
-  }).then(() => {
-    rooms.value = rooms.value.filter(r => r.id !== room.id);
-    notification.deleteSuccess('phòng');
-  }).catch(() => {
-    // User cancelled
-  });
+  const isReady = room.status === 'Sẵn sàng';
+  const newStatus = isReady ? 'Đang bảo trì' : 'Sẵn sàng';
+  const label = isReady ? 'chuyển sang Bảo trì' : 'chuyển sang Sẵn sàng';
+  
+  confirmDialog.custom(
+    `Bạn có chắc chắn muốn <b>${label}</b> phòng "${room.name}"?`,
+    'Cập nhật trạng thái',
+    'Xác nhận'
+  ).then(() => {
+    const index = rooms.value.findIndex(r => r.id === room.id);
+    if (index !== -1) {
+      rooms.value[index].status = newStatus;
+      notification.success(`Đã cập nhật trạng thái phòng ${room.name}`);
+    }
+  }).catch(() => {});
 };
 </script>
 
@@ -207,20 +209,11 @@ const handleDelete = (room) => {
       @reset-filter="() => { searchQuery = ''; filterStatus = 'all'; }"
     >
       <template #header-actions-left>
-        <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
-          Xóa {{ selectedIds.length }} phòng chiếu
+        <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
+          Đổi trạng thái {{ selectedIds.length }} phòng chiếu
         </el-button>
       </template>
-      <template #stats>
-        <div v-for="s in stats" :key="s.label" class="col-md-3">
-          <StatCard 
-              :label="s.label" 
-              :value="s.value" 
-              :icon="s.icon"
-              :type="s.type"
-            />
-        </div>
-      </template>
+
 
       <template #filters>
         <div class="filter-item">
@@ -293,9 +286,11 @@ const handleDelete = (room) => {
               <button class="btn-action-icon btn-action-edit" @click="openDialog(row)">
                 <i class="bi bi-pencil fs-6"></i>
               </button>
-              <button class="btn-action-icon btn-action-delete" @click="handleDelete(row)">
-                <i class="bi bi-trash fs-6"></i>
-              </button>
+              <el-tooltip :content="row.status === 'Sẵn sàng' ? 'Bảo trì' : 'Kích hoạt'" placement="top">
+                <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
+                  <i class="bi bi-arrow-repeat fs-6"></i>
+                </button>
+              </el-tooltip>
             </div>
           </template>
         </BaseTable>

@@ -17,7 +17,7 @@
       <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
           <div class="d-flex align-items-start h-100">
-            <div class="stat-icon-box bg-purple-gradient text-white me-4">
+            <div class="stat-icon-box bg-light text-dark me-4">
               <el-icon><User /></el-icon>
             </div>
             <div class="stat-content flex-grow-1">
@@ -36,7 +36,7 @@
       <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
           <div class="d-flex align-items-start h-100">
-            <div class="stat-icon-box bg-green-gradient text-white me-4">
+            <div class="stat-icon-box bg-light text-dark me-4">
               <el-icon><Money /></el-icon>
             </div>
             <div class="stat-content flex-grow-1">
@@ -55,7 +55,7 @@
       <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
           <div class="d-flex align-items-start h-100">
-            <div class="stat-icon-box bg-orange-gradient text-white me-4">
+            <div class="stat-icon-box bg-light text-dark me-4">
               <el-icon><TrendCharts /></el-icon>
             </div>
             <div class="stat-content flex-grow-1">
@@ -74,7 +74,7 @@
       <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
           <div class="d-flex align-items-start h-100">
-            <div class="stat-icon-box bg-peach-gradient text-white me-4">
+            <div class="stat-icon-box bg-light text-dark me-4">
               <el-icon><Ticket /></el-icon>
             </div>
             <div class="stat-content flex-grow-1">
@@ -93,7 +93,7 @@
       <div class="stat-col">
         <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
           <div class="d-flex align-items-start h-100">
-            <div class="stat-icon-box bg-red-gradient text-white me-4">
+            <div class="stat-icon-box bg-light text-dark me-4">
               <el-icon><Warning /></el-icon>
             </div>
             <div class="stat-content flex-grow-1">
@@ -182,7 +182,7 @@
           <!-- Mock Chart Visualization -->
           <div class="py-4">
             <div class="d-flex align-items-end justify-content-between gap-2" style="height: 250px;">
-              <div v-for="(val, i) in revenueData" :key="i" class="flex-grow-1 bg-primary bg-opacity-75 rounded-top position-relative bar-hover" :style="{ height: val + '%' }">
+              <div v-for="(val, i) in revenueData" :key="i" class="flex-grow-1 bg-secondary bg-opacity-25 rounded-top position-relative bar-hover" :style="{ height: val + '%' }">
                 <div class="position-absolute bottom-100 start-50 translate-middle-x mb-2 small fw-bold opacity-0 bar-tooltip">{{ val }}k</div>
               </div>
             </div>
@@ -258,7 +258,7 @@
           <div class="list-group list-group-flush">
             <div v-for="tx in recentTransactions" :key="tx.id" class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 py-3 border-bottom border-light">
               <div class="d-flex align-items-center gap-3">
-                <div class="p-2 bg-primary bg-opacity-10 rounded-circle text-primary">
+                <div class="p-2 bg-light rounded-circle text-dark">
                   <el-icon><Ticket /></el-icon>
                 </div>
                 <div>
@@ -352,12 +352,8 @@ const handleAction = (action) => {
   font-size: 26px;
 }
 
-/* Gradients */
-.bg-purple-gradient { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
-.bg-green-gradient { background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); }
-.bg-orange-gradient { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); }
-.bg-peach-gradient { background: linear-gradient(135deg, #fb923c 0%, #f472b6 100%); }
-.bg-red-gradient { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); }
+/* Neutral Styles */
+.bg-light { background-color: #f8fafc !important; }
 
 .stat-content {
   display: flex;

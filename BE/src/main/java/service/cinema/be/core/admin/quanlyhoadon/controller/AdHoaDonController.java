@@ -79,4 +79,9 @@ public class AdHoaDonController {
     public ResponseEntity<List<AdHoaDonChiTietResponse>> getChiTietHoaDon(@PathVariable String id) {
         return ResponseEntity.ok(adHoaDonService.layChiTietHoaDon(id));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AdHoaDonResponse> getHoaDonById(@PathVariable String id) {
+        return ResponseEntity.ok(adHoaDonService.getHoaDonById(id));
+    }
 }

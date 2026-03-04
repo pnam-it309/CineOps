@@ -2,7 +2,7 @@
 import { ref, markRaw, computed } from 'vue';
 import { Download, Search, Filter, Document, Money, Ticket, Calendar, Refresh } from '@element-plus/icons-vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
-import StatCard from '@/components/common/StatCard.vue';
+
 
 const dateRange = ref([]);
 const selectedType = ref('All');
@@ -12,11 +12,7 @@ const reports = ref([
   { id: 'TX1003', date: '2026-02-07 16:00', customer: 'Mike Ross', items: '4x Batman, 2x Combo Couple', total: 780000, status: 'Refunded', method: 'Credit Card' }
 ]);
 
-const stats = ref([
-  { label: 'Doanh thu tổng', value: '124.5M', icon: 'bi bi-cash-stack', type: 'success' },
-  { label: 'Vé đã bán', value: '1,240', icon: 'bi bi-ticket-perforated-fill', type: 'primary' },
-  { label: 'TB Đơn hàng', value: '185k', icon: 'bi bi-file-earmark-text-fill', type: 'warning' }
-]);
+
 
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -47,16 +43,7 @@ const filteredReports = computed(() => {
         <el-button class="btn-premium-secondary text-success border-success-subtle" :icon="Download">Xuất CSV</el-button>
       </template>
 
-      <template #stats>
-        <div v-for="s in stats" :key="s.label" class="col-md-4">
-          <StatCard 
-              :label="s.label" 
-              :value="s.value" 
-              :icon="s.icon"
-              :type="s.type"
-            />
-        </div>
-      </template>
+
 
       <template #filters>
         <div class="filter-item">

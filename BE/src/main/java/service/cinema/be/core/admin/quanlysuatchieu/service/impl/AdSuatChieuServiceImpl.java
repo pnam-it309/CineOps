@@ -102,7 +102,10 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
     @Override
     @Transactional
     public void delete(String id) {
-        adSuatChieuRepository.deleteById(id);
+        SuatChieu sc = adSuatChieuRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy suất chiếu có id: " + id));
+        sc.setTrangThai(0); // 0 = Đã hủy
+        adSuatChieuRepository.save(sc);
     }
 
     @Override

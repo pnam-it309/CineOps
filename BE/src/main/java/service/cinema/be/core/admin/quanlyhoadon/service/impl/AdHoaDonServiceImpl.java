@@ -317,4 +317,36 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
             return dto;
         }).toList();
     }
+
+    @Override
+    public AdHoaDonResponse getHoaDonById(String id) {
+        HoaDon hoaDon = adHoaDonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        
+        AdHoaDonResponse dto = new AdHoaDonResponse();
+        dto.setId(hoaDon.getId());
+        dto.setMaHoaDon(hoaDon.getMaHoaDon());
+        dto.setTongTien(hoaDon.getTongTien());
+        dto.setSoTienGiam(hoaDon.getSoTienGiam());
+        dto.setTongTienThanhToan(hoaDon.getTongTienThanhToan());
+        dto.setPhuongThucThanhToan(hoaDon.getPhuongThucThanhToan());
+        dto.setTrangThai(hoaDon.getTrangThai());
+        dto.setGhiChu(hoaDon.getGhiChu());
+        dto.setNgayTao(hoaDon.getNgayTao());
+        dto.setKemBanHang(hoaDon.getKenhBanHang());
+
+        if (hoaDon.getNhanVien() != null) {
+            dto.setTenNhanVien(hoaDon.getNhanVien().getTenNhanVien());
+        } else {
+            dto.setTenNhanVien("Hệ thống");
+        }
+
+        if (hoaDon.getKhachHang() != null) {
+            dto.setTenKhachHang(hoaDon.getKhachHang().getTenKhachHang());
+        } else {
+            dto.setTenKhachHang("Khách lẻ");
+        }
+        
+        return dto;
+    }
 }

@@ -30,12 +30,12 @@
           </el-select>
         </div>
         <div class="filter-item">
-            <el-radio-group v-model="listQuery.kyThoiGian" @change="handleFilter">
-              <el-radio-button value="">Tất cả</el-radio-button>
-              <el-radio-button value="TODAY">Hôm nay</el-radio-button>
-              <el-radio-button value="THIS_WEEK">Tuần này</el-radio-button>
-              <el-radio-button value="THIS_MONTH">Tháng này</el-radio-button>
-            </el-radio-group>
+            <el-select v-model="listQuery.kyThoiGian" placeholder="Kỳ thời gian" clearable @change="handleFilter">
+              <el-option label="Tất cả thời gian" value=""/>
+              <el-option label="Hôm nay" value="TODAY"/>
+              <el-option label="Tuần này" value="THIS_WEEK"/>
+              <el-option label="Tháng này" value="THIS_MONTH"/>
+            </el-select>
         </div>
       </template>
 
@@ -57,7 +57,7 @@
             </template>
 
             <template #cell-maHoaDon="{ row }">
-              <span class="fw-bold text-dark">{{ row.maHoaDon }}</span>
+              <span class="fw-bold">{{ row.maHoaDon }}</span>
             </template>
 
             <template #cell-ngayTao="{ row }">
@@ -73,11 +73,11 @@
             </template>
 
             <template #cell-tongTienThanhToan="{ row }">
-              <strong class="text-dark">{{ formatCurrency(row.tongTienThanhToan) }}</strong>
+              <strong class="">{{ formatCurrency(row.tongTienThanhToan) }}</strong>
             </template>
 
             <template #cell-kemBanHang="{ row }">
-              <el-tag :type="row.kemBanHang === 0 ? 'info' : 'success'" size="large" effect="dark">
+              <el-tag :type="row.kemBanHang === 0 ? 'info' : 'success'" size="large">
                 {{ row.kemBanHang === 0 ? 'Tại quầy' : 'Online' }}
               </el-tag>
             </template>
@@ -89,7 +89,7 @@
             </template>
 
             <template #cell-trangThai="{ row }">
-              <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="large" effect="dark" round style="white-space: nowrap;">
+              <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="large" round style="white-space: nowrap;">
                   {{ row.trangThai === 1 ? 'Thành công' : 'Đã hủy' }}
               </el-tag>
             </template>
@@ -107,67 +107,15 @@
         </div>
       </template>
     </AdminTableLayout>
-
-    <el-dialog v-model="dialogVisible" title="Chi tiết Hóa Đơn" width="65%">
-      <el-table v-loading="detailLoading" :data="invoiceDetails" border class="admin-table">
-        <el-table-column type="index" label="STT" width="70" align="center" />
-        <el-table-column prop="tenPhim" label="Tên phim / Sản phẩm">
-          <template #default="scope">
-            <span v-if="scope.row.loai === 0">🎬 {{ scope.row.tenPhim }}</span>
-            <span v-else>🍿 Đồ ăn / Nước uống</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="tenPhongChieu" label="Phòng chiếu / Suất chiếu" width="200">
-          <template #default="scope">
-            <div v-if="scope.row.loai === 0">
-              <div class="text-primary fw-bold">{{ scope.row.tenPhongChieu || '—' }}</div>
-              <div class="text-secondary small">{{ scope.row.thoiGianBatDau ? formatDate(scope.row.thoiGianBatDau) : '—' }}</div>
-            </div>
-            <div v-else>—</div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="viTriGhe" label="Ghế" width="100" align="center" />
-        <el-table-column prop="donGia" label="Đơn giá" align="right" width="160">
-          <template #default="scope">
-            <strong class="text-danger">{{ formatCurrency(scope.row.donGia) }}</strong>
-          </template>
-        </el-table-column>
-      </el-table>
-      <div v-if="selectedInvoice" class="mt-4 p-3 bg-light rounded-4">
-        <div class="row g-3">
-          <div class="col-6">
-            <div class="small text-secondary mb-1">Ghi chú hóa đơn</div>
-            <div class="text-dark">{{ selectedInvoice.ghiChu || '—' }}</div>
-          </div>
-          <div class="col-6 text-end">
-            <div class="d-flex justify-content-end gap-3 mb-1">
-              <span class="text-secondary">Tổng tiền hàng:</span>
-              <span class="fw-bold">{{ formatCurrency(selectedInvoice.tongTien) }}</span>
-            </div>
-            <div class="d-flex justify-content-end gap-3 mb-1">
-              <span class="text-secondary">Giảm giá:</span>
-              <span class="fw-bold text-danger">-{{ formatCurrency(selectedInvoice.soTienGiam) }}</span>
-            </div>
-            <div class="d-flex justify-content-end gap-3 border-top pt-2 mt-2">
-              <span class="text-dark fw-bold">Tổng thanh toán:</span>
-              <span class="fw-bold text-primary fs-5">{{ formatCurrency(selectedInvoice.tongTienThanhToan) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">Đóng</el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue';
+import { ref, reactive, onMounted, watch, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import BaseModal from '@/components/common/BaseModal.vue';
 import { Search } from '@element-plus/icons-vue';
 import { hoaDonService } from '@/services/api/admin/hoaDonService';
 import { ElMessage } from 'element-plus';
@@ -175,14 +123,10 @@ import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
 
 // --- STATE QUẢN LÝ DỮ LIỆU ---
+const router = useRouter();
 const invoices = ref([]);
 const total = ref(0);
 const loading = ref(false);
-
-const dialogVisible = ref(false);
-const selectedInvoice = ref(null);
-const invoiceDetails = ref([]);
-const detailLoading = ref(false);
 
 const tableColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
@@ -228,18 +172,9 @@ const fetchInvoices = async () => {
   }
 };
 
-const viewDetails = async (row) => {
-  selectedInvoice.value = row;
-  dialogVisible.value = true;
-  detailLoading.value = true;
-  try {
-    const res = await hoaDonService.getInvoiceDetails(row.id);
-    invoiceDetails.value = res.data || [];
-  } catch (error) {
-    ElMessage.error('Lỗi khi lấy chi tiết hóa đơn!');
-  } finally {
-    detailLoading.value = false;
-  }
+const viewDetails = (row) => {
+  sessionStorage.setItem('currentInvoice', JSON.stringify(row));
+  router.push({ name: 'AdminInvoiceDetail', params: { id: row.id } });
 };
 
 const handleFilter = () => {
@@ -254,6 +189,13 @@ const handleReset = () => {
   listQuery.kyThoiGian = '';
   if (listQuery.page !== 1) listQuery.page = 1;
   else fetchInvoices();
+};
+
+const formatDateShort = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + 
+         date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
 };
 
 const formatCurrency = (value) => {
@@ -277,3 +219,29 @@ onMounted(() => {
   fetchInvoices();
 });
 </script>
+
+<style scoped>
+.invoice-meta-header {
+  border-left: 5px solid var(--el-color-primary);
+}
+.ticket-detail-item {
+  transition: all 0.3s ease;
+  background: #fff;
+}
+.ticket-detail-item:hover {
+  border-color: var(--el-color-primary) !important;
+  background: #f0f7ff;
+}
+.poster-mini {
+  border: 1px solid #eee;
+}
+.snack-table-wrapper {
+  background: #fff;
+}
+.invoice-footer-billing {
+  border-top: 1px dashed #dcdfe6;
+}
+.section-title i {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+</style>

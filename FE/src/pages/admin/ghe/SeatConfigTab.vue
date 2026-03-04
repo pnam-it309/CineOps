@@ -7,21 +7,7 @@
             </h3>
         </div>
 
-        <!-- Info Cards (Replacing Stats) -->
-        <div class="row g-3 mb-4 flex-shrink-0">
-            <div class="col-md-4">
-                <StatCard label="Tổng số ghế " subText="Số ghế đang có"
-                    :value="configForm.rows * configForm.cols" icon="bi bi-grid-3x3-gap-fill" type="primary" />
-            </div>
-            <div class="col-md-4">
-                <StatCard label="Lưu ý quan trọng" value="Xóa toàn bộ ghế cũ" subText="Xóa dữ liệu cũ khi tạo sơ đồ mới"
-                    icon="bi bi-exclamation-triangle-fill" type="warning" subTextType="danger" />
-            </div>
-            <div class="col-md-4">
-                <StatCard label="Tốc độ xử lý" value="Khởi tạo nhanh" subText="Xử lý dữ liệu trong < 1s"
-                    icon="bi bi-lightning-charge-fill" type="success" />
-            </div>
-        </div>
+
 
         <!-- Main Form Content -->
         <div class="form-container-main bg-white rounded-3 border shadow-sm flex-grow-1 p-5 overflow-auto">
@@ -75,7 +61,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { Grid, WarningFilled, MagicStick } from '@element-plus/icons-vue';
-import StatCard from '@/components/common/StatCard.vue';
+
 
 const props = defineProps({
     phongChieuList: Array,

@@ -7,6 +7,10 @@ export const voucherService = {
         return axios.get(BASE_URL, { params });
     },
 
+    getById(id) {
+        return axios.get(`${BASE_URL}/${id}`);
+    },
+
     create(data) {
         return axios.post(BASE_URL, data);
     },

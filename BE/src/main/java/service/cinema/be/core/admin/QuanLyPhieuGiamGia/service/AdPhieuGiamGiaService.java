@@ -182,7 +182,10 @@ public class AdPhieuGiamGiaService {
 
     @Transactional
     public void delete(String id) {
-        repository.deleteById(id);
+        PhieuGiamGia p = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
+        p.setTrangThai(2); // 2 = Đã kết thúc / Ngừng
+        repository.save(p);
     }
 
     private AdPhieuGiamGiaResponse toResponse(PhieuGiamGia p) {
