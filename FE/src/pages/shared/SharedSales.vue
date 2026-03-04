@@ -15,13 +15,30 @@ const combos = [
   { id: 2, name: 'Couple Combo', price: 175000, desc: '1 Popcorn L + 2 Coke L' }
 ];
 
-const mockMovies = ref([]);
-
 // State
-const selectedMovie = ref({});
+const activeStep = ref(1);
+const selectedMovie = ref(null);
 const selectedShowtime = ref(showtimes[0]);
-const selectedSeats = ref(['H1', 'H2']);
+const selectedSeats = ref([]);
 const selectedCombos = ref([]);
+const paymentMethod = ref('cash'); // 'cash', 'card', 'qr'
+
+// Colors & Design
+const BRAND_RED = '#E11D48'; // Modern Vibrant Red
+const BRAND_DARK = '#0F172A';
+const GLOW_ACCENT = 'rgba(225, 29, 72, 0.4)';
+
+const steps = [
+  { id: 1, name: 'Phim', icon: 'bi-film' },
+  { id: 2, name: 'Ghế', icon: 'bi-chair' },
+  { id: 3, name: 'Bắp Nước', icon: 'bi-cup-straw' },
+  { id: 4, name: 'Thanh Toán', icon: 'bi-credit-card' }
+];
+
+const mockMovies = ref([
+  { id: 1, title: 'Dune: Hành Tinh Cát 2', rating: 'T16', duration: '166 phút', poster: 'https://image.tmdb.org/t/p/w500/8b8R8l3899v9D0Xn9QDs799v9D0.jpg' },
+  { id: 2, title: 'Kung Fu Panda 4', rating: 'P', duration: '94 phút', poster: 'https://image.tmdb.org/t/p/w500/kDp1vUBiRSToYvRSZ70rNvT3I0L.jpg' }
+]);
 
 // Step Logic (Single Screen)
 const totalPrice = computed(() => {
@@ -75,234 +92,463 @@ const handleCheckout = () => {
 </script>
 
 <template>
-  <div class="shared-sales w-100 h-100 d-flex flex-column overflow-hidden no-scroll">
-    <!-- Header: Gọn hơn -->
-    <div class="d-flex justify-content-between align-items-center mb-1 flex-shrink-0">
-      <h2 class="fs-6 fw-bold mb-0">Quầy bán vé</h2>
-      <div class="text-secondary small" style="font-size: 0.7rem;">Giao diện POS tích hợp</div>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="row g-2 flex-grow-1 overflow-hidden no-scroll">
-      <!-- Left: Selection Panel -->
-      <div class="col-lg-8 h-100 d-flex flex-column gap-2 overflow-hidden">
-
-        <!-- Section 1: Movie & Showtime (Fix Height) -->
-        <div class="filter-card p-3 mb-2 flex-shrink-0">
-          <div class="row g-2">
-            <div class="col-7">
-              <label class="x-small fw-bold text-secondary text-uppercase mb-1 d-block scale-text" style="font-size: 11px;">1. Chọn phim</label>
-              <el-select v-model="selectedMovie" value-key="id" class="w-100" size="default">
-                <el-option v-for="m in mockMovies" :key="m.id" :label="m.title" :value="m" />
-              </el-select>
+  <div class="pos-container-premium w-100 d-flex flex-column overflow-hidden" style="height: calc(100vh - 120px);">
+    <!-- Minimalist POS Navigation Bar -->
+    <nav class="pos-navbar d-flex justify-content-between align-items-center px-4 bg-white border-bottom shadow-sm">
+      <div class="nav-left d-flex align-items-center gap-4">
+        <div class="pos-logo d-flex align-items-center gap-2">
+          <div class="logo-circle bg-danger-gradient rounded-circle shadow-sm">
+            <i class="bi bi-lightning-fill text-white"></i>
+          </div>
+          <span class="fw-bold text-dark fs-6 tracking-tight">CineOps <span class="text-danger">POS</span></span>
+        </div>
+        
+        <!-- Logic Stepper -->
+        <div class="pos-stepper d-flex align-items-center gap-1 ms-4">
+          <div v-for="(step, idx) in steps" :key="step.id" class="d-flex align-items-center">
+            <div class="step-pill d-flex align-items-center gap-2 px-3 py-1 rounded-pill"
+                 :class="{ 'active': activeStep === step.id, 'completed': activeStep > step.id }">
+              <div class="step-num">{{ idx + 1 }}</div>
+              <span class="step-lbl extra-small fw-bold text-uppercase">{{ step.name }}</span>
             </div>
-            <div class="col-5">
-              <label class="x-small fw-bold text-secondary text-uppercase mb-1 d-block scale-text" style="font-size: 11px;">2. Suất chiếu</label>
-              <el-select v-model="selectedShowtime" value-key="id" class="w-100" size="default">
-                <el-option v-for="s in showtimes" :key="s.id" :label="`${s.time} - ${s.room}`" :value="s" />
-              </el-select>
+            <div v-if="idx < steps.length - 1" class="step-path mx-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-right d-flex align-items-center gap-4">
+        <div class="staff-card d-flex align-items-center gap-2 px-3 py-1 bg-light rounded-pill border">
+          <i class="bi bi-person-circle text-primary"></i>
+          <span class="extra-small fw-bold text-dark">NV. NGUYỄN VĂN A</span>
+        </div>
+        <div class="pos-clock text-dark fw-bold small">
+          <i class="bi bi-clock-fill text-danger me-1"></i> 22:15
+        </div>
+      </div>
+    </nav>
+
+    <!-- Unified Workspace -->
+    <div class="pos-workspace d-flex flex-row flex-grow-1 overflow-hidden">
+      <!-- Selection Flow -->
+      <main class="pos-main-flow flex-grow-1 p-4 bg-light-subtle overflow-y-auto custom-scrollbar">
+        <div class="pos-sections-stack d-flex flex-column gap-4 pb-5">
+          
+          <!-- STEP 1: Movie -->
+          <section class="flow-card p-4 rounded-4 bg-white shadow-sm border">
+            <div class="d-flex align-items-center gap-3 mb-4">
+              <div class="icon-blob bg-danger-soft"><i class="bi bi-film text-danger"></i></div>
+              <h3 class="fs-6 mb-0 fw-bold">Chọn Phim & Suất Chiếu</h3>
+            </div>
+            <div class="row g-4">
+              <div class="col-md-7">
+                <el-select v-model="selectedMovie" value-key="id" placeholder="Tìm kiếm phim..." class="w-100 pos-select" size="large" filterable>
+                  <el-option v-for="m in mockMovies" :key="m.id" :label="m.title" :value="m">
+                    <div class="d-flex align-items-center gap-3">
+                       <img :src="m.poster" class="thumb-mini-poster rounded-1 shadow-sm">
+                       <span class="fw-medium">{{ m.title }}</span>
+                    </div>
+                  </el-option>
+                </el-select>
+              </div>
+              <div class="col-md-5">
+                <el-select v-model="selectedShowtime" value-key="id" class="w-100 pos-select" size="large">
+                  <el-option v-for="s in showtimes" :key="s.id" :label="`${s.time} - ${s.room}`" :value="s" />
+                </el-select>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 2: Seats -->
+          <section class="flow-card p-4 rounded-4 bg-white shadow-sm border">
+            <div class="d-flex align-items-center gap-3 mb-4">
+              <div class="icon-blob bg-primary-soft"><i class="bi bi-grid-3x3-gap text-primary"></i></div>
+              <h3 class="fs-6 mb-0 fw-bold">Sơ đồ chỗ ngồi</h3>
+              <div class="ms-auto x-small fw-bold text-muted border px-2 py-1 rounded bg-light">PHÒNG: {{ selectedShowtime?.room }}</div>
+            </div>
+
+            <div class="pos-seat-map py-4">
+              <div class="map-screen mx-auto mb-5">
+                <div class="screen-surface shadow-sm"></div>
+                <div class="screen-label x-small fw-bold text-muted mt-2 tracking-widest">MÀN HÌNH</div>
+              </div>
+
+              <div class="pos-seat-grid mx-auto mb-4">
+                <div v-for="i in 40" :key="i"
+                  class="pos-seat"
+                  :class="{ 
+                    'selected': i < 3, 
+                    'occupied': i % 7 === 0,
+                    'available': i >= 3 && i % 7 !== 0 
+                  }">
+                  {{ i }}
+                </div>
+              </div>
+
+              <div class="pos-legend d-flex justify-content-center gap-4">
+                <div class="legend-pill selected"><span></span> Chọn</div>
+                <div class="legend-pill available"><span></span> Trống</div>
+                <div class="legend-pill occupied"><span></span> Hết</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 3: Snacks -->
+          <section class="flow-card p-4 rounded-4 bg-white shadow-sm border">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div class="d-flex align-items-center gap-3">
+                <div class="icon-blob bg-warning-soft"><i class="bi bi-egg-fried text-warning"></i></div>
+                <h3 class="fs-6 mb-0 fw-bold">Dịch vụ bắp nước</h3>
+              </div>
+              <div style="width: 250px;">
+                <el-input placeholder="Tên sản phẩm..." suffix-icon="Search" size="small" />
+              </div>
+            </div>
+            
+            <div class="row g-3">
+              <div v-for="c in combos" :key="c.id" class="col-md-6">
+                <div class="concession-item d-flex p-3 gap-3 border rounded-4 transition-all" @click="handleAddCombo(c)">
+                  <div class="concession-img-box bg-light rounded-3 d-flex align-items-center justify-content-center">
+                    <i class="bi bi-cup-straw fs-3 text-warning"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="fw-bold text-dark mb-0">{{ c.name }}</h6>
+                    <p class="text-secondary extra-small mb-2">{{ c.desc }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span class="fw-bold text-danger">{{ c.price.toLocaleString() }}đ</span>
+                      <div class="add-circle-btn shadow-sm"><i class="bi bi-plus"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <!-- Full-Height Receipt Sidebar -->
+      <aside class="pos-sidebar-right d-flex flex-column border-start bg-white shadow-lg overflow-hidden">
+        <div class="sidebar-header p-4 bg-light border-bottom text-center">
+          <div class="receipt-icon-wrap bg-white text-danger shadow-sm rounded-circle d-inline-flex p-3 mb-2">
+            <i class="bi bi-ticket-detailed fs-5"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-0 ls-tight">THANH TOÁN ĐƠN HÀNG</h5>
+          <div class="extra-small fw-bold text-muted opacity-75">ID GIAO DỊCH: #POS-{{ Math.floor(Math.random()*90000+1000) }}</div>
+        </div>
+
+        <div class="sidebar-receipt-body flex-grow-1 p-4 overflow-y-auto no-scrollbar">
+          <!-- Selection Live View -->
+          <div v-if="selectedMovie" class="live-selection-card d-flex gap-3 mb-4 p-2 rounded-3 bg-light border">
+            <img :src="selectedMovie.poster" class="rounded-2 shadow-sm" style="width: 44px; height: 60px; object-fit: cover;">
+            <div class="overflow-hidden">
+                <div class="fw-bold text-dark x-small text-truncate">{{ selectedMovie.title }}</div>
+                <div class="extra-small text-secondary mt-1">
+                  <span>{{ selectedShowtime?.room }}</span> • <span class="fw-bold text-dark">{{ selectedShowtime?.time }}</span>
+                </div>
+            </div>
+          </div>
+
+          <!-- Line Items -->
+          <div class="line-items-stack d-flex flex-column gap-3">
+            <div class="ticket-line">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="extra-small fw-bold text-muted tracking-wider">VÉ XEM PHIM ({{ selectedSeats.length }})</span>
+                    <span class="x-small fw-bold text-dark">{{ (selectedSeats.length * 95000).toLocaleString() }}đ</span>
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                    <span v-for="s in selectedSeats" :key="s" class="seat-badge-pos shadow-sm">{{ s }}</span>
+                    <span v-if="selectedSeats.length === 0" class="text-muted italic extra-small">Cần chọn ghế...</span>
+                </div>
+            </div>
+
+            <div v-if="selectedCombos.length > 0" class="divider-dashed my-1"></div>
+
+            <div v-if="selectedCombos.length > 0" class="food-lines">
+               <span class="extra-small fw-bold text-muted d-block mb-2">PHỤ KIỆN / BẮP NƯỚC</span>
+               <div v-for="c in selectedCombos" :key="c.id" class="d-flex justify-content-between align-items-center mb-2 x-small">
+                  <div class="text-dark">{{ c.name }} <span class="text-muted">x{{ c.qty }}</span></div>
+                  <div class="fw-bold">{{ (c.price * c.qty).toLocaleString() }}đ</div>
+               </div>
             </div>
           </div>
         </div>
 
-        <!-- Section 2: Seats (UI label 3) -->
-        <el-card shadow="never"
-          class="border-0 shadow-sm rounded-4 d-flex flex-column overflow-hidden compact-card flex-shrink-0">
-          <label class="x-small fw-bold text-secondary text-uppercase mb-1 d-block scale-text">3. Chọn chỗ ngồi</label>
-          <div class="text-center mb-1">
-            <div
-              class="bg-secondary bg-opacity-10 py-1 rounded-pill x-small w-50 mx-auto text-secondary fw-bold scale-text">
-              MÀN HÌNH</div>
-          </div>
-          <div class="d-flex align-items-center justify-content-center overflow-hidden py-1">
-            <div class="d-flex flex-wrap justify-content-center gap-1" style="max-width: 400px;">
-              <div v-for="i in 40" :key="i"
-                class="rounded-1 d-flex align-items-center justify-content-center cursor-pointer border seat-box"
-                :class="i % 7 === 0 ? 'bg-secondary bg-opacity-25 border-0 text-white text-opacity-0' : (i < 5 ? 'bg-primary text-white border-primary' : 'bg-light')">
-                {{ i }}
-              </div>
+        <!-- Sticky Bottom Payment -->
+        <div class="sidebar-footer p-4 border-top bg-white shadow-sm mt-auto">
+          <div class="d-flex justify-content-between align-items-end mb-4">
+            <div class="total-summary">
+                <span class="extra-small fw-bold text-muted d-block">TỔNG CẦN THU</span>
+                <h3 class="fw-bold text-danger mb-0 ls-tight fs-2">{{ totalPrice.toLocaleString() }}đ</h3>
             </div>
-          </div>
-          <div class="d-flex justify-content-center gap-3 x-small text-secondary mt-1 scale-text">
-            <div class="d-flex align-items-center gap-1"><span class="d-inline-block bg-primary rounded-1"
-                style="width: 8px; height: 8px;"></span> Đang chọn</div>
-            <div class="d-flex align-items-center gap-1"><span class="d-inline-block bg-light border rounded-1"
-                style="width: 8px; height: 8px;"></span> Trống</div>
-            <div class="d-flex align-items-center gap-1"><span
-                class="d-inline-block bg-secondary bg-opacity-25 rounded-1" style="width: 8px; height: 8px;"></span>
-              Đã bán</div>
-          </div>
-        </el-card>
-
-        <!-- Section 3: Concessions (UI label 4) -->
-        <el-card shadow="never" class="border-0 shadow-sm rounded-4 compact-card flex-shrink-0">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <label class="x-small fw-bold text-secondary text-uppercase scale-text mb-0">4. Bắp nước & Combo</label>
-            <div v-if="totalConcessionPages > 1" class="d-flex gap-1">
-              <el-button :icon="ArrowLeft" size="small" circle @click="handleConcessionPageChange(-1)"
-                :disabled="concessionPage === 1" />
-              <el-button :icon="ArrowRight" size="small" circle @click="handleConcessionPageChange(1)"
-                :disabled="concessionPage === totalConcessionPages" />
-            </div>
-          </div>
-          <div class="row g-2">
-            <div v-for="c in paginatedCombos" :key="c.id" class="col-6">
-              <!-- Actual Item -->
-              <div v-if="!c.isPlaceholder"
-                class="p-2 border rounded-3 d-flex justify-content-between align-items-center hover-bg concession-item"
-                @click="handleAddCombo(c)">
-                <div class="overflow-hidden">
-                  <div class="fw-bold small text-truncate">{{ c.name }}</div>
-                  <div class="text-secondary x-small text-truncate mb-1">{{ c.desc }}</div>
-                  <div class="text-primary fw-bold">{{ c.price.toLocaleString() }}đ</div>
-                </div>
-                <el-button :icon="ShoppingCart" size="default" circle />
-              </div>
-              <!-- Placeholder Item -->
-              <div v-else
-                class="p-2 border rounded-3 border-dashed d-flex align-items-center justify-content-center text-secondary x-small opacity-25 concession-item">
-                Khuyến mãi sắp có
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </div>
-
-      <!-- Right: Order Summary & Payment -->
-      <div class="col-lg-4 h-100 overflow-hidden d-flex flex-column">
-        <el-card shadow="never"
-          class="border-0 shadow-sm rounded-4 d-flex flex-column p-0 overflow-hidden compact-card mb-auto">
-          <div class="bg-light p-2 px-3 border-bottom flex-shrink-0">
-            <h6 class="fw-bold mb-0 x-small scale-text">Chi tiết đơn hàng</h6>
+            <div class="extra-small text-muted mb-1 text-end">Thuế & Phí<br>Đã bao gồm</div>
           </div>
 
-          <div class="p-2 d-flex flex-column overflow-hidden">
-            <div class="mb-1">
-              <div class="fw-bold x-small text-truncate">{{ selectedMovie.title }}</div>
-              <div class="x-small text-secondary" style="font-size: 0.65rem;">{{ selectedShowtime.time }} | {{
-                selectedShowtime.room }}</div>
-            </div>
-
-            <div class="border-top pt-1 mb-1  overflow-hidden">
-              <div class="d-flex justify-content-between x-small mb-1 scale-text">
-                <span>Vé xem phim ({{ selectedSeats.length }})</span>
-                <span class="fw-bold">{{ (selectedSeats.length * 95000).toLocaleString() }}đ</span>
-              </div>
-              <div class="item-list-container no-scrollbar" style="min-height: 230px;">
-                <div v-for="c in selectedCombos" :key="c.id"
-                  class="d-flex justify-content-between x-small mb-1 scale-text">
-                  <span class="text-truncate" style="max-width: 120px;">{{ c.name }} x{{ c.qty }}</span>
-                  <span class="fw-bold">{{ (c.price * c.qty).toLocaleString() }}đ</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="border-top border-dark border-1 pt-2 flex-shrink-0 mt-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="fw-bold x-small scale-text">TỔNG CỘNG</span>
-                <span class="fs-6 fw-bold text-primary">{{ totalPrice.toLocaleString() }}đ</span>
-              </div>
-            </div>
+          <div class="pay-methods-tabs d-flex gap-2 mb-3">
+            <button class="m-pay-btn flex-grow-1" :class="{ 'active': paymentMethod === 'cash' }" @click="paymentMethod = 'cash'">
+                <i class="bi bi-wallet me-2"></i>Tiền mặt
+            </button>
+            <button class="m-pay-btn flex-grow-1" :class="{ 'active': paymentMethod === 'card' }" @click="paymentMethod = 'card'">
+                <i class="bi bi-credit-card me-2"></i>Thẻ/QR
+            </button>
           </div>
 
-          <div class="p-2 px-3 bg-light border-top flex-shrink-0">
-            <label
-              class="x-small fw-bold text-secondary text-uppercase mb-1 d-block text-center scale-text">Thanh toán</label>
-            <div class="d-flex gap-2 mb-1">
-              <el-button type="primary" class="flex-grow-1" size="small" plain>TIỀN MẶT</el-button>
-              <el-button class="flex-grow-1" size="small" plain>THẺ / CHUYỂN KHOẢN</el-button>
-            </div>
-            <el-button type="success" class="btn-premium-primary w-100 py-2 fw-bold" @click="handleCheckout">
-              XÁC NHẬN THANH TOÁN
-            </el-button>
-          </div>
-        </el-card>
-      </div>
+          <el-button type="danger" class="pos-final-checkout-btn w-100 py-3 rounded-3 fw-bold shadow-lg" @click="handleCheckout">
+             <i class="bi bi-printer-fill me-2"></i>XUẤT VÉ NGAY
+          </el-button>
+        </div>
+      </aside>
     </div>
   </div>
 </template>
 
 <style scoped>
-.hover-bg {
-  cursor: pointer;
-  transition: background 0.2s;
+.pos-container-premium {
+  background-color: #f8fafc;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
 }
 
-.hover-bg:hover {
-  background-color: #f8f9fa;
+/* Nav Bar Fixes */
+.pos-navbar {
+  height: 58px;
+  z-index: 1000;
 }
 
-.shared-sales {
-  height: 100%;
-  max-height: calc(100vh - 84px);
-  position: relative;
-  overflow: hidden !important;
+.bg-danger-gradient {
+  background: linear-gradient(135deg, #e11d48, #be123c);
 }
 
-:deep(.el-card) {
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
+.logo-circle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-pill {
+  color: #94a3b8;
+  border: 1px solid transparent;
+  transition: 0.3s;
+}
+
+.step-pill.active {
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.step-pill.completed {
+  color: #10b981;
+}
+
+.step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: currentColor;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.step-path {
+  width: 20px;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+/* Sidebar & Receipt */
+.pos-sidebar-right {
+  width: 380px;
+  z-index: 50;
+}
+
+.receipt-icon-wrap {
+  width: 52px;
+  height: 52px;
+}
+
+.seat-badge-pos {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.divider-dashed { border-top: 1px dashed #e2e8f0; }
+
+/* Sections */
+.flow-card { border: 1px solid #e2e8f0; }
+
+.icon-blob {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.bg-danger-soft { background: #fff1f2; }
+.bg-primary-soft { background: #eff6ff; }
+.bg-warning-soft { background: #fffbeb; }
+
+/* Pos Select Styles */
+.pos-select :deep(.el-input__wrapper) {
+  background-color: #f1f5f9 !important;
   border-radius: 12px !important;
+  box-shadow: none !important;
   border: 1px solid #e2e8f0 !important;
 }
 
-.concession-item {
-  height: 75px;
+.pos-select :deep(.el-input__inner) {
+  font-weight: 600 !important;
+  color: #1e293b !important;
 }
 
-:deep(.el-card__body) {
-  flex: 1 !important;
-  padding: 12px 15px !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
+/* Seat Map */
+.pos-seat-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 10px;
+  max-width: 480px;
 }
 
-.seat-box {
+.pos-seat {
   width: 40px;
-  height: 40px;
-  font-size: 0.75rem;
+  height: 36px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 1.5px solid #e2e8f0;
 }
 
-.x-small {
-  font-size: 0.7rem;
+.pos-seat.available:hover {
+  background: #e2e8f0;
+  color: #64748b;
 }
 
-.no-scroll {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+.pos-seat.selected {
+  background: #e11d48;
+  border-color: #e11d48;
+  color: white;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
 }
 
-.no-scroll::-webkit-scrollbar,
-.shared-sales::-webkit-scrollbar,
-.el-card__body::-webkit-scrollbar,
-.item-list-container::-webkit-scrollbar {
-  display: none !important;
+.pos-seat.occupied {
+  background: #cbd5e1;
+  border-color: #cbd5e1;
+  color: #f8fafc;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.flex-shrink-0 {
-  flex-shrink: 0 !important;
+.screen-surface {
+  width: 80%;
+  height: 5px;
+  background: #cbd5e1;
+  margin: 0 auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
-.scale-text {
-  transform-origin: left top;
-  white-space: nowrap;
+.pos-legend .legend-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
 }
 
-.item-list-container {
-  max-height: 60px;
-  overflow: hidden;
+.pos-legend .legend-pill span {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
 }
 
-@media screen and (max-height: 700px) {
-  .seat-box {
-    width: 26px;
-    height: 26px;
-  }
+.legend-pill.selected span { background: #e11d48; }
+.legend-pill.available span { background: #f1f5f9; border: 1px solid #e2e8f0; }
+.legend-pill.occupied span { background: #cbd5e1; }
 
-  .fs-6 {
-    font-size: 0.9rem !important;
-  }
+/* Foods */
+.concession-item {
+  background: white;
+  cursor: pointer;
+}
+
+.concession-item:hover {
+  border-color: #e11d48;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+}
+
+.concession-img-box {
+  width: 60px;
+  height: 60px;
+}
+
+.add-circle-btn {
+  width: 26px;
+  height: 26px;
+  background: #e11d48;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pay Buttons */
+.m-pay-btn {
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  transition: 0.2s;
+}
+
+.m-pay-btn.active {
+  border-color: #e11d48;
+  color: #e11d48;
+  background: #fff1f2;
+}
+
+.pos-final-checkout-btn {
+  height: 56px !important;
+  font-size: 15px !important;
+  background: linear-gradient(135deg, #e11d48, #be123c) !important;
+  border: none !important;
+}
+
+/* Helpers */
+.ls-tight { letter-spacing: -0.02em; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+.thumb-mini-poster { width: 34px; height: 48px; object-fit: cover; }
+
+.extra-small { font-size: 10px !important; }
+.x-small { font-size: 12px !important; }
+
+@media screen and (max-height: 850px) {
+  .pos-container-premium { height: calc(100vh - 100px); }
+  .pos-seat { width: 36px; height: 32px; }
+  .pos-sidebar-right { width: 340px; }
 }
 </style>

@@ -51,7 +51,6 @@ public class AdNhanVienRequest {
     @NotNull(message = "Trạng thái không được để trống")
     private Integer trangThai;
 
-    @NotBlank(message = "Mật khẩu không được để trống")
-    @Size(min = 6, max = 255, message = "Mật khẩu phải từ 6 đến 255 ký tự")
+        @Size(min = 6, max = 255, message = "Mật khẩu phải từ 6 đến 255 ký tự")
     private String matKhau;
 }

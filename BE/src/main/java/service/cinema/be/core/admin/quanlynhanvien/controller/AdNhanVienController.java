@@ -24,6 +24,11 @@ public class AdNhanVienController {
         return ResponseEntity.ok(ApiResponse.success(adNhanVienService.getAll(search, idPhanQuyen, trangThai)));
     }
 
+    @GetMapping("/chuc-vu")
+    public ResponseEntity<?> getDistinctChucVu() {
+        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.getDistinctChucVu()));
+    }
+
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody AdNhanVienRequest request) {
         return ResponseEntity.ok(ApiResponse.success(adNhanVienService.create(request)));

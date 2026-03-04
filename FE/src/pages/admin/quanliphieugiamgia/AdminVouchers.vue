@@ -1,12 +1,12 @@
 <template>
   <div class="admin-vouchers-page">
     <AdminTableLayout title="Quản lý phiếu giảm giá" titleIcon="bi bi-ticket-perforated-fill"
-      addButtonLabel="Thêm Voucher" :data="vouchers" :loading="loading" :total="total" v-model:currentPage="currentPage"
+      addButtonLabel="Thêm phiếu giảm giá" :data="vouchers" :loading="loading" :total="total" v-model:currentPage="currentPage"
       v-model:pageSize="pageSize" @add-click="openDialog()" @reset-filter="resetFilter">
       <!-- Header Actions Left Slot -->
       <template #header-actions-left>
         <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
-          Xóa {{ selectedIds.length }} voucher
+          Xóa {{ selectedIds.length }} phiếu giảm giá
         </el-button>
       </template>
 
@@ -31,7 +31,7 @@
       <template #filters>
         <div class="filter-item">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterStatus" placeholder="Tất cả" style="width: 150px;" @change="fetchVouchers">
+          <el-select v-model="filterStatus" placeholder="Tất cả" @change="fetchVouchers">
             <el-option label="Tất cả" value="" />
             <el-option label="Đang hoạt động" :value="1" />
             <el-option label="Tạm ngưng" :value="0" />
@@ -39,9 +39,9 @@
           </el-select>
         </div>
 
-        <div class="filter-item flex-grow-1 search-input-wrapper">
+        <div class="filter-item search-input-wrapper">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-input v-model="searchQuery" placeholder="Nhập mã hoặc tên phiếu..." style="width: 100%;" clearable
+          <el-input v-model="searchQuery" placeholder="Nhập mã hoặc tên phiếu..." clearable
             @input="handleSearch" />
         </div>
       </template>
@@ -120,9 +120,9 @@
 
     <BaseModal
       v-model="dialogVisible"
-      :title="isReadonly ? 'Chi tiết Voucher' : (editingId ? 'Cập nhật Voucher' : 'Phát hành Voucher mới')"
+      :title="isReadonly ? 'Chi tiết phiếu giảm giá' : (editingId ? 'Cập nhật phiếu giảm giá' : 'Phát hành phiếu giảm giá mới')"
       :icon="editingId ? 'bi bi-pencil-square' : 'bi bi-ticket-perforated'"
-      width="680px"
+      width="640px"
       :confirmText="editingId ? 'CẬP NHẬT' : 'PHÁT HÀNH'"
       :loading="saving"
       @confirm="handleSubmit"
@@ -134,7 +134,11 @@
         <div class="row g-3">
           <div class="col-md-6">
             <el-form-item label="Mã Voucher" prop="maPhieuGiamGia">
-              <el-input v-model="form.maPhieuGiamGia" placeholder="VD: TET2026" :disabled="!!editingId || isReadonly" :prefix-icon="PriceTag" />
+              <el-input v-model="form.maPhieuGiamGia" placeholder="Hệ thống tự tạo..." readonly :prefix-icon="PriceTag">
+                <template #append>
+                  <el-button :icon="Refresh" @click="form.maPhieuGiamGia = generateVoucherCode()" v-if="!editingId && !isReadonly" />
+                </template>
+              </el-input>
             </el-form-item>
           </div>
           <div class="col-md-6">
@@ -143,7 +147,7 @@
             </el-form-item>
           </div>
 
-          <div class="col-md-4">
+          <div class="col-md-4" v-if="!isReadonly">
             <el-form-item label="Loại giảm giá" prop="loaiPhieu">
               <el-select v-model="form.loaiPhieu" class="w-100">
                 <template #prefix><el-icon><Opportunity /></el-icon></template>
@@ -154,28 +158,36 @@
           </div>
           <div class="col-md-4" v-if="form.loaiPhieu === 1">
             <el-form-item label="Phần trăm giảm" prop="phanTramGiamGia">
-              <el-input-number v-model="form.phanTramGiamGia" :min="1" :max="100" class="w-100" />
+              <el-input v-model.number="form.phanTramGiamGia" type="number" placeholder="0" class="w-100">
+                <template #suffix><span class="text-secondary fw-bold pe-2">%</span></template>
+              </el-input>
             </el-form-item>
           </div>
           <div class="col-md-4" v-if="form.loaiPhieu === 1">
             <el-form-item label="Giảm tối đa" prop="giamToiDa">
-              <el-input-number v-model="form.giamToiDa" :min="0" class="w-100" :step="1000" />
+              <el-input v-model.number="form.giamToiDa" type="number" placeholder="0" class="w-100">
+                <template #suffix><span class="text-secondary fw-bold pe-2">₫</span></template>
+              </el-input>
             </el-form-item>
           </div>
           <div class="col-md-8" v-if="form.loaiPhieu === 2">
             <el-form-item label="Số tiền giảm" prop="soTienGiam">
-              <el-input-number v-model="form.soTienGiam" :min="0" class="w-100" :step="1000" />
+              <el-input v-model.number="form.soTienGiam" type="number" placeholder="0" class="w-100">
+                <template #suffix><span class="text-secondary fw-bold pe-2">₫</span></template>
+              </el-input>
             </el-form-item>
           </div>
 
           <div class="col-md-4">
             <el-form-item label="Đơn tối thiểu" prop="giaTriHoaDonToiThieu">
-              <el-input-number v-model="form.giaTriHoaDonToiThieu" :min="0" class="w-100" :step="1000" />
+              <el-input v-model.number="form.giaTriHoaDonToiThieu" type="number" placeholder="0" class="w-100">
+                <template #suffix><span class="text-secondary fw-bold pe-2">₫</span></template>
+              </el-input>
             </el-form-item>
           </div>
           <div class="col-md-4">
             <el-form-item label="Số lượng" prop="soLuong">
-              <el-input-number v-model="form.soLuong" :min="1" class="w-100" />
+              <el-input v-model.number="form.soLuong" type="number" placeholder="0" class="w-100" />
             </el-form-item>
           </div>
           <div class="col-md-4">
@@ -199,6 +211,27 @@
                 value-format="YYYY-MM-DDTHH:mm:ss" :prefix-icon="Calendar" />
             </el-form-item>
           </div>
+
+          <div class="col-md-6">
+            <el-form-item label="Cộng dồn?">
+              <el-radio-group v-model="form.coChoCongDon">
+                <el-radio :value="1">Có</el-radio>
+                <el-radio :value="0">Không</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </div>
+
+          <div class="col-md-12">
+            <el-form-item label="Điều kiện áp dụng">
+              <el-input v-model="form.dieuKienApDung" type="textarea" :rows="2" placeholder="VD: Chỉ áp dụng cho phim 2D..." />
+            </el-form-item>
+          </div>
+
+          <div class="col-md-12">
+            <el-form-item label="Ghi chú">
+              <el-input v-model="form.ghiChu" type="textarea" :rows="2" placeholder="Thông tin nội bộ..." />
+            </el-form-item>
+          </div>
         </div>
       </el-form>
     </BaseModal>
@@ -210,6 +243,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { Search, Plus, Edit, Delete, View, Refresh, Ticket, PriceTag, Calendar, Opportunity, Document } from '@element-plus/icons-vue';
 import { voucherService } from '@/services/api/admin/voucherService';
 import notification from '@/utils/notifications';
+import confirmDialog from '@/utils/confirm';
 import debounce from 'lodash/debounce';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
@@ -219,7 +253,7 @@ import BaseModal from '@/components/common/BaseModal.vue';
 const voucherColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
   { label: 'MÃ GIẢM GIÁ', key: 'maPhieuGiamGia', width: '160px' },
-  { label: 'TÊN PHIẾU GIẢM GIÁ', key: 'tenPhieu', minWidth: '700px' },
+  { label: 'TÊN PHIẾU GIẢM GIÁ', key: 'tenPhieu', minWidth: '500px' },
   { label: 'ĐƠN TỐI THIỂU', key: 'giaTriHoaDonToiThieu', width: '180px' },
   { label: 'GIẢM GIÁ', key: 'loaiPhieu', width: '150px' },
   { label: 'GIẢM TỐI ĐA', key: 'giamToiDa', width: '180px' },
@@ -233,15 +267,10 @@ const selectedObjects = ref([]);
 const selectedIds = computed(() => selectedObjects.value.map(item => item.id));
 
 const handleBulkDelete = () => {
-    ElMessageBox.confirm(
+    confirmDialog.custom(
         `Xác nhận xóa <b>${selectedIds.value.length}</b> voucher đã chọn?`,
         'Xóa hàng loạt',
-        {
-            dangerouslyUseHTMLString: true,
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy',
-            type: 'warning'
-        }
+        'Đồng ý'
     ).then(async () => {
         try {
             await Promise.all(selectedIds.value.map(id => voucherService.delete(id)));
@@ -270,6 +299,15 @@ const editingId = ref(null);
 const isReadonly = ref(false);
 const formRef = ref(null);
 
+const generateVoucherCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = 'VC';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
 const handleView = (row) => {
   isReadonly.value = true;
   editingId.value = row.id;
@@ -288,6 +326,9 @@ const form = ref({
   ngayBatDau: '',
   ngayKetThuc: '',
   soLuong: 1,
+  coChoCongDon: 0,
+  dieuKienApDung: '',
+  ghiChu: '',
   trangThai: 1
 });
 
@@ -426,7 +467,7 @@ const openDialog = (row = null) => {
     form.value = { ...row };
   } else {
     form.value = {
-      maPhieuGiamGia: '',
+      maPhieuGiamGia: generateVoucherCode(),
       tenPhieu: '',
       loaiPhieu: 1,
       phanTramGiamGia: 0,
@@ -436,6 +477,9 @@ const openDialog = (row = null) => {
       ngayBatDau: '',
       ngayKetThuc: '',
       soLuong: 1,
+      coChoCongDon: 0,
+      dieuKienApDung: '',
+      ghiChu: '',
       trangThai: 1
     };
   }
@@ -448,18 +492,12 @@ const handleSubmit = async () => {
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
 
-    const actionText = editingId.value ? 'cập nhật' : 'phát hành';
-
     try {
-      await ElMessageBox.confirm(
-        `Bạn có chắc muốn ${actionText} voucher này không?`,
-        'Xác nhận thao tác',
-        {
-          confirmButtonText: 'Đồng ý',
-          cancelButtonText: 'Hủy',
-          type: 'warning'
-        }
-      );
+      if (editingId.value) {
+        await confirmDialog.update('voucher');
+      } else {
+        await confirmDialog.add('voucher');
+      }
     } catch {
       return; // bấm hủy thì dừng
     }
@@ -484,11 +522,7 @@ const handleSubmit = async () => {
   });
 };
 const handleDelete = (row) => {
-  ElMessageBox.confirm(`Xác nhận xóa voucher "${row.maPhieuGiamGia}"?`, 'Cảnh báo', {
-    confirmButtonText: 'Đồng ý',
-    cancelButtonText: 'Hủy',
-    type: 'warning'
-  }).then(async () => {
+  confirmDialog.delete('voucher', row.maPhieuGiamGia).then(async () => {
     try {
       await voucherService.delete(row.id);
       notification.deleteSuccess('voucher');

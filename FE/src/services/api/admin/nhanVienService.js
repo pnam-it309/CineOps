@@ -20,6 +20,10 @@ export const nhanVienService = {
         });
     },
 
+    getChucVu() {
+        return axios.get(`${BASE_URL}/chuc-vu`);
+    },
+
     /**
      * Lấy chi tiết nhân viên theo ID
      */

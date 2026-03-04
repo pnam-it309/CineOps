@@ -168,6 +168,9 @@ public class AdPhieuGiamGiaService {
         p.setSoLuong(request.getSoLuong());
         p.setNgayBatDau(request.getNgayBatDau());
         p.setNgayKetThuc(request.getNgayKetThuc());
+        p.setCoChoCongDon(request.getCoChoCongDon());
+        p.setDieuKienApDung(request.getDieuKienApDung());
+        p.setGhiChu(request.getGhiChu());
     }
 
     private Integer determineStatus(LocalDateTime start, LocalDateTime end) {
@@ -191,9 +194,13 @@ public class AdPhieuGiamGiaService {
                 .phanTramGiamGia(p.getPhanTramGiamGia())
                 .soTienGiam(p.getSoTienGiam())
                 .giaTriHoaDonToiThieu(p.getGiaTriHoaDonToiThieu())
+                .giamToiDa(p.getGiamToiDa())
                 .soLuong(p.getSoLuong())
                 .ngayBatDau(p.getNgayBatDau())
                 .ngayKetThuc(p.getNgayKetThuc())
+                .coChoCongDon(p.getCoChoCongDon())
+                .dieuKienApDung(p.getDieuKienApDung())
+                .ghiChu(p.getGhiChu())
                 .trangThai(p.getTrangThai())
                 .build();
     }

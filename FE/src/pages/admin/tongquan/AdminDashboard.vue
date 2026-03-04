@@ -4,7 +4,6 @@
     <div class="mb-4 d-flex justify-content-between align-items-end">
       <div>
         <h2 class="mb-1 fw-bold text-dark" style="font-size: 20px;">Tổng quan Hệ thống</h2>
-        <p class="text-secondary small mb-0">Theo dõi hoạt động kinh doanh và vận hành rạp phim</p>
       </div>
       <div class="d-flex gap-2">
         <el-button class="btn-premium-secondary" :icon="Calendar">Tháng này</el-button>
@@ -14,90 +13,95 @@
 
     <!-- Statistics Cards -->
     <div class="stats-row mb-4">
+      <!-- Total Users -->
       <div class="stat-col">
-        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-              <el-icon :size="40"><User /></el-icon>
+        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
+          <div class="d-flex align-items-start h-100">
+            <div class="stat-icon-box bg-purple-gradient text-white me-4">
+              <el-icon><User /></el-icon>
             </div>
-            <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">Tổng người dùng</p>
-              <h3 class="fs-4 fw-bold text-dark mb-1">{{ stats.totalUsers }}</h3>
-              <p class="small mb-0 text-success d-flex align-items-center gap-1">
+            <div class="stat-content flex-grow-1">
+              <span class="stat-label">Tổng người dùng</span>
+              <div class="stat-value">{{ stats.totalUsers }}</div>
+              <div class="stat-trend trend-up">
                 <el-icon><CaretTop /></el-icon>
-                12% so với tháng trước
-              </p>
+                <span>12% tháng trước</span>
+              </div>
             </div>
           </div>
         </el-card>
       </div>
 
+      <!-- Current Revenue -->
       <div class="stat-col">
-        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">
-              <el-icon :size="40"><Money /></el-icon>
+        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
+          <div class="d-flex align-items-start h-100">
+            <div class="stat-icon-box bg-green-gradient text-white me-4">
+              <el-icon><Money /></el-icon>
             </div>
-            <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">Doanh thu (Hôm nay)</p>
-              <h3 class="fs-4 fw-bold text-dark mb-1">${{ stats.revenue }}</h3>
-              <p class="small mb-0 text-success d-flex align-items-center gap-1">
+            <div class="stat-content flex-grow-1">
+              <span class="stat-label">Doanh thu hôm nay</span>
+              <div class="stat-value">${{ stats.revenue }}</div>
+              <div class="stat-trend trend-up">
                 <el-icon><CaretTop /></el-icon>
-                8% so với hôm qua
-              </p>
+                <span>8% so với hôm qua</span>
+              </div>
             </div>
           </div>
         </el-card>
       </div>
 
+      <!-- Expected Revenue -->
       <div class="stat-col">
-        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);">
-              <el-icon :size="40"><TrendCharts /></el-icon>
+        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
+          <div class="d-flex align-items-start h-100">
+            <div class="stat-icon-box bg-orange-gradient text-white me-4">
+              <el-icon><TrendCharts /></el-icon>
             </div>
-            <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">Doanh thu dự kiến</p>
-              <h3 class="fs-4 fw-bold text-dark mb-1">${{ stats.expectedRevenue }}</h3>
-              <p class="small mb-0 text-primary d-flex align-items-center gap-1">
-                <el-icon><CaretTop /></el-icon>
-                Dự báo tháng này
-              </p>
+            <div class="stat-content flex-grow-1">
+              <span class="stat-label">Doanh thu dự kiến</span>
+              <div class="stat-value">${{ stats.expectedRevenue }}</div>
+              <div class="stat-trend trend-primary">
+                <el-icon><Calendar /></el-icon>
+                <span>Dự báo tháng này</span>
+              </div>
             </div>
           </div>
         </el-card>
       </div>
 
+      <!-- Pending Tickets -->
       <div class="stat-col">
-        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
-              <el-icon :size="40"><Ticket /></el-icon>
+        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
+          <div class="d-flex align-items-start h-100">
+            <div class="stat-icon-box bg-peach-gradient text-white me-4">
+              <el-icon><Ticket /></el-icon>
             </div>
-            <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">Vé đang chờ</p>
-              <h3 class="fs-4 fw-bold text-dark mb-1">{{ stats.pendingTickets }}</h3>
-              <p class="small mb-0 text-warning d-flex align-items-center gap-1">
-                <el-icon><CaretBottom /></el-icon>
-                3 mục cần chú ý
-              </p>
+            <div class="stat-content flex-grow-1">
+              <span class="stat-label">Vé đang chờ</span>
+              <div class="stat-value">{{ stats.pendingTickets }}</div>
+              <div class="stat-trend trend-warning">
+                <el-icon><Warning /></el-icon>
+                <span>3 mục cần chú ý</span>
+              </div>
             </div>
           </div>
         </el-card>
       </div>
 
+      <!-- System Issues -->
       <div class="stat-col">
-        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-3 d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 70px; height: 70px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
-              <el-icon :size="40"><Warning /></el-icon>
+        <el-card shadow="hover" class="h-100 border-0 shadow-sm card-hover-effect stat-card-premium">
+          <div class="d-flex align-items-start h-100">
+            <div class="stat-icon-box bg-red-gradient text-white me-4">
+              <el-icon><Warning /></el-icon>
             </div>
-            <div class="flex-grow-1">
-              <p class="text-secondary small mb-1">Vấn đề hệ thống</p>
-              <h3 class="fs-4 fw-bold text-dark mb-1">{{ stats.issues }}</h3>
-              <p class="small mb-0 text-danger">
-                Yêu cầu xử lý ngay
-              </p>
+            <div class="stat-content flex-grow-1">
+              <span class="stat-label">Lỗi hệ thống</span>
+              <div class="stat-value text-danger">{{ stats.issues }}</div>
+              <div class="stat-trend trend-danger">
+                <span>Yêu cầu xử lý ngay</span>
+              </div>
             </div>
           </div>
         </el-card>
@@ -332,65 +336,90 @@ const handleAction = (action) => {
 </script>
 
 <style scoped>
+.stat-card-premium {
+  border-radius: 16px !important;
+  background: #ffffff;
+}
+
+.stat-icon-box {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+/* Gradients */
+.bg-purple-gradient { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
+.bg-green-gradient { background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); }
+.bg-orange-gradient { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); }
+.bg-peach-gradient { background: linear-gradient(135deg, #fb923c 0%, #f472b6 100%); }
+.bg-red-gradient { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); }
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+  overflow: hidden;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trend-up { color: #10b981; }
+.trend-down { color: #ef4444; }
+.trend-primary { color: #6366f1; }
+.trend-warning { color: #f59e0b; }
+.trend-danger { color: #ef4444; }
+
 .card-hover-effect {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-hover-effect:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15) !important;
 }
 
 .stats-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 16px;
 }
 
 .stat-col {
   flex: 1 1 0;
-  min-width: 220px;
+  min-width: 200px;
 }
 
 .custom-btn-start {
   justify-content: flex-start !important;
   padding-left: 20px !important;
   height: 52px !important;
-}
-
-.custom-btn-start :deep(> span) {
-  display: flex !important;
-  align-items: center !important;
-  width: 100% !important;
-}
-
-.btn-icon-wrapper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  min-width: 28px;
-  height: 28px;
-  margin-right: 10px;
-}
-
-.btn-label {
-  text-align: left;
-}
-
-.bar-hover:hover {
-  background-color: var(--el-color-primary) !important;
-}
-.bar-hover:hover .bar-tooltip {
-  opacity: 1 !important;
-}
-.bar-tooltip {
-  transition: opacity 0.2s ease;
-}
-
-.table th {
-  border-top: none;
-}
-.backdrop-blur {
-  backdrop-filter: blur(10px);
 }
 </style>

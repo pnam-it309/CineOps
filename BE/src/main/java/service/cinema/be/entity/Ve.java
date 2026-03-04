@@ -14,8 +14,16 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "ve")
+@Table(name = "ve", uniqueConstraints = {
+    // Chống double booking: cùng ghế + cùng suất chiếu không thể có 2 vé active
+    @UniqueConstraint(name = "uk_ve_ghe_suat", columnNames = {"id_ghe", "id_suat_chieu"})
+})
 public class Ve extends PrimaryEntity {
+
+    // Optimistic Lock — chống race condition khi 2 request cùng lúc
+    @Version
+    @Column(name = "version")
+    private Integer version;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_loai_khach_hang")

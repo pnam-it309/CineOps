@@ -80,12 +80,12 @@ const handleGoogleLogin = () => {
           </div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-4 text-white small px-1">
-          <div class="form-check m-0">
-            <input class="form-check-input bg-transparent border-white" type="checkbox" id="rememberMe">
-            <label class="form-check-label" for="rememberMe">Ghi nhớ tôi</label>
+        <div class="d-flex justify-content-between align-items-center mb-4 text-white small px-1 flex-nowrap gap-3">
+          <div class="form-check m-0 p-0 d-flex align-items-center">
+            <input class="form-check-input bg-transparent border-white m-0 me-2" type="checkbox" id="rememberMe">
+            <label class="form-check-label text-nowrap cursor-pointer" for="rememberMe">Ghi nhớ tôi</label>
           </div>
-          <a href="#" class="text-white text-decoration-none hover-underline">Quên mật khẩu?</a>
+          <a href="#" class="text-white text-decoration-none hover-underline text-nowrap">Quên mật khẩu?</a>
         </div>
 
         <div v-if="error" class="alert alert-danger py-2 mb-3 small opacity-90">{{ error }}</div>

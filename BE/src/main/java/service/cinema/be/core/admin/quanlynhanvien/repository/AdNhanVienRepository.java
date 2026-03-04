@@ -42,4 +42,7 @@ public interface AdNhanVienRepository extends NhanVienRepository {
     // Kiểm tra trùng lặp CCCD
     boolean existsByCccd(String cccd);
     boolean existsByCccdAndIdNot(String cccd, String id);
+
+    @Query("SELECT DISTINCT n.chucVu FROM NhanVien n WHERE n.chucVu IS NOT NULL AND TRIM(n.chucVu) <> ''")
+    List<String> findDistinctChucVu();
 }

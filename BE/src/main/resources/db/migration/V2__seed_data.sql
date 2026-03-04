@@ -59,186 +59,189 @@ VALUES ('kg-01-uuid', 'Sáng sớm', '08:00:00', '10:30:00', 'system'),
        ('kg-05-uuid', 'Khuya', '21:30:00', '23:59:00', 'system');
 
 -- 5. PHIM
-INSERT INTO phim (id, ten_phim, thoi_luong, ngay_khoi_chieu, ngay_ket_thuc, lich_chieu,
+INSERT INTO phim (id, ten_phim, ma_phim, thoi_luong, ngay_khoi_chieu, ngay_ket_thuc, lich_chieu,
                   mo_ta, trailer, poster, ngon_ngu, do_tuoi,
-                  danh_gia, gia_phim, trang_thai, nguoi_tao)
+                  danh_gia, gia_phim, loai_phim, phu_phi_loai_phim, trang_thai, nguoi_tao)
 VALUES
 
--- ===== 15 PHIM ĐANG CHIẾU / SẮP CHIẾU (GIỐNG RẠP)
-('P1', 'Thỏ Ơi!!', 95, '2025-02-01', '2025-03-30', '2,4,6,0',
+-- ===== 15 PHIM ĐANG CHIếu / SắP CHIếu (GIỐNG RẠP)
+('P1', 'Thỏ Ơi!!', 'P001', 95, '2025-02-01', '2025-03-30', '2,4,6,0',
  'Phim hoạt hình thiếu nhi vui nhộn',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://image.tmdb.org/t/p/w500/gRApXuxWmO2forYTuTmcz5RaNUV.jpg',
- 'Tiếng Việt', 0, 8.5, 65000, 1, 'admin'),
+ 'Tiếng Việt', 0, 8.5, 65000, '2D', 0, 1, 'admin'),
 
-('P2', 'Mùi Phở', 110, '2025-02-10', '2025-04-01', '1,2,3,4',
+('P2', 'Mùi Phở', 'P002', 110, '2025-02-10', '2025-04-01', '1,2,3,4',
  'Phim Việt về văn hóa ẩm thực',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
- 'Tiếng Việt', 13, 8.0, 65000, 1, 'admin'),
+ 'Tiếng Việt', 13, 8.0, 65000, '2D', 0, 1, 'admin'),
 
-('P3', 'Tài', 105, '2025-02-05', '2025-03-25', '2,3,4,5,6',
+('P3', 'Tài', 'P003', 105, '2025-02-05', '2025-03-25', '2,3,4,5,6',
  'Phim tâm lý xã hội',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg',
- 'Tiếng Việt', 16, 7.8, 65000, 1, 'admin'),
+ 'Tiếng Việt', 16, 7.8, 65000, '2D', 0, 1, 'admin'),
 
-('P4', 'Quỷ Nhập Tràng 2', 120, '2025-02-15', '2025-04-10', '4,6,0,1,2',
+('P4', 'Quỷ Nhập Tràng 2', 'P004', 120, '2025-02-15', '2025-04-10', '4,6,0,1,2',
  'Phim kinh dị Việt Nam',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://image.tmdb.org/t/p/w500/A4j8S6moJS2zNtRR8oWF08gRnL5.jpg',
- 'Tiếng Việt', 18, 8.7, 65000, 1, 'admin'),
+ 'Tiếng Việt', 18, 8.7, 65000, '2D', 0, 1, 'admin'),
 
-('P5', 'Avatar: Lửa và Tro Tàn', 165, '2025-12-20', '2026-02-01', '4,5,6,0,1',
+-- Phim bảm tấc IMAX: phụ phí +50,000đ
+('P5', 'Avatar: Lửa và Tro Tàn', 'P005', 165, '2025-12-20', '2026-02-01', '4,5,6,0,1',
  'Bom tấn khoa học viễn tưởng',
  'https://www.youtube.com/watch?v=5PSNL1qE6VY',
  'https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg',
- 'Tiếng Anh', 13, 9.2, 65000, 2, 'admin'),
+ 'Tiếng Anh', 13, 9.2, 65000, 'IMAX', 50000, 2, 'admin'),
 
-('P6', 'Khủng Long Đón Tết', 100, '2025-01-20', '2025-03-01', '2,3,4,5,6',
+('P6', 'Khủng Long Đón Tết', 'P006', 100, '2025-01-20', '2025-03-01', '2,3,4,5,6',
  'Hoạt hình gia đình dịp Tết',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://upload.wikimedia.org/wikipedia/commons/6/6e/Dinosaur_icon.png',
- 'Tiếng Việt', 0, 8.3, 65000, 1, 'admin'),
+ 'Tiếng Việt', 0, 8.3, 65000, '2D', 0, 1, 'admin'),
 
-('P7', 'Tuyển Thủ Dê', 98, '2025-03-01', '2025-04-15', '0,1,2,3',
+('P7', 'Tuyển Thủ Dê', 'P007', 98, '2025-03-01', '2025-04-15', '0,1,2,3',
  'Phim hoạt hình thể thao',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://image.tmdb.org/t/p/w500/sLjBuNcpyYSaeXpOREBJlIUElEX.jpg',
- 'Tiếng Việt', 7, 7.9, 65000, 2, 'admin'),
+ 'Tiếng Việt', 7, 7.9, 65000, '2D', 0, 2, 'admin'),
 
-('P8', 'Doraemon Movie', 105, '2025-02-18', '2025-04-20', '',
+('P8', 'Doraemon Movie', 'P008', 105, '2025-02-18', '2025-04-20', '',
  'Phim hoạt hình Nhật Bản',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://image.tmdb.org/t/p/w500/oT3YgMdKGThPboY6sNTgfHezBQv.jpg',
- 'Tiếng Nhật', 0, 8.8, 65000, 1, 'admin'),
+ 'Tiếng Nhật', 0, 8.8, 65000, '2D', 0, 1, 'admin'),
 
-('P9', 'Conan Movie', 110, '2025-03-10', '2025-05-01', '',
+('P9', 'Conan Movie', 'P009', 110, '2025-03-10', '2025-05-01', '',
  'Thám tử lừng danh Conan movie',
 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://image.tmdb.org/t/p/w500/zN41DPmFcKyDcRUiXMDl8yTYolk.jpg',
- 'Tiếng Nhật', 13, 8.9, 65000, 2, 'admin'),
+ 'Tiếng Nhật', 13, 8.9, 65000, '2D', 0, 2, 'admin'),
 
-('P10', 'One Piece Film', 120, '2025-04-01', '2025-06-01', '1,3,5,0',
- 'Phiêu lưu hải tặc',
+('P10', 'One Piece Film', 'P010', 120, '2025-04-01', '2025-06-01', '1,3,5,0',
+ 'Phiêu lưu hải tầc',
  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'https://image.tmdb.org/t/p/w500/cezWGskPYx7GaglTTRN4Fugivo.jpg',
- 'Tiếng Nhật', 13, 9.0, 65000, 2, 'admin'),
+ 'Tiếng Nhật', 13, 9.0, 65000, '2D', 0, 2, 'admin'),
 
--- ===== 10 PHIM HOLLYWOOD (ĐANG CHIẾU MOCK)
-('P11', 'Fast & Furious 10', 140, '2024-12-01', '2025-03-01', '4,6',
+-- ===== 10 PHIM HOLLYWOOD
+('P11', 'Fast & Furious 10', 'P011', 140, '2024-12-01', '2025-03-01', '4,6',
  'Phim đua xe hành động',
  'https://www.youtube.com/watch?v=32RAq6JzY-w',
  'https://image.tmdb.org/t/p/w500/fiVW06jE7z9F3FaNBaWZxROCPzC.jpg',
- 'Tiếng Anh', 16, 8.1, 65000, 1, 'admin'),
+ 'Tiếng Anh', 16, 8.1, 65000, '2D', 0, 1, 'admin'),
 
-('P12', 'Spider-Man: New World', 130, '2025-01-05', '2025-04-01', '1,3',
+('P12', 'Spider-Man: New World', 'P012', 130, '2025-01-05', '2025-04-01', '1,3',
  'Siêu anh hùng Marvel',
  'https://www.youtube.com/watch?v=JfVOs4VSpmA',
  'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg',
- 'Tiếng Anh', 13, 9.1, 65000, 1, 'admin'),
+ 'Tiếng Anh', 13, 9.1, 65000, '3D', 30000, 1, 'admin'),
 
-('P13', 'Frozen 3', 115, '2025-06-01', '2025-08-01', '0,1',
+('P13', 'Frozen 3', 'P013', 115, '2025-06-01', '2025-08-01', '0,1',
  'Hoạt hình Disney',
  'https://www.youtube.com/watch?v=TbQm5doF_Uc',
  'https://image.tmdb.org/t/p/w500/kgwjIb2JDHRhNk13lmSxiClFjVk.jpg',
- 'Tiếng Anh', 0, 8.6, 65000, 2, 'admin'),
+ 'Tiếng Anh', 0, 8.6, 65000, '2D', 0, 2, 'admin'),
 
-('P14', 'The Nun 3', 120, '2025-03-20', '2025-05-15', '2,4,6',
+('P14', 'The Nun 3', 'P014', 120, '2025-03-20', '2025-05-15', '2,4,6',
  'Phim kinh dị Hollywood',
  'https://www.youtube.com/watch?v=QF-oyCwaArU',
  'https://image.tmdb.org/t/p/w500/wodVhIn5KbpVojhKeMnzmIfmWiU.jpg',
- 'Tiếng Anh', 18, 7.5, 65000, 2, 'admin'),
+ 'Tiếng Anh', 18, 7.5, 65000, '2D', 0, 2, 'admin'),
 
-('P15', 'Joker 2', 135, '2025-10-01', '2025-12-01', '3,5,0',
+('P15', 'Joker 2', 'P015', 135, '2025-10-01', '2025-12-01', '3,5,0',
  'Tâm lý tội phạm',
  'https://www.youtube.com/watch?v=zAGVQLHvwOY',
  'https://image.tmdb.org/t/p/w500/sc0YGSB4TJl3xkqzjSVEJCFWfVH.jpg',
- 'Tiếng Anh', 18, 9.3, 65000, 2, 'admin'),
+ 'Tiếng Anh', 18, 9.3, 65000, '2D', 0, 2, 'admin'),
 
--- ===== 15 PHIM NGỪNG CHIẾU (DATA LỊCH SỬ)
-('P16', 'Avengers: Endgame', 180, '2019-04-26', '2019-07-01', '',
+-- ===== 15 PHIM NGỮNG CHIếu (DATA LỊCH SỬ)
+('P16', 'Avengers: Endgame', 'P016', 180, '2019-04-26', '2019-07-01', '',
  'Siêu anh hùng Marvel',
  'https://www.youtube.com/watch?v=TcMBFSGVi1c',
  'https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg',
- 'Tiếng Anh', 13, 9.5, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 9.5, 65000, 'IMAX', 50000, 0, 'admin'),
 
-('P17', 'Titanic', 195, '1997-12-19', '1998-06-01', '',
- 'Phim tình cảm kinh điển',
+('P17', 'Titanic', 'P017', 195, '1997-12-19', '1998-06-01', '',
+ 'Phim tình cảm kiền điển',
  'https://www.youtube.com/watch?v=2e-eXJ6HgkQ',
  'https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg',
- 'Tiếng Anh', 13, 9.0, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 9.0, 65000, '2D', 0, 0, 'admin'),
 
-('P18', 'Interstellar', 169, '2014-11-07', '2015-02-01', '',
+('P18', 'Interstellar', 'P018', 169, '2014-11-07', '2015-02-01', '',
  'Du hành vũ trụ',
  'https://www.youtube.com/watch?v=zSWdZVtXT7E',
  'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
- 'Tiếng Anh', 13, 9.4, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 9.4, 65000, 'IMAX', 50000, 0, 'admin'),
 
-('P19', 'The Lion King', 118, '2019-07-19', '2019-10-01', '',
+('P19', 'The Lion King', 'P019', 118, '2019-07-19', '2019-10-01', '',
  'Hoạt hình Disney',
 'https://www.youtube.com/watch?v=7TavVZMewpY',
  'https://image.tmdb.org/t/p/w500/sCanFr3dvkGOAMq5FzwLmECNAHr.jpg',
- 'Tiếng Anh', 0, 8.5, 65000, 0, 'admin'),
+ 'Tiếng Anh', 0, 8.5, 65000, '2D', 0, 0, 'admin'),
 
-('P20', 'Minions', 91, '2015-07-10', '2015-10-01', '',
+('P20', 'Minions', 'P020', 91, '2015-07-10', '2015-10-01', '',
  'Hoạt hình hài',
  'https://www.youtube.com/watch?v=eisKxhjBnZ0',
  'https://image.tmdb.org/t/p/w500/2LqaLgk4Z226KkgPJuiOQ58ShKD.jpg',
- 'Tiếng Anh', 0, 8.2, 65000, 0, 'admin'),
+ 'Tiếng Anh', 0, 8.2, 65000, '2D', 0, 0, 'admin'),
 
-('P21', 'Transformers', 144, '2007-07-03', '2007-10-01', '',
+('P21', 'Transformers', 'P021', 144, '2007-07-03', '2007-10-01', '',
  'Robot hành động',
  'https://www.youtube.com/watch?v=v8ItGrI-Ou0',
  'https://image.tmdb.org/t/p/w500/7cqKGQMnNabzOpi7qaIgZvQ7NGV.jpg',
- 'Tiếng Anh', 13, 8.0, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 8.0, 65000, '2D', 0, 0, 'admin'),
 
-('P22', 'Jurassic World', 124, '2015-06-12', '2015-09-01', '',
+('P22', 'Jurassic World', 'P022', 124, '2015-06-12', '2015-09-01', '',
  'Khủng long phiêu lưu',
  'https://www.youtube.com/watch?v=RFinNxS5KN4',
  'https://image.tmdb.org/t/p/w500/dkMD5qlogeRMiEixC4YNPUvax2T.jpg',
- 'Tiếng Anh', 13, 8.3, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 8.3, 65000, '2D', 0, 0, 'admin'),
 
-('P23', 'Frozen', 102, '2013-11-27', '2014-03-01', '',
+('P23', 'Frozen', 'P023', 102, '2013-11-27', '2014-03-01', '',
  'Công chúa băng giá',
  'https://www.youtube.com/watch?v=TbQm5doF_Uc',
  'https://image.tmdb.org/t/p/w500/kgwjIb2JDHRhNk13lmSxiClFjVk.jpg' ,
- 'Tiếng Anh', 0, 8.7, 65000, 0, 'admin'),
+ 'Tiếng Anh', 0, 8.7, 65000, '2D', 0, 0, 'admin'),
 
-('P24', 'Inception', 148, '2010-07-16', '2010-10-01', '',
+('P24', 'Inception', 'P024', 148, '2010-07-16', '2010-10-01', '',
  'Giấc mơ tầng sâu',
  'https://www.youtube.com/watch?v=YoHD9XEInc0',
  'https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
- 'Tiếng Anh', 13, 9.2, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 9.2, 65000, 'IMAX', 50000, 0, 'admin'),
 
-('P25', 'Doctor Strange', 115, '2016-11-04', '2017-02-01', '',
+('P25', 'Doctor Strange', 'P025', 115, '2016-11-04', '2017-02-01', '',
  'Pháp sư tối thượng',
  'https://www.youtube.com/watch?v=HSzx-zryEgM',
  'https://image.tmdb.org/t/p/w500/uGy4DCmgj5G40Mq0FgOUT94b1oA.jpg',
- 'Tiếng Anh', 13, 8.6, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 8.6, 65000, '2D', 0, 0, 'admin'),
 
-('P26', 'Aquaman', 143, '2018-12-21', '2019-03-01', '',
+('P26', 'Aquaman', 'P026', 143, '2018-12-21', '2019-03-01', '',
  'Anh hùng đại dương',
  'https://www.youtube.com/watch?v=WDkg3h8PCVU',
  'https://image.tmdb.org/t/p/w500/2wurSpMJ85WRoX0gJMoG3BKs5oc.jpg',
- 'Tiếng Anh', 13, 8.1, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 8.1, 65000, '2D', 0, 0, 'admin'),
 
-('P27', 'Black Panther', 134, '2018-02-16', '2018-05-01', '',
+('P27', 'Black Panther', 'P027', 134, '2018-02-16', '2018-05-01', '',
  'Vua Wakanda',
  'https://www.youtube.com/watch?v=xjDjIWPwcPU',
  'https://image.tmdb.org/t/p/w500/uxzzxijgPIY7slzFvMotPv8wjKA.jpg',
- 'Tiếng Anh', 13, 8.8, 65000, 0, 'admin'),
+ 'Tiếng Anh', 13, 8.8, 65000, '2D', 0, 0, 'admin'),
 
-('P28', 'Aladdin', 128, '2019-05-24', '2019-08-01', '0,1,2,3,4',
+('P28', 'Aladdin', 'P028', 128, '2019-05-24', '2019-08-01', '0,1,2,3,4',
  'Phim phiêu lưu kỳ ảo',
  'https://www.youtube.com/watch?v=wmiIUN-7qhE',
  'https://image.tmdb.org/t/p/w500/w9kR8qbmQ01HwnvK4alvnQ2ca0L.jpg',
- 'Tiếng Anh', 0, 8.9, 65000, 0, 'admin'),
-('P30', 'Kung Fu Panda', 95, '2008-06-06', '2008-09-01', '1,3,5,6',
+ 'Tiếng Anh', 0, 8.9, 65000, '2D', 0, 0, 'admin'),
+
+('P30', 'Kung Fu Panda', 'P030', 95, '2008-06-06', '2008-09-01', '1,3,5,6',
  'Hoạt hình võ thuật',
  'https://www.youtube.com/watch?v=PXi3Mv6KMzY',
  'https://image.tmdb.org/t/p/w500/wWt5JEXUIhFBMVMDruAzBwlSMhc.jpg',
- 'Tiếng Anh', 0, 8.8, 65000, 0, 'admin');
+ 'Tiếng Anh', 0, 8.8, 65000, '2D', 0, 0, 'admin');
+
 
 -- 6. SUẤT CHIẾU
 INSERT INTO suat_chieu (id, id_khung_gio, id_phong_chieu, id_phim, ngay_chieu, so_ghe_trong, trang_thai, nguoi_tao) VALUES 
@@ -518,13 +521,13 @@ INSERT INTO suat_chieu (id, id_khung_gio, id_phong_chieu, id_phim, ngay_chieu, s
 -- =================================================================
 -- 22. TẠO HÓA ĐƠN & GIAO DỊCH MẪU (Để xem được trên màn hình Vue 3)
 -- =================================================================
--- a. Tạo 1 Vé (Dùng subquery để dò tìm đúng cái UUID() của ghế A1)
-INSERT INTO ve (id, id_loai_khach_hang, id_ghe, id_suat_chieu, ma_ve, gia_thanh_toan, loai_ve, trang_thai) VALUES
-                                                                                                               ('ve-001', 'lkh-member-uuid', (SELECT id FROM ghe WHERE so_ghe = 'A1' AND id_phong_chieu = 'pc-001-uuid-001' LIMIT 1), 'sc-fix-001', 'VE-001', 65000, 0, 1);
+-- a. Tạo 1 Vé (Đã thanh toán, version=0)
+INSERT INTO ve (id, id_loai_khach_hang, id_ghe, id_suat_chieu, ma_ve, gia_thanh_toan, loai_ve, trang_thai, version) VALUES
+                                                                                                               ('ve-001', 'lkh-member-uuid', (SELECT id FROM ghe WHERE so_ghe = 'A1' AND id_phong_chieu = 'pc-001-uuid-001' LIMIT 1), 'sc-fix-001', 'VE-001', 65000, 0, 1, 0);
 
--- b. Tạo Hóa Đơn (Mua 1 vé phim 65K + 1 Bắp Phô Mai M giá 49K = 114,000đ)
-INSERT INTO hoa_don (id, id_nhan_vien, id_khach_hang, ma_hoa_don, tong_tien, so_tien_giam, tong_tien_thanh_toan, phuong_thuc_thanh_toan, trang_thai) VALUES
-    ('hd-001', 'nv-staff', 'kh-001-uuid', 'HD-1700000000', 114000, 0, 114000, 1, 1);
+-- b. Tạo Hóa Đơn đã thanh toán (trang_thai=1, thoi_gian_het_han=NULL vì đã xong)
+INSERT INTO hoa_don (id, id_nhan_vien, id_khach_hang, ma_hoa_don, tong_tien, so_tien_giam, tong_tien_thanh_toan, phuong_thuc_thanh_toan, trang_thai, thoi_gian_het_han) VALUES
+    ('hd-001', 'nv-staff', 'kh-001-uuid', 'HD-1700000000', 114000, 0, 114000, 1, 1, NULL);
 
 -- c. Tạo Chi tiết Hóa Đơn (1 dòng vé phim, 1 dòng bắp)
 INSERT INTO hoa_don_chi_tiet (id, id_hoa_don, id_ve, loai, so_luong, don_gia, thanh_tien) VALUES

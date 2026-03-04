@@ -16,6 +16,8 @@ public class AdPhimRequest {
     @Size(max = 255, message = "Tên phim tối đa 255 kí tự")
     private String tenPhim;
 
+    private String maPhim;
+
     @NotNull(message = "Thời lượng không được để trống!")
     @Min(value = 1, message = "thời lượng phải lớn hơn 0.")
     private Integer thoiLuong;
@@ -53,6 +55,12 @@ public class AdPhimRequest {
     @NotNull(message = "Giá vé gốc không được để trống!")
     @DecimalMin(value = "0.0", inclusive = false, message = "Giá vé gốc phải lớn hơn 0.")
     private BigDecimal giaPhim;
+
+    // Fix #8 — Định dạng phim: "2D", "3D", "IMAX", "4DX"
+    private String loaiPhim = "2D";
+
+    // Phụ phí theo định dạng (3D = +30000đ, IMAX = +50000đ, 2D = 0)
+    private java.math.BigDecimal phuPhiLoaiPhim = java.math.BigDecimal.ZERO;
 
     private Integer trangThai = 1;
 

@@ -14,6 +14,7 @@ import java.util.List;
 public class AdPhimResponse {
     private String id;
     private String tenPhim;
+    private String maPhim;
     private Integer thoiLuong;
     private LocalDate ngayKhoiChieu;
     private LocalDate ngayKetThuc;
@@ -27,4 +28,9 @@ public class AdPhimResponse {
     private BigDecimal giaPhim;
     private Integer trangThai;
     private List<AdTheLoaiResponse> theLoais;
+
+    private Long ngayTao;
+    private String nguoiTao;
+    private Long ngayCapNhat;
+    private String nguoiCapNhat;
 }

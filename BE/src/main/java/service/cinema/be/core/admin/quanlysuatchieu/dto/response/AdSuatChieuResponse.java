@@ -20,8 +20,12 @@ public class AdSuatChieuResponse {
     private String idPhim;
     private String tenPhim;
     private String poster;
+    private Integer thoiLuong;
     private String idPhongChieu;
     private String tenPhongChieu;
+    private String loaiManHinh;
+    private String loaiPhim; 
+    private Integer soGheTrong;
     private String idKhungGio;
     private String tenKhungGio;
 }

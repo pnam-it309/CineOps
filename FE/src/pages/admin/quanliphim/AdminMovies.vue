@@ -6,6 +6,7 @@
   import AdminTableLayout from '@/components/AdminTableLayout.vue';
   import BaseModal from '@/components/common/BaseModal.vue';
   import notification from '@/utils/notifications';
+  import confirmDialog from '@/utils/confirm';
   import { 
     Tickets, 
     Files, 
@@ -69,6 +70,15 @@
   const editingMovie = ref(null);
   const selectedMovie = ref(null);
 
+  const generateMovieCode = () => {
+    const chars = '0123456789';
+    let code = 'MP-';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
   const defaultForm = () => ({
     tenPhim: '', thoiLuong: 120,
     ngayKhoiChieu: '', ngayKetThuc: '',
@@ -76,7 +86,8 @@
     idTheLoais: [],
     giaPhim: null, trangThai: 1,
     poster: '', trailer: '', moTa: '',
-    ngonNgu: '', doTuoi: 0, danhGia: 0
+    ngonNgu: '', doTuoi: 0, danhGia: 0,
+    maPhim: generateMovieCode(), loaiPhim: '', phuPhiLoaiPhim: 0
   });
   const movieForm = ref(defaultForm());
   const selectedPhim = ref([]);
@@ -100,15 +111,10 @@
       const count = selection.length;
       const label = isPhim ? 'phim' : 'lịch chiếu';
       
-      ElMessageBox.confirm(
+      confirmDialog.custom(
           `Xác nhận xóa <b>${count}</b> ${label} đã chọn?`,
           'Xóa hàng loạt',
-          {
-              dangerouslyUseHTMLString: true,
-              confirmButtonText: 'Đồng ý',
-              cancelButtonText: 'Hủy',
-              type: 'warning'
-          }
+          'Đồng ý'
       ).then(async () => {
           try {
               await Promise.all(selection.map(item => phimApi.delete(item.id)));
@@ -161,6 +167,19 @@
       if (dates.length >= 5) break;
     }
     return dates;
+  };
+
+  const formatPrice = (v) => new Intl.NumberFormat('vi-VN').format(v || 0);
+  const formatDate = (d) => {
+    if (!d) return '---';
+    try {
+      return new Date(d).toLocaleString('vi-VN', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    } catch (e) {
+      return '---';
+    }
   };
 
   // ==================== API ====================
@@ -250,6 +269,12 @@
       notification.error('Ngày kết thúc phải sau ngày khởi chiếu!');
       return;
     }
+    
+    try {
+      if (editingMovie.value) await confirmDialog.update('phim');
+      else await confirmDialog.add('phim');
+    } catch { return; }
+
     try {
       // ✅ FIX: convert array lichChieu → string trước khi gửi BE
       const payload = {
@@ -277,9 +302,7 @@
   };
 
   const handleDelete = (row) => {
-    ElMessageBox.confirm(`Xác nhận xóa phim "${row.tenPhim}"?`, 'Cảnh báo', {
-      type: 'warning', confirmButtonText: 'Xóa', confirmButtonClass: 'el-button--danger'
-    }).then(async () => {
+    confirmDialog.delete('phim', row.tenPhim).then(async () => {
       await phimApi.delete(row.id);
       notification.deleteSuccess('phim');
       fetchMovies();
@@ -311,6 +334,11 @@
       notification.error('Ngày kết thúc phải sau ngày khởi chiếu!');
       return;
     }
+    
+    try {
+      await confirmDialog.update('lịch chiếu');
+    } catch { return; }
+
     try {
       const payload = {
         ...selectedMovie.value,
@@ -361,26 +389,28 @@
   // ==================== COLUMNS ====================
   const tableColumnsPhim = [
     {label: 'STT', key: 'stt', width: '70px'},
+    {label: 'MÃ PHIM', key: 'maPhim', width: '120px'},
     {label: 'POSTER', key: 'poster', width: '80px'},
-    {label: 'TÊN PHIM', key: 'tenPhim', minWidth: '500px'},
+    {label: 'TÊN PHIM', key: 'tenPhim', minWidth: '350px'},
     {label: 'ĐÁNH GIÁ', key: 'danhGia', width: '130px'},
-    {label: 'THỂ LOẠI', key: 'theLoais', width: '450px'},
+    {label: 'THỂ LOẠI', key: 'theLoais', width: '600px'},
     {label: 'THỜI LƯỢNG', key: 'thoiLuong', width: '160px'},
     {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '180px'},
     {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '180px'},
-    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '220px'},
-    {label: 'GIÁ PHIM', key: 'giaPhim', width: '180px'},
-    {label: 'TRẠNG THÁI', key: 'trangThai', width: '200px'},
+    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '280px'},
+    {label: 'GIÁ PHIM', key: 'giaPhim', width: '150px'},
+    {label: 'NGÀY TẠO', key: 'ngayTao', width: '180px'},
+    {label: 'TRẠNG THÁI', key: 'trangThai', width: '180px'},
   ];
 
   const tableColumnsLC = [
     {label: 'STT', key: 'stt', width: '70px'},
     {label: 'POSTER', key: 'poster', width: '80px'},
     {label: 'TÊN PHIM', key: 'tenPhim', minWidth: '500px'},
-    {label: 'THỂ LOẠI', key: 'theLoais', width: '450px'},
+    {label: 'THỂ LOẠI', key: 'theLoais', width: '550px'},
     {label: 'NGÀY BẮT ĐẦU', key: 'ngayKhoiChieu', width: '180px'},
     {label: 'NGÀY KẾT THÚC', key: 'ngayKetThuc', width: '180px'},
-    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '250px'},
+    {label: 'LỊCH CHIẾU', key: 'lichChieu', width: '350px'},
     {label: 'TRẠNG THÁI', key: 'trangThai', width: '150px'},
   ];
   </script>
@@ -426,14 +456,14 @@
         <template #filters>
           <!-- Phim Filters -->
           <template v-if="activeTab === 'phim'">
-            <div class="filter-item flex-grow-1" style="max-width:350px;">
+            <div class="filter-item">
               <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
               <el-input v-model="searchQuery" placeholder="Nhập tên phim..." :prefix-icon="Search" clearable
                           @keyup.enter="fetchMovies"/>
             </div>
             <div class="filter-item">
               <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-              <el-select v-model="statusFilter" placeholder="Tất cả trạng thái" clearable style="width:160px;"
+              <el-select v-model="statusFilter" placeholder="Tất cả trạng thái" clearable
                           @change="fetchMovies">
                   <el-option label="Đang chiếu" :value="1"/>
                   <el-option label="Sắp chiếu" :value="2"/>
@@ -442,7 +472,7 @@
             </div>
             <div class="filter-item">
               <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-              <el-select v-model="genreFilter" placeholder="Chọn thể loại" clearable style="width:180px;"
+              <el-select v-model="genreFilter" placeholder="Chọn thể loại" clearable
                           @change="fetchMovies">
                   <el-option v-for="g in genreOptions" :key="g.id" :label="g.tenTheLoai" :value="g.id"/>
               </el-select>
@@ -451,14 +481,14 @@
 
           <!-- Lịch chiếu Filters -->
           <template v-else>
-            <div class="filter-item flex-grow-1" style="max-width:350px;">
+            <div class="filter-item">
               <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
               <el-input v-model="lcSearchQuery" placeholder="Tìm theo tên phim..." :prefix-icon="Search" clearable
                           @keyup.enter="fetchLichChieu"/>
             </div>
             <div class="filter-item">
               <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-              <el-select v-model="lcThuFilter" placeholder="Lọc theo thứ" clearable style="width:160px;"
+              <el-select v-model="lcThuFilter" placeholder="Lọc theo thứ" clearable
                           @change="fetchLichChieu">
                   <el-option v-for="t in thuOptions" :key="t.value" :label="t.label" :value="t.value"/>
               </el-select>
@@ -479,7 +509,7 @@
                             @edit="handleEdit" @delete="handleDelete">
           
                     <template #cell-stt="{ index }">
-                      <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+                      <span class="fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
                     </template>
 
                     <template #actions="{ row }">
@@ -502,6 +532,10 @@
                       </div>
                     </template>
           
+                    <template #cell-maPhim="{ row }">
+                      <span class="text-secondary fw-bold">#{{ row.maPhim || '---' }}</span>
+                    </template>
+
                     <template #cell-poster="{ row }">
                       <div class="py-1">
                         <img v-if="row.poster" :src="row.poster" class="rounded-3 shadow-sm"
@@ -515,7 +549,7 @@
                     </template>
           
                     <template #cell-tenPhim="{ row }">
-                      <div class="text-start">
+                      <div class="text-center">
                         <div class="fw-bold" style="color:#344767;">{{ row.tenPhim }}</div>
                       </div>
                     </template>
@@ -539,6 +573,15 @@
                     <template #cell-thoiLuong="{ row }">
                       <span style="color:#606266;">{{ row.thoiLuong }} phút</span>
                     </template>
+
+                    <template #cell-doTuoi="{ row }">
+                      <el-tag v-if="row.doTuoi" type="danger" size="small" effect="dark" round>T{{ row.doTuoi }}</el-tag>
+                      <span v-else class="text-secondary">—</span>
+                    </template>
+
+                    <template #cell-ngonNgu="{ row }">
+                      <span class="text-dark">{{ row.ngonNgu || '—' }}</span>
+                    </template>
           
                     <template #cell-ngayKhoiChieu="{ row }">
                       <span style="color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
@@ -560,6 +603,10 @@
                     <template #cell-giaPhim="{ row }">
                       <span class="fw-bold text-price">{{ row.giaPhim?.toLocaleString('vi-VN') }} đ</span>
                     </template>
+
+                    <template #cell-ngayTao="{ row }">
+                        <div class="text-secondary" style="white-space: nowrap;"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }}</div>
+                    </template>
           
                     <template #cell-trangThai="{ row }">
                       <span class="badge rounded-pill px-2 py-1" :class="getTrangThaiClass(row.trangThai)">
@@ -578,7 +625,7 @@
                             :hide-pagination="true">
           
                     <template #cell-stt="{ index }">
-                      <span class="small fw-bold text-secondary">{{ (lcCurrentPage - 1) * pageSize + index + 1 }}</span>
+                      <span class="fw-bold text-secondary">{{ (lcCurrentPage - 1) * pageSize + index + 1 }}</span>
                     </template>
 
                     <template #actions="{ row }">
@@ -661,9 +708,18 @@
       >
         <el-form :model="movieForm" label-position="top" class="premium-form px-1">
           <div class="row g-3">
-            <div class="col-12">
+            <div class="col-md-6">
               <el-form-item label="Tên phim *">
                 <el-input v-model="movieForm.tenPhim" placeholder="VD: Dune: Part Two" :prefix-icon="Files" />
+              </el-form-item>
+            </div>
+            <div class="col-md-6">
+              <el-form-item label="Mã phim">
+                <el-input v-model="movieForm.maPhim" placeholder="Hệ thống tự tạo..." readonly :prefix-icon="Tickets">
+                  <template #append>
+                    <el-button :icon="Refresh" @click="movieForm.maPhim = generateMovieCode()" v-if="!editingMovie" />
+                  </template>
+                </el-input>
               </el-form-item>
             </div>
             <div class="col-md-6">
@@ -758,7 +814,7 @@
         title="Chi tiết phim"
         subtitle="Thông tin chuyên sâu về nội dung và định dạng"
         icon="bi bi-info-circle-fill"
-        width="700px"
+        width="780px"
       >
         <div v-if="selectedMovie" class="p-2">
           <div class="d-flex gap-4 mb-4 pb-4 border-bottom">
@@ -767,7 +823,7 @@
               <div class="detail-poster-fallback"><i class="bi bi-film"></i></div>
             </div>
             <div class="flex-grow-1 d-flex flex-column justify-content-center">
-              <h4 class="fw-bold text-dark mb-1" style="font-size:17px;">{{ selectedMovie.tenPhim }}</h4>
+              <h4 class="fw-bold text-dark mb-1" style="font-size:22px;">{{ selectedMovie.tenPhim }}</h4>
               <div class="d-flex gap-1 flex-wrap mb-3">
                 <span class="badge rounded-pill px-3 py-1" :class="getTrangThaiClass(selectedMovie.trangThai)">{{ getTrangThaiLabel(selectedMovie.trangThai) }}</span>
                 <el-tag v-for="g in (selectedMovie.theLoais||[])" :key="g.id" size="large" effect="plain" class="genre-tag rounded-pill">{{ g.tenTheLoai }}</el-tag>
@@ -797,22 +853,43 @@
               </div>
             </div>
           </div>
-          <div class="mb-3">
-            <div class="lbl mb-2">Lịch chiếu trong tuần</div>
-            <div v-if="selectedMovie.lichChieu" class="d-flex flex-wrap gap-2">
+          <div class="mb-4">
+            <div class="lbl mb-3" style="font-size:23px !important; color:#1e293b;">Lịch chiếu trong tuần</div>
+            <div v-if="selectedMovie.lichChieu" class="d-flex flex-wrap gap-3">
               <div v-for="item in getDatesFromSchedule(selectedMovie.lichChieu)" :key="item.ngay" class="date-card-mini">
                 <div class="card-thu">{{ item.thu }}</div><div class="card-ngay">{{ item.ngay }}</div>
               </div>
             </div>
-            <div v-else class="text-secondary" style="font-size:12px;">Chưa có lịch chiếu</div>
+            <div v-else class="text-secondary" style="font-size:18px;">Chưa có lịch chiếu</div>
           </div>
-          <div class="mb-3">
-            <div class="lbl mb-1">Trailer</div>
-            <a v-if="selectedMovie.trailer" :href="selectedMovie.trailer" target="_blank" class="text-danger fw-bold text-decoration-none" style="font-size:13px;"><i class="bi bi-youtube me-1"></i>Xem trailer</a>
-            <span v-else class="text-secondary" style="font-size:12px;">—</span>
+          <div class="mb-4">
+            <div class="lbl mb-2" style="font-size:23px !important; color:#1e293b;">Trailer</div>
+            <a v-if="selectedMovie.trailer" :href="selectedMovie.trailer" target="_blank" class="text-danger fw-bold text-decoration-none" style="font-size:23px;"><i class="bi bi-youtube me-2"></i>Xem trailer</a>
+            <span v-else class="text-secondary" style="font-size:18px;">—</span>
           </div>
-          <div class="lbl mb-2">Nội dung</div>
-          <div class="p-3 bg-light rounded-4 lh-base text-secondary" style="font-size:12px;">{{ selectedMovie.moTa || '—' }}</div>
+          <div class="lbl mb-2" style="font-size:23px !important; color:#1e293b;">Nội dung</div>
+          <div class="p-4 bg-light rounded-4 lh-lg text-dark fw-medium" style="font-size:23px;">{{ selectedMovie.moTa || '—' }}</div>
+
+          <div class="mt-4 pt-4 border-top">
+            <div class="row g-3 px-2">
+              <div class="col-6">
+                <div class="text-muted extra-small text-uppercase fw-bold mb-1">Người tạo</div>
+                <div class="small fw-semibold text-dark"><i class="bi bi-person me-1"></i>{{ selectedMovie.nguoiTao || 'Hệ thống' }}</div>
+              </div>
+              <div class="col-6">
+                <div class="text-muted extra-small text-uppercase fw-bold mb-1">Ngày tạo</div>
+                <div class="small fw-semibold text-dark"><i class="bi bi-clock me-1"></i>{{ formatDate(selectedMovie.ngayTao) }}</div>
+              </div>
+              <div v-if="selectedMovie.nguoiCapNhat" class="col-6">
+                <div class="text-muted extra-small text-uppercase fw-bold mb-1">Người cập nhật</div>
+                <div class="small fw-semibold text-dark"><i class="bi bi-person-check me-1"></i>{{ selectedMovie.nguoiCapNhat }}</div>
+              </div>
+              <div v-if="selectedMovie.ngayCapNhat" class="col-6">
+                <div class="text-muted extra-small text-uppercase fw-bold mb-1">Cập nhật lúc</div>
+                <div class="small fw-semibold text-dark"><i class="bi bi-arrow-repeat me-1"></i>{{ formatDate(selectedMovie.ngayCapNhat) }}</div>
+              </div>
+            </div>
+          </div>
         </div>
         <template #footer></template>
       </BaseModal>
@@ -1025,21 +1102,29 @@
   .date-card-mini {
     background: #f0f7ff;
     border: 1px solid #b3d4ff;
-    border-radius: 8px;
-    padding: 5px 10px;
+    border-radius: 10px;
+    padding: 10px 15px;
     text-align: center;
-    min-width: 56px;
+    min-width: 80px;
+    transition: all 0.2s;
+  }
+
+  .date-card-mini:hover {
+    background: #e1effe;
+    transform: translateY(-2px);
   }
 
   .date-card-mini .card-thu {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
     color: #409eff;
+    margin-bottom: 2px;
   }
 
   .date-card-mini .card-ngay {
-    font-size: 10px;
-    color: #606266;
+    font-size: 23px;
+    font-weight: 700;
+    color: #1e293b;
   }
 
   /* Info grid */
@@ -1064,8 +1149,8 @@
 
   /* Poster trong dialog chi tiết */
   .poster-wrap {
-    width: 140px;
-    height: 200px;
+    width: 220px;
+    height: 300px;
     position: relative;
     border-radius: 12px;
     overflow: hidden;
@@ -1075,8 +1160,8 @@
   }
 
   .detail-poster {
-    width: 140px;
-    height: 200px;
+    width: 220px;
+    height: 300px;
     object-fit: cover;
     display: block;
     border-radius: 12px;
@@ -1084,8 +1169,8 @@
 
   .detail-poster-fallback {
     display: flex;
-    width: 140px;
-    height: 200px;
+    width: 220px;
+    height: 300px;
     align-items: center;
     justify-content: center;
     font-size: 40px;

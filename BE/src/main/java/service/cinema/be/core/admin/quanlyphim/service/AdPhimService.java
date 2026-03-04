@@ -136,7 +136,13 @@ public class AdPhimService {
         phim.setMoTa(request.getMoTa());
         phim.setDanhGia(request.getDanhGia());
         phim.setGiaPhim(request.getGiaPhim()); // giaVeGoc
+        phim.setMaPhim(request.getMaPhim());
         phim.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : 1);
+        // Fix #8 — Định dạng phim
+        phim.setLoaiPhim(request.getLoaiPhim() != null ? request.getLoaiPhim() : "2D");
+        phim.setPhuPhiLoaiPhim(request.getPhuPhiLoaiPhim() != null
+                ? request.getPhuPhiLoaiPhim()
+                : java.math.BigDecimal.ZERO);
     }
 
     private void savePhimTheLoai(Phim phim, List<String> idTheLoais) {
@@ -174,6 +180,11 @@ public class AdPhimService {
                 .giaPhim(phim.getGiaPhim()) // giaVeGoc
                 .trangThai(phim.getTrangThai())
                 .theLoais(theLoais)
+                .maPhim(phim.getMaPhim())
+                .ngayTao(phim.getNgayTao() != null ? phim.getNgayTao().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
+                .nguoiTao(phim.getNguoiTao())
+                .ngayCapNhat(phim.getNgayCapNhat() != null ? phim.getNgayCapNhat().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
+                .nguoiCapNhat(phim.getNguoiCapNhat())
                 .build();
     }
 }

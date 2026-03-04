@@ -5,12 +5,14 @@ import {
   Search, Plus, Monitor, Place, Refresh, Printer, Delete,
   Calendar, Timer, Download, Ticket, CircleCheck, CircleClose, Money
 } from '@element-plus/icons-vue';
-import { ElMessageBox, ElMessage } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
+import confirmDialog from '@/utils/confirm';
 import debounce from 'lodash/debounce';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 
 // Data & State
 const tickets = ref([]);
@@ -57,11 +59,11 @@ const resetFilter = () => {
 };
 
 const confirmCancel = (id) => {
-  ElMessageBox.confirm('Hủy vé sẽ hoàn lại ghế trống vào phòng. Bạn chắc chắn chứ?', 'Xác nhận hủy vé', {
-    confirmButtonText: 'Đồng ý hủy',
-    cancelButtonText: 'Quay lại',
-    type: 'warning'
-  }).then(async () => {
+  confirmDialog.custom(
+    'Hủy vé sẽ hoàn lại ghế trống vào phòng. Bạn chắc chắn chứ?',
+    'Xác nhận hủy vé',
+    'Đồng ý hủy'
+  ).then(async () => {
     try {
       await adVeService.huyVe(id);
       ElMessage.success('Đã hủy vé thành công');
@@ -74,6 +76,97 @@ const confirmCancel = (id) => {
 const formatPrice = (v) => new Intl.NumberFormat('vi-VN').format(v || 0);
 const formatDate = (d) => d ? format(new Date(d), 'dd/MM/yyyy', { locale: vi }) : '---';
 const formatTime = (d) => d ? format(new Date(d), 'HH:mm', { locale: vi }) : '---';
+
+// Features (Print & Excel)
+const printTicket = (ticket) => {
+  const printContent = `
+    <div style="font-family: Arial, sans-serif; width: 300px; padding: 20px; border: 1px solid #ccc; background: white; margin: 0 auto;">
+      <h2 style="text-align: center; margin-bottom: 5px;">CINEOPS</h2>
+      <p style="text-align: center; margin: 0; font-size: 13px; color: #666;">Hóa đơn bán vé</p>
+      <hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
+      <p style="margin: 8px 0;"><strong>Mã vé:</strong> #${ticket.maVe}</p>
+      <p style="margin: 8px 0;"><strong>Phim:</strong> ${ticket.tenPhim || '---'}</p>
+      <p style="margin: 8px 0;"><strong>Phòng chiếu:</strong> ${ticket.tenPhongChieu || '---'}</p>
+      <p style="margin: 8px 0;"><strong>Ghế:</strong> ${ticket.viTriGhe || '---'}</p>
+      <p style="margin: 8px 0;"><strong>Khách hàng:</strong> ${ticket.tenLoaiKhachHang || 'Vãng lai'}</p>
+      <p style="margin: 8px 0;"><strong>Thời gian:</strong> ${formatDate(ticket.ngayTao)} ${formatTime(ticket.ngayTao)}</p>
+      <hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
+      <h3 style="text-align: left; display: flex; justify-content: space-between; margin: 10px 0;">
+        <span>Tổng tiền:</span> 
+        <span>${formatPrice(ticket.giaThanhToan)} đ</span>
+      </h3>
+      <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">Cảm ơn quý khách đã sử dụng dịch vụ!</p>
+    </div>
+  `;
+
+  const printWindow = window.open('', '_blank', 'width=450,height=650');
+  if (printWindow) {
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>In vé - ${ticket.maVe}</title>
+          <style>@page { size: auto; margin: 0mm; } body { margin: 20px; }</style>
+        </head>
+        <body>
+          ${printContent}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  }
+};
+
+const exportExcel = async () => {
+  try {
+    loading.value = true;
+    const exportParams = { ...params, page: 0, size: 10000 };
+    const res = await adVeService.timKiemVe(exportParams);
+    const dataToExport = res.data?.content || [];
+    
+    if (dataToExport.length === 0) {
+      ElMessage.warning('Không có dữ liệu để xuất');
+      return;
+    }
+
+    const excelData = dataToExport.map((row, index) => ({
+      'STT': index + 1,
+      'Mã vé': row.maVe,
+      'Loại khách': row.tenLoaiKhachHang || 'Khách vãng lai',
+      'Tên phim': row.tenPhim || '---',
+      'Phòng chiếu': row.tenPhongChieu || '---',
+      'Ghế': row.viTriGhe || '---',
+      'Kênh bán': row.loaiVe === 0 ? 'Tại quầy' : 'Online',
+      'Thanh toán (đ)': row.giaThanhToan,
+      'Trạng thái': row.trangThai === 1 ? 'Thành công' : 'Đã hủy',
+      'Thời gian': `${formatDate(row.ngayTao)} ${formatTime(row.ngayTao)}`,
+      'Người tạo': row.nguoiTao || '---'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    
+    const wscols = [
+      { wch: 5 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, 
+      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
+      { wch: 15 }, { wch: 20 }, { wch: 25 }
+    ];
+    worksheet['!cols'] = wscols;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Danh sách vé');
+    
+    XLSX.writeFile(workbook, `DanhSachVe_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
+    ElMessage.success('Xuất file Excel thành công');
+  } catch (error) {
+    ElMessage.error('Có lỗi xảy ra khi xuất Excel');
+  } finally {
+    loading.value = false;
+  }
+};
 
 // Stats Configuration
 const summaryStats = computed(() => [
@@ -104,7 +197,7 @@ onMounted(() => { loadData(); loadStats(); });
         <el-button type="primary" :icon="Plus" @click="$router.push('/admin/pos')">
           Xuất vé mới
         </el-button>
-        <el-button class="btn-premium-secondary text-success border-success-subtle" :icon="Download">
+        <el-button class="btn-premium-secondary text-success border-success-subtle" :icon="Download" @click="exportExcel">
           Xuất Excel
         </el-button>
       </template>
@@ -112,7 +205,7 @@ onMounted(() => { loadData(); loadStats(); });
       <template #stats>
         <div v-for="s in summaryStats" :key="s.label" class="col-md-3">
           <StatCard 
-            :label="s.label" 
+            :label="s.label"  
             :value="s.value" 
             :icon="s.icon"
             :type="s.type"
@@ -121,13 +214,15 @@ onMounted(() => { loadData(); loadStats(); });
       </template>
 
       <template #filters>
-        <div class="filter-item" style="width: 200px;">
+        <div class="filter-item">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-select v-model="params.trangThai" @change="loadData" placeholder="Trạng thái" clearable>
   <el-option label="Tất cả trạng thái" value="" /> <el-option label="Thành công" :value="1" />
   <el-option label="Đã hủy" :value="0" />
 </el-select>
         </div>
-        <div class="filter-item flex-grow-1">
+        <div class="filter-item search-input-wrapper">
+          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-input 
             v-model="params.tuKhoa" 
             placeholder="Tìm mã vé, tên phim, SĐT khách hàng..." 
@@ -175,7 +270,7 @@ onMounted(() => { loadData(); loadStats(); });
         <el-table-column label="KÊNH BÁN" width="180" align="center">
           <template #default="{ row }">
             <el-tag :type="row.loaiVe === 0 ? 'info' : 'success'" size="small" effect="dark">
-              {{ row.loaiVe === 0 ? '🏠 Tại quầy' : '🌐 Online' }}
+              {{ row.loaiVe === 0 ? 'Tại quầy' : 'Online' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -206,11 +301,11 @@ onMounted(() => { loadData(); loadStats(); });
           </template>
         </el-table-column>
 
-        <el-table-column label="THAO TÁC" width="100" align="center" fixed="right">
+        <el-table-column label="THAO TÁC" width="167" align="center" fixed="right">
           <template #default="{ row }">
             <div class="d-flex justify-content-center gap-1">
               <el-tooltip content="In vé" placement="top">
-                <button class="btn-action-icon btn-action-print" @click="">
+                <button class="btn-action-icon btn-action-print" @click="printTicket(row)">
                   <i class="bi bi-printer"></i>
                 </button>
               </el-tooltip>

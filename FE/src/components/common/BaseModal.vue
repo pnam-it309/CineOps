@@ -2,6 +2,7 @@
   <el-dialog
     v-model="visible"
     :width="width"
+    top="2vh"
     class="premium-dialog"
     :show-close="false"
     :close-on-click-modal="false"
@@ -102,6 +103,27 @@ const visible = computed({
 
 <style scoped>
 .modal-body-content {
-  padding: 10px 5px;
+  padding: 10px 15px 10px 5px; /* Thêm padding-right để tránh dính scrollbar */
+  max-height: 90vh; /* Tăng giới hạn chiều cao gần full màn hình */
+  overflow-y: auto; /* Hiển thị scrollbar nếu nội dung quá dài */
+}
+
+/* Custom Scrollbar cho Modal Body */
+.modal-body-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body-content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.modal-body-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.modal-body-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 </style>

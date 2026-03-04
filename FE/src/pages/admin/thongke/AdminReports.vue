@@ -35,7 +35,6 @@ const filteredReports = computed(() => {
   <div class="admin-reports-page">
     <AdminTableLayout
       title="Báo cáo Giao dịch"
-      subtitle="Thống kê và lịch sử giao dịch bán vé & đồ ăn"
       titleIcon="bi bi-bar-chart-fill"
       :data="filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
       :total="filteredReports.length"
@@ -60,7 +59,7 @@ const filteredReports = computed(() => {
       </template>
 
       <template #filters>
-        <div class="filter-item" style="width: 350px;">
+        <div class="filter-item">
           <el-date-picker
             v-model="dateRange"
             type="daterange"
@@ -71,7 +70,7 @@ const filteredReports = computed(() => {
             class="w-100"
           />
         </div>
-        <div class="filter-item" style="width: 200px;">
+        <div class="filter-item">
           <el-select v-model="selectedType" placeholder="Phương thức" size="default" class="w-100">
             <el-option label="Tất cả phương thức" value="All" />
             <el-option label="VNPay" value="VNPay" />
@@ -79,7 +78,7 @@ const filteredReports = computed(() => {
             <el-option label="Credit Card" value="Credit Card" />
           </el-select>
         </div>
-        <div class="filter-item flex-grow-1">
+        <div class="filter-item">
           <el-input v-model="searchQuery" placeholder="Mã GD hoặc khách hàng..." :prefix-icon="Search" size="default" clearable />
         </div>
       </template>

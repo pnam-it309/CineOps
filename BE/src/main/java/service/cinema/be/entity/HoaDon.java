@@ -8,6 +8,7 @@ import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +57,14 @@ public class HoaDon extends PrimaryEntity {
     @Column(name = "ghi_chu", columnDefinition = "TEXT")
     private String ghiChu;
 
+    /**
+     * Fix #10 — Booking Timeout
+     * Khi tạo hóa đơn chưa thanh toán (trang_thai = 0 = PENDING),
+     * set giọ hết hạn = hiện tại + 10 phút.
+     * Scheduler sẽ tự hủy và giải phóng ghế nếu quá thời gian này.
+     */
+    @Column(name = "thoi_gian_het_han")
+    private LocalDateTime thoiGianHetHan;
 
     @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HoaDonChiTiet> hoaDonChiTiets = new ArrayList<>();

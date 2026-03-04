@@ -40,6 +40,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleGlobalException(Exception ex) {
+        // Output exception to file for debugging
+        try {
+            java.nio.file.Files.write(
+                java.nio.file.Paths.get("d:\\\\CineOps\\\\backend_error.log"),
+                java.util.Collections.singletonList(
+                    ex.toString() + "\\n" + java.util.Arrays.toString(ex.getStackTrace())
+                ),
+                java.nio.file.StandardOpenOption.CREATE,
+                java.nio.file.StandardOpenOption.APPEND
+            );
+        } catch (java.io.IOException ignored) {}
+        
         // In production, log generic error message, not stack trace to user
         return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage()); // Or "Internal Server Error"
     }
@@ -48,6 +60,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleRuntimeException(RuntimeException ex) {
+        // Output exception to file for debugging
+        try {
+            java.nio.file.Files.write(
+                java.nio.file.Paths.get("d:\\\\CineOps\\\\backend_error.log"),
+                java.util.Collections.singletonList(
+                    "RuntimeException (400): " + ex.toString() + "\\n" + java.util.Arrays.toString(ex.getStackTrace())
+                ),
+                java.nio.file.StandardOpenOption.CREATE,
+                java.nio.file.StandardOpenOption.APPEND
+            );
+        } catch (java.io.IOException ignored) {}
+        
         return ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
     }
 }

@@ -1,11 +1,11 @@
 <template>
   <div class="d-flex flex-column h-100 bg-white border-end shadow-sm">
-    <div class="logo-container" :style="{ height: isCollapse ? '70px' : '150px' }">
+    <div class="logo-container" :style="{ height: isCollapse ? '100px' : '180px' }">
       <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" :class="['brand-logo', { 'is-collapsed': isCollapse }]" />
     </div>
 
     <el-menu :default-active="activeMenu" :collapse="isCollapse" :collapse-transition="false" background-color="#ffffff"
-      text-color="#475569" active-text-color="#E31E24" class="border-0 overflow-auto py-2"
+      text-color="#475569" active-text-color="#E31E24" class="border-0 overflow-auto py-2 h-100"
       style="--el-menu-bg-color: #ffffff; --el-menu-text-color: #475569; --el-menu-active-color: #E31E24;" router
       menu-trigger="hover">
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.DASHBOARD)">
@@ -166,8 +166,8 @@ const handleCommand = async (command) => {
 :deep(.el-sub-menu__title) {
   margin: 0 !important;
   border-radius: 0 !important;
-  height: 50px !important;
-  line-height: 50px !important;
+  height: 65px !important;
+  line-height: 65px !important;
   transition: background-color 0.3s !important;
 }
 
@@ -191,7 +191,7 @@ const handleCommand = async (command) => {
 /* Icon enhancement */
 :deep(.el-menu-item .el-icon),
 :deep(.el-sub-menu__title .el-icon) {
-  font-size: 20px !important;
+  font-size: 28px !important;
   margin-right: 12px !important;
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
@@ -243,17 +243,20 @@ const handleCommand = async (command) => {
 }
 
 .brand-logo {
-  max-width: 100%;
+  width: 100%;
   height: auto;
-  max-height: 140px;
+  max-width: 120%; /* Allow it to expand beyond if there's internal padding */
+  max-height: 220px;
   object-fit: contain;
   mix-blend-mode: multiply;
   filter: brightness(1.08) contrast(1.1);
   transition: all 0.3s;
+  transform: scale(1.3); /* Push the logo outwards to fill the "box" */
 }
 
 .brand-logo.is-collapsed {
-  max-height: 40px;
+  max-height: 90px;
+  transform: scale(1.3);
 }
 </style>
 ```

@@ -15,6 +15,8 @@ public class AdKhachHangResponse {
     private String email;
     private String sdt;
     private Integer gioiTinh;
-    private LocalDate ngaySinh; // Thêm dòng này để hết bị "đỏ" ở Service
+    private LocalDate ngaySinh;
+    private String hinhAnh;
+    private String ghiChu;
     private Integer trangThai;
 }

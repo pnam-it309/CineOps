@@ -223,7 +223,7 @@ const handleDelete = (room) => {
       </template>
 
       <template #filters>
-        <div class="filter-item" style="width: 350px;">
+        <div class="filter-item">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-input
             v-model="searchQuery"
@@ -233,7 +233,7 @@ const handleDelete = (room) => {
             clearable
           />
         </div>
-        <div class="filter-item" style="width: 200px;">
+        <div class="filter-item">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-select v-model="filterStatus" placeholder="Trạng thái" size="default" class="w-100">
             <el-option label="Tất cả trạng thái" value="all" />
@@ -256,7 +256,7 @@ const handleDelete = (room) => {
           @delete="handleDelete"
         >
           <template #cell-room="{ row }">
-            <div class="d-flex align-items-center gap-3 text-start">
+            <div class="d-flex align-items-center justify-content-center gap-3 w-100">
               <div class="room-icon-box bg-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                 <i class="bi bi-display fs-5"></i>
               </div>

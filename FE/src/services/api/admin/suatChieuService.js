@@ -18,7 +18,14 @@ export const suatChieuService = {
 
   // Lấy danh sách suất chiếu (có lọc theo ngày/phòng)
   getShowtimes(params = {}) {
-    return axios.get(API_ADMIN_SUAT_CHIEU, { params });
+    // Strip empty string fields from params
+    const cleanParams = {};
+    Object.keys(params).forEach(key => {
+      if (params[key] !== '' && params[key] !== null && params[key] !== undefined) {
+        cleanParams[key] = params[key];
+      }
+    });
+    return axios.get(API_ADMIN_SUAT_CHIEU, { params: cleanParams });
   },
 
   // Thêm suất chiếu mới

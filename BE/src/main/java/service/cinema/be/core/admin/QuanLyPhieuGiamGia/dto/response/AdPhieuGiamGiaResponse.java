@@ -18,11 +18,14 @@ public class AdPhieuGiamGiaResponse {
     private BigDecimal phanTramGiamGia;
     private BigDecimal soTienGiam;
     private BigDecimal giaTriHoaDonToiThieu;
+    private BigDecimal giamToiDa;
 
     private Integer soLuong;
 
     private LocalDateTime ngayBatDau;
     private LocalDateTime ngayKetThuc;
-
+    private Integer coChoCongDon;
+    private String dieuKienApDung;
+    private String ghiChu;
     private Integer trangThai;
 }

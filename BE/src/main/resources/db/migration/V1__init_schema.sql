@@ -163,6 +163,7 @@ CREATE TABLE khung_gio (
 CREATE TABLE phim (
     id VARCHAR(36) PRIMARY KEY,
     ten_phim VARCHAR(255) NOT NULL,
+    ma_phim VARCHAR(50),
     thoi_luong INT,
     ngay_khoi_chieu DATE,
     ngay_ket_thuc DATE,
@@ -174,6 +175,9 @@ CREATE TABLE phim (
     do_tuoi INT,
     danh_gia DECIMAL(3,1),
     gia_phim DECIMAL(20,2),
+    -- Fix #8: Định dạng phim và phụ phí format
+    loai_phim VARCHAR(20) DEFAULT '2D',
+    phu_phi_loai_phim DECIMAL(10,2) DEFAULT 0,
     trang_thai INT DEFAULT 1,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
@@ -227,13 +231,17 @@ CREATE TABLE ve (
     gia_thanh_toan DECIMAL(20,2),
     loai_ve INT,
     trang_thai INT DEFAULT 1,
+    -- Fix #3: Optimistic Lock — chống race condition
+    version INT DEFAULT 0,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
     nguoi_cap_nhat VARCHAR(100),
     FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
     FOREIGN KEY (id_ghe) REFERENCES ghe(id),
-    FOREIGN KEY (id_suat_chieu) REFERENCES suat_chieu(id)
+    FOREIGN KEY (id_suat_chieu) REFERENCES suat_chieu(id),
+    -- Fix #3: Chống double booking ở tầng DB
+    UNIQUE KEY uk_ve_ghe_suat (id_ghe, id_suat_chieu)
 );
 
 -- 15. BẢNG LOẠI NGÀY
@@ -319,6 +327,8 @@ CREATE TABLE hoa_don (
     kenh_ban_hang INT DEFAULT 0,
     trang_thai INT DEFAULT 1,
     ghi_chu TEXT,
+    -- Fix #10: Booking timeout — giải phóng ghế sau 10 phút nếu chưa thanh toán
+    thoi_gian_het_han DATETIME NULL,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,

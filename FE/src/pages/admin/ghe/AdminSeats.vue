@@ -47,7 +47,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import notification from '@/utils/notifications';
+import confirmDialog from '@/utils/confirm';
 import { gheService } from '@/services/api/admin/gheService';
 
 // Child components
@@ -87,7 +88,7 @@ const fetchDropdowns = async () => {
     loaiGheList.value = loaiRes.data?.data || [];
     phongChieuList.value = phongRes.data?.data || [];
   } catch (e) {
-    ElMessage.error('Không thể tải dữ liệu dropdown');
+    notification.error('Không thể tải dữ liệu dropdown');
   }
 };
 
@@ -101,7 +102,7 @@ const fetchSeats = async () => {
     const res = await gheService.getSeatsByRoom(selectedRoom.value);
     seats.value = res.data?.data || [];
   } catch (e) {
-    ElMessage.error('Không thể tải danh sách ghế');
+    notification.error('Không thể tải danh sách ghế');
   } finally {
     loading.value = false;
   }
@@ -117,23 +118,23 @@ const resetFilter = () => {
 };
 
 const handleGenerate = (configData) => {
-  if (!configData.idPhongChieu) return ElMessage.warning('Vui lòng chọn phòng');
+  if (!configData.idPhongChieu) return notification.warning('Vui lòng chọn phòng');
   
-  ElMessageBox.confirm(
+  confirmDialog.custom(
     'Hệ thống sẽ XÓA HẾT ghế cũ của phòng này để tạo bộ mới. Tiếp tục?',
     'Cảnh báo xóa dữ liệu',
-    { confirmButtonText: 'Đồng ý', cancelButtonText: 'Hủy', type: 'warning' }
+    'Đồng ý'
   ).then(async () => {
     generating.value = true;
     try {
       await gheService.generateSeats(configData);
-      ElMessage.success('Khởi tạo thành công!');
+      notification.success('Khởi tạo thành công!');
       selectedRoom.value = configData.idPhongChieu;
       // Chuyển sang tab sơ đồ sau khi tạo
       activeTab.value = 'layout';
       await fetchSeats();
     } catch (e) {
-      ElMessage.error('Lỗi khi khởi tạo!');
+      notification.error('Lỗi khi khởi tạo!');
     } finally {
       generating.value = false;
     }
@@ -158,32 +159,40 @@ const openDialog = (row = null) => {
 };
 
 const handleSubmit = async (formData) => {
+  try {
+    if (editingId.value) {
+      await confirmDialog.update('ghế');
+    } else {
+      await confirmDialog.add('ghế');
+    }
+  } catch { return; }
+
   saving.value = true;
   try {
     if (editingId.value) {
       await gheService.updateSeat(editingId.value, formData);
-      ElMessage.success('Cập nhật thành công');
+      notification.updateSuccess('ghế');
     } else {
       await gheService.createSeat(formData);
-      ElMessage.success('Thêm thành công');
+      notification.addSuccess('ghế');
     }
     dialogVisible.value = false;
     await fetchSeats();
   } catch (e) {
-    ElMessage.error(e.response?.data?.message || 'Có lỗi xảy ra');
+    notification.error(e.response?.data?.message || 'Có lỗi xảy ra');
   } finally {
     saving.value = false;
   }
 };
 
 const handleDelete = (row) => {
-  ElMessageBox.confirm(`Xóa ghế "<b>${row.soGhe}</b>"?`, 'Xác nhận', { dangerouslyUseHTMLString: true, type: 'warning' })
+  confirmDialog.delete('ghế', row.soGhe)
     .then(async () => {
       try {
         await gheService.deleteSeat(row.id);
-        ElMessage.success('Đã xóa');
+        notification.deleteSuccess('ghế');
         await fetchSeats();
-      } catch (e) { ElMessage.error('Xóa thất bại'); }
+      } catch (e) { notification.error('Xóa thất bại'); }
     }).catch(() => { });
 };
 

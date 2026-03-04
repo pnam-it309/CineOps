@@ -14,4 +14,6 @@ public class AdPhimResponse {
     private String tenPhim;
     private Integer thoiLuong;
     private String poster;
+    private String loaiPhim;
+    private java.math.BigDecimal phuPhiLoaiPhim;
 }

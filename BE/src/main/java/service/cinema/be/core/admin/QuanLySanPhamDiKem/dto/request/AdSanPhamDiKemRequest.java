@@ -18,11 +18,11 @@ public class AdSanPhamDiKemRequest {
     @Size(min = 3, max = 50, message = "Tên sản phẩm phải từ 3-50 ký tự")
     private String tenSanPham;
 
-    @Size(min = 3, max = 4000, message = "Mô tả phải từ 3-4000 ký tự")
+    @Size(max = 4000, message = "Mô tả không được vượt quá 4000 ký tự")
     private String moTa;
 
     @Pattern(
-            regexp = "^(https?:\\/\\/).+\\.(jpg|jpeg|png|webp)$",
+            regexp = "^(https?:\\/\\/).+\\.(jpg|jpeg|png|webp)$|^$",
             message = "URL hình ảnh không hợp lệ (phải là http/https và có đuôi jpg/png/webp)"
     )
     private String hinhAnh;
@@ -44,6 +44,8 @@ public class AdSanPhamDiKemRequest {
 
         @NotNull(message = "Định lượng không được để trống")
         private Double giaTriDinhLuong;
+
+        private String huongVi;
 
         @NotNull(message = "Giá bán không được để trống")
         @DecimalMin(value = "0.01", message = "Giá bán phải lớn hơn 0")

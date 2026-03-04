@@ -65,8 +65,7 @@
 
       <!-- Filters Slot -->
       <template #filters>
-        <div class="filter-item flex-grow-1 search-input-wrapper" style="max-width: 400px;">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
+        <div class="filter-item search-input-wrapper">
           <el-input
             v-model="searchQuery"
             placeholder="Tìm kiếm sản phẩm..."
@@ -130,6 +129,11 @@
                         <i class="bi bi-eye"></i>
                       </button>
                     </el-tooltip>
+                    <el-tooltip content="Quản lý biến thể" placement="top">
+                      <button class="btn-action-icon btn-action-variant" @click.stop="openVariantDialog(item)">
+                        <i class="bi bi-layers-half text-primary"></i>
+                      </button>
+                    </el-tooltip>
                     <el-tooltip content="Chỉnh sửa" placement="top">
                       <button class="btn-action-icon btn-action-edit" @click.stop="openDialog(item)">
                         <i class="bi bi-pencil"></i>
@@ -154,14 +158,14 @@
       v-model="dialogVisible"
       :title="isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'"
       icon="bi bi-box-seam"
-      width="1000px"
+      width="600px"
       :confirmText="isEditMode ? 'Cập nhật' : 'Xác nhận thêm'"
       @confirm="saveProduct"
     >
       <el-form :model="itemForm" label-position="top" class="premium-form">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="Tên sản phẩm chung">
+            <el-form-item label="Tên sản phẩm">
               <el-input v-model="itemForm.tenSanPham" placeholder="Ví dụ: Bắp Phô Mai" :prefix-icon="Plus" />
             </el-form-item>
           </el-col>
@@ -175,100 +179,120 @@
         </el-row>
 
         <el-form-item label="Mô tả sản phẩm">
-          <el-input type="textarea" v-model="itemForm.moTa" :rows="2" placeholder="Nhập mô tả hiển thị trên card..." />
+          <el-input type="textarea" v-model="itemForm.moTa" :rows="3" placeholder="Nhập mô tả sản phẩm..." />
         </el-form-item>
 
         <el-form-item label="Hình ảnh URL">
           <el-input v-model="itemForm.hinhAnh" :prefix-icon="Search" />
         </el-form-item>
+      </el-form>
+    </BaseModal>
 
-        <div class="variant-section-premium mt-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold m-0 text-primary">Biến thể & Định lượng</h6>
-            <el-button type="success" size="small" :icon="Plus" plain @click="addNewVariantRow" class="btn-add-premium">
-              Thêm biến thể (Size)
-            </el-button>
-          </div>
+    <!-- Variants Modal -->
+    <BaseModal
+      v-model="variantDialogVisible"
+      title="Quản lý biến thể sản phẩm"
+      icon="bi bi-layers-half"
+      width="1300px"
+      confirmText="Lưu biến thể"
+      @confirm="saveVariants"
+    >
+      <div v-if="selectedProductForVariant" class="product-mini-info mb-4 d-flex align-items-center gap-3 p-3 bg-light rounded-4">
+        <img :src="selectedProductForVariant.hinhAnh" class="rounded-3" style="width: 60px; height: 60px; object-fit: cover" />
+        <div>
+          <h5 class="m-0 fw-bold">{{ selectedProductForVariant.tenSanPham }}</h5>
+          <div class="text-secondary small">{{ selectedProductForVariant.moTa }}</div>
+        </div>
+      </div>
 
-          <el-table :data="itemForm.variants" border stripe class="premium-table-inside">
-            <el-table-column width="55" align="center" label="Chọn">
-              <template #default="scope">
-                <el-checkbox v-model="scope.row.active" :disabled="isEditMode" />
-              </template>
-            </el-table-column>
+      <div class="variant-section-premium">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold m-0 text-primary">Danh sách kích cỡ & Giá</h6>
+          <el-button type="success" size="small" :icon="Plus" plain @click="addNewVariantRow" class="btn-add-premium">
+            Thêm kích cỡ mới
+          </el-button>
+        </div>
 
-            <el-table-column label="Kích cỡ" width="150">
-              <template #default="scope">
-                <el-select v-model="scope.row.idKichCo" size="small" :disabled="!scope.row.isEditing">
-                  <el-option v-for="s in sizes" :key="s.id" :label="s.tenKichCo" :value="s.id" />
-                </el-select>
-              </template>
-            </el-table-column>
+        <el-table 
+          :data="variantForm.variants" 
+          border 
+          stripe 
+          class="premium-table-inside variant-compact-table w-100" 
+          header-cell-class-name="nowrap-header text-center"
+          size="default"
+        >
+          <el-table-column width="50" align="center" label="✓">
+            <template #default="scope">
+              <el-checkbox v-model="scope.row.active" size="default" />
+            </template>
+          </el-table-column>
 
-            <el-table-column label="Định lượng (Số | Đơn vị)">
-              <template #default="scope">
-                <div class="d-flex align-items-center gap-1">
-                  <el-input-number 
-                    v-model="scope.row.giaTriDinhLuong" 
-                    size="small" 
-                    :disabled="!scope.row.isEditing"
-                    :controls="false"
-                    style="width: 80px"
-                  />
-                  <el-select v-model="scope.row.idDonViTinh" size="small" style="width: 90px" :disabled="!scope.row.isEditing">
-                    <el-option v-for="u in units" :key="u.id" :label="u.tenDonViTinh" :value="u.id" />
-                  </el-select>
-                </div>
-              </template>
-            </el-table-column>
+          <el-table-column label="Kích cỡ" width="220" align="center">
+            <template #default="scope">
+              <el-select v-model="scope.row.idKichCo" size="default" class="w-100">
+                <el-option v-for="s in sizes" :key="s.id" :label="s.tenKichCo" :value="s.id" />
+              </el-select>
+            </template>
+          </el-table-column>
 
-            <el-table-column label="Giá bán (VNĐ)">
-              <template #default="scope">
-                <el-input-number
-                  v-model="scope.row.giaBan"
-                  size="small"
-                  :disabled="!scope.row.isEditing"
-                  style="width: 130px"
-                  :min="1000"
-                  :step="1000"
-                />
-              </template>
-            </el-table-column>
-
-            <el-table-column label="Tồn kho">
-              <template #default="scope">
-                <el-input-number
-                  v-model="scope.row.soLuongTon"
-                  size="small"
-                  :disabled="!scope.row.isEditing"
+          <el-table-column label="Định lượng" width="240" align="center">
+            <template #default="scope">
+              <div class="d-flex align-items-center gap-1">
+                <el-input 
+                  v-model.number="scope.row.giaTriDinhLuong" 
+                  placeholder="0"
+                  type="number"
+                  size="default"
                   style="width: 100px"
                 />
-              </template>
-            </el-table-column>
+                <el-select v-model="scope.row.idDonViTinh" size="default" style="width: 110px">
+                  <el-option v-for="u in units" :key="u.id" :label="u.tenDonViTinh" :value="u.id" />
+                </el-select>
+              </div>
+            </template>
+          </el-table-column>
 
-            <el-table-column label="Thao tác" width="120" align="center">
-              <template #default="scope">
-                <div class="d-flex justify-content-center gap-2">
-                  <el-button 
-                    v-if="!scope.row.isEditing"
-                    type="primary" :icon="Edit" size="small" circle 
-                    @click="scope.row.isEditing = true"
-                  />
-                  <el-button 
-                    v-else
-                    type="success" :icon="Check" size="small" circle 
-                    @click="confirmUpdateVariant(scope.row)"
-                  />
-                  <el-button
-                    type="danger" :icon="Delete" size="small" circle
-                    @click="removeVariantRow(scope.$index)"
-                  />
-                </div>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-      </el-form>
+          <el-table-column label="Hương vị" min-width="200" align="center">
+            <template #default="scope">
+              <el-input v-model="scope.row.huongVi" size="default" placeholder="Ví dụ: Phô mai, Caramel..." />
+            </template>
+          </el-table-column>
+
+          <el-table-column label="Giá bán" width="180" align="center">
+            <template #default="scope">
+              <el-input 
+                v-model.number="scope.row.giaBan" 
+                placeholder="0"
+                type="number"
+                size="default"
+                class="w-100"
+              >
+                <template #suffix><span class="text-secondary fw-bold pe-2">₫</span></template>
+              </el-input>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="Tồn kho" width="170" align="center">
+            <template #default="scope">
+              <el-input 
+                v-model.number="scope.row.soLuongTon" 
+                placeholder="0"
+                type="number"
+                size="default"
+                class="w-100"
+              />
+            </template>
+          </el-table-column>
+
+          <el-table-column width="70" align="center">
+            <template #default="scope">
+              <button class="btn-action-icon btn-action-delete" @click="removeVariantRow(scope.$index)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </BaseModal>
 
     <!-- Detail Modal -->
@@ -302,7 +326,13 @@
           <div class="col-6">
             <div class="detail-info-item">
               <div class="lbl mb-1 text-secondary small">Giá bán lẻ</div>
-              <div class="val fw-bold text-primary fs-5">{{ formatCurrency(selectedItemDetail.price) }}</div>
+              <div class="val fw-bold text-dark fs-5">{{ formatCurrency(selectedItemDetail.price) }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-info-item p-3 rounded-4 bg-light shadow-sm">
+              <div class="lbl mb-1 text-secondary small"><i class="bi bi-palette me-2 text-primary"></i>Hương vị</div>
+              <div class="val fw-bold text-dark">{{ selectedItemDetail.huongVi || 'Mặc định' }}</div>
             </div>
           </div>
           <div class="col-6">
@@ -339,12 +369,15 @@ import { sanPhamDiKemService } from '@/services/api/admin/sanPhamDiKemService'
 import AdminTableLayout from '@/components/AdminTableLayout.vue'
 import StatCard from '@/components/common/StatCard.vue'
 import notification from '@/utils/notifications'
+import confirmDialog from '@/utils/confirm'
 import BaseModal from '@/components/common/BaseModal.vue'
 import debounce from 'lodash/debounce'
 
 const activeCategory = ref('All')
 const searchQuery = ref('')
 const dialogVisible = ref(false)
+const variantDialogVisible = ref(false)
+const selectedProductForVariant = ref(null)
 const detailVisible = ref(false)
 const selectedItemDetail = ref(null)
 const isEditMode = ref(false)
@@ -381,7 +414,11 @@ const handleViewDetail = (item) => {
   detailVisible.value = true
 }
 const itemForm = ref({
-  id: null, tenSanPham: '', idLoaiSanPham: '', moTa: '', hinhAnh: '', variants: []
+  id: null, tenSanPham: '', idLoaiSanPham: '', moTa: '', hinhAnh: ''
+})
+
+const variantForm = ref({
+  variants: []
 })
 
 const formatCurrency = v => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v)
@@ -435,6 +472,7 @@ const fetchItems = async () => {
           unitId: v.idDonViTinh,
           price: v.giaBan,
           stock: v.soLuongTon,
+          huongVi: v.huongVi, // Add huongVi here
           rawProduct: sp
         })
       })
@@ -468,49 +506,50 @@ const openDialog = (product = null) => {
       tenSanPham: sp.tenSanPham,
       idLoaiSanPham: sp.idLoaiSanPham || categories.value.find(c => c.tenLoai === sp.tenLoaiSanPham)?.id,
       moTa: sp.moTa,
-      hinhAnh: sp.hinhAnh,
-      variants: sp.variants.map(v => ({
-        idChiTiet: v.idChiTiet,
-        idKichCo: v.idKichCo || sizes.value.find(s => s.tenKichCo === v.tenKichCo)?.id,
-        idDonViTinh: v.idDonViTinh || units.value.find(u => u.tenDonViTinh === v.tenDonViTinh)?.id,
-        giaTriDinhLuong: v.giaTriDinhLuong,
-        giaBan: v.giaBan,
-        soLuongTon: v.soLuongTon,
-        active: true,
-        isEditing: false
-      }))
+      hinhAnh: sp.hinhAnh
     }
   } else {
     isEditMode.value = false
     itemForm.value = {
-      id: null, tenSanPham: '', idLoaiSanPham: categories.value[0]?.id, moTa: '', hinhAnh: '',
-      variants: [
-        { idKichCo: sizes.value[0]?.id, idDonViTinh: units.value[0]?.id, giaTriDinhLuong: 0, giaBan: 0, soLuongTon: 0, active: true, isEditing: true }
-      ]
+      id: null, tenSanPham: '', idLoaiSanPham: categories.value[0]?.id, moTa: '', hinhAnh: ''
     }
   }
   dialogVisible.value = true
 }
 
+const openVariantDialog = (item) => {
+  const sp = item.rawProduct
+  selectedProductForVariant.value = sp
+  variantForm.value.variants = sp.variants.map(v => ({
+    idChiTiet: v.idChiTiet,
+    idKichCo: v.idKichCo || sizes.value.find(s => s.tenKichCo === v.tenKichCo)?.id,
+    idDonViTinh: v.idDonViTinh || units.value.find(u => u.tenDonViTinh === v.tenDonViTinh)?.id,
+    giaTriDinhLuong: v.giaTriDinhLuong,
+    huongVi: v.huongVi,
+    giaBan: v.giaBan,
+    soLuongTon: v.soLuongTon,
+    active: true
+  }))
+  if (variantForm.value.variants.length === 0) {
+    addNewVariantRow()
+  }
+  variantDialogVisible.value = true
+}
+
 const addNewVariantRow = () => {
-  itemForm.value.variants.push({
+  variantForm.value.variants.push({
     idKichCo: sizes.value[0]?.id,
     idDonViTinh: units.value[0]?.id,
     giaTriDinhLuong: 0,
+    huongVi: '',
     giaBan: 0,
     soLuongTon: 0,
-    active: true,
-    isEditing: true
+    active: true
   })
 }
 
 const removeVariantRow = (index) => {
-  itemForm.value.variants.splice(index, 1)
-}
-
-const confirmUpdateVariant = (row) => {
-  if(!row.idKichCo) return notification.warning('Vui lòng chọn kích cỡ')
-  row.isEditing = false
+  variantForm.value.variants.splice(index, 1)
 }
 
 const saveProduct = async () => {
@@ -524,14 +563,13 @@ const saveProduct = async () => {
     }
   }
 
-  const selected = itemForm.value.variants.filter(v => v.active)
-  if (!selected.length) return notification.warning('Vui lòng chọn ít nhất 1 biến thể')
-
-  for (const v of selected) {
-    if (!v.giaBan || v.giaBan <= 0) {
-      return notification.error('Giá bán của các biến thể phải lớn hơn 0')
+  try {
+    if (isEditMode.value) {
+      await confirmDialog.update('sản phẩm');
+    } else {
+      await confirmDialog.add('sản phẩm');
     }
-  }
+  } catch { return; }
 
   try {
     const payload = {
@@ -540,13 +578,7 @@ const saveProduct = async () => {
       moTa: itemForm.value.moTa,
       hinhAnh: itemForm.value.hinhAnh,
       trangThai: 1,
-      variants: selected.map(v => ({
-        idKichCo: v.idKichCo,
-        idDonViTinh: v.idDonViTinh,
-        giaTriDinhLuong: v.giaTriDinhLuong,
-        giaBan: v.giaBan,
-        soLuongTon: v.soLuongTon
-      }))
+      variants: isEditMode.value ? undefined : [] 
     }
 
     if (isEditMode.value) {
@@ -554,7 +586,7 @@ const saveProduct = async () => {
       notification.updateSuccess('sản phẩm')
     } else {
       await sanPhamDiKemService.create(payload)
-      notification.addSuccess('sản phẩm')
+      notification.addSuccess('sản phẩm. Hãy vào phần Quản lý biến thể để thêm các kích cỡ cho sản phẩm này.')
     }
     dialogVisible.value = false
     fetchItems()
@@ -563,16 +595,52 @@ const saveProduct = async () => {
   }
 }
 
+const saveVariants = async () => {
+  const selected = variantForm.value.variants.filter(v => v.active)
+  if (!selected.length) return notification.warning('Vui lòng chọn ít nhất 1 biến thể')
+
+  for (const v of selected) {
+    if (!v.giaBan || v.giaBan <= 0) {
+      return notification.error('Giá bán của các biến thể phải lớn hơn 0')
+    }
+    if (!v.idKichCo) return notification.warning('Vui lòng chọn đầy đủ kích cỡ')
+  }
+
+  try {
+    await confirmDialog.custom('Xác nhận cập nhật danh sách biến thể?', 'Cập nhật', 'Xác nhận')
+    const sp = selectedProductForVariant.value
+    const payload = {
+      tenSanPham: sp.tenSanPham,
+      idLoaiSanPham: sp.idLoaiSanPham,
+      moTa: sp.moTa,
+      hinhAnh: sp.hinhAnh,
+      trangThai: 1,
+      variants: selected.map(v => ({
+        idKichCo: v.idKichCo,
+        idDonViTinh: v.idDonViTinh,
+        giaTriDinhLuong: v.giaTriDinhLuong,
+        huongVi: v.huongVi,
+        giaBan: v.giaBan,
+        soLuongTon: v.soLuongTon
+      }))
+    }
+
+    await sanPhamDiKemService.update(sp.id, payload)
+    notification.success('Đã cập nhật các biến thể thành công')
+    variantDialogVisible.value = false
+    fetchItems()
+  } catch (error) {
+    if (error !== 'cancel') {
+        notification.error(error.response?.data?.message || 'Lỗi cập nhật biến thể')
+    }
+  }
+}
+
 const handleBulkDelete = () => {
-    ElMessageBox.confirm(
+    confirmDialog.custom(
         `Xác nhận xóa <b>${selectedIds.value.length}</b> sản phẩm và tất cả kích cỡ liên quan?`,
         'Xóa hàng loạt',
-        {
-            dangerouslyUseHTMLString: true,
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy',
-            type: 'warning'
-        }
+        'Đồng ý'
     ).then(async () => {
         try {
             // Backend endpoint Xóa sản phẩm là xóa ID của sản phẩm chính (productId)
@@ -589,11 +657,7 @@ const handleBulkDelete = () => {
 };
 
 const handleDelete = item => {
-  ElMessageBox.confirm(`Bạn có chắc muốn xóa TOÀN BỘ sản phẩm "${item.name}" và các kích cỡ liên quan?`, 'Cảnh báo', { 
-    type: 'warning',
-    confirmButtonText: 'Xác nhận xóa',
-    cancelButtonText: 'Hủy'
-  }).then(async () => {
+  confirmDialog.delete('sản phẩm', item.name).then(async () => {
     try {
       await sanPhamDiKemService.delete(item.productId)
       notification.deleteSuccess('sản phẩm')
@@ -681,5 +745,38 @@ onMounted(() => {
   background: #f8fafc;
   border-radius: 10px;
   border: 1px solid #f1f5f9;
+}
+
+/* Chỉnh hiển thị table */
+:deep(.nowrap-header .cell) {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+}
+
+:deep(.premium-table-inside) {
+  --el-table-header-bg-color: #f1f5f9;
+  --el-table-header-text-color: #1e293b;
+}
+
+/* Compact variant table styles */
+:deep(.variant-compact-table th.el-table__cell) {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 7px 6px !important;
+  color: #475569;
+}
+
+:deep(.variant-compact-table td.el-table__cell) {
+  padding: 5px 6px !important;
+}
+
+:deep(.variant-compact-table .el-input-number) {
+  width: 100%;
+}
+
+:deep(.variant-compact-table .el-input-number .el-input__inner) {
+  text-align: center;
 }
 </style>

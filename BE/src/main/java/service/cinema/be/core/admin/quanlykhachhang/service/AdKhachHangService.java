@@ -92,6 +92,8 @@ public class AdKhachHangService {
         kh.setSdt(request.getSdt());
         kh.setGioiTinh(request.getGioiTinh());
         kh.setNgaySinh(request.getNgaySinh());
+        kh.setHinhAnh(request.getHinhAnh());
+        kh.setGhiChu(request.getGhiChu());
         kh.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : 1);
     }
 
@@ -104,6 +106,8 @@ public class AdKhachHangService {
                 .sdt(kh.getSdt())
                 .gioiTinh(kh.getGioiTinh())
                 .ngaySinh(kh.getNgaySinh())
+                .hinhAnh(kh.getHinhAnh())
+                .ghiChu(kh.getGhiChu())
                 .trangThai(kh.getTrangThai())
                 .build();
     }

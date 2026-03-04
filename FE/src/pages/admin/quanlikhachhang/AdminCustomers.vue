@@ -2,13 +2,14 @@
 <script setup>
 import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { Search, Plus, Edit, Delete, View, Filter, Message, User, Phone } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
 import CCCDScanner from '@/components/common/CCCDScanner.vue'; // <-- Integrate Scanner
 import { khachHangService } from '@/services/api/admin/khachHangService';
 import notification from '@/utils/notifications';
+import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
 
 // --- State ---
@@ -23,7 +24,7 @@ const pageSize = ref(10);
 const customerColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
   { label: 'MÃ KH', key: 'maKhachHang', width: '130px' },
-  { label: 'KHÁCH HÀNG', key: 'customer', minWidth: '450px' },
+  { label: 'KHÁCH HÀNG', key: 'customer', minWidth: '350px' },
   { label: 'EMAIL', key: 'email', minWidth: '350px' },
   { label: 'SỐ ĐIỆN THOẠI', key: 'sdt', width: '220px' },
   { label: 'GIỚI TÍNH', key: 'gender', width: '150px' },
@@ -92,6 +93,8 @@ const handleAdd = () => {
     sdt: '',
     gioiTinh: 1,
     ngaySinh: '',
+    hinhAnh: '',
+    ghiChu: '',
     trangThai: 1
   });
   dialogVisible.value = true;
@@ -107,6 +110,8 @@ const handleEdit = (row) => {
     sdt: row.sdt,
     gioiTinh: row.gioiTinh,
     ngaySinh: row.ngaySinh,
+    hinhAnh: row.hinhAnh || '',
+    ghiChu: row.ghiChu || '',
     trangThai: row.trangThai
   });
   dialogVisible.value = true;
@@ -123,6 +128,14 @@ const submitForm = async () => {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (valid) {
+      try {
+        if (isEdit.value) {
+          await confirmDialog.update('khách hàng');
+        } else {
+          await confirmDialog.add('khách hàng');
+        }
+      } catch { return; }
+
       try {
         if (isEdit.value) {
           await khachHangService.update(currentId.value, form);
@@ -143,15 +156,7 @@ const submitForm = async () => {
 
 // --- Logic Xóa ---
 const handleDelete = (row) => {
-  ElMessageBox.confirm(
-      `Bạn có chắc chắn muốn xóa khách hàng "${row.tenKhachHang}"?`,
-      'Cảnh báo',
-      {
-        confirmButtonText: 'Xóa',
-        cancelButtonText: 'Hủy',
-        type: 'warning',
-      }
-  ).then(async () => {
+  confirmDialog.delete('khách hàng', row.tenKhachHang).then(async () => {
     try {
       await khachHangService.delete(row.id);
       notification.deleteSuccess('khách hàng');
@@ -172,15 +177,10 @@ const resetFilter = () => {
 const selectedIds = computed(() => selectedCustomers.value.map(item => item.id));
 
 const handleBulkDelete = () => {
-  ElMessageBox.confirm(
+  confirmDialog.custom(
     `Xác nhận xóa <b>${selectedIds.value.length}</b> khách hàng đã chọn?`,
     'Xóa hàng loạt',
-    {
-      dangerouslyUseHTMLString: true,
-      confirmButtonText: 'Đồng ý',
-      cancelButtonText: 'Hủy',
-      type: 'warning'
-    }
+    'Đồng ý'
   ).then(async () => {
     try {
       await Promise.all(selectedIds.value.map(id => khachHangService.delete(id)));
@@ -237,13 +237,13 @@ watch([currentPage, pageSize], fetchCustomers);
       </template>
   
       <template #filters>
-        <div class="filter-item flex-grow-1 search-input-wrapper" style="max-width: 400px;">
+        <div class="filter-item search-input-wrapper">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable @input="fetchCustomers" />
         </div>
         <div class="filter-item">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterTrangThai" placeholder="Trạng thái" style="width: 170px;" clearable @change="fetchCustomers">
+          <el-select v-model="filterTrangThai" placeholder="Trạng thái" clearable @change="fetchCustomers">
             <template #prefix><el-icon><Filter /></el-icon></template>
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Hoạt động" :value="1" />
@@ -274,9 +274,7 @@ watch([currentPage, pageSize], fetchCustomers);
           </template>
 
           <template #cell-customer="{ row }">
-            <div class="text-start">
-              <div class="fw-bold text-dark small" style="white-space: nowrap;">{{ row.tenKhachHang }}</div>
-            </div>
+            <div class="fw-bold text-dark small">{{ row.tenKhachHang }}</div>
           </template>
 
           <template #cell-email="{ row }">
@@ -326,11 +324,11 @@ watch([currentPage, pageSize], fetchCustomers);
       v-model="detailVisible"
       title="Chi tiết khách hàng"
       icon="bi bi-person-badge"
-      width="500px"
+      width="550px"
     >
       <div v-if="selectedCustomer" class="p-2">
         <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
-          <el-avatar :size="70" class="bg-primary fs-2 border border-white shadow">{{ selectedCustomer.tenKhachHang?.charAt(0) }}</el-avatar>
+          <el-avatar :size="70" :src="selectedCustomer.hinhAnh" class="bg-primary fs-2 border border-white shadow">{{ selectedCustomer.tenKhachHang?.charAt(0) }}</el-avatar>
           <div>
             <h4 class="fw-bold text-dark mb-1">{{ selectedCustomer.tenKhachHang }}</h4>
             <div class="text-secondary small">Mã KH: <span class="fw-bold">{{ selectedCustomer.maKhachHang }}</span></div>
@@ -371,6 +369,12 @@ watch([currentPage, pageSize], fetchCustomers);
               <div class="val fw-semibold">{{ selectedCustomer.ngayTao ? new Date(selectedCustomer.ngayTao).toLocaleDateString('vi-VN') : '—' }}</div>
             </div>
           </div>
+          <div class="col-12">
+            <div class="detail-info-item">
+              <div class="lbl mb-1"><i class="bi bi-sticky me-2 text-primary"></i>Ghi chú</div>
+              <div class="val small text-secondary lh-base">{{ selectedCustomer.ghiChu || 'Không có ghi chú nào.' }}</div>
+            </div>
+          </div>
         </div>
       </div>
       <template #footer>
@@ -381,7 +385,7 @@ watch([currentPage, pageSize], fetchCustomers);
       v-model="dialogVisible"
       :title="isEdit ? 'Cập nhật khách hàng' : 'Thêm khách hàng mới'"
       :icon="isEdit ? 'bi bi-person-gear' : 'bi bi-person-plus'"
-      width="550px"
+      width="650px"
       confirmText="XÁC NHẬN"
       @confirm="submitForm"
     >
@@ -409,6 +413,14 @@ watch([currentPage, pageSize], fetchCustomers);
           </div>
         </div>
         
+        <el-form-item label="Hình ảnh URL">
+          <el-input v-model="form.hinhAnh" placeholder="https://..." :prefix-icon="View" />
+        </el-form-item>
+        
+        <el-form-item label="Ghi chú">
+          <el-input v-model="form.ghiChu" type="textarea" :rows="2" placeholder="Nhập ghi chú khách hàng..." />
+        </el-form-item>
+
         <div class="row g-2">
           <div class="col-6">
             <el-form-item label="Giới tính">

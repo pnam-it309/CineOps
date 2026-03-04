@@ -46,6 +46,13 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
         }
         Phim phim = phimRepository.findById(req.getIdPhim()).orElseThrow();
         PhongChieu pc = phongChieuRepository.findById(req.getIdPhongChieu()).orElseThrow();
+
+        // Kiểm tra tương thích: Loại định dạng của Phim phải khớp với Loại màn hình của Phòng
+        if (phim.getLoaiPhim() != null && pc.getLoaiManHinh() != null) {
+            if (!phim.getLoaiPhim().equalsIgnoreCase(pc.getLoaiManHinh())) {
+                throw new IllegalArgumentException("Loại phim (" + phim.getLoaiPhim() + ") không khớp với loại màn hình của phòng (" + pc.getLoaiManHinh() + ")");
+            }
+        }
         
         // Tìm hoặc tạo KhungGio dựa trên giờ bắt đầu và kết thúc
         KhungGio kg = findOrCreateKhungGio(req.getGioBatDau(), req.getGioKetThuc());
@@ -107,6 +114,8 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
                         .tenPhim(p.getTenPhim())
                         .thoiLuong(p.getThoiLuong())
                         .poster(p.getPoster())
+                        .loaiPhim(p.getLoaiPhim())
+                        .phuPhiLoaiPhim(p.getPhuPhiLoaiPhim())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -131,8 +140,12 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
                 .idPhim(sc.getPhim().getId())
                 .tenPhim(sc.getPhim().getTenPhim())
                 .poster(sc.getPhim().getPoster())
+                .thoiLuong(sc.getPhim().getThoiLuong())
                 .idPhongChieu(sc.getPhongChieu().getId())
                 .tenPhongChieu(sc.getPhongChieu().getTenPhong())
+                .loaiManHinh(sc.getPhongChieu().getLoaiManHinh())
+                .loaiPhim(sc.getPhim().getLoaiPhim())
+                .soGheTrong(sc.getSoGheTrong())
                 .build();
         
         if (sc.getKhungGio() != null) {

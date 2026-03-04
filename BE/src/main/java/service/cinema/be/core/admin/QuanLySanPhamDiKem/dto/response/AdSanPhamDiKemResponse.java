@@ -12,6 +12,7 @@ import java.util.List;
 public class AdSanPhamDiKemResponse {
     private String id; // Đổi sang Long cho đồng bộ DB
     private String tenSanPham;
+    private String idLoaiSanPham;
     private String tenLoaiSanPham;
     private String moTa;
     private String hinhAnh;
@@ -25,9 +26,12 @@ public class AdSanPhamDiKemResponse {
     @NoArgsConstructor
     public static class VariantResponse {
         private String idChiTiet;
+        private String idKichCo;
         private String tenKichCo;
+        private String idDonViTinh;
         private String tenDonViTinh;
         private Double giaTriDinhLuong;
+        private String huongVi;
         private BigDecimal giaBan;
         private Integer soLuongTon;
     }

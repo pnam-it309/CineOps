@@ -74,6 +74,28 @@ export const notification = {
   saveSuccess: (entityName = '') => {
     const msg = entityName ? `Đã lưu các thay đổi của ${entityName}` : 'Lưu thành công';
     notify('success', 'Ghi nhận', msg, 'bi bi-check-all');
+  },
+
+  /**
+   * Validation Error - Use for form checking
+   */
+  validationError: (message) => {
+    notify('warning', 'Thiếu thông tin', message || 'Vui lòng điền đầy đủ các trường bắt buộc (*)', 'bi bi-exclamation-triangle-fill');
+  },
+
+  /**
+   * Bad Request from Server (Multiple errors)
+   */
+  badRequest: (errors) => {
+    let msg = 'Dữ liệu không hợp lệ:';
+    if (Array.isArray(errors)) {
+      msg = `<ul class="mb-0 ps-3">` + errors.map(e => `<li>${e}</li>`).join('') + `</ul>`;
+    } else if (typeof errors === 'object') {
+      msg = `<ul class="mb-0 ps-3">` + Object.values(errors).map(e => `<li>${e}</li>`).join('') + `</ul>`;
+    } else {
+      msg = errors || msg;
+    }
+    notify('error', 'Lỗi dữ liệu', msg, 'bi bi-shield-lock-fill');
   }
 };
 

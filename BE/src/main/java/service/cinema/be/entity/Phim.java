@@ -23,6 +23,9 @@ public class Phim extends PrimaryEntity {
     @Column(name = "ten_phim", length = 255, nullable = false)
     private String tenPhim;
 
+    @Column(name = "ma_phim", length = 50)
+    private String maPhim;
+
     @Column(name = "thoi_luong")
     private Integer thoiLuong;
 
@@ -59,8 +62,22 @@ public class Phim extends PrimaryEntity {
     @Column(name = "gia_phim", precision = 20, scale = 2)
     private BigDecimal giaPhim;
 
-    @OneToMany(mappedBy = "phim", fetch = FetchType.EAGER)
+    /**
+     * Fix #8 — Loại định dạng phim: "2D", "3D", "IMAX", "4DX"
+     * Dùng để tính phụ phí format khi xuất vé.
+     */
+    @Column(name = "loai_phim", length = 20)
+    private String loaiPhim;
+
+    /**
+     * Phụ phí theo định dạng (ví dụ: 3D +30k, IMAX +50k)
+     * Giả trị 0 nếu không có phụ phí. Chuyn cho Pricing Engine.
+     */
+    @Column(name = "phu_phi_loai_phim", precision = 10, scale = 2)
+    private BigDecimal phuPhiLoaiPhim = java.math.BigDecimal.ZERO;
+    @OneToMany(mappedBy = "phim")
     private List<PhimTheLoai> phimTheLoais;
+
 
     @OneToMany(mappedBy = "phim")
     private List<SuatChieu> suatChieus = new ArrayList<>();

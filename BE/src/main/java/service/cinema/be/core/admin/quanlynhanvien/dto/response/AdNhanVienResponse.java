@@ -18,6 +18,7 @@ public class AdNhanVienResponse {
     private String queQuan;
     private String tenPhanQuyen; // Lấy từ bảng PhanQuyen
     private String idPhanQuyen;
+    private Integer gioiTinh;
     private String chucVu;
     private String anhNhanVien;
     private Integer trangThai;

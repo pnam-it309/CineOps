@@ -88,4 +88,9 @@ public class AdPhieuGiamGiaRequest {
 
     @NotNull(message = "Ngày kết thúc không được để trống")
     private LocalDateTime ngayKetThuc;
+
+    private Integer coChoCongDon;
+    private String dieuKienApDung;
+    private String ghiChu;
+    private Integer trangThai;
 }

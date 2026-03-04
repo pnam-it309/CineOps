@@ -4,7 +4,7 @@
         @update:model-value="val => $emit('update:visible', val)"
         :title="editingId ? 'Chỉnh sửa Ghế' : 'Thêm Ghế mới'"
         :icon="editingId ? 'bi bi-pencil-square' : 'bi bi-plus-lg'"
-        width="520px"
+        width="460px"
         :confirmText="editingId ? 'Lưu thay đổi' : 'Thêm ghế'"
         :loading="saving"
         @confirm="submit"
@@ -41,7 +41,7 @@
                         <el-input-number v-model="form.soCot" :min="1" class="w-100" controls-position="right" />
                     </el-form-item>
                 </div>
-                <div class="col-12">
+                <div class="col-12" v-if="editingId">
                     <el-form-item label="Trạng thái" prop="trangThai">
                         <el-radio-group v-model="form.trangThai">
                             <el-radio-button :value="1">Hoạt động</el-radio-button>

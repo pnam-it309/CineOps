@@ -13,6 +13,7 @@ import service.cinema.be.core.admin.quanlyhoadon.repository.AdHoaDonChiTietRepos
 import service.cinema.be.core.admin.quanlyhoadon.repository.AdLichSuHoaDonRepository;
 import service.cinema.be.core.admin.quanlyhoadon.repository.AdThanhToanRepository;
 import service.cinema.be.entity.*;
+import service.cinema.be.repository.ChiTietSanPhamDiKemRepository;
 import service.cinema.be.repository.GheRepository;
 import service.cinema.be.repository.SuatChieuRepository;
 import org.springframework.data.domain.Page;
@@ -47,6 +48,7 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
     // Repository dùng chung (không phân quyền phức tạp)
     private final SuatChieuRepository suatChieuRepository;
     private final GheRepository gheRepository;
+    private final ChiTietSanPhamDiKemRepository chiTietSanPhamDiKemRepository;
 
     @Override
     @Transactional(rollbackFor = Exception.class) // Đảm bảo tính toàn vẹn dữ liệu (ACID)
@@ -126,7 +128,38 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
         savedHoaDon.setHoaDonChiTiets(danhSachChiTiet);
         adHoaDonRepository.save(savedHoaDon);
 
-        // 5. Ghi nhận Thanh Toán
+        // 5A. Xử lý Đồ ăn / Concessions (nếu có) + trừ kho atomic
+        if (request.getDanhSachDoAn() != null) {
+            for (AdHoaDonRequest.ChiTietDoAn doAn : request.getDanhSachDoAn()) {
+                ChiTietSanPhamDiKem spdk = chiTietSanPhamDiKemRepository
+                        .findById(doAn.getIdChiTietSanPhamDiKem())
+                        .orElseThrow(() -> new RuntimeException(
+                            "Sản phẩm không tồn tại: " + doAn.getIdChiTietSanPhamDiKem()));
+
+                // Trừ kho atomic — nếu trả về 0 là không đủ hàng
+                int updated = chiTietSanPhamDiKemRepository
+                        .decrementStock(doAn.getIdChiTietSanPhamDiKem(), doAn.getSoLuong());
+                if (updated == 0) {
+                    throw new RuntimeException(
+                        "Sản phẩm '" + spdk.getSanPham().getTenSanPham() + "' không đủ số lượng tồn kho!");
+                }
+
+                // Tạo chi tiết hóa đơn cho đồ ăn
+                HoaDonChiTiet chiTietDoAn = new HoaDonChiTiet();
+                chiTietDoAn.setHoaDon(savedHoaDon);
+                chiTietDoAn.setChiTietSanPhamDiKem(spdk);
+                chiTietDoAn.setLoai(1); // 1 = Đồ ăn/concession
+                chiTietDoAn.setSoLuong(doAn.getSoLuong());
+                chiTietDoAn.setDonGia(spdk.getGiaBan());
+                chiTietDoAn.setThanhTien(spdk.getGiaBan().multiply(
+                        java.math.BigDecimal.valueOf(doAn.getSoLuong())));
+                adHoaDonChiTietRepository.save(chiTietDoAn);
+
+                tongTien = tongTien.add(chiTietDoAn.getThanhTien());
+            }
+        }
+
+        // 5B. Ghi nhận Thanh Toán
         ThanhToan thanhToan = new ThanhToan();
         thanhToan.setHoaDon(savedHoaDon);
         thanhToan.setMaGiaoDich("GD-" + System.currentTimeMillis());
@@ -226,9 +259,12 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
             // Map các trường cơ bản
             dto.setId(hoaDon.getId());
             dto.setMaHoaDon(hoaDon.getMaHoaDon());
+            dto.setTongTien(hoaDon.getTongTien());
+            dto.setSoTienGiam(hoaDon.getSoTienGiam());
             dto.setTongTienThanhToan(hoaDon.getTongTienThanhToan());
             dto.setPhuongThucThanhToan(hoaDon.getPhuongThucThanhToan());
             dto.setTrangThai(hoaDon.getTrangThai());
+            dto.setGhiChu(hoaDon.getGhiChu());
 
             // Lấy ngayTao từ PrimaryEntity (Giả sử PrimaryEntity có hàm getNgayTao())
             dto.setNgayTao(hoaDon.getNgayTao());

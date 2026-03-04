@@ -90,15 +90,15 @@ const seatRows = computed(() => {
 }
 
 .seat-item {
-    width: 42px;
-    height: 42px;
+    width: 55px;
+    height: 55px;
     background: #fff;
     border: 2px solid #cbd5e1;
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 800;
     color: #475569;
     cursor: pointer;
@@ -129,18 +129,18 @@ const seatRows = computed(() => {
 }
 
 .seat-legend {
-    font-size: 13px;
+    font-size: 16px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-weight: 500;
+    gap: 10px;
+    font-weight: 600;
 }
 
 .seat-legend::before {
     content: '';
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
     display: inline-block;
 }
 
@@ -160,9 +160,9 @@ const seatRows = computed(() => {
 }
 
 .row-label {
-    min-width: 25px;
+    min-width: 35px;
     text-align: right;
-    font-size: 14px;
+    font-size: 18px;
 }
 
 /* Hide Scrollbars */

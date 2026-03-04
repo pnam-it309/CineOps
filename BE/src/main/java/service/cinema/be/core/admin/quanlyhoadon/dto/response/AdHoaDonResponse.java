@@ -10,11 +10,14 @@ import java.time.LocalDateTime;
 public class AdHoaDonResponse {
     private String id;
     private String maHoaDon;
+    private BigDecimal tongTien;
+    private BigDecimal soTienGiam;
     private BigDecimal tongTienThanhToan;
     private Integer phuongThucThanhToan;
     private Integer trangThai;
     private LocalDateTime ngayTao;
-    private String tenNhanVien; // Sau này nối bảng NhanVien
-    private String tenKhachHang; // Sau này nối bảng KhachHang
+    private String tenNhanVien;
+    private String tenKhachHang;
     private Integer kemBanHang;
+    private String ghiChu;
 }

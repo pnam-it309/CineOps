@@ -27,6 +27,11 @@ public class AdNhanVienService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<String> getDistinctChucVu() {
+        return adNhanVienRepository.findDistinctChucVu();
+    }
+
     @Transactional
     public AdNhanVienResponse create(AdNhanVienRequest request) {
         // 1. Kiểm tra các thông tin duy nhất (Unique)
@@ -140,6 +145,7 @@ public class AdNhanVienService {
                 .queQuan(nv.getQueQuan())
                 .tenPhanQuyen(nv.getPhanQuyen() != null ? nv.getPhanQuyen().getTenVaiTro() : "Chưa xác định")
                 .idPhanQuyen(nv.getPhanQuyen() != null ? nv.getPhanQuyen().getId() : null)
+                .gioiTinh(nv.getGioiTinh())
                 .chucVu(nv.getChucVu())
                 .anhNhanVien(nv.getAnhNhanVien())
                 .trangThai(nv.getTrangThai())

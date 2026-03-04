@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { Plus, User, Edit, Delete, Lock, Key, Setting, Search, Phone, Message, Clock, Check, Close } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import StatCard from '@/components/common/StatCard.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
@@ -9,6 +8,7 @@ import CCCDScanner from '@/components/common/CCCDScanner.vue'; // <-- Integrate 
 import { nhanVienService } from '@/services/api/admin/nhanVienService';
 import { phanQuyenService } from '@/services/api/admin/phanQuyenService';
 import notification from '@/utils/notifications';
+import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
 
 const staff = ref([]);
@@ -17,7 +17,7 @@ const loading = ref(false);
 
 const staffColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'NHÂN VIÊN', key: 'staff', minWidth: '450px' },
+  { label: 'NHÂN VIÊN', key: 'staff', minWidth: '250px' },
   { label: 'EMAIL', key: 'email', minWidth: '400px' },
   { label: 'TÊN ĐĂNG NHẬP', key: 'username', width: '250px' },
   { label: 'VAI TRÒ', key: 'role', width: '250px' },
@@ -27,6 +27,8 @@ const staffColumns = [
 ];
 
 const roles = ref([]);
+const chucVuOptions = ref([]);
+
 const fetchRoles = async () => {
   try {
     const res = await phanQuyenService.getAllRoles();
@@ -35,6 +37,17 @@ const fetchRoles = async () => {
     }
   } catch (error) {
     console.error('Không thể tải danh sách vai trò', error);
+  }
+};
+
+const fetchChucVu = async () => {
+  try {
+    const res = await nhanVienService.getChucVu();
+    if (res.data && res.data.data) {
+      chucVuOptions.value = res.data.data;
+    }
+  } catch (error) {
+    console.error('Không thể tải danh sách chức vụ', error);
   }
 };
 
@@ -52,8 +65,7 @@ const filterRole = ref('');
 const filterStatus = ref('');
 const currentPage = ref(1);
 const pageSize = ref(10);
-
-const chucVuOptions = ['Quản trị viên', 'Nhân viên bán vé'];
+const phanQuyenList = ref([]);
 
 const staffForm = ref({
   tenNhanVien: '',
@@ -144,11 +156,7 @@ const handleEdit = (row) => {
 };
 
 const handleDelete = (row) => {
-  ElMessageBox.confirm(`Bạn có chắc muốn xóa nhân viên "${row.tenNhanVien}"?`, 'Xác nhận xóa', {
-    confirmButtonText: 'Xóa',
-    cancelButtonText: 'Hủy',
-    type: 'warning',
-  }).then(async () => {
+  confirmDialog.delete('nhân viên', row.tenNhanVien).then(async () => {
     try {
       await nhanVienService.delete(row.id);
       notification.deleteSuccess('nhân viên');
@@ -160,17 +168,44 @@ const handleDelete = (row) => {
 };
 
 const handleSave = async () => {
-  if (!staffForm.value.tenNhanVien || !staffForm.value.email) {
-    notification.warning('Vui lòng điền đầy đủ thông tin bắt buộc');
+  // 1. Kiểm tra các trường bắt buộc trên FE
+  const requiredFields = [
+    { key: 'tenNhanVien', label: 'Họ và tên' },
+    { key: 'email', label: 'Email' },
+    { key: 'soDienThoai', label: 'Số điện thoại' },
+    { key: 'cccd', label: 'CCCD' },
+    { key: 'ngaySinh', label: 'Ngày sinh' },
+    { key: 'chucVu', label: 'Chức vụ' },
+    { key: 'idPhanQuyen', label: 'Vai trò hệ thống' }
+  ];
+
+  const missingFields = requiredFields
+    .filter(f => !staffForm.value[f.key])
+    .map(f => f.label);
+
+  if (missingFields.length > 0) {
+    notification.validationError(`Vui lòng điền: ${missingFields.join(', ')}`);
     return;
   }
+
+  // Nếu là thêm mới, bắt buộc phải có mật khẩu
+  if (!staffForm.value.id && !staffForm.value.matKhau) {
+    notification.validationError('Vui lòng nhập mật khẩu cho nhân viên mới');
+    return;
+  }
+
+  try {
+    if (staffForm.value.id) {
+      await confirmDialog.update('nhân viên');
+    } else {
+      await confirmDialog.add('nhân viên');
+    }
+  } catch { return; }
+
   try {
     const payload = { ...staffForm.value };
-    if (!payload.idPhanQuyen) {
-      notification.warning('Vui lòng chọn vai trò cho nhân viên');
-      return;
-    }
     delete payload.id;
+    
     if (staffForm.value.id) {
       if (!payload.matKhau) delete payload.matKhau;
       await nhanVienService.update(staffForm.value.id, payload);
@@ -183,8 +218,15 @@ const handleSave = async () => {
     resetForm();
     fetchStaff();
   } catch (error) {
-    const msg = error.response?.data?.message || 'Lưu nhân viên thất bại';
-    notification.error(msg);
+    // Xử lý lỗi từ Server (Lỗi validate của Spring Boot)
+    const errorData = error.response?.data;
+    if (errorData?.message && Array.isArray(errorData.message)) {
+      notification.badRequest(errorData.message);
+    } else if (errorData?.errors) {
+      notification.badRequest(errorData.errors);
+    } else {
+      notification.error(errorData?.message || 'Lưu nhân viên thất bại');
+    }
   }
 };
 
@@ -214,15 +256,10 @@ const handleCCCDScanned = (data) => {
 const selectedIds = computed(() => selectedStaff.value.map(item => item.id));
 
 const handleBulkDelete = () => {
-    ElMessageBox.confirm(
+    confirmDialog.custom(
         `Xác nhận xóa <b>${selectedIds.value.length}</b> nhân viên đã chọn?`,
         'Xóa hàng loạt',
-        {
-            dangerouslyUseHTMLString: true,
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy',
-            type: 'warning'
-        }
+        'Đồng ý'
     ).then(async () => {
         try {
             await Promise.all(selectedIds.value.map(id => nhanVienService.delete(id)));
@@ -242,6 +279,7 @@ const disabledDate = (time) => {
 onMounted(() => {
     fetchStaff();
     fetchRoles();
+    fetchChucVu();
 });
 watch([searchQuery, filterRole, filterStatus], fetchStaff);
 </script>
@@ -270,24 +308,24 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
       </template>
 
       <template #filters>
-        <div class="filter-item flex-grow-1" style="max-width: 350px;">
+        <div class="filter-item">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-input
             v-model="searchQuery"
-            placeholder="Tên, username, email..."
+            placeholder="Tên, tên đăng nhập, email..."
             :prefix-icon="Search"
             size="default"
             clearable
           />
         </div>
-        <div class="filter-item" style="width: 200px;">
+        <div class="filter-item">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-select v-model="filterRole" placeholder="Tất cả" size="default" class="w-100">
             <el-option label="Tất cả vai trò" value="all" />
             <el-option v-for="r in roles" :key="r.id" :label="r.tenVaiTro" :value="r.id" />
           </el-select>
         </div>
-        <div class="filter-item" style="width: 200px;">
+        <div class="filter-item">
            <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-select v-model="filterStatus" placeholder="Tất cả" size="default" class="w-100">
             <el-option label="Tất cả trạng thái" value="" />
@@ -315,9 +353,7 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           </template>
 
           <template #cell-staff="{ row }">
-            <div class="text-start">
-              <div class="fw-bold text-dark small">{{ row.tenNhanVien }}</div>
-            </div>
+            <div class="fw-bold text-dark small">{{ row.tenNhanVien }}</div>
           </template>
 
           <template #cell-email="{ row }">
@@ -458,7 +494,7 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
       v-model="dialogVisible"
       :title="staffForm.id ? 'Chỉnh sửa Nhân viên' : 'Thêm Nhân viên mới'"
       :icon="staffForm.id ? 'bi bi-person-gear' : 'bi bi-person-plus'"
-      width="600px"
+      width="660px"
       confirmText="Lưu lại"
       @confirm="handleSave"
     >
@@ -506,7 +542,14 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           </div>
           <div class="col-6">
             <el-form-item label="Chức vụ" required>
-              <el-select v-model="staffForm.chucVu" class="w-100" placeholder="Chọn chức vụ">
+              <el-select 
+                v-model="staffForm.chucVu" 
+                placeholder="Chọn hoặc nhập chức vụ" 
+                filterable 
+                allow-create
+                default-first-option
+                class="w-100"
+              >
                 <el-option v-for="item in chucVuOptions" :key="item" :label="item" :value="item" />
               </el-select>
             </el-form-item>
@@ -516,7 +559,14 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
               <el-input v-model="staffForm.queQuan" placeholder="Hà Nội" />
             </el-form-item>
           </div>
-          <div class="col-6">
+          <div class="col-12">
+            <el-form-item label="Ảnh nhân viên (URL)">
+              <el-input v-model="staffForm.anhNhanVien" placeholder="https://example.com/anh.jpg" clearable>
+                <template #prefix><i class="bi bi-image"></i></template>
+              </el-input>
+            </el-form-item>
+          </div>
+          <div class="col-6" v-if="staffForm.id">
             <el-form-item label="Trạng thái">
               <el-select v-model="staffForm.trangThai" class="w-100">
                 <el-option label="Đang hoạt động" :value="1" />

@@ -166,6 +166,11 @@ if (window.innerWidth < 768) {
   color: #1e293b;
 }
 
+:deep(.el-aside) {
+  min-height: 100vh;
+  background: #ffffff !important;
+}
+
 .transition-width {
   transition: width 0.28s;
 }
@@ -246,7 +251,7 @@ if (window.innerWidth < 768) {
   flex: 1 1 0;
   min-height: 0;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 /* Global Pagination Overrides */
@@ -272,17 +277,27 @@ if (window.innerWidth < 768) {
 }
 
 /* Standard Scrollbar for Admin Light Theme */
-:deep(.el-main)::-webkit-scrollbar {
+:deep(.el-main)::-webkit-scrollbar,
+:deep(.el-main *)::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
-:deep(.el-main)::-webkit-scrollbar-track {
-  background: #ffffff;
+
+:deep(.el-main)::-webkit-scrollbar-track,
+:deep(.el-main *)::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
 }
-:deep(.el-main)::-webkit-scrollbar-thumb {
+
+:deep(.el-main)::-webkit-scrollbar-thumb,
+:deep(.el-main *)::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 10px;
+  border: 2px solid #f1f5f9;
 }
-:deep(.el-main)::-webkit-scrollbar-thumb:hover {
+
+:deep(.el-main)::-webkit-scrollbar-thumb:hover,
+:deep(.el-main *)::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 

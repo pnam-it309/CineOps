@@ -81,6 +81,7 @@ public class AdSanPhamDiKemService {
                 ct.setGiaBan(vReq.getGiaBan());
                 ct.setSoLuongTon(vReq.getSoLuongTon());
                 ct.setGiaTriDinhLuong(vReq.getGiaTriDinhLuong());
+                ct.setHuongVi(vReq.getHuongVi());
                 ct.setKichCo(kichCoRepository.findById(vReq.getIdKichCo()).orElseThrow());
                 ct.setDonViTinh(dvtRepository.findById(vReq.getIdDonViTinh()).orElseThrow());
                 chiTietRepository.save(ct);
@@ -91,10 +92,13 @@ public class AdSanPhamDiKemService {
     private AdSanPhamDiKemResponse toResponse(SanPhamDichVu sp) {
         List<AdSanPhamDiKemResponse.VariantResponse> variants = sp.getChiTietSanPhamDiKems().stream()
                 .map(ct -> new AdSanPhamDiKemResponse.VariantResponse(
-                        ct.getId(), // ID kiểu String từ PrimaryEntity
+                        ct.getId(),
+                        ct.getKichCo().getId(),
                         ct.getKichCo().getTenKichCo(),
+                        ct.getDonViTinh().getId(),
                         ct.getDonViTinh().getTenDonViTinh(),
                         ct.getGiaTriDinhLuong(),
+                        ct.getHuongVi(),
                         ct.getGiaBan(),
                         ct.getSoLuongTon()
                 )).collect(Collectors.toList());
@@ -102,6 +106,7 @@ public class AdSanPhamDiKemService {
         return AdSanPhamDiKemResponse.builder()
                 .id(sp.getId())
                 .tenSanPham(sp.getTenSanPham())
+                .idLoaiSanPham(sp.getLoaiSanPham().getId())
                 .tenLoaiSanPham(sp.getLoaiSanPham().getTenLoai())
                 .moTa(sp.getMoTa())
                 .hinhAnh(sp.getHinhAnh())

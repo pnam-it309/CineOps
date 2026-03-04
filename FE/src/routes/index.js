@@ -165,13 +165,13 @@ const routes = [
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name,
-                component: () => import('@/pages/admin/AdminDashboard.vue'),
+                component: () => import('@/pages/admin/tongquan/AdminDashboard.vue'),
                 meta: { title: 'Tổng quan' }
             },
             {
                 path: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.path,
                 name: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.name,
-                component: () => import('@/pages/admin/AdminReports.vue'),
+                component: () => import('@/pages/admin/thongke/AdminReports.vue'),
                 meta: { title: 'Thống kê' }
             },
             {

@@ -11,29 +11,26 @@
       @reset-filter="handleReset"
     >
       <template #filters>
-        <div class="filter-item flex-grow-1" style="max-width:300px;">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
+        <div class="filter-item">
           <el-input v-model="listQuery.tuKhoa" placeholder="Nhập mã hóa đơn..." :prefix-icon="Search" clearable
                       @keyup.enter="handleFilter" @clear="handleFilter" />
         </div>
         <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="listQuery.trangThai" placeholder="Trạng thái" clearable style="width:160px;"
+          <el-select v-model="listQuery.trangThai" placeholder="Trạng thái" clearable
                       @change="handleFilter">
               <el-option label="Thành công" :value="1"/>
               <el-option label="Đã hủy" :value="0"/>
           </el-select>
         </div>
         <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="listQuery.phuongThucThanhToan" placeholder="Thanh toán" clearable style="width:160px;"
+          <el-select v-model="listQuery.phuongThucThanhToan" placeholder="Thanh toán" clearable
                       @change="handleFilter">
               <el-option label="Tiền mặt" :value="0"/>
               <el-option label="Chuyển khoản" :value="1"/>
           </el-select>
         </div>
-        <div class="filter-item ms-3">
-            <el-radio-group v-model="listQuery.kyThoiGian" @change="handleFilter" class="mt-1">
+        <div class="filter-item">
+            <el-radio-group v-model="listQuery.kyThoiGian" @change="handleFilter">
               <el-radio-button value="">Tất cả</el-radio-button>
               <el-radio-button value="TODAY">Hôm nay</el-radio-button>
               <el-radio-button value="THIS_WEEK">Tuần này</el-radio-button>
@@ -56,7 +53,7 @@
             :hide-pagination="true"
           >
             <template #cell-stt="{ index }">
-              <span class="small fw-bold text-secondary">{{ (listQuery.page - 1) * listQuery.size + index + 1 }}</span>
+              <span class="fw-bold text-secondary">{{ (listQuery.page - 1) * listQuery.size + index + 1 }}</span>
             </template>
 
             <template #cell-maHoaDon="{ row }">
@@ -67,13 +64,21 @@
               <span>{{ formatDate(row.ngayTao) }}</span>
             </template>
 
+            <template #cell-tongTien="{ row }">
+              <span class="text-secondary">{{ formatCurrency(row.tongTien) }}</span>
+            </template>
+
+            <template #cell-soTienGiam="{ row }">
+              <span class="text-danger">-{{ formatCurrency(row.soTienGiam) }}</span>
+            </template>
+
             <template #cell-tongTienThanhToan="{ row }">
-              <strong class="text-danger">{{ formatCurrency(row.tongTienThanhToan) }}</strong>
+              <strong class="text-dark">{{ formatCurrency(row.tongTienThanhToan) }}</strong>
             </template>
 
             <template #cell-kemBanHang="{ row }">
               <el-tag :type="row.kemBanHang === 0 ? 'info' : 'success'" size="large" effect="dark">
-                {{ row.kemBanHang === 0 ? '🏠 Tại quầy' : '🌐 Online' }}
+                {{ row.kemBanHang === 0 ? 'Tại quầy' : 'Online' }}
               </el-tag>
             </template>
 
@@ -92,7 +97,7 @@
             <template #actions="{ row }">
               <div class="d-flex gap-1 justify-content-center align-items-center">
                 <el-tooltip content="Chi tiết hóa đơn" placement="top">
-                  <button class="btn-action-icon btn-action-view" @click="viewDetails(row.id)">
+                  <button class="btn-action-icon btn-action-view" @click="viewDetails(row)">
                     <i class="bi bi-eye"></i>
                   </button>
                 </el-tooltip>
@@ -103,16 +108,24 @@
       </template>
     </AdminTableLayout>
 
-    <el-dialog v-model="dialogVisible" title="Chi tiết Hóa Đơn" width="60%">
+    <el-dialog v-model="dialogVisible" title="Chi tiết Hóa Đơn" width="65%">
       <el-table v-loading="detailLoading" :data="invoiceDetails" border class="admin-table">
         <el-table-column type="index" label="STT" width="70" align="center" />
         <el-table-column prop="tenPhim" label="Tên phim / Sản phẩm">
           <template #default="scope">
             <span v-if="scope.row.loai === 0">🎬 {{ scope.row.tenPhim }}</span>
-            <span v-else>🍿 Đồ ăn</span>
+            <span v-else>🍿 Đồ ăn / Nước uống</span>
           </template>
         </el-table-column>
-        <el-table-column prop="tenPhongChieu" label="Phòng chiếu" width="150" align="center" />
+        <el-table-column prop="tenPhongChieu" label="Phòng chiếu / Suất chiếu" width="200">
+          <template #default="scope">
+            <div v-if="scope.row.loai === 0">
+              <div class="text-primary fw-bold">{{ scope.row.tenPhongChieu || '—' }}</div>
+              <div class="text-secondary small">{{ scope.row.thoiGianBatDau ? formatDate(scope.row.thoiGianBatDau) : '—' }}</div>
+            </div>
+            <div v-else>—</div>
+          </template>
+        </el-table-column>
         <el-table-column prop="viTriGhe" label="Ghế" width="100" align="center" />
         <el-table-column prop="donGia" label="Đơn giá" align="right" width="160">
           <template #default="scope">
@@ -120,6 +133,28 @@
           </template>
         </el-table-column>
       </el-table>
+      <div v-if="selectedInvoice" class="mt-4 p-3 bg-light rounded-4">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="small text-secondary mb-1">Ghi chú hóa đơn</div>
+            <div class="text-dark">{{ selectedInvoice.ghiChu || '—' }}</div>
+          </div>
+          <div class="col-6 text-end">
+            <div class="d-flex justify-content-end gap-3 mb-1">
+              <span class="text-secondary">Tổng tiền hàng:</span>
+              <span class="fw-bold">{{ formatCurrency(selectedInvoice.tongTien) }}</span>
+            </div>
+            <div class="d-flex justify-content-end gap-3 mb-1">
+              <span class="text-secondary">Giảm giá:</span>
+              <span class="fw-bold text-danger">-{{ formatCurrency(selectedInvoice.soTienGiam) }}</span>
+            </div>
+            <div class="d-flex justify-content-end gap-3 border-top pt-2 mt-2">
+              <span class="text-dark fw-bold">Tổng thanh toán:</span>
+              <span class="fw-bold text-primary fs-5">{{ formatCurrency(selectedInvoice.tongTienThanhToan) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">Đóng</el-button>
@@ -145,14 +180,17 @@ const total = ref(0);
 const loading = ref(false);
 
 const dialogVisible = ref(false);
+const selectedInvoice = ref(null);
 const invoiceDetails = ref([]);
 const detailLoading = ref(false);
 
 const tableColumns = [
   { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'MÃ HĐ', key: 'maHoaDon' },
-  { label: 'NGÀY TẠO', key: 'ngayTao', width: '180px' },
-  { label: 'TỔNG TIỀN', key: 'tongTienThanhToan' },
+  { label: 'MÃ HÓA ĐƠN', key: 'maHoaDon' , width: '230px'},
+  { label: 'NGÀY TẠO', key: 'ngayTao', width: '230px' },
+  { label: 'TỔNG TIỀN', key: 'tongTien', width: '130px' },
+  { label: 'GIẢM GIÁ', key: 'soTienGiam', width: '110px' },
+  { label: 'THANH TOÁN', key: 'tongTienThanhToan', width: '140px' },
   { label: 'KÊNH BÁN', key: 'kemBanHang', width: '140px' },
   { label: 'HÌNH THỨC', key: 'phuongThucThanhToan', width: '160px' },
   { label: 'TRẠNG THÁI', key: 'trangThai', width: '140px' }
@@ -190,11 +228,12 @@ const fetchInvoices = async () => {
   }
 };
 
-const viewDetails = async (id) => {
+const viewDetails = async (row) => {
+  selectedInvoice.value = row;
   dialogVisible.value = true;
   detailLoading.value = true;
   try {
-    const res = await hoaDonService.getInvoiceDetails(id);
+    const res = await hoaDonService.getInvoiceDetails(row.id);
     invoiceDetails.value = res.data || [];
   } catch (error) {
     ElMessage.error('Lỗi khi lấy chi tiết hóa đơn!');
