@@ -15,4 +15,5 @@ public class AdHoaDonChiTietResponse {
     private Integer soLuong;
     private BigDecimal donGia;
     private BigDecimal thanhTien;
+    private String tenSanPham;
 }

@@ -20,4 +20,8 @@ public class AdHoaDonResponse {
     private String tenKhachHang;
     private Integer kemBanHang;
     private String ghiChu;
+    private String email;    // Dùng để gửi mail/hiển thị liên hệ
+    private String taiKhoan; // Dùng để xác thực/hiển thị tên người dùng       // Bổ sung trường này
+    private String sdt;
+//    pr
 }

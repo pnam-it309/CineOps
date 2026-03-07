@@ -60,15 +60,15 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
                   <span class="text-secondary small">Tên khách hàng</span>
-                  <span class="fw-semibold small text-end">{{ invoice?.tenKhachHang || 'Khách vãng lai' }}</span>
+                  <span class="fw-bold text-black small text-end">{{ invoice?.tenKhachHang || 'Khách vãng lai' }}</span>
                 </div>
                 <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
                   <span class="text-secondary small">Số điện thoại</span>
-                  <span class="fw-semibold small text-end">—</span>
+                  <span class="fw-bold text-black small text-end">{{ invoice?.sdt || 'Chưa có thông tin' }}</span>
                 </div>
                 <div class="d-flex justify-content-between">
                   <span class="text-secondary small">Email</span>
-                  <span class="fw-semibold small text-end">—</span>
+                  <span class="fw-bold text-black small text-end">{{ invoice?.email || 'Chưa có thông tin' }}</span>
                 </div>
               </div>
             </div>
@@ -84,15 +84,15 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
                   <span class="text-secondary small">Kênh bán</span>
-                  <span class="fw-semibold small text-end">{{ invoice?.kemBanHang === 0 ? 'Bán tại quầy' : 'Bán Online' }}</span>
+                  <span class="fw-bold text-black small text-end">{{ invoice?.kemBanHang === 0 ? 'Bán tại quầy' : 'Bán Online' }}</span>
                 </div>
                 <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
                   <span class="text-secondary small">Ghi chú</span>
-                  <span class="fw-semibold small text-end">{{ invoice?.ghiChu || 'Không' }}</span>
+                  <span class="fw-bold text-black small text-end">{{ invoice?.ghiChu || 'Không' }}</span>
                 </div>
                 <div class="d-flex justify-content-between">
                   <span class="text-secondary small">Nhân viên chốt</span>
-                  <span class="fw-semibold small text-end">{{ invoice?.tenNhanVien || 'Hệ thống' }}</span>
+                  <span class="fw-bold text-black small text-end">{{ invoice?.tenNhanVien || 'Hệ thống' }}</span>
                 </div>
               </div>
             </div>
@@ -123,20 +123,20 @@
                     <td class="ps-4 text-secondary small">{{ index + 1 }}</td>
                     <td class="py-3">
                       <div class="d-flex flex-column">
-                        <span class="fw-bold mb-1 d-flex align-items-center">
+                        <span class="fw-bold mb-1 d-flex align-items-center text-black">
                           <i v-if="item.loai === 0" class="bi bi-ticket-perforated-fill text-primary me-2"></i>
                           <i v-else class="bi bi-cup-straw text-warning me-2"></i>
                           {{ item.loai === 0 ? item.tenPhim : (item.tenSanPham || 'Sản phẩm đi kèm') }}
                         </span>
-                        <div v-if="item.loai === 0" class="small text-secondary fw-medium mt-1">
+                        <div v-if="item.loai === 0" class="small text-secondary fw-medium mt-1 text-black">
                            {{ item.tenPhongChieu }} • {{ item.thoiGianBatDau ? formatDateShort(item.thoiGianBatDau) : '' }} 
                            <span class="ms-1 px-2 py-0 rounded text-danger bg-danger-subtle fw-bold">Ghế: {{ item.viTriGhe }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="text-center fw-semibold">{{ item.soLuong || 1 }}</td>
-                    <td class="text-end">{{ formatCurrency(item.donGia) }}</td>
-                    <td class="text-end pe-4 fw-bold">{{ formatCurrency(item.donGia * (item.soLuong || 1)) }}</td>
+                    <td class="text-center fw-semibold text-black">{{ item.soLuong || 1 }}</td>
+                    <td class="text-end text-black">{{ formatCurrency(item.donGia) }}</td>
+                    <td class="text-end pe-4 fw-bold text-black">{{ formatCurrency(item.donGia * (item.soLuong || 1)) }}</td>
                   </tr>
                   <tr v-if="invoiceDetails.length === 0 && !loading">
                     <td colspan="5" class="text-center py-5 text-secondary">Chưa có chi tiết nào được ghi nhận.</td>

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import service.cinema.be.core.admin.quanlyhoadon.dto.response.AdHoaDonResponse;
 import service.cinema.be.entity.HoaDon;
 
 import java.math.BigDecimal;
@@ -33,4 +34,15 @@ public interface AdHoaDonRepository extends JpaRepository<HoaDon, String>, JpaSp
             @Param("trangThai") Integer trangThai,
             @Param("now") LocalDateTime now
     );
+    @Query("SELECT new service.cinema.be.core.admin.quanlyhoadon.dto.response.AdHoaDonResponse(" +
+            "h.id, h.maHoaDon, h.tongTienThanhToan, h.trangThai, h.ngayTao, " +
+            "COALESCE(k.tenKhachHang, 'Khách lẻ'), " +
+            "COALESCE(k.sdt, 'N/A'), " +
+            "COALESCE(t.email, 'N/A'), " + // Vị trí cho trường email
+            "COALESCE(t.email, 'N/A')) " + // Vị trí cho trường taiKhoan (vì 2 cái là 1)
+            "FROM HoaDon h " +
+            "LEFT JOIN h.khachHang k " +
+            "LEFT JOIN k.taiKhoan t " +
+            "WHERE h.id = :id")
+    AdHoaDonResponse getHoaDonResponseById(@Param("id") String id);
 }
