@@ -12,13 +12,12 @@ import service.cinema.be.core.admin.quanlyve.dto.response.AdVeThongKeResponse;
 import service.cinema.be.core.admin.quanlyve.repository.AdGiaVeChiTietRepository;
 import service.cinema.be.core.admin.quanlyve.repository.AdVeRepository;
 import service.cinema.be.core.admin.quanlyve.service.AdVeService;
-import service.cinema.be.entity.Ghe;
-import service.cinema.be.entity.SuatChieu;
-import service.cinema.be.entity.Ve;
+import service.cinema.be.entity.*;
 import service.cinema.be.repository.GheRepository;
 import service.cinema.be.repository.SuatChieuRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -98,38 +97,79 @@ public class AdVeServiceImpl implements AdVeService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<AdVeResponse> timKiemVe(String tuKhoa, Integer trangThai, int page, int size) {
+    public Page<AdVeResponse> timKiemVe(
+            String tuKhoa, Integer trangThai,
+            BigDecimal minPrice, BigDecimal maxPrice,
+            LocalDate tuNgay, LocalDate denNgay,
+            String kyThoiGian, String sortDir,
+            int page, int size) {
 
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by(Sort.Direction.DESC, "ngayTao")
-        );
+        // 1. XỬ LÝ LOGIC "KỲ THỜI GIAN" (Nội suy ra ngày bắt đầu/kết thúc) [cite: 2026-03-04]
+        if (kyThoiGian != null && !kyThoiGian.trim().isEmpty()) {
+            LocalDate now = LocalDate.now();
+            switch (kyThoiGian.toUpperCase()) {
+                case "TODAY": tuNgay = now; denNgay = now; break;
+                case "THIS_WEEK":
+                    tuNgay = now.with(java.time.DayOfWeek.MONDAY);
+                    denNgay = now.with(java.time.DayOfWeek.SUNDAY); break;
+                case "THIS_MONTH":
+                    tuNgay = now.with(java.time.temporal.TemporalAdjusters.firstDayOfMonth());
+                    denNgay = now.with(java.time.temporal.TemporalAdjusters.lastDayOfMonth()); break;
+            }
+        }
 
+        // Biến final dùng cho Lambda Specification
+        final LocalDate finalTuNgay = tuNgay;
+        final LocalDate finalDenNgay = denNgay;
+
+        // 2. THIẾT LẬP PHÂN TRANG & SẮP XẾP ĐỘNG
+        Sort.Direction direction = (sortDir != null && sortDir.equalsIgnoreCase("ASC"))
+                ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "ngayTao"));
+
+        // 3. XÂY DỰNG CÂU TRUY VẤN ĐỘNG (SPECIFICATION)
         Specification<Ve> specification = (root, query, cb) -> {
-
             List<Predicate> predicates = new ArrayList<>();
 
-            // Tìm theo mã vé
+            // A. TÌM KIẾM ĐA NĂNG: Mã vé | Tên phim | Tên khách | SĐT khách
             if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
-                predicates.add(
-                        cb.like(
-                                cb.lower(root.get("maVe")),
-                                "%" + tuKhoa.trim().toLowerCase() + "%"
-                        )
-                );
+                String keyword = "%" + tuKhoa.trim().toLowerCase() + "%";
+
+                // Join các bảng liên quan để tìm kiếm
+                jakarta.persistence.criteria.Join<Ve, SuatChieu> suatChieuJoin = root.join("suatChieu", jakarta.persistence.criteria.JoinType.LEFT);
+                jakarta.persistence.criteria.Join<SuatChieu, Phim> phimJoin = suatChieuJoin.join("phim", jakarta.persistence.criteria.JoinType.LEFT);
+                jakarta.persistence.criteria.Join<Ve, HoaDon> hoaDonJoin = root.join("hoaDon", jakarta.persistence.criteria.JoinType.LEFT);
+                jakarta.persistence.criteria.Join<HoaDon, KhachHang> khachHangJoin = hoaDonJoin.join("khachHang", jakarta.persistence.criteria.JoinType.LEFT);
+
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("maVe")), keyword),
+                        cb.like(cb.lower(phimJoin.get("tenPhim")), keyword),
+                        cb.like(cb.lower(khachHangJoin.get("tenKhachHang")), keyword),
+                        cb.like(khachHangJoin.get("sdt"), keyword)
+                ));
             }
 
-            // Lọc theo trạng thái
+            // B. LỌC TRẠNG THÁI
             if (trangThai != null) {
-                predicates.add(
-                        cb.equal(root.get("trangThai"), trangThai)
-                );
+                predicates.add(cb.equal(root.get("trangThai"), trangThai));
+            }
+
+            // C. LỌC KHOẢNG GIÁ (Giá thanh toán thực tế của vé)
+            if (minPrice != null) predicates.add(cb.greaterThanOrEqualTo(root.get("giaThanhToan"), minPrice));
+            if (maxPrice != null) predicates.add(cb.lessThanOrEqualTo(root.get("giaThanhToan"), maxPrice));
+
+            // D. LỌC KHOẢNG THỜI GIAN (Ngày tạo vé) [cite: 2026-03-04]
+            if (finalTuNgay != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("ngayTao"), finalTuNgay.atStartOfDay()));
+            }
+            if (finalDenNgay != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("ngayTao"), finalDenNgay.atTime(23, 59, 59)));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
+        // 4. THỰC THI VÀ MAPPING SANG DTO
         return adVeRepository.findAll(specification, pageable)
                 .map(this::mapToResponse);
     }
@@ -185,36 +225,49 @@ public class AdVeServiceImpl implements AdVeService {
      * ==========================
      */
     private AdVeResponse mapToResponse(Ve ve) {
-
         AdVeResponse dto = new AdVeResponse();
 
+        // 1. Thông tin định danh & trạng thái [cite: 2026-03-08]
         dto.setId(ve.getId());
         dto.setMaVe(ve.getMaVe());
+        dto.setGiaThanhToan(ve.getGiaThanhToan());
+        dto.setTrangThai(ve.getTrangThai());
+        dto.setNgayTao(ve.getNgayTao());
+        dto.setLoaiVe(ve.getLoaiVe()); // 0: Tại quầy, 1: Online
+        dto.setNguoiTao(ve.getNguoiTao() != null ? ve.getNguoiTao() : "Hệ thống");
 
+        // 2. Thông tin Suất chiếu & Thời gian chiếu thực tế [cite: 2026-02-04]
         if (ve.getSuatChieu() != null) {
+            dto.setNgayChieu(ve.getSuatChieu().getNgayChieu());
+            dto.setGioBatDau(ve.getSuatChieu().getGioBatDau());
+
             if (ve.getSuatChieu().getPhim() != null) {
                 dto.setTenPhim(ve.getSuatChieu().getPhim().getTenPhim());
             }
             if (ve.getSuatChieu().getPhongChieu() != null) {
-                dto.setTenPhongChieu(
-                        ve.getSuatChieu().getPhongChieu().getTenPhong()
-                );
+                dto.setTenPhongChieu(ve.getSuatChieu().getPhongChieu().getTenPhong());
             }
         }
 
+        // 3. Thông tin Ghế & Loại vé (Join Ghe -> LoaiGhe)
         if (ve.getGhe() != null) {
-            dto.setViTriGhe(
-                    ve.getGhe().getSoHang() + ve.getGhe().getSoGhe()
-            );
+            dto.setViTriGhe(ve.getGhe().getSoGhe());
+            if (ve.getGhe().getLoaiGhe() != null) {
+                // Hiển thị chuyên nghiệp: "Vé VIP", "Vé Thường", "Vé Couple" [cite: 2026-03-04]
+                dto.setTenLoaiVe("Vé " + ve.getGhe().getLoaiGhe().getTenLoai());
+            }
         }
 
-        dto.setGiaThanhToan(ve.getGiaThanhToan());
-        dto.setLoaiVe(ve.getLoaiVe());
-        dto.setTrangThai(ve.getTrangThai());
-        dto.setNgayTao(ve.getNgayTao());
-        
-        // Priority: Audited creator field -> fallback string
-        dto.setNguoiTao(ve.getNguoiTao() != null ? ve.getNguoiTao() : "Hệ thống");
+        // 4. Thông tin Khách hàng & Hóa đơn (Đã fix lỗi getHoaDon)
+        if (ve.getHoaDon() != null) {
+            dto.setMaHoaDon(ve.getHoaDon().getMaHoaDon());
+            if (ve.getHoaDon().getKhachHang() != null) {
+                dto.setTenKhachHang(ve.getHoaDon().getKhachHang().getTenKhachHang());
+                dto.setSdtKhachHang(ve.getHoaDon().getKhachHang().getSdt());
+            } else {
+                dto.setTenKhachHang("Khách lẻ / vãng lai");
+            }
+        }
 
         if (ve.getLoaiKhachHang() != null) {
             dto.setTenLoaiKhachHang(ve.getLoaiKhachHang().getTenLoai());
