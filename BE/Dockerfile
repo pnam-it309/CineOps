@@ -11,6 +11,9 @@ COPY --chown=gradle:gradle gradle/ ./gradle/
 # but we'll copy the source and build the jar.
 COPY --chown=gradle:gradle src/ ./src/
 
+# Grant execute permission
+RUN chmod +x gradlew
+
 # Build JAR file (skip tests as they are run in CI)
 RUN ./gradlew build -x test --no-daemon
 
