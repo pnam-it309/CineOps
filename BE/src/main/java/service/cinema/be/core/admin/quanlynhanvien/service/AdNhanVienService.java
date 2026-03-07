@@ -32,6 +32,7 @@ public class AdNhanVienService {
     private final TaiKhoanRepository taiKhoanRepository;
     private final PasswordEncoder passwordEncoder;
     private final IEmailService emailService;
+    private final service.cinema.be.repository.TokenRepository tokenRepository;
     private final RandomNumberGenerator randomGenerator = new RandomNumberGenerator();
 
     @Transactional(readOnly = true)
@@ -188,9 +189,8 @@ public class AdNhanVienService {
         resetToken.setNgayHetHan(LocalDateTime.now().plusHours(24));
         resetToken.setTrangThai(1);
         
-        // In a real app we'd save this to a specialized repository, 
-        // but for now we'll just send the email with the info.
-        // Reusing the template requirements: resetLink, expiryHours
+        // Save token to DB
+        tokenRepository.save(resetToken);
         
         Map<String, Object> variables = new HashMap<>();
         variables.put("staffName", nv.getTenNhanVien());

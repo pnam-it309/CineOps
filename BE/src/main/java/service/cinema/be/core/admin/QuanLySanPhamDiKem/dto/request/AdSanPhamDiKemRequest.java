@@ -21,16 +21,16 @@ public class AdSanPhamDiKemRequest {
     @Size(max = 4000, message = "Mô tả không được vượt quá 4000 ký tự")
     private String moTa;
 
-    @Pattern(
-            regexp = "^(https?:\\/\\/).+\\.(jpg|jpeg|png|webp)$|^$",
-            message = "URL hình ảnh không hợp lệ (phải là http/https và có đuôi jpg/png/webp)"
-    )
+    // @Pattern(
+    //         regexp = "^(https?:\\/\\/).+\\.(jpg|jpeg|png|webp)$|^$",
+    //         message = "URL hình ảnh không hợp lệ (phải là http/https và có đuôi jpg/png/webp)"
+    // )
     private String hinhAnh;
 
     private Integer trangThai;
 
     // Danh sách biến thể (Size, Giá, Tồn kho)
-    @NotEmpty(message = "Sản phẩm phải có ít nhất một kích cỡ")
+    // @NotEmpty(message = "Sản phẩm phải có ít nhất một kích cỡ")
     @Valid
     private List<VariantRequest> variants;
 

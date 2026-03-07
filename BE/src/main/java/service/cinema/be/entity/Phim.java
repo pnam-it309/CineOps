@@ -109,7 +109,7 @@ public class Phim extends PrimaryEntity {
     @Column(name = "phu_phi_loai_phim")
     private Double phuPhiLoaiPhim = 0.0;
     @OneToMany(mappedBy = "phim")
-    private List<PhimTheLoai> phimTheLoais;
+    private List<PhimTheLoai> phimTheLoais = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "phim")

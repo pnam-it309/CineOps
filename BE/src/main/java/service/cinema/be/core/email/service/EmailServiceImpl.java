@@ -25,6 +25,9 @@ public class EmailServiceImpl implements IEmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    private String from;
+    
     @Override
     @Async("emailTaskExecutor")
     public CompletableFuture<Void> sendEmailAsync(EmailRequest emailRequest) {
@@ -104,6 +107,7 @@ public class EmailServiceImpl implements IEmailService {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
         
+        helper.setFrom(from);
         helper.setTo(emailRequest.getTo());
         helper.setSubject(emailRequest.getSubject());
         
@@ -136,6 +140,7 @@ public class EmailServiceImpl implements IEmailService {
     
     private void sendSimpleEmail(EmailRequest emailRequest) {
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
         message.setTo(emailRequest.getTo());
         message.setSubject(emailRequest.getSubject());
         

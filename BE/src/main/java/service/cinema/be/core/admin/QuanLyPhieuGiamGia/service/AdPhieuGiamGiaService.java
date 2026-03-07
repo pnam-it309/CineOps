@@ -198,9 +198,10 @@ public class AdPhieuGiamGiaService {
             if (request.getIdKhachHangs() != null) {
                 chiTietRepository.deleteByPhieuGiamGia(saved);
                 saveAssociations(saved, request.getIdKhachHangs());
-            }
-            // Gửi mail thông báo thay đổi nếu có thay đổi quan trọng
-            if (!oldStatus.equals(saved.getTrangThai()) || !oldEnd.equals(saved.getNgayKetThuc())) {
+                // Luôn gửi email cho khách hàng mới trong danh sách khi cập nhật
+                sendVoucherNotifications(saved, "voucher_updated");
+            } else if (!oldStatus.equals(saved.getTrangThai()) || !oldEnd.equals(saved.getNgayKetThuc())) {
+                // Nếu không gửi đến danh sách KH cụ thể, nhưng có đổi trạng thái/hạn dùng
                 sendVoucherNotifications(saved, "voucher_updated");
             }
         }
@@ -224,6 +225,7 @@ public class AdPhieuGiamGiaService {
 
     private void sendVoucherNotifications(service.cinema.be.entity.PhieuGiamGia p, String type) {
         java.util.List<service.cinema.be.entity.PhieuGiamGiaChiTiet> chiTiets = chiTietRepository.findByPhieuGiamGia(p);
+        System.out.println("Sending voucher notifications for: " + p.getMaPhieuGiamGia() + ", count: " + chiTiets.size());
         for (service.cinema.be.entity.PhieuGiamGiaChiTiet ct : chiTiets) {
             if (ct.getKhachHang() != null && ct.getKhachHang().getTaiKhoan() != null) {
                 String email = ct.getKhachHang().getTaiKhoan().getEmail();
@@ -248,9 +250,14 @@ public class AdPhieuGiamGiaService {
                         .templateName(null) // Sử dụng email đơn giản
                         .isHtml(false)
                         .build();
-                        
+
+                    System.out.println("Queued email for: " + email);
                     emailService.sendEmailAsync(emailRequest);
+                } else {
+                    System.out.println("Voucher notification skipped: No email for customer " + ct.getKhachHang().getTenKhachHang());
                 }
+            } else {
+                System.out.println("Voucher notification skipped: No account linked to customer in " + ct.getMaPhieuGiamGiaChiTiet());
             }
         }
     }

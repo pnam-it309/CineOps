@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 import { User, Edit, Lock, Key, Setting, Search, Refresh } from '@element-plus/icons-vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
@@ -30,11 +31,35 @@ const staffColumns = [
 const roles = ref([]);
 const chucVuOptions = ref([]);
 
+const getRoleIcon = (code) => {
+  const icons = {
+    'ROLE_ADMIN': 'bi-shield-lock-fill',
+    'ROLE_STAFF': 'bi-person-badge-fill',
+    'ROLE_CUSTOMER': 'bi-person-fill'
+  };
+  return icons[code] || 'bi-gear-fill';
+};
+
+const getRoleColor = (code) => {
+  const colors = {
+    'ROLE_ADMIN': 'danger',
+    'ROLE_STAFF': 'warning',
+    'ROLE_CUSTOMER': 'primary'
+  };
+  return colors[code] || 'info';
+};
+
 const fetchRoles = async () => {
   try {
     const res = await phanQuyenService.getAllRoles();
     if (res.data && res.data.data) {
-      roles.value = res.data.data;
+      roles.value = res.data.data.map(r => ({
+        ...r,
+        name: r.tenVaiTro,
+        icon: getRoleIcon(r.maPhanQuyen),
+        color: getRoleColor(r.maPhanQuyen),
+        permissions: r.quyenHan === 'ALL' ? ['Toàn quyền hệ thống'] : (r.quyenHan ? r.quyenHan.split(',').map(p => p.trim()) : [])
+      }));
     }
   } catch (error) {
     console.error('Không thể tải danh sách vai trò', error);
@@ -115,11 +140,11 @@ const getAvatarColor = (role) => {
 };
 
 const handleAdd = () => {
-  router.push('/admin/staff/add');
+  router.push({ name: ROUTES_CONSTANTS.ADMIN.children.STAFF_ADD.name });
 };
 
 const handleEdit = (row) => {
-  router.push(`/admin/staff/edit/${row.id}`);
+  router.push({ name: ROUTES_CONSTANTS.ADMIN.children.STAFF_EDIT.name, params: { id: row.id } });
 };
 
 const handleDelete = (row) => {
@@ -310,16 +335,16 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
       </template>
 
       <div class="d-flex flex-column gap-3">
-        <div v-for="role in roles" :key="role.name" class="p-3 border rounded-3 bg-light-subtle">
+        <div v-for="role in roles" :key="role.id" class="p-3 border rounded-3 bg-light-subtle">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="d-flex align-items-center gap-2">
-              <span class="fs-5">{{ role.icon }}</span>
+            <i :class="[role.icon, 'fs-5']" :style="{ color: `var(--el-color-${role.color})` }"></i>
               <el-tag :type="role.color" effect="dark" round>{{ role.name }}</el-tag>
             </div>
             <el-button size="small" :icon="Edit" text class="text-indigo-500">Sửa</el-button>
           </div>
           <div class="d-flex flex-wrap gap-2">
-            <el-tag v-for="perm in role.permissions" :key="perm" type="info" effect="plain" size="small" round>
+            <el-tag v-for="(perm, idx) in role.permissions" :key="idx" type="info" effect="plain" size="small" round>
               {{ perm }}
             </el-tag>
           </div>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 import { phimApi } from '@/services/api/admin/phimService';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
@@ -145,7 +146,7 @@ const handleSave = async () => {
       await phimApi.create(payload);
       notification.addSuccess('phim');
     }
-    router.push('/admin/movies-schedule');
+    router.push({ name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.name });
   } catch (e) {
     const msg = e?.response?.data?.message || 'Lỗi lưu phim, vui lòng thử lại!';
     notification.error(msg);

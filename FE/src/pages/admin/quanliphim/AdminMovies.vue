@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 import { Search, Refresh } from '@element-plus/icons-vue';
 import { phimApi } from '@/services/api/admin/phimService';
 import BaseTable from '@/components/common/BaseTable.vue';
@@ -98,8 +99,8 @@ const fetchGenres = async () => {
 };
 
 // ── CRUD ──────────────────────────────────────────────────────────────────────
-const handleAdd  = () => router.push('/admin/movies/add');
-const handleEdit = (row) => router.push(`/admin/movies/edit/${row.id}`);
+const handleAdd  = () => router.push({ name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.name });
+const handleEdit = (row) => router.push({ name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.name, params: { id: row.id } });
 
 const handleUpdateStatus = (row, status = null) => {
   const isInactive = row.trangThai === 0;

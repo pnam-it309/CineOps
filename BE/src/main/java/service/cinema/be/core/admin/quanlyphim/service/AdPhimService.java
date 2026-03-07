@@ -17,6 +17,7 @@ import service.cinema.be.entity.Phim;
 import service.cinema.be.entity.PhimTheLoai;
 import service.cinema.be.entity.TheLoai;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -216,7 +217,8 @@ public class AdPhimService {
     }
 
     private AdPhimResponse toResponse(Phim phim) {
-        List<AdTheLoaiResponse> theLoais = phim.getPhimTheLoais().stream()
+        List<AdTheLoaiResponse> theLoais = (phim.getPhimTheLoais() == null) ? Collections.emptyList() :
+                phim.getPhimTheLoais().stream()
                 .map(ptl -> AdTheLoaiResponse.builder()
                         .id(ptl.getTheLoai().getId())
                         .tenTheLoai(ptl.getTheLoai().getTenTheLoai())
