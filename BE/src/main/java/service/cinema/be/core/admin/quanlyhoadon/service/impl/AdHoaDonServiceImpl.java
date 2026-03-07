@@ -312,8 +312,13 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
                     dto.setTenPhongChieu(ve.getSuatChieu().getPhongChieu().getTenPhong());
                 }
                 if(ve.getGhe() != null) {
-                    dto.setViTriGhe(ve.getGhe().getSoHang() + ve.getGhe().getSoGhe());
+                    dto.setViTriGhe( ve.getGhe().getSoGhe());
                 }
+            }
+            // BỔ SUNG: Nếu là Đồ ăn/Sản phẩm (loại 1)
+            else if (chiTiet.getLoai() == 1 && chiTiet.getChiTietSanPhamDiKem() != null) {
+                // Móc từ HoaDonChiTiet -> ChiTietSanPhamDiKem -> SanPham -> TenSanPham
+                dto.setTenSanPham(chiTiet.getChiTietSanPhamDiKem().getSanPham().getTenSanPham());
             }
             return dto;
         }).toList();
@@ -324,6 +329,7 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
     public AdHoaDonResponse getHoaDonById(String id) {
         HoaDon hoaDon = adHoaDonRepository.findByIdOrMaHoaDon(id, id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
         AdHoaDonResponse dto = new AdHoaDonResponse();
         dto.setId(hoaDon.getId());
         dto.setMaHoaDon(hoaDon.getMaHoaDon());
@@ -336,21 +342,38 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
         dto.setNgayTao(hoaDon.getNgayTao());
         dto.setKemBanHang(hoaDon.getKenhBanHang());
 
+        // 1. Xử lý thông tin nhân viên (Giữ nguyên logic của bạn)
         if (hoaDon.getNhanVien() != null) {
             dto.setTenNhanVien(hoaDon.getNhanVien().getTenNhanVien());
         } else if (hoaDon.getNguoiTao() != null) {
-            // Fallback to AuditEntity creator if NhanVien link is missing but auditor info exists
             dto.setTenNhanVien(hoaDon.getNguoiTao());
         } else {
             dto.setTenNhanVien("Hệ thống");
         }
 
+        // 2. Xử lý thông tin khách hàng (Bổ sung Email và SDT)
+        // Trong file AdHoaDonServiceImpl.java
+        // 2. Xử lý thông tin khách hàng (Bổ sung Email và SĐT)
         if (hoaDon.getKhachHang() != null) {
-            dto.setTenKhachHang(hoaDon.getKhachHang().getTenKhachHang());
+            KhachHang kh = hoaDon.getKhachHang();
+            dto.setTenKhachHang(kh.getTenKhachHang());
+            dto.setSdt(kh.getSdt());
+
+            if (kh.getTaiKhoan() != null) {
+                String identity = kh.getTaiKhoan().getEmail(); // Lấy giá trị email chung
+                dto.setEmail(identity);    // Gán vào email
+                dto.setTaiKhoan(identity); // Gán luôn vào taiKhoan
+            } else {
+                dto.setEmail("N/A");
+                dto.setTaiKhoan("N/A");
+            }
         } else {
             dto.setTenKhachHang("Khách lẻ");
+            dto.setSdt("N/A");
+            dto.setEmail("N/A");
+            dto.setTaiKhoan("N/A");
         }
-        
+
         return dto;
     }
 }
