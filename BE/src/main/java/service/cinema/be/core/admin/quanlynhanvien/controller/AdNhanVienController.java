@@ -2,6 +2,7 @@ package service.cinema.be.core.admin.quanlynhanvien.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.cinema.be.core.admin.quanlynhanvien.dto.request.AdNhanVienRequest;
@@ -20,8 +21,14 @@ public class AdNhanVienController {
     public ResponseEntity<?> getAll(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String idPhanQuyen,
-            @RequestParam(required = false) Integer trangThai) {
-        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.getAll(search, idPhanQuyen, trangThai)));
+            @RequestParam(required = false) Integer trangThai,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.getAll(search, idPhanQuyen, trangThai, pageable)));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable String id) {
+        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.getById(id)));
     }
 
     @GetMapping("/chuc-vu")
@@ -45,5 +52,11 @@ public class AdNhanVienController {
     public ResponseEntity<?> delete(@PathVariable String id) {
         adNhanVienService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PostMapping("/{id}/reset-password")
+    public ResponseEntity<?> resetPassword(@PathVariable String id) {
+        adNhanVienService.requestPasswordReset(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Yêu cầu đặt lại mật khẩu đã được gửi đến email!"));
     }
 }

@@ -122,7 +122,7 @@ const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currenc
         <el-table-column label="Thao tác" width="120" align="center" fixed="right">
           <template #default="{ row }">
             <div class="d-flex justify-content-center gap-1">
-              <button class="btn-action-icon btn-action-view" @click="handleView(row)">
+              <button class="btn-action-icon action-view" @click="handleView(row)">
                 <i class="bi bi-eye fs-6"></i>
               </button>
               <button class="btn-action-icon btn-action-print" @click="handlePrint(row)">
@@ -162,8 +162,8 @@ const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currenc
 
       <template #footer>
         <div class="d-flex gap-2 justify-content-end">
-          <el-button @click="detailVisible = false" class="btn-premium-secondary">Hủy</el-button>
-          <el-button type="primary" :icon="Printer" class="btn-premium-primary">In hóa đơn</el-button>
+          <el-button @click="detailVisible = false" class="btn-cine-secondary">Hủy</el-button>
+          <el-button type="primary" :icon="Printer" class="btn-cine-primary">In hóa đơn</el-button>
         </div>
       </template>
     </el-dialog>
@@ -178,3 +178,4 @@ code {
   color: #4f46e5;
 }
 </style>
+

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheGenerationRequest;
+import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheBulkRequest;
 import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheRequest;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdGheResponse;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdLoaiGheResponse;
@@ -52,6 +53,12 @@ public class AdGheController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AdGheResponse>> update(@PathVariable String id, @Valid @RequestBody AdGheRequest request) {
         return ResponseEntity.ok(ApiResponse.success(adGheService.updateGhe(id, request)));
+    }
+
+    @PutMapping("/bulk")
+    public ResponseEntity<ApiResponse<Void>> updateBulk(@RequestBody AdGheBulkRequest request) {
+        adGheService.updateBulk(request);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @DeleteMapping("/{id}")

@@ -4,23 +4,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import service.cinema.be.entity.KhachHang;
 import service.cinema.be.entity.NhanVien;
 import service.cinema.be.entity.PhanQuyen;
+import service.cinema.be.entity.TaiKhoan;
 import service.cinema.be.infrastructure.constant.EntityRole;
 import service.cinema.be.repository.KhachHangRepository;
 import service.cinema.be.repository.NhanVienRepository;
 import service.cinema.be.repository.PhanQuyenRepository;
+import service.cinema.be.repository.TaiKhoanRepository;
 import service.cinema.be.utils.AppConfig;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
 import java.util.UUID;
 
-/**
- * DataSeeder: Tự động tạo roles và nhân viên admin khi ứng dụng khởi động.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -29,6 +28,7 @@ public class DataSeeder implements ApplicationRunner {
     private final PhanQuyenRepository phanQuyenRepository;
     private final NhanVienRepository nhanVienRepository;
     private final KhachHangRepository khachHangRepository;
+    private final TaiKhoanRepository taiKhoanRepository;
     private final AppConfig appConfig;
     private final PasswordEncoder passwordEncoder;
 
@@ -42,12 +42,10 @@ public class DataSeeder implements ApplicationRunner {
 
         log.info("[DataSeeder] ===== Bắt đầu seeding dữ liệu =====");
 
-        // 1. Seed tất cả roles
         PhanQuyen adminRole  = seedRole(EntityRole.ADMIN,    "Quản trị viên", "Toàn quyền hệ thống");
         PhanQuyen staffRole  = seedRole(EntityRole.STAFF,    "Nhân viên",     "Quản lý ca làm, bán vé");
                                 seedRole(EntityRole.CUSTOMER, "Khách hàng",    "Đặt vé, xem lịch chiếu");
 
-        // 2. Seed nhân viên admin
         String adminEmail    = appConfig.getUserEmail();
         String adminName     = appConfig.getUserName();
         String adminCode     = appConfig.getUserCode();
@@ -74,29 +72,42 @@ public class DataSeeder implements ApplicationRunner {
         String rawPassword = appConfig.getUserPassword();
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
-        var existing = nhanVienRepository.findByEmail(email);
-        if (existing.isPresent()) {
-            NhanVien nv = existing.get();
-            if (nv.getMatKhau() == null || nv.getMatKhau().isEmpty()) {
-                nv.setMatKhau(encodedPassword);
-                nhanVienRepository.save(nv);
-                log.info("[DataSeeder] 🔄 Đã cập nhật mật khẩu cho Admin Staff: {}", email);
-            } else {
-                log.info("[DataSeeder] ⏭  Admin Staff đã tồn tại và có mật khẩu: {}", email);
+        // Find account first
+        Optional<TaiKhoan> tkOptional = taiKhoanRepository.findByEmail(email);
+        TaiKhoan tk;
+        if (tkOptional.isPresent()) {
+            tk = tkOptional.get();
+            if (tk.getMat_khau() == null || tk.getMat_khau().isEmpty()) {
+                tk.setMat_khau(encodedPassword);
+                tk.setPhanQuyen(phanQuyen);
+                taiKhoanRepository.save(tk);
+                log.info("[DataSeeder] 🔄 Cập nhật mật khẩu tài khoản Admin: {}", email);
             }
-            return;
+        } else {
+            tk = new TaiKhoan();
+            tk.setId(UUID.randomUUID().toString());
+            tk.setEmail(email);
+            tk.setMat_khau(encodedPassword);
+            tk.setPhanQuyen(phanQuyen);
+            tk.setTrangThai(1);
+            tk = taiKhoanRepository.save(tk);
+            log.info("[DataSeeder] ✅ Tạo tài khoản Admin mới: {}", email);
         }
 
-        NhanVien nv = new NhanVien();
-        nv.setId(UUID.randomUUID().toString());
-        nv.setMaNhanVien(code);
-        nv.setTenNhanVien(name);
-        nv.setEmail(email);
-        nv.setSoDienThoai(phone);
-        nv.setPhanQuyen(phanQuyen);
-        nv.setMatKhau(encodedPassword);
-        nv.setTrangThai(1);
-        nhanVienRepository.save(nv);
-        log.info("[DataSeeder] ✅ Đã tạo nhân viên admin: {}", email);
+        // Check if NhanVien exists for this account
+        Optional<NhanVien> nvOptional = nhanVienRepository.findByTaiKhoan(tk);
+        if (nvOptional.isEmpty()) {
+            NhanVien nv = new NhanVien();
+            nv.setId(UUID.randomUUID().toString());
+            nv.setMaNhanVien(code);
+            nv.setTenNhanVien(name);
+            nv.setSoDienThoai(phone);
+            nv.setTaiKhoan(tk);
+            nv.setTrangThai(1);
+            nhanVienRepository.save(nv);
+            log.info("[DataSeeder] ✅ Tạo hồ sơ nhân viên Admin cho: {}", email);
+        } else {
+            log.info("[DataSeeder] ⏭ Admin Staff hồ sơ đã tồn tại cho: {}", email);
+        }
     }
 }

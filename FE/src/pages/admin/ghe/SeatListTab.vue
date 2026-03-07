@@ -14,8 +14,9 @@
   >
     <!-- Header Actions Left Slot -->
     <template #header-actions-left>
-      <el-button v-if="selectedIds.length" type="danger" plain round :icon="Delete" @click="handleBulkDelete">
-        Xóa {{ selectedIds.length }} ghế
+      <ExcelActions module="ghe" @import-success="$emit('fetch-seats')" />
+      <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkToggleStatus">
+        Đổi trạng thái {{ selectedIds.length }} ghế
       </el-button>
     </template>
 
@@ -69,14 +70,15 @@
         v-model:selection="selectedSeats"
         :hide-pagination="true"
         @edit="row => $emit('open-dialog', row)"
-        @delete="row => $emit('delete-seat', row)"
+        @toggle-status="row => $emit('toggle-status', row)"
       >
         <template #cell-index="{ index }">
           <span class="text-secondary small">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
         </template>
 
         <template #cell-soGhe="{ row }">
-          <span class="badge bg-dark text-white fw-bold px-2 py-1 rounded-2" style="font-size: 11px;">{{ row.soGhe }}</span>
+          <span class="badge fw-bold px-2 py-1 rounded-2"
+            style="font-size: 11px; background: #fff; color: #000; border: 1.5px solid #000;">{{ row.soGhe }}</span>
         </template>
 
         <template #cell-soHang="{ row }">
@@ -100,20 +102,20 @@
         </template>
 
         <template #cell-trangThai="{ row }">
-          <el-tag :type="row.trangThai === 1 ? 'success' : 'warning'" round size="small">
+          <el-tag :type="row.trangThai === 1 ? 'success' : 'warning'" round size="small" :class="{ 'cursor-pointer': row.trangThai === 1 }" @click="row.trangThai === 1 ? $emit('update-status', { row, status: 0 }) : null">
             {{ row.trangThai === 1 ? 'Hoạt động' : 'Bảo trì' }}
           </el-tag>
         </template>
         <template #actions="{ row }">
           <div class="d-flex justify-content-center gap-1">
-            <el-tooltip content="Sửa ghế" placement="top">
-              <button class="btn-action-icon btn-action-edit" @click="$emit('open-dialog', row)">
+            <el-tooltip content="Chỉnh sửa ghế" placement="top">
+              <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="$emit('open-dialog', row)">
                 <i class="bi bi-pencil"></i>
               </button>
             </el-tooltip>
-            <el-tooltip content="Xóa ghế" placement="top">
-              <button class="btn-action-icon btn-action-delete" @click="$emit('delete-seat', row)">
-                <i class="bi bi-trash"></i>
+            <el-tooltip content="Thay đổi trạng thái" placement="top">
+              <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0" @click="$emit('update-status', { row, status: row.trangThai === 1 ? 0 : 1 })">
+                <i class="bi bi-arrow-repeat"></i>
               </button>
             </el-tooltip>
           </div>
@@ -125,22 +127,23 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { Search, Monitor, PriceTag, Delete } from '@element-plus/icons-vue';
+import { Search, Monitor, PriceTag, Refresh } from '@element-plus/icons-vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 import BaseTable from '@/components/common/BaseTable.vue';
+import ExcelActions from '@/components/common/ExcelActions.vue';
 import { gheService } from '@/services/api/admin/gheService';
 
 const seatColumns = [
   { label: 'STT', key: 'index', width: '60px' },
-  { label: 'SỐ GHẾ', key: 'soGhe', width: '120px' },
-  { label: 'HÀNG', key: 'soHang', width: '150px' },
-  { label: 'CỘT', key: 'soCot', width: '120px' },
-  { label: 'PHÒNG', key: 'tenPhongChieu', minWidth: '200px' },
-  { label: 'LOẠI GHẾ', key: 'loaiGhe', width: '150px' },
-  { label: 'PHỤ PHÍ', key: 'phuPhi', width: '150px' },
-  { label: 'TRẠNG THÁI', key: 'trangThai', width: '150px' },
+  { label: 'Số ghế', key: 'soGhe', width: '100px' },
+  { label: 'Hàng', key: 'soHang', width: '100px' },
+  { label: 'Cột', key: 'soCot', width: '100px' },
+  { label: 'Phòng', key: 'tenPhongChieu', width: '150px' },
+  { label: 'Loại ghế', key: 'loaiGhe', width: '100px' },
+  { label: 'Phụ phí', key: 'phuPhi', width: '100px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '100px' },
 ];
 
 const props = defineProps({
@@ -151,7 +154,7 @@ const props = defineProps({
   loading: Boolean
 });
 
-const emit = defineEmits(['update:selectedRoom', 'fetch-seats', 'open-dialog', 'delete-seat', 'reset-filter']);
+const emit = defineEmits(['update:selectedRoom', 'fetch-seats', 'open-dialog', 'update-status', 'reset-filter']);
 
 const filterLoaiGhe = ref('');
 const searchQuery = ref('');
@@ -160,10 +163,10 @@ const pageSize = ref(5);
 const selectedSeats = ref([]);
 const selectedIds = computed(() => selectedSeats.value.map(item => item.id));
 
-const handleBulkDelete = () => {
+const handleBulkToggleStatus = () => {
     ElMessageBox.confirm(
-        `Xác nhận xóa <b>${selectedIds.value.length}</b> ghế đã chọn?`,
-        'Xóa hàng loạt',
+        `Xác nhận thay đổi trạng thái cho <b>${selectedIds.value.length}</b> ghế đã chọn?`,
+        'Thay đổi trạng thái hàng loạt',
         {
             dangerouslyUseHTMLString: true,
             confirmButtonText: 'Đồng ý',
@@ -172,14 +175,16 @@ const handleBulkDelete = () => {
         }
     ).then(async () => {
         try {
-            // Ở đây Backend chưa có endpoint xóa mảng, ta tạm thời xóa từng cái
-            // Hoặc nếu backend đã hỗ trợ, hãy thay thế bằng endpoint đó
-            await Promise.all(selectedIds.value.map(id => gheService.deleteSeat(id)));
-            ElMessage.success(`Đã xóa ${selectedIds.value.length} ghế`);
+            // Toggle status cho từng ghế dựa trên trạng thái hiện tại (nếu đa số đang 1 thì set về 0, hoặc ngược lại)
+            // Đơn giản nhất là toggle status của từng cái theo cách thủ công hoặc gọi API bulk nếu backend hỗ trợ toggle
+            // Ở đây ta gọi @toggle-status cho AdminSeats xử lý logic toggle
+            // Ở đây ta gọi @update-status cho AdminSeats xử lý logic
+            // Cho bulk thì có thể mặc định đổi hết sang trạng thái ngược lại của cái đầu tiên 
+            // Hoặc đơn giản là truyền mảng và để cha xử lý.
+            emit('update-status', selectedSeats.value);
             selectedSeats.value = [];
-            emit('fetch-seats');
         } catch (error) {
-            ElMessage.error('Có lỗi khi xóa hàng loạt');
+            ElMessage.error('Có lỗi khi thay đổi trạng thái');
         }
     }).catch(() => {});
 };
@@ -222,3 +227,4 @@ const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currenc
   color: #ff914d !important;
 }
 </style>
+

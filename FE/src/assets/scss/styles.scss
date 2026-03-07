@@ -9,6 +9,7 @@
 }
 
 // 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+$font-family-sans-serif: 'Inter', sans-serif;
 @import "bootstrap/scss/functions";
 
 // 2. Include any default variable overrides here
@@ -27,16 +28,16 @@ $light: #f8f9fa;
 .el-menu-item, 
 .el-sub-menu__title, 
 .el-menu-item span {
-  font-size: 20px !important;
-  --el-font-size-base: 20px !important;
+  font-size: 15px !important;
+  --el-font-size-base: 15px !important;
 }
 
 // Main content and Table font size
 .el-main {
-  font-size: 25px !important;
-  --el-font-size-base: 25px !important;
+  font-size: 14px !important;
+  --el-font-size-base: 14px !important;
   
-  // Force table content to 25px
+  // Force table content to 14px (standardized)
   .el-table, 
   .el-table th.el-table__cell, 
   .el-table td.el-table__cell,
@@ -45,28 +46,28 @@ $light: #f8f9fa;
   .el-table th,
   .el-table .cell *,
   .el-pagination__total {
-    font-size: 25px !important;
+    font-size: 16px !important;
     line-height: normal !important;
   }
   
-  // Also force some hardcoded small labels and tags to scale up inside main
+  // Tags and small labels
   .small, small, .badge, .el-tag, .el-tag--small, .el-tag--default {
-    font-size: 25px !important;
+    font-size: 14px !important;
     line-height: normal !important;
     height: auto !important;
-    padding: 2px 12px !important;
+    padding: 2px 10px !important;
   }
   
   .el-button, .el-input__inner, .el-form-item__label {
-    font-size: 25px !important;
+    font-size: 16px !important;
   }
 }
 
-// Global rule for Element Plus Select Dropdowns (they append to body, so must be outside .el-main)
+// Global rule for Element Plus Select Dropdowns
 .el-select-dropdown__item, 
 .el-dropdown-menu__item,
 .el-select-dropdown__item span {
-  font-size: 25px !important;
+  font-size: 16px !important;
   height: auto !important;
   line-height: normal !important;
   padding: 8px 16px !important;

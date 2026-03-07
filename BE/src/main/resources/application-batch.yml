@@ -1,0 +1,101 @@
+# Spring Batch Configuration
+spring:
+  batch:
+    job:
+      enabled: true  # Enable automatic job execution on startup
+      names: ""     # Specify job names to run on startup (empty = none)
+    jdbc:
+      initialize-schema: always  # Initialize batch database schema
+    table-prefix: BATCH_  # Prefix for batch tables
+    
+    # Job Repository Configuration
+    repository:
+      isolation-level-for-create: SERIALIZABLE
+      table-prefix: BATCH_
+      
+    # Job Launcher Configuration  
+    launcher:
+      job-repository:
+        isolation-level-for-create: SERIALIZABLE
+
+# Database Configuration for Batch
+spring.datasource:
+  # Use the same datasource as main application
+  url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/cineops}
+  username: ${SPRING_DATASOURCE_USERNAME:root}
+  password: ${SPRING_DATASOURCE_PASSWORD:}
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  
+# JPA Configuration
+spring.jpa:
+  hibernate:
+    ddl-auto: validate  # Don't let batch interfere with main schema
+  show-sql: false
+  properties:
+    hibernate:
+      dialect: org.hibernate.dialect.MySQLDialect
+      format_sql: true
+
+# Excel Import Configuration
+excel:
+  import:
+    # Chunk size for batch processing
+    chunk-size: 500
+    
+    # Skip limit for validation errors
+    skip-limit: 100
+    
+    # Temporary file settings
+    temp-dir: temp-uploads
+    cleanup-after-hours: 24
+    
+    # File size limits
+    max-file-size: 50MB
+    max-rows-per-file: 10000
+    
+    # Processing settings
+    enable-parallel-processing: false  # Set to true for large files
+    thread-pool-size: 4
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework.batch: INFO
+    service.cinema.be.core.excel.batch: DEBUG
+    org.apache.poi: WARN
+    
+  # File logging for batch jobs
+  file:
+    name: logs/batch-jobs.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Management endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Task Execution Configuration (for async processing)
+spring.task.execution:
+  pool:
+    core-size: 2
+    max-size: 4
+    queue-capacity: 100
+  thread-name-prefix: excel-batch-
+
+# Async Configuration
+spring.async:
+  executor:
+    thread:
+      core-pool-size: 2
+      max-pool-size: 4
+      queue-capacity: 100

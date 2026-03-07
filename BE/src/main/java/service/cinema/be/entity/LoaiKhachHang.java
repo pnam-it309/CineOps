@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +24,8 @@ public class LoaiKhachHang extends PrimaryEntity {
     @Column(name = "ten_loai", length = 100)
     private String tenLoai;
 
-    @Column(name = "he_so_giam_gia", precision = 5, scale = 2)
-    private BigDecimal heSoGiamGia;
+    @Column(name = "he_so_giam_gia")
+    private Double heSoGiamGia;
 
     @Column(name = "mo_ta", columnDefinition = "TEXT")
     private String moTa;

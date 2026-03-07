@@ -122,10 +122,12 @@ import java.time.LocalDateTime;
 public class AdPhieuGiamGiaService {
 
     private final AdPhieuGiamGiaRepository repository;
+    private final service.cinema.be.repository.KhachHangRepository khachHangRepository;
+    private final service.cinema.be.repository.PhieuGiamGiaChiTietRepository chiTietRepository;
+    private final service.cinema.be.core.email.service.IEmailService emailService;
 
     @Transactional(readOnly = true)
     public Page<AdPhieuGiamGiaResponse> getAll(String keyword, Integer trangThai, int page, int size) {
-        // Sắp xếp theo ngày tạo (ngayTao từ AuditEntity) giảm dần để bản ghi mới lên đầu
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
         return repository.search(keyword, trangThai, pageable).map(this::toResponse);
     }
@@ -139,28 +141,125 @@ public class AdPhieuGiamGiaService {
             throw new RuntimeException("Ngày bắt đầu phải trước ngày kết thúc!");
         }
 
-        PhieuGiamGia p = new PhieuGiamGia();
+        service.cinema.be.entity.PhieuGiamGia p = new service.cinema.be.entity.PhieuGiamGia();
         mapRequestToEntity(p, request);
-        p.setTrangThai(determineStatus(request.getNgayBatDau(), request.getNgayKetThuc()));
+        p.setKieuPhatHanh(request.getKieuPhatHanh());
+        
+        // Luôn tính toán trạng thái dựa trên thời gian nếu không truyền trạng thái cụ thể
+        if (request.getTrangThai() == null) {
+            p.setTrangThai(determineStatus(request.getNgayBatDau(), request.getNgayKetThuc()));
+        } else {
+            p.setTrangThai(request.getTrangThai());
+        }
 
-        return toResponse(repository.save(p));
+        service.cinema.be.entity.PhieuGiamGia saved = repository.save(p);
+
+        // Lưu chi tiết khách hàng nếu là phiếu cá nhân
+        if (Integer.valueOf(1).equals(request.getKieuPhatHanh()) && request.getIdKhachHangs() != null) {
+            saveAssociations(saved, request.getIdKhachHangs());
+            sendVoucherNotifications(saved, "voucher_created");
+        }
+
+        return toResponse(saved);
     }
 
     @Transactional
     public AdPhieuGiamGiaResponse update(String id, AdPhieuGiamGiaRequest request) {
-        PhieuGiamGia p = repository.findById(id)
+        service.cinema.be.entity.PhieuGiamGia p = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
 
-        mapRequestToEntity(p, request);
-        p.setTrangThai(determineStatus(request.getNgayBatDau(), request.getNgayKetThuc()));
+        Integer oldStatus = p.getTrangThai();
+        java.time.LocalDateTime oldStart = p.getNgayBatDau();
+        java.time.LocalDateTime oldEnd = p.getNgayKetThuc();
 
-        return toResponse(repository.save(p));
+        mapRequestToEntity(p, request);
+        
+        // Xử lý tự động thay đổi thời gian dựa trên yêu cầu đổi trạng thái
+        if (request.getTrangThai() != null && !request.getTrangThai().equals(oldStatus)) {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            if (request.getTrangThai() == 1) { // Kích hoạt (Hoạt động)
+                p.setNgayBatDau(now); // Đặt lại ngày bắt đầu là hiện tại
+                if (p.getNgayKetThuc().isBefore(now)) {
+                    p.setNgayKetThuc(now.plusDays(7)); // Mặc định gia hạn 7 ngày nếu đã hết hạn
+                }
+            } else if (request.getTrangThai() == 2) { // Kết thúc
+                p.setNgayKetThuc(now);
+            }
+            p.setTrangThai(request.getTrangThai());
+        } else {
+            // Nếu không đổi trạng thái trực tiếp, tính toán lại dựa trên ngày mới
+            p.setTrangThai(determineStatus(p.getNgayBatDau(), p.getNgayKetThuc()));
+        }
+
+        service.cinema.be.entity.PhieuGiamGia saved = repository.save(p);
+
+        // Cập nhật lại danh sách cá nhân nếu cần
+        if (Integer.valueOf(1).equals(saved.getKieuPhatHanh())) {
+            if (request.getIdKhachHangs() != null) {
+                chiTietRepository.deleteByPhieuGiamGia(saved);
+                saveAssociations(saved, request.getIdKhachHangs());
+            }
+            // Gửi mail thông báo thay đổi nếu có thay đổi quan trọng
+            if (!oldStatus.equals(saved.getTrangThai()) || !oldEnd.equals(saved.getNgayKetThuc())) {
+                sendVoucherNotifications(saved, "voucher_updated");
+            }
+        }
+
+        return toResponse(saved);
     }
 
-    private void mapRequestToEntity(PhieuGiamGia p, AdPhieuGiamGiaRequest request) {
-        p.setMaPhieuGiamGia(request.getMaPhieuGiamGia());//không sửa mã
+    private void saveAssociations(service.cinema.be.entity.PhieuGiamGia p, java.util.List<String> customerIds) {
+        for (String customerId : customerIds) {
+            khachHangRepository.findById(customerId).ifPresent(kh -> {
+                service.cinema.be.entity.PhieuGiamGiaChiTiet ct = new service.cinema.be.entity.PhieuGiamGiaChiTiet();
+                ct.setPhieuGiamGia(p);
+                ct.setKhachHang(kh);
+                ct.setMaPhieuGiamGiaChiTiet(p.getMaPhieuGiamGia() + "-" + kh.getMaKhachHang());
+                ct.setSoLuongDung(0);
+                ct.setTrangThai(1);
+                chiTietRepository.save(ct);
+            });
+        }
+    }
+
+    private void sendVoucherNotifications(service.cinema.be.entity.PhieuGiamGia p, String type) {
+        java.util.List<service.cinema.be.entity.PhieuGiamGiaChiTiet> chiTiets = chiTietRepository.findByPhieuGiamGia(p);
+        for (service.cinema.be.entity.PhieuGiamGiaChiTiet ct : chiTiets) {
+            if (ct.getKhachHang() != null && ct.getKhachHang().getTaiKhoan() != null) {
+                String email = ct.getKhachHang().getTaiKhoan().getEmail();
+                if (email != null && !email.isBlank()) {
+                    String subject = type.equals("voucher_created") ? "[CineOps] Bạn nhận được ưu đãi mới!" : "[CineOps] Cập nhật ưu đãi của bạn";
+                    String message = String.format(
+                        "Xin chào %s,\n\nBạn có một %s: %s (%s).\nThời gian sử dụng: %s đến %s.\n%s\n\nChúc bạn có những giây phút xem phim tuyệt vời tại CineOps!",
+                        ct.getKhachHang().getTenKhachHang(),
+                        type.equals("voucher_created") ? "phiếu giảm giá mới" : "cập nhật về phiếu giảm giá",
+                        p.getTenPhieu(),
+                        p.getMaPhieuGiamGia(),
+                        p.getNgayBatDau().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                        p.getNgayKetThuc().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                        p.getDieuKienApDung() != null ? "Điều kiện: " + p.getDieuKienApDung() : ""
+                    );
+                    
+                    service.cinema.be.core.email.dto.EmailRequest emailRequest = 
+                        service.cinema.be.core.email.dto.EmailRequest.builder()
+                        .to(email)
+                        .subject(subject)
+                        .variables(java.util.Map.of("content", message))
+                        .templateName(null) // Sử dụng email đơn giản
+                        .isHtml(false)
+                        .build();
+                        
+                    emailService.sendEmailAsync(emailRequest);
+                }
+            }
+        }
+    }
+
+    private void mapRequestToEntity(service.cinema.be.entity.PhieuGiamGia p, AdPhieuGiamGiaRequest request) {
+        p.setMaPhieuGiamGia(request.getMaPhieuGiamGia());
         p.setTenPhieu(request.getTenPhieu());
         p.setLoaiPhieu(request.getLoaiPhieu());
+        // p.setKieuPhatHanh(request.getKieuPhatHanh()); -> Chỉ set lúc create
         p.setPhanTramGiamGia(request.getPhanTramGiamGia());
         p.setSoTienGiam(request.getSoTienGiam());
         p.setGiamToiDa(request.getGiamToiDa());
@@ -173,27 +272,35 @@ public class AdPhieuGiamGiaService {
         p.setGhiChu(request.getGhiChu());
     }
 
-    private Integer determineStatus(LocalDateTime start, LocalDateTime end) {
-        LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(start)) return 0; // Chưa bắt đầu
+    private Integer determineStatus(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (now.isBefore(start)) return 0; // Tạm ngưng/Chưa tới
         if (now.isAfter(end)) return 2;    // Đã kết thúc
         return 1;                         // Đang diễn ra
     }
 
+    @Transactional(readOnly = true)
+    public AdPhieuGiamGiaResponse getById(String id) {
+        service.cinema.be.entity.PhieuGiamGia p = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
+        return toResponse(p);
+    }
+
     @Transactional
     public void delete(String id) {
-        PhieuGiamGia p = repository.findById(id)
+        service.cinema.be.entity.PhieuGiamGia p = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
         p.setTrangThai(2); // 2 = Đã kết thúc / Ngừng
         repository.save(p);
     }
 
-    private AdPhieuGiamGiaResponse toResponse(PhieuGiamGia p) {
+    private AdPhieuGiamGiaResponse toResponse(service.cinema.be.entity.PhieuGiamGia p) {
         return AdPhieuGiamGiaResponse.builder()
                 .id(p.getId())
                 .maPhieuGiamGia(p.getMaPhieuGiamGia())
                 .tenPhieu(p.getTenPhieu())
                 .loaiPhieu(p.getLoaiPhieu())
+                .kieuPhatHanh(p.getKieuPhatHanh())
                 .phanTramGiamGia(p.getPhanTramGiamGia())
                 .soTienGiam(p.getSoTienGiam())
                 .giaTriHoaDonToiThieu(p.getGiaTriHoaDonToiThieu())

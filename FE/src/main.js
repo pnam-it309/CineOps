@@ -1,19 +1,19 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import router from './routes'
-// Import Element Plus styles
-import 'element-plus/dist/index.css'
-// Import Bootstrap JS
+// Import Bootstrap JS (only behavior scripts, not full CSS)
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-// Import Bootstrap Icons
+// Import Bootstrap Icons CSS (icons only, ~100KB)
 import 'bootstrap-icons/font/bootstrap-icons.css'
-// Import Global Styles (Bootstrap SCSS)
+// Import Global Styles
 import './assets/scss/styles.scss'
 // Import Theme Variables
 import './assets/theme/variables.css'
-// Import Dark Theme
-import './assets/theme/theme-dark.css'
 import './assets/css/admin-premium.css'
+import './assets/css/admin-tables.css' // Shared admin table typography
+import './assets/scss/branding.scss'   // CineOps Brand Identity & UI Overrides
+import './assets/scss/buttons.scss'    // Premium Unified Button System
+import './assets/scss/badges.scss'     // Premium Unified Badge System
 import App from './App.vue'
 
 const app = createApp(App)

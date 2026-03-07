@@ -69,6 +69,8 @@ public class AdPhieuGiamGiaRequest {
     @NotNull(message = "Loại phiếu không được để trống")
     private Integer loaiPhieu; // 1: %, 2: Tiền mặt
 
+    private Integer kieuPhatHanh; // 0: Công khai, 1: Cá nhân
+
     private BigDecimal phanTramGiamGia;
     private BigDecimal soTienGiam;
 
@@ -93,4 +95,5 @@ public class AdPhieuGiamGiaRequest {
     private String dieuKienApDung;
     private String ghiChu;
     private Integer trangThai;
+    private java.util.List<String> idKhachHangs;
 }

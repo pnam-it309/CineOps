@@ -4,10 +4,9 @@
       addButtonLabel="Thêm phiếu giảm giá" :data="vouchers" :loading="loading" :total="total" v-model:currentPage="currentPage"
       v-model:pageSize="pageSize" @add-click="openDialog()" @reset-filter="resetFilter">
       
+
       <template #header-actions-left>
-        <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
-          Đổi trạng thái {{ selectedIds.length }} voucher
-        </el-button>
+        <ExcelActions module="phieu-giam-gia" @import-success="fetchVouchers" />
       </template>
 
       <template #filters>
@@ -36,10 +35,9 @@
           :total="total"
           v-model:currentPage="currentPage"
           v-model:pageSize="pageSize"
-          v-model:selection="selectedObjects"
           :hide-pagination="true"
           @edit="openDialog"
-          @delete="handleDelete"
+          @delete="handleUpdateStatus"
         >
           <template #cell-stt="{ index }">
             <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
@@ -52,11 +50,11 @@
           </template>
 
           <template #cell-tenPhieu="{ row }">
-            <span class="fw-semibold text-dark small" style="white-space: nowrap;">{{ row.tenPhieu }}</span>
+            <span class="fw-semibold text-dark" style="white-space: nowrap;">{{ row.tenPhieu }}</span>
           </template>
 
           <template #cell-giaTriHoaDonToiThieu="{ row }">
-            <span class="fw-bold text-dark small text-nowrap">{{ formatCurrency(row.giaTriHoaDonToiThieu) }}</span>
+            <span class="fw-bold text-dark text-nowrap">{{ formatCurrency(row.giaTriHoaDonToiThieu) }}</span>
           </template>
 
           <template #cell-loaiPhieu="{ row }">
@@ -68,13 +66,20 @@
             </div>
           </template>
 
+          <template #cell-kieuPhatHanh="{ row }">
+            <el-tag :type="row.kieuPhatHanh === 0 ? 'success' : 'info'" effect="light" round size="small">
+              <i class="bi" :class="row.kieuPhatHanh === 0 ? 'bi-globe' : 'bi-person-lock'"></i>
+              {{ row.kieuPhatHanh === 0 ? ' Công khai' : ' Cá nhân' }}
+            </el-tag>
+          </template>
+
           <template #cell-giamToiDa="{ row }">
-            <span v-if="row.loaiPhieu === 1" class="text-dark fw-bold small">{{ formatCurrency(row.giamToiDa) }}</span>
+            <span v-if="row.loaiPhieu === 1" class="text-dark fw-bold">{{ formatCurrency(row.giamToiDa) }}</span>
             <span v-else class="text-secondary small">—</span>
           </template>
 
           <template #cell-soLuong="{ row }">
-            <span class="text-dark fw-bold small">{{ row.soLuong }}</span>
+            <span class="text-dark fw-bold">{{ row.soLuong }}</span>
           </template>
 
           <template #cell-ngayBatDau="{ row }">
@@ -90,23 +95,43 @@
           </template>
 
           <template #cell-trangThai="{ row }">
-            <el-tag :type="getStatusTag(row.trangThai)" round size="small">
-              {{ getStatusLabel(row.trangThai) }}
-            </el-tag>
+            <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0 || row.trangThai === 2">
+              <el-tag :type="getStatusTag(row.trangThai)" round size="small" :class="{ 'cursor-pointer': row.trangThai !== 0 && row.trangThai !== 2 }">
+                {{ getStatusLabel(row.trangThai) }}
+              </el-tag>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Hoạt động</el-dropdown-item>
+                  <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Tạm ngưng</el-dropdown-item>
+                  <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Kết thúc</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
 
           <template #actions="{ row }">
             <div class="d-flex justify-content-center gap-1">
               <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon btn-action-edit" @click="openDialog(row)">
+                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0 || row.trangThai === 2" @click="openDialog(row)">
                   <i class="bi bi-pencil fs-6"></i>
                 </button>
               </el-tooltip>
-              <el-tooltip :content="row.trangThai === 0 ? 'Kích hoạt' : 'Tạm ngưng'" placement="top">
-                <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
-                  <i class="bi bi-arrow-repeat fs-6"></i>
-                </button>
-              </el-tooltip>
+              <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0 || row.trangThai === 2">
+                <span class="el-dropdown-link d-inline-block">
+                  <el-tooltip content="Thay đổi trạng thái" placement="top">
+                    <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0 || row.trangThai === 2">
+                      <i class="bi bi-list-check fs-6"></i>
+                    </button>
+                  </el-tooltip>
+                </span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Hoạt động</el-dropdown-item>
+                    <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Tạm ngưng</el-dropdown-item>
+                    <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Kết thúc</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </template>
         </BaseTable>
@@ -125,24 +150,24 @@ import confirmDialog from '@/utils/confirm';
 import debounce from 'lodash/debounce';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
+import ExcelActions from '@/components/common/ExcelActions.vue';
 
 const router = useRouter();
 
 const voucherColumns = [
-  { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'MÃ GIẢM GIÁ', key: 'maPhieuGiamGia', width: '160px' },
-  { label: 'TÊN PHIẾU GIẢM GIÁ', key: 'tenPhieu', minWidth: '400px' },
-  { label: 'ĐƠN TỐI THIỂU', key: 'giaTriHoaDonToiThieu', width: '180px' },
-  { label: 'GIẢM GIÁ', key: 'loaiPhieu', width: '150px' },
-  { label: 'GIẢM TỐI ĐA', key: 'giamToiDa', width: '180px' },
-  { label: 'SỐ LƯỢNG', key: 'soLuong', width: '120px' },
-  { label: 'TỪ NGÀY', key: 'ngayBatDau', width: '180px' },
-  { label: 'ĐẾN NGÀY', key: 'ngayKetThuc', width: '180px' },
-  { label: 'TRẠNG THÁI', key: 'trangThai', width: '160px' },
+  { label: 'STT', key: 'stt', width: '60px' },
+  { label: 'Mã giảm giá', key: 'maPhieuGiamGia', width: '140px' },
+  { label: 'Tên phiếu giảm giá', key: 'tenPhieu', minWidth: '180px' },
+  { label: 'Đơn tối thiểu', key: 'giaTriHoaDonToiThieu', width: '150px' },
+  { label: 'Giảm giá', key: 'loaiPhieu', width: '120px' },
+  { label: 'Đối tượng', key: 'kieuPhatHanh', width: '130px' },
+  { label: 'Giảm tối đa', key: 'giamToiDa', width: '140px' },
+  { label: 'Số lượng', key: 'soLuong', width: '100px' },
+  { label: 'Từ ngày', key: 'ngayBatDau', width: '160px' },
+  { label: 'Đến ngày', key: 'ngayKetThuc', width: '160px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '130px' },
 ];
 
-const selectedObjects = ref([]);
-const selectedIds = computed(() => selectedObjects.value.map(item => item.id));
 
 const loading = ref(false);
 const vouchers = ref([]);
@@ -191,11 +216,13 @@ const openDialog = (row = null) => {
   }
 };
 
-const handleDelete = (row) => {
+const handleUpdateStatus = (row, status = null) => {
   const isInactive = row.trangThai === 0;
-  const newStatus = isInactive ? 1 : 0;
-  const label = isInactive ? 'kích hoạt' : 'tạm ngưng';
+  const newStatus = status !== null ? status : (isInactive ? 1 : 0);
+  const label = getStatusLabel(newStatus).toLowerCase();
   
+  if (newStatus === row.trangThai) return;
+
   confirmDialog.custom(
     `Thay đổi trạng thái voucher <b>${row.maPhieuGiamGia}</b> thành <b>${label}</b>?`,
     'Cập nhật trạng thái',
@@ -211,25 +238,6 @@ const handleDelete = (row) => {
   }).catch(() => {});
 };
 
-const handleBulkDelete = () => {
-    confirmDialog.custom(
-        `Thay đổi trạng thái cho <b>${selectedIds.value.length}</b> voucher đã chọn?`,
-        'Cập nhật hàng loạt',
-        'Đồng ý'
-    ).then(async () => {
-        try {
-            await Promise.all(selectedObjects.value.map(item => {
-                const newStatus = item.trangThai === 0 ? 1 : 0;
-                return voucherService.update(item.id, { ...item, trangThai: newStatus });
-            }));
-            notification.success(`Đã cập nhật ${selectedIds.value.length} voucher thành công`);
-            selectedObjects.value = [];
-            fetchVouchers();
-        } catch (error) {
-            notification.error('Có lỗi khi cập nhật trạng thái');
-        }
-    }).catch(() => {});
-};
 
 const getStatusTag = (status) => {
   const map = { 1: 'success', 0: 'warning', 2: 'info' };
@@ -259,3 +267,4 @@ watch([currentPage, pageSize], fetchVouchers);
   padding: 0;
 }
 </style>
+

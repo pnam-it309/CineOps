@@ -41,5 +41,11 @@ export const suatChieuService = {
   // Xóa suất chiếu
   deleteShowtime(id) {
     return axios.delete(`${API_ADMIN_SUAT_CHIEU}/${id}`);
+  },
+
+  // Tự động sinh hàng loạt suất chiếu
+  generateBatch(batchData) {
+    return axios.post(`${API_ADMIN_SUAT_CHIEU}/generate-batch`, batchData);
   }
 };
+

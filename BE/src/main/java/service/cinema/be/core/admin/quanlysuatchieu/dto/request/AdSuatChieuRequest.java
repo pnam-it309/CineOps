@@ -27,5 +27,7 @@ public class AdSuatChieuRequest {
     @NotNull(message = "Ngày chiếu không được để trống")
     private LocalDate ngayChieu;
 
+    private Integer thoiGianDonVeSinh;
+
     private Integer trangThai = 1;
 }

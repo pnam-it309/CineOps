@@ -58,7 +58,8 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
         SuatChieu suatChieu = suatChieuRepository.findById(request.getIdSuatChieu())
                 .orElseThrow(() -> new RuntimeException("Suất chiếu không tồn tại"));
 
-        BigDecimal giaGoc = suatChieu.getPhim().getGiaPhim();
+        BigDecimal giaGoc = suatChieu.getPhim().getGiaPhim() != null ? 
+            java.math.BigDecimal.valueOf(suatChieu.getPhim().getGiaPhim()) : null;
         String idKhungGio = suatChieu.getKhungGio().getId();
 
         // 2. Khởi tạo Hóa Đơn
@@ -86,15 +87,15 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
                     .orElseThrow(() -> new RuntimeException("Ghế không tồn tại"));
 
             // b. Tính toán phụ thu (Lưu ý: request cần truyền thêm idLoaiNgay)
-            BigDecimal phuThu = adGiaVeChiTietRepository
+            Double phuThu = adGiaVeChiTietRepository
                     .timGiaPhuThuTheoTieuChi(
                             item.getIdLoaiKhachHang(),
                             request.getIdLoaiNgay(), // Lấy từ request
                             ghe.getLoaiGhe().getId(),
                             idKhungGio
                     )
-                    .orElse(BigDecimal.ZERO);
-            BigDecimal giaVeCuoiCung = giaGoc.add(phuThu);
+                    .orElse(0.0);
+            BigDecimal giaVeCuoiCung = giaGoc.add(BigDecimal.valueOf(phuThu));
 
             // c. Khởi tạo và lưu Vé mới
             Ve ve = new Ve();
@@ -319,10 +320,10 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AdHoaDonResponse getHoaDonById(String id) {
-        HoaDon hoaDon = adHoaDonRepository.findById(id)
+        HoaDon hoaDon = adHoaDonRepository.findByIdOrMaHoaDon(id, id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
-        
         AdHoaDonResponse dto = new AdHoaDonResponse();
         dto.setId(hoaDon.getId());
         dto.setMaHoaDon(hoaDon.getMaHoaDon());
@@ -337,6 +338,9 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
 
         if (hoaDon.getNhanVien() != null) {
             dto.setTenNhanVien(hoaDon.getNhanVien().getTenNhanVien());
+        } else if (hoaDon.getNguoiTao() != null) {
+            // Fallback to AuditEntity creator if NhanVien link is missing but auditor info exists
+            dto.setTenNhanVien(hoaDon.getNguoiTao());
         } else {
             dto.setTenNhanVien("Hệ thống");
         }

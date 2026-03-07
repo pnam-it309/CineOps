@@ -12,14 +12,14 @@ import java.util.Optional;
 public interface RefreshTokenAuthRepository extends TokenRepository {
 
     @Query("SELECT t FROM Token t " +
-            "LEFT JOIN FETCH t.khachHang k " +
-            "LEFT JOIN FETCH t.nhanVien n " +
-            "LEFT JOIN FETCH n.phanQuyen " +
+            "LEFT JOIN FETCH t.taiKhoan tk " +
+            "LEFT JOIN FETCH tk.phanQuyen " +
             "WHERE t.maToken = :maToken")
     Optional<Token> findByMaToken(@Param("maToken") String maToken);
 
-    Optional<Token> findByKhachHangId(String khachHangId);
-    Optional<Token> findByNhanVienId(String nhanVienId);
-    void deleteByKhachHangId(String khachHangId);
-    void deleteByNhanVienId(String nhanVienId);
+    @Query("SELECT t FROM Token t WHERE t.taiKhoan.id = :accountId")
+    Optional<Token> findByTaiKhoanId(@Param("accountId") String accountId);
+
+    @Query("DELETE FROM Token t WHERE t.taiKhoan.id = :accountId")
+    void deleteByTaiKhoanId(@Param("accountId") String accountId);
 }

@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import service.cinema.be.entity.base.PrimaryEntity;
-import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -32,8 +31,8 @@ public class GiaVeChiTiet extends PrimaryEntity {
     @JoinColumn(name = "id_khung_gio")
     private KhungGio khungGio;
 
-    @Column(name = "gia_tien", precision = 20, scale = 2, nullable = false)
-    private BigDecimal giaTien;
+    @Column(name = "gia_tien", nullable = false)
+    private Double giaTien;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

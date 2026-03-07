@@ -10,10 +10,10 @@ import { House, Monitor, PieChart } from '@element-plus/icons-vue';
 
 // Define columns
 const roomColumns = [
-  { label: 'PHÒNG CHIẾU', key: 'room', minWidth: '250px' },
-  { label: 'SỨC CHỨA', key: 'capacity', width: '150px' },
-  { label: 'TRẠNG THÁI', key: 'status', width: '150px' },
-  { label: 'GHI CHÚ', key: 'note', minWidth: '200px' },
+  { label: 'Phòng chiếu', key: 'room', width: '250px' },
+  { label: 'Sức chứa', key: 'capacity', width: '150px' },
+  { label: 'Trạng thái', key: 'status', width: '150px' },
+  { label: 'Ghi chú', key: 'note', width: '200px' },
 ];
 
 const selectedRooms = ref([]);
@@ -279,15 +279,17 @@ const handleDelete = (room) => {
           <template #cell-actions="{ row }">
             <div class="d-flex justify-content-center gap-1">
               <el-tooltip content="Chỉnh sửa sơ đồ ghế" placement="top">
-                <button class="btn-action-icon btn-action-view">
+                <button class="btn-action-icon action-view" :disabled="row.status === 'Đang bảo trì'">
                   <i class="bi bi-grid-3x3 fs-6"></i>
                 </button>
               </el-tooltip>
-              <button class="btn-action-icon btn-action-edit" @click="openDialog(row)">
-                <i class="bi bi-pencil fs-6"></i>
-              </button>
-              <el-tooltip :content="row.status === 'Sẵn sàng' ? 'Bảo trì' : 'Kích hoạt'" placement="top">
-                <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
+              <el-tooltip content="Chỉnh sửa thông tin" placement="top">
+                <button class="btn-action-icon action-edit" :disabled="row.status === 'Đang bảo trì'" @click="openDialog(row)">
+                  <i class="bi bi-pencil fs-6"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Thay đổi trạng thái" placement="top">
+                <button class="btn-action-icon action-refresh" :disabled="row.status === 'Đang bảo trì'" @click="handleDelete(row)">
                   <i class="bi bi-arrow-repeat fs-6"></i>
                 </button>
               </el-tooltip>
@@ -391,3 +393,4 @@ const handleDelete = (room) => {
     color: #4338ca;
 }
 </style>
+

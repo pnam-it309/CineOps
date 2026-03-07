@@ -1,5 +1,4 @@
 import axios from 'axios';
-import router from '@/routes';
 import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 
 const instance = axios.create({
@@ -49,11 +48,9 @@ instance.interceptors.response.use(
             if (originalRequest.url?.includes('/auth/refresh')) {
                 sessionStorage.removeItem('token');
                 sessionStorage.removeItem('refreshToken');
-                // Chỉ redirect nếu đang ở trang yêu cầu auth
-                const currentRoute = router.currentRoute?.value;
-                if (currentRoute?.meta?.requiresAuth) {
-                    router.push({ name: ROUTES_CONSTANTS.LOGIN.name });
-                }
+                
+                // Redirect về trang lỗi 401 (Hết hạn phiên làm việc)
+                window.location.href = ROUTES_CONSTANTS.ERROR.UNAUTHORIZED.path;
                 return Promise.reject(error);
             }
 
@@ -98,11 +95,7 @@ instance.interceptors.response.use(
                 processQueue(refreshError, null);
                 sessionStorage.removeItem('token');
                 sessionStorage.removeItem('refreshToken');
-                // Chỉ redirect nếu đang ở trang yêu cầu auth
-                const currentRoute = router.currentRoute?.value;
-                if (currentRoute?.meta?.requiresAuth) {
-                    router.push({ name: ROUTES_CONSTANTS.LOGIN.name });
-                }
+                window.location.href = ROUTES_CONSTANTS.ERROR.UNAUTHORIZED.path;
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
@@ -110,7 +103,7 @@ instance.interceptors.response.use(
         }
 
         if (error.response?.status === 403) {
-            router.push({ name: ROUTES_CONSTANTS.ERROR.FORBIDDEN.name });
+            window.location.href = ROUTES_CONSTANTS.ERROR.FORBIDDEN.path;
         }
 
         return Promise.reject(error);

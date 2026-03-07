@@ -12,19 +12,7 @@
     >
       <!-- Header Actions Left Slot -->
       <template #header-actions-left>
-        <div class="d-flex align-items-center gap-2">
-          <el-button 
-            :type="selectedIds.length === filteredItems.length && filteredItems.length > 0 ? 'warning' : 'info'" 
-            plain round 
-            :icon="Check" 
-            @click="handleSelectAll"
-          >
-            {{ selectedIds.length === filteredItems.length && filteredItems.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả' }}
-          </el-button>
-          <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
-            Đổi trạng thái {{ selectedIds.length }} sản phẩm
-          </el-button>
-        </div>
+        <ExcelActions module="san-pham-dich-vu" @import-success="fetchItems" />
       </template>
 
 
@@ -56,12 +44,7 @@
             <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in filteredItems" :key="item.id" class="mb-4">
               <div 
                 class="food-card bg-white rounded-4 shadow-sm h-100 d-flex flex-column position-relative cursor-pointer" 
-                :class="{'selected-card': isSelected(item.id)}"
-                @click="toggleSelection(item)"
               >
-                <div class="selection-checkbox" @click.stop>
-                  <el-checkbox :model-value="isSelected(item.id)" @change="toggleSelection(item)" />
-                </div>
                 <div class="card-image-wrapper">
                   <img :src="item.image || 'https://via.placeholder.com/150'" class="w-100 h-100 object-fit-cover" />
                   <el-tag effect="dark" class="size-badge" type="warning" round>Size {{ item.sizeName }}</el-tag>
@@ -89,22 +72,22 @@
                   
                   <div class="mt-3 pt-3 border-top d-flex justify-content-end gap-2">
                     <el-tooltip content="Xem chi tiết" placement="top">
-                      <button class="btn-action-icon btn-action-view" @click.stop="handleViewDetail(item)">
+                      <button class="btn-action-icon action-view" @click.stop="handleViewDetail(item)">
                         <i class="bi bi-eye"></i>
                       </button>
                     </el-tooltip>
                     <el-tooltip content="Quản lý biến thể" placement="top">
-                      <button class="btn-action-icon btn-action-variant" @click.stop="openVariantDialog(item)">
+                      <button class="btn-action-icon action-variant" :disabled="item.trangThai === 0" @click.stop="openVariantDialog(item)">
                         <i class="bi bi-layers-half text-primary"></i>
                       </button>
                     </el-tooltip>
                     <el-tooltip content="Chỉnh sửa" placement="top">
-                      <button class="btn-action-icon btn-action-edit" @click.stop="openDialog(item)">
+                      <button class="btn-action-icon action-edit" :disabled="item.trangThai === 0" @click.stop="openDialog(item)">
                         <i class="bi bi-pencil"></i>
                       </button>
                     </el-tooltip>
-                    <el-tooltip :content="item.trangThai === 0 ? 'Kích hoạt' : 'Ngừng kinh doanh'" placement="top">
-                      <button class="btn-action-icon btn-action-refresh" @click.stop="handleDelete(item)">
+                    <el-tooltip content="Thay đổi trạng thái" placement="top">
+                      <button class="btn-action-icon action-refresh" :disabled="item.trangThai === 0" @click.stop="handleDelete(item)">
                         <i class="bi bi-arrow-repeat"></i>
                       </button>
                     </el-tooltip>
@@ -172,7 +155,7 @@
       <div class="variant-section-premium">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="fw-bold m-0 text-primary">Danh sách kích cỡ & Giá</h6>
-          <el-button type="success" size="small" :icon="Plus" plain @click="addNewVariantRow" class="btn-add-premium">
+          <el-button type="success" size="small" :icon="Plus" @click="addNewVariantRow">
             Thêm kích cỡ mới
           </el-button>
         </div>
@@ -250,7 +233,7 @@
 
           <el-table-column width="100" align="center">
             <template #default="scope">
-              <button class="btn-action-icon btn-action-delete" @click="removeVariantRow(scope.$index)">
+              <button class="btn-action-icon action-delete" @click="removeVariantRow(scope.$index)">
                 <i class="bi bi-trash"></i>
               </button>
             </template>
@@ -335,6 +318,7 @@ import AdminTableLayout from '@/components/AdminTableLayout.vue'
 import notification from '@/utils/notifications'
 import confirmDialog from '@/utils/confirm'
 import BaseModal from '@/components/common/BaseModal.vue'
+import ExcelActions from '@/components/common/ExcelActions.vue'
 import debounce from 'lodash/debounce'
 
 const activeCategory = ref('All')
@@ -351,27 +335,7 @@ const categories = ref([])
 const sizes = ref([])
 const units = ref([])
 const items = ref([])
-const selectedItems = ref([])
-const selectedIds = computed(() => selectedItems.value.map(i => i.id))
 
-const isSelected = (id) => selectedIds.value.includes(id)
-
-const toggleSelection = (item) => {
-  const index = selectedItems.value.findIndex(i => i.id === item.id)
-  if (index > -1) {
-    selectedItems.value.splice(index, 1)
-  } else {
-    selectedItems.value.push(item)
-  }
-}
-
-const handleSelectAll = () => {
-  if (selectedItems.value.length === filteredItems.value.length) {
-    selectedItems.value = []
-  } else {
-    selectedItems.value = [...filteredItems.value]
-  }
-}
 
 const handleViewDetail = (item) => {
   selectedItemDetail.value = item
@@ -600,28 +564,6 @@ const saveVariants = async () => {
   }
 }
 
-const handleBulkDelete = () => {
-    confirmDialog.custom(
-        `Thay đổi trạng thái cho <b>${selectedIds.value.length}</b> sản phẩm đã chọn?`,
-        'Cập nhật hàng loạt',
-        'Đồng ý'
-    ).then(async () => {
-        try {
-            const productIds = [...new Set(selectedItems.value.map(i => i.productId))];
-            await Promise.all(productIds.map(async (id) => {
-                const sp = items.value.find(i => i.productId === id)?.rawProduct;
-                const newStatus = sp.trangThai === 1 ? 0 : 1;
-                return sanPhamDiKemService.update(id, { ...sp, trangThai: newStatus });
-            }));
-            notification.success(`Đã cập nhật trạng thái cho ${productIds.length} sản phẩm`);
-            selectedItems.value = [];
-            fetchItems();
-        } catch (error) {
-            notification.error('Có lỗi khi cập nhật trạng thái hàng loạt');
-        }
-    }).catch(() => {});
-};
-
 const handleDelete = item => {
   const isInactive = item.rawProduct.trangThai === 0;
   const newStatus = isInactive ? 1 : 0;
@@ -633,7 +575,17 @@ const handleDelete = item => {
     'Xác nhận'
   ).then(async () => {
     try {
-      await sanPhamDiKemService.update(item.productId, { ...item.rawProduct, trangThai: newStatus });
+      const payload = { ...item.rawProduct, trangThai: newStatus };
+      
+      // Nếu ngừng kinh doanh, set tồn kho tất cả biến thể về 0
+      if (newStatus === 0 && payload.variants) {
+        payload.variants = payload.variants.map(v => ({
+          ...v,
+          soLuongTon: 0
+        }));
+      }
+
+      await sanPhamDiKemService.update(item.productId, payload);
       notification.success(`Đã ${label} sản phẩm thành công`);
       fetchItems();
     } catch (error) {
@@ -667,38 +619,7 @@ onMounted(() => {
   overflow: hidden;
   height: 32px;
 }
-.selection-checkbox {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
-  background: white;
-  padding: 4px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  line-height: 1;
-  border: 1px solid #efefef;
-  transition: all 0.2s;
-}
-.food-card:hover .selection-checkbox {
-  border-color: #4f46e5;
-  transform: scale(1.05);
-}
-.selected-card {
-  border: 2px solid #4f46e5 !important;
-  background-color: #f5f3ff !important;
-}
-.selected-card .selection-checkbox {
-  background: #4f46e5;
-  border-color: #4f46e5;
-}
-.selected-card .selection-checkbox :deep(.el-checkbox__inner) {
-  background-color: #4f46e5;
-  border-color: #fff;
-}
-.selected-card .selection-checkbox :deep(.el-checkbox__inner::after) {
-  border-color: #fff;
-}
+
 
 /* Biến thể section styling */
 .variant-section-premium {

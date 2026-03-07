@@ -22,11 +22,20 @@ public class KhungGio extends PrimaryEntity {
     @Column(name = "ten_khung_gio", length = 100)
     private String tenKhungGio;
 
+    @Column(name = "thu_trong_tuan")
+    private Integer thuTrongTuan; // 1=Thứ 2, 7=Chủ nhật
+
     @Column(name = "gio_bat_dau")
     private LocalTime gioBatDau;
 
     @Column(name = "gio_ket_thuc")
     private LocalTime gioKetThuc;
+
+    @Column(name = "he_so_gia")
+    private Double heSoGia = 1.0; // Hệ số nhân giá vé (1.2 = tăng 20%)
+
+    @Column(name = "la_khung_gio_vang")
+    private Boolean laKhungGioVang = false; // Đánh dấu khung giờ vàng
 
     @Column(name = "mo_ta", columnDefinition = "TEXT")
     private String moTa;
@@ -39,5 +48,5 @@ public class KhungGio extends PrimaryEntity {
 
     @OneToMany(mappedBy = "khungGio")
     private List<SuatChieu> suatChieus = new ArrayList<>();
-
 }
+

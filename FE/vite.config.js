@@ -13,13 +13,13 @@ export default defineConfig({
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia'],
       resolvers: [ElementPlusResolver()],
-      dts: 'auto-imports.d.ts',
+      dts: false,
     }),
     Components({
       dirs: ['src/components'],
       extensions: ['vue'],
       resolvers: [ElementPlusResolver()],
-      dts: 'components.d.ts',
+      dts: false,
     }),
     ElementPlus({
       // Auto import styles

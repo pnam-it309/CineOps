@@ -2,6 +2,17 @@
 import { ref, markRaw, computed } from 'vue';
 import { Download, Search, Filter, Document, Money, Ticket, Calendar, Refresh } from '@element-plus/icons-vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
+
+const reportColumns = [
+  { label: 'Mã GD', key: 'id', width: '120px' },
+  { label: 'Thời gian', key: 'date', width: '180px' },
+  { label: 'Khách hàng', key: 'customer', minWidth: '150px' },
+  { label: 'Sản phẩm', key: 'items', minWidth: '200px' },
+  { label: 'Tổng tiền', key: 'total', width: '150px' },
+  { label: 'Trạng thái', key: 'status', width: '130px' },
+  { label: 'Hình thức', key: 'method', width: '130px' },
+];
 
 
 const dateRange = ref([]);
@@ -32,15 +43,14 @@ const filteredReports = computed(() => {
     <AdminTableLayout
       title="Báo cáo Giao dịch"
       titleIcon="bi bi-bar-chart-fill"
-      :data="filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :data="filteredReports"
       :total="filteredReports.length"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
-      :selectable="false"
       @reset-filter="() => { dateRange = []; selectedType = 'All'; searchQuery = ''; }"
     >
       <template #header-actions-left>
-        <el-button class="btn-premium-secondary text-success border-success-subtle" :icon="Download">Xuất CSV</el-button>
+        <el-button class="btn-cine-secondary text-success border-success-subtle" :icon="Download">Xuất CSV</el-button>
       </template>
 
 
@@ -70,46 +80,46 @@ const filteredReports = computed(() => {
         </div>
       </template>
 
-      <template #columns>
-        <el-table-column label="Mã GD" width="120">
-            <template #default="{ row }">
-                <span class="fw-bold text-indigo-500">#{{ row.id }}</span>
-            </template>
-        </el-table-column>
-        
-        <el-table-column label="Thời gian" width="180" align="center">
-          <template #default="{ row }">
+      <template #content>
+        <BaseTable
+          :data="filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+          :columns="reportColumns"
+          :total="filteredReports.length"
+          v-model:currentPage="currentPage"
+          v-model:pageSize="pageSize"
+          :show-actions="false"
+          :hide-pagination="true"
+        >
+          <template #cell-id="{ row }">
+            <span class="fw-bold text-indigo-500">#{{ row.id }}</span>
+          </template>
+
+          <template #cell-date="{ row }">
             <div class="small text-secondary"><i class="bi bi-clock me-1"></i>{{ row.date }}</div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Khách hàng" prop="customer" min-width="150" />
+          <template #cell-customer="{ row }">
+            <span class="fw-semibold text-dark">{{ row.customer }}</span>
+          </template>
 
-        <el-table-column label="Sản phẩm" min-width="200">
-          <template #default="{ row }">
+          <template #cell-items="{ row }">
             <div class="small text-truncate" style="max-width: 250px;" :title="row.items">{{ row.items }}</div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Tổng tiền" width="150" align="center">
-          <template #default="{ row }">
+          <template #cell-total="{ row }">
             <span class="fw-bold text-dark">{{ row.total.toLocaleString() }}đ</span>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Trạng thái" width="130" align="center">
-          <template #default="{ row }">
+          <template #cell-status="{ row }">
             <el-tag :type="row.status === 'Completed' ? 'success' : 'danger'" size="small" round effect="light">
               {{ row.status === 'Completed' ? 'Thành công' : 'Đã hoàn tiền' }}
             </el-tag>
           </template>
-        </el-table-column>
 
-        <el-table-column label="Hình thức" width="130" align="center">
-          <template #default="{ row }">
+          <template #cell-method="{ row }">
             <span class="badge bg-light-subtle text-dark border px-2 py-1">{{ row.method }}</span>
           </template>
-        </el-table-column>
+        </BaseTable>
       </template>
     </AdminTableLayout>
   </div>
@@ -120,3 +130,4 @@ const filteredReports = computed(() => {
   color: #4f46e5;
 }
 </style>
+

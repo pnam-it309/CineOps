@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
   /* ========== Color Palette ========== */
   
   /* Primary Colors */
@@ -67,8 +67,8 @@
   --spacing-3xl: 4rem;      /* 64px */
   
   /* ========== Typography ========== */
-  --font-family-primary: 'Roboto', sans-serif;
-  --font-family-heading: 'Roboto', sans-serif;
+  --font-family-primary: 'Inter', sans-serif;
+  --font-family-heading: 'Inter', sans-serif;
   --font-family-mono: 'JetBrains Mono', 'Courier New', monospace;
   
   /* Font Sizes */

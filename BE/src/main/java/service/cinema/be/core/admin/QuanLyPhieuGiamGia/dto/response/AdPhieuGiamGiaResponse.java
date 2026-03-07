@@ -14,6 +14,7 @@ public class AdPhieuGiamGiaResponse {
     private String maPhieuGiamGia;
     private String tenPhieu;
     private Integer loaiPhieu;
+    private Integer kieuPhatHanh;
 
     private BigDecimal phanTramGiamGia;
     private BigDecimal soTienGiam;

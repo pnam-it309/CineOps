@@ -14,10 +14,6 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  showCheckbox: {
-    type: Boolean,
-    default: true
-  },
   showActions: {
     type: Boolean,
     default: true
@@ -56,30 +52,39 @@ const emit = defineEmits([
   'view'
 ]);
 
-// Selection Logic
+// Selection logic
 const isAllSelected = computed(() => {
-  return props.data.length > 0 && props.selection.length === props.data.length;
+  if (!props.data || props.data.length === 0) return false;
+  return props.data.every(item => props.selection.some(i => (i.id || i) === (item.id || item)));
 });
 
-const handleSelectAll = (event) => {
-  const isChecked = event.target.checked;
-  const newSelection = isChecked ? [...props.data] : [];
-  emit('update:selection', newSelection);
-  emit('selection-change', newSelection);
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    // Clear selections of current page data
+    const newSelection = props.selection.filter(i => 
+      !props.data.some(d => (d.id || d) === (i.id || i))
+    );
+    emit('update:selection', newSelection);
+    emit('selection-change', newSelection);
+  } else {
+    // Add all current page data to selection
+    const newItems = props.data.filter(d => 
+      !props.selection.some(i => (i.id || i) === (d.id || d))
+    );
+    const newSelection = [...props.selection, ...newItems];
+    emit('update:selection', newSelection);
+    emit('selection-change', newSelection);
+  }
 };
 
-const handleSelectItem = (item, event) => {
-  const isChecked = event.target.checked;
-  let newSelection = [...props.selection];
-  
-  if (isChecked) {
-    if (!newSelection.some(i => (i.id || i) === (item.id || item))) {
-      newSelection.push(item);
-    }
+const toggleSelection = (item) => {
+  const isSelected = props.selection.some(i => (i.id || i) === (item.id || item));
+  let newSelection;
+  if (isSelected) {
+    newSelection = props.selection.filter(i => (i.id || i) !== (item.id || item));
   } else {
-    newSelection = newSelection.filter(i => (i.id || i) !== (item.id || item));
+    newSelection = [...props.selection, item];
   }
-  
   emit('update:selection', newSelection);
   emit('selection-change', newSelection);
 };
@@ -124,77 +129,71 @@ const pagesToShow = computed(() => {
 <template>
   <div class="base-table-container h-100 d-flex flex-column overflow-hidden">
     <div class="table-content-wrapper rounded-4 border bg-white shadow-sm" style="flex: 1 1 0; min-height: 0; overflow: auto; width: 100%;">
-      <table class="table table-hover align-middle mb-0 text-center w-100" style="border-collapse: separate; border-spacing: 0; table-layout: auto;">
+      <table class="table table-hover align-middle mb-0 text-center" style="border-collapse: separate; border-spacing: 0; table-layout: auto; min-width: 100%;">
         <!-- Sticky Header -->
         <thead class="sticky-top shadow-sm" style="z-index: 20;">
           <tr class="border-bottom">
-            <th v-if="showCheckbox" class="py-3 px-2 table-header-bg sticky-col-check" style="width: 50px; min-width: 50px; max-width: 50px;">
-              <div class="form-check d-flex justify-content-center ps-0 mb-0" style="min-height: auto;">
-                <input 
-                  class="form-check-input m-0 cursor-pointer" 
-                  type="checkbox" 
-                  :checked="isAllSelected"
-                  @change="handleSelectAll"
-                >
-              </div>
-            </th>
-            <th v-for="(col, colIdx) in columns" :key="col.key" 
-                class="py-3 px-3 fw-bold text-nowrap text-center table-header-bg" 
+            <th v-for="(col, colIdx) in columns" :key="col.key || colIdx" 
+                class="py-2 px-3 fw-bold text-nowrap text-center table-header-bg" 
                 :class="{ 
-                  'sticky-col-stt': colIdx === 0 && !showCheckbox,
-                  'sticky-col-stt-with-check': colIdx === 0 && showCheckbox
+                  'sticky-col-stt': colIdx === 0
                 }"
                 :style="{ 
                   width: col.width || 'auto',
                   minWidth: col.minWidth || col.width || 'auto'
                 }">
-              {{ col.label }}
+              <template v-if="col.type === 'selection'">
+                <div class="form-check d-flex justify-content-center">
+                  <input class="form-check-input" type="checkbox" :checked="isAllSelected" @change="toggleSelectAll">
+                </div>
+              </template>
+              <template v-else>
+                {{ col.label }}
+              </template>
             </th>
-            <th v-if="showActions" class="py-3 px-3 fw-bold text-center table-header-bg sticky-col-actions" style="width: 140px; min-width: 140px;">Thao tác</th>
+            <th v-if="showActions" class="py-2 px-3 fw-bold text-center table-header-bg sticky-col-actions" style="width: 140px; min-width: 140px;">Thao tác</th>
           </tr>
         </thead>
-        <tbody v-if="!loading && data.length > 0">
+        <tbody v-if="!loading && (data || []).length > 0">
           <tr v-for="(item, index) in data" :key="item.id || index" class="border-bottom border-light-subtle">
-            <td v-if="showCheckbox" class="py-3 px-2 td-sticky-check" style="width: 50px; min-width: 50px; max-width: 50px;">
-              <div class="form-check d-flex justify-content-center ps-0 mb-0" style="min-height: auto;">
-                <input 
-                  class="form-check-input m-0 cursor-pointer" 
-                  type="checkbox"
-                  :checked="isItemSelected(item)"
-                  @change="handleSelectItem(item, $event)"
-                >
-              </div>
-            </td>
-            <td v-for="(col, colIdx) in columns" :key="col.key" 
-                class="py-3 px-3 text-secondary" 
+            <td v-for="(col, colIdx) in columns" :key="col.key || colIdx" 
+                class="py-2 px-3 text-dark" 
                 :class="{ 
-                  'table-cell-sticky-stt': colIdx === 0 && !showCheckbox,
-                  'table-cell-sticky-stt-with-check': colIdx === 0 && showCheckbox
+                  'table-cell-sticky-stt': colIdx === 0
                 }"
                 :style="{ 
                   width: col.width || 'auto',
                   minWidth: col.minWidth || col.width || 'auto',
-                  fontSize: '25px'
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  maxWidth: col.maxWidth || 'none'
                 }">
-              <slot :name="'cell-' + col.key" :row="item" :index="index">
-                {{ item[col.key] }}
-              </slot>
+              <template v-if="col.type === 'selection'">
+                <div class="form-check d-flex justify-content-center">
+                  <input class="form-check-input" type="checkbox" :checked="isItemSelected(item)" @change="toggleSelection(item)">
+                </div>
+              </template>
+              <template v-else>
+                <slot :name="'cell-' + col.key" :row="item" :index="index">
+                  {{ item[col.key] }}
+                </slot>
+              </template>
             </td>
-            <td v-if="showActions" class="py-3 px-3 td-sticky-actions" style="width: 140px; min-width: 140px;">
+            <td v-if="showActions" class="py-2 px-3 td-sticky-actions" style="width: 140px; min-width: 140px;">
               <div class="d-flex justify-content-center gap-2">
                 <slot name="actions" :row="item">
                   <el-tooltip content="Chi tiết" placement="top">
-                    <button class="btn-action-icon btn-action-view" @click="$emit('view', item)">
+                    <button class="btn-action-icon action-view" @click="$emit('view', item)">
                       <i class="bi bi-eye fs-6"></i>
                     </button>
                   </el-tooltip>
                   <el-tooltip content="Chỉnh sửa" placement="top">
-                    <button class="btn-action-icon btn-action-edit" @click="$emit('edit', item)">
+                    <button class="btn-action-icon action-edit" @click="$emit('edit', item)">
                       <i class="bi bi-pencil fs-6"></i>
                     </button>
                   </el-tooltip>
                   <el-tooltip content="Xóa" placement="top">
-                    <button class="btn-action-icon btn-action-delete" @click="$emit('delete', item)">
+                    <button class="btn-action-icon action-delete" @click="$emit('delete', item)">
                       <i class="bi bi-trash fs-6"></i>
                     </button>
                   </el-tooltip>
@@ -205,7 +204,7 @@ const pagesToShow = computed(() => {
         </tbody>
         <tbody v-else-if="loading">
           <tr>
-            <td :colspan="columns.length + (showCheckbox ? 1 : 0) + (showActions ? 1 : 0)" class="py-5 border-0">
+            <td :colspan="(columns || []).length + (showActions ? 1 : 0)" class="py-5 border-0">
               <div class="spinner-premium"></div>
               <div class="mt-3 text-secondary small">Đang tải dữ liệu...</div>
             </td>
@@ -213,7 +212,7 @@ const pagesToShow = computed(() => {
         </tbody>
         <tbody v-else>
           <tr>
-            <td :colspan="columns.length + (showCheckbox ? 1 : 0) + (showActions ? 1 : 0)" class="py-5 text-secondary opacity-50 border-0">
+            <td :colspan="(columns || []).length + (showActions ? 1 : 0)" class="py-5 text-secondary opacity-50 border-0">
               <div class="mb-3">
                 <i class="bi bi-inbox fs-1"></i>
               </div>
@@ -229,7 +228,7 @@ const pagesToShow = computed(() => {
 <style scoped>
 .base-table-container { min-height: 0; }
 .table-content-wrapper { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
-.table-header-bg { background-color: #ffffff !important; color: #475569 !important; font-size: 16px; letter-spacing: 0.025em; text-transform: none; border-bottom: 1px solid #f1f5f9 !important; }
+.table-header-bg { background-color: #ffffff !important; color: #1e293b !important; font-weight: 700 !important; font-size: 16px !important; letter-spacing: normal; text-transform: none; border-bottom: 2px solid #e2e8f0 !important; }
 .cursor-pointer { cursor: pointer; }
 .simple-page-btn { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0 8px; border: none; background: transparent; color: #475569; font-size: 14px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
 .simple-page-btn:hover:not(.active):not(.arrow) { color: #4f46e5; background: #f8fafc; border-radius: 6px; }
@@ -303,3 +302,4 @@ const pagesToShow = computed(() => {
   background-color: #4f46e5; border-color: #4f46e5; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
 }
 </style>
+

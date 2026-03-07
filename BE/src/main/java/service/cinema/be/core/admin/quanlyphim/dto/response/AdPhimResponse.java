@@ -23,9 +23,13 @@ public class AdPhimResponse {
     private String poster;
     private String ngonNgu;
     private Integer doTuoi;
+    private String nhanDoTuoi;
+    private Boolean hienThiCanhBaoDoTuoi;
+    private String loaiPhim;
+    private Double phuPhiLoaiPhim;
     private String moTa;
-    private BigDecimal danhGia;
-    private BigDecimal giaPhim;
+    private Double danhGia;
+    private Double giaPhim;
     private Integer trangThai;
     private List<AdTheLoaiResponse> theLoais;
 

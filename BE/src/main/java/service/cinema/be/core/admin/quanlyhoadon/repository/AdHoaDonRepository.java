@@ -21,6 +21,9 @@ public interface AdHoaDonRepository extends JpaRepository<HoaDon, String>, JpaSp
     // Đếm tổng số hóa đơn theo trạng thái
     long countByTrangThai(Integer trangThai);
 
+    // Hỗ trợ tìm kiếm bằng UUID hoặc mã hóa đơn (ví dụ: HD-1234)
+    java.util.Optional<HoaDon> findByIdOrMaHoaDon(String id, String maHoaDon);
+
     /**
      * Fix #5 — Tìm các hóa đơn PENDING đã quá hạn booking timeout.
      * Dùng bởi BookingTimeoutScheduler để auto-release ghế.

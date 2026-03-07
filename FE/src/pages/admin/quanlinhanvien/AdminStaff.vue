@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Plus, User, Edit, Delete, Lock, Key, Setting, Search, Phone, Message, Clock, Check, Close } from '@element-plus/icons-vue';
+import { User, Edit, Lock, Key, Setting, Search, Refresh } from '@element-plus/icons-vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 import BaseTable from '@/components/common/BaseTable.vue';
@@ -11,20 +11,20 @@ import { phanQuyenService } from '@/services/api/admin/phanQuyenService';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
+import ExcelActions from '@/components/common/ExcelActions.vue';
 
 const staff = ref([]);
-const selectedStaff = ref([]);
 const loading = ref(false);
 
 const staffColumns = [
-  { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'Nhân viên', key: 'staff', minWidth: '250px' },
-  { label: 'Email', key: 'email', minWidth: '400px' },
-  { label: 'Tên đăng nhập', key: 'username', width: '250px' },
-  { label: 'Vai trò', key: 'role', width: '250px' },
-  { label: 'Số điện thoại', key: 'phone', width: '200px' },
-  { label: 'Ngày tham gia', key: 'joinDate', width: '200px' },
-  { label: 'Trạng thái', key: 'status', width: '200px' },
+  { label: 'STT', key: 'stt', width: '60px' },
+  { label: 'Nhân viên', key: 'staff', width: '180px' },
+  { label: 'Email', key: 'email', width: '200px' },
+  { label: 'Tên đăng nhập', key: 'username', width: '160px' },
+  { label: 'Vai trò', key: 'role', width: '140px' },
+  { label: 'Số điện thoại', key: 'phone', width: '150px' },
+  { label: 'Ngày tham gia', key: 'joinDate', width: '150px' },
+  { label: 'Trạng thái', key: 'status', width: '150px' },
 ];
 
 const roles = ref([]);
@@ -56,6 +56,7 @@ const dialogVisible = ref(false);
 
 const filterRole = ref('');
 const filterStatus = ref('');
+const totalElements = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const phanQuyenList = ref([]);
@@ -71,12 +72,24 @@ const fetchStaff = async () => {
     const res = await nhanVienService.getAll(
       searchQuery.value || null,
       filterRole.value || null,
-      filterStatus.value === '' ? null : filterStatus.value
+      filterStatus.value === '' ? null : filterStatus.value,
+      currentPage.value - 1, 
+      pageSize.value
     );
-    if (res.data && res.data.data) {
-      staff.value = Array.isArray(res.data.data) ? res.data.data : [];
+    
+    const apiRes = res.data;
+    if (apiRes && apiRes.data) {
+       // Backend returns Page object
+       if (apiRes.data.content) {
+         staff.value = apiRes.data.content;
+         totalElements.value = apiRes.data.totalElements;
+       } else {
+         staff.value = Array.isArray(apiRes.data) ? apiRes.data : [];
+         totalElements.value = staff.value.length;
+       }
     } else {
       staff.value = [];
+      totalElements.value = 0;
     }
   } catch (error) {
     notification.error('Không thể tải danh sách nhân viên');
@@ -110,44 +123,38 @@ const handleEdit = (row) => {
 };
 
 const handleDelete = (row) => {
-  handleToggleStatus(row);
+  handleUpdateStatus(row);
 };
 
 
 
-const handleToggleStatus = async (row) => {
-  const newStatus = row.trangThai === 1 ? 0 : 1;
+const handleUpdateStatus = async (row, status = null) => {
+  const newStatus = status !== null ? status : (row.trangThai === 1 ? 0 : 1);
+  const label = newStatus === 1 ? 'kích hoạt' : 'vô hiệu hóa';
   try {
+    await confirmDialog.custom(`Bạn có chắc muốn ${label} tài khoản nhân viên ${row.tenNhanVien}?`, 'Xác nhận');
     await nhanVienService.update(row.id, { ...row, trangThai: newStatus, matKhau: undefined });
     row.trangThai = newStatus;
-    notification.success(`Đã ${newStatus === 1 ? 'kích hoạt' : 'vô hiệu hóa'} tài khoản ${row.tenNhanVien}`);
-  } catch {
-    notification.error('Thay đổi trạng thái thất bại');
+    notification.success(`Đã ${label} tài khoản ${row.tenNhanVien}`);
+  } catch (e) {
+    if (e !== 'cancel') notification.error('Thay đổi trạng thái thất bại');
   }
 };
 
 
 
-const selectedIds = computed(() => selectedStaff.value.map(item => item.id));
 
-const handleBulkDelete = () => {
-    confirmDialog.custom(
-        `Thay đổi trạng thái cho <b>${selectedIds.value.length}</b> nhân viên đã chọn?`,
-        'Cập nhật hàng loạt',
-        'Đồng ý'
-    ).then(async () => {
-        try {
-            await Promise.all(selectedStaff.value.map(item => {
-                const newStatus = item.trangThai === 1 ? 0 : 1;
-                return nhanVienService.update(item.id, { ...item, trangThai: newStatus, matKhau: undefined });
-            }));
-            notification.success(`Đã cập nhật trạng thái cho ${selectedIds.value.length} nhân viên`);
-            selectedStaff.value = [];
-            fetchStaff();
-        } catch (error) {
-            notification.error('Có lỗi khi cập nhật hàng loạt');
-        }
-    }).catch(() => {});
+
+const handleSendPasswordReset = async (row) => {
+  try {
+    await confirmDialog.custom(`Bạn có chắc muốn gửi email đặt lại mật khẩu đến ${row.email}?`, 'Xác nhận gửi email');
+    await nhanVienService.resetPassword(row.id);
+    notification.success('Email đặt lại mật khẩu đã được gửi đến ' + row.email);
+  } catch (e) {
+    if (e !== 'cancel') {
+      notification.error('Gửi email đặt lại mật khẩu thất bại');
+    }
+  }
 };
 
 const disabledDate = (time) => {
@@ -159,7 +166,7 @@ onMounted(() => {
     fetchRoles();
     fetchChucVu();
 });
-watch([searchQuery, filterRole, filterStatus], fetchStaff);
+watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff);
 </script>
 
 <template>
@@ -168,9 +175,9 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
       title="Quản lý nhân viên"
       titleIcon="bi bi-people-fill"
       addButtonLabel="Thêm nhân viên"
-      :data="filteredStaff"
+      :data="staff"
       :loading="loading"
-      :total="filteredStaff.length"
+      :total="totalElements"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
       @add-click="handleAdd"
@@ -178,10 +185,8 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
     >
       <template #header-actions-left>
         <div class="d-flex align-items-center gap-2">
-          <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
-            Đổi trạng thái {{ selectedIds.length }} nhân viên
-          </el-button>
-          <el-button class="btn-premium-secondary" :icon="Setting" @click="roleDialogVisible = true" round>Vai trò & Quyền</el-button>
+          <ExcelActions module="nhan-vien" @import-success="fetchStaff" />
+          <el-button class="btn-cine-secondary" :icon="Setting" @click="roleDialogVisible = true" round>Vai trò & Quyền</el-button>
         </div>
       </template>
 
@@ -215,13 +220,12 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
 
       <template #content>
         <BaseTable
-          :data="filteredStaff.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+          :data="staff"
           :columns="staffColumns"
           :loading="loading"
-          :total="filteredStaff.length"
+          :total="totalElements"
           v-model:currentPage="currentPage"
           v-model:pageSize="pageSize"
-          v-model:selection="selectedStaff"
           :hide-pagination="true"
           @edit="handleEdit"
           @delete="handleDelete"
@@ -229,12 +233,17 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           <template #actions="{ row }">
             <div class="d-flex justify-content-center gap-2">
                 <el-tooltip content="Chỉnh sửa" placement="top">
-                  <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+                  <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
                     <i class="bi bi-pencil fs-6"></i>
                   </button>
                 </el-tooltip>
-                <el-tooltip :content="row.trangThai === 1 ? 'Vô hiệu hóa' : 'Kích hoạt'" placement="top">
-                  <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
+                <el-tooltip content="Gửi email đặt lại mật khẩu" placement="top">
+                  <button class="btn-action-icon action-email" :disabled="row.trangThai === 0" @click="handleSendPasswordReset(row)">
+                    <i class="bi bi-envelope fs-6"></i>
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="Thay đổi trạng thái" placement="top">
+                  <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0" @click="handleUpdateStatus(row, row.trangThai === 1 ? 0 : 1)">
                     <i class="bi bi-arrow-repeat fs-6"></i>
                   </button>
                 </el-tooltip>
@@ -245,15 +254,15 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           </template>
 
           <template #cell-staff="{ row }">
-            <div class="fw-bold text-dark small">{{ row.tenNhanVien }}</div>
+            <div class="fw-bold text-dark">{{ row.tenNhanVien }}</div>
           </template>
 
           <template #cell-email="{ row }">
-            <div class="text-secondary small">{{ row.email }}</div>
+            <div class="text-secondary">{{ row.email }}</div>
           </template>
 
           <template #cell-username="{ row }">
-            <code class="small fw-bold text-indigo-500">{{ row.tenDangNhap || row.maNhanVien }}</code>
+            <code class="fw-bold text-indigo-500">{{ row.tenDangNhap || row.maNhanVien }}</code>
           </template>
 
           <template #cell-role="{ row }">
@@ -261,7 +270,7 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           </template>
 
           <template #cell-phone="{ row }">
-            <span class="small">{{ row.soDienThoai }}</span>
+            <span>{{ row.soDienThoai }}</span>
           </template>
           
           <template #cell-joinDate="{ row }">
@@ -271,7 +280,7 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
           </template>
 
           <template #cell-status="{ row }">
-            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round class="cursor-pointer" @click="handleToggleStatus(row)" title="Bấm để đổi trạng thái">
+            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round :class="{ 'cursor-pointer': row.trangThai === 1, 'badge-pulse': row.trangThai === 1 }" :title="row.trangThai === 1 ? 'Bấm để đổi trạng thái' : ''" @click="row.trangThai === 1 ? handleUpdateStatus(row, 0) : null">
               {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
             </el-tag>
           </template>
@@ -346,4 +355,15 @@ watch([searchQuery, filterRole, filterStatus], fetchStaff);
 .text-indigo-500 {
   color: #4f46e5;
 }
+
+.action-email {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.action-email:hover {
+  background-color: #d97706;
+  color: white;
+}
 </style>
+

@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import service.cinema.be.core.admin.quanlysuatchieu.dto.request.AdBatchSuatChieuRequest;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.request.AdSuatChieuRequest;
+import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdBatchSuatChieuResult;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdPhimResponse;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdSuatChieuResponse;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdPhongChieuResponse;
@@ -28,6 +30,11 @@ public class AdSuatChieuController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngayChieu,
             @RequestParam(required = false) String idPhongChieu) {
         return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.getSuatChieu(ngayChieu, idPhongChieu)));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<AdSuatChieuResponse>> getById(@PathVariable String id) {
+        return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.getById(id)));
     }
 
     @GetMapping("/phim-dropdown")
@@ -55,4 +62,15 @@ public class AdSuatChieuController {
         adSuatChieuService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    /**
+     * Tự động sinh hàng loạt suất chiếu theo khoảng ngày + danh sách khung giờ.
+     * Overlap check được thực hiện cho từng slot trước khi insert.
+     */
+    @PostMapping("/generate-batch")
+    public ResponseEntity<ApiResponse<AdBatchSuatChieuResult>> generateBatch(
+            @Valid @RequestBody AdBatchSuatChieuRequest req) {
+        return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.generateBatch(req)));
+    }
 }
+

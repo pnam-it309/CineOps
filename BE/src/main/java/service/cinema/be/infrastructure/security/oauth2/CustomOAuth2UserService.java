@@ -1,6 +1,5 @@
 package service.cinema.be.infrastructure.security.oauth2;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,17 +17,19 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import service.cinema.be.entity.KhachHang;
+import service.cinema.be.entity.TaiKhoan;
 import service.cinema.be.infrastructure.constant.AuthProvider;
 import service.cinema.be.infrastructure.constant.CookieConstant;
-import service.cinema.be.infrastructure.constant.OAuth2Constant;
 import service.cinema.be.infrastructure.exception.OAuth2AuthenticationProcessingException;
 import service.cinema.be.infrastructure.security.oauth2.user.GithubOAuth2UserInfo;
 import service.cinema.be.infrastructure.security.oauth2.user.OAuth2UserInfo;
 import service.cinema.be.infrastructure.security.oauth2.user.OAuth2UserInfoFactory;
 import service.cinema.be.infrastructure.security.user.UserPrincipal;
 import service.cinema.be.repository.KhachHangRepository;
+import service.cinema.be.repository.TaiKhoanRepository;
 import service.cinema.be.utils.CookieUtils;
 
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional
 @Slf4j
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -44,6 +46,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
     private final KhachHangRepository khachHangRepository;
+    private final TaiKhoanRepository taiKhoanRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
@@ -80,8 +83,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private OAuth2User processUser(OAuth2UserInfo oAuth2UserInfo) {
-        Optional<KhachHang> khachHangOptional = khachHangRepository.findByEmail(oAuth2UserInfo.getEmail());
+        Optional<TaiKhoan> tkOptional = taiKhoanRepository.findByEmail(oAuth2UserInfo.getEmail());
 
+        TaiKhoan tk;
+        if (tkOptional.isPresent()) {
+            tk = tkOptional.get();
+        } else {
+            tk = new TaiKhoan();
+            tk.setId(UUID.randomUUID().toString());
+            tk.setEmail(oAuth2UserInfo.getEmail());
+            // No password for OAuth users initially
+            tk.setMat_khau("OAUTH2_EXTERNAL");
+            tk.setTrangThai(1);
+            tk = taiKhoanRepository.save(tk);
+        }
+
+        Optional<KhachHang> khachHangOptional = khachHangRepository.findByTaiKhoan(tk);
         KhachHang khachHang;
         if (khachHangOptional.isPresent()) {
             khachHang = khachHangOptional.get();
@@ -89,8 +106,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             khachHang = new KhachHang();
             khachHang.setId(UUID.randomUUID().toString());
             khachHang.setMaKhachHang("KH" + System.currentTimeMillis());
-            khachHang.setEmail(oAuth2UserInfo.getEmail());
             khachHang.setTenKhachHang(oAuth2UserInfo.getName() != null ? oAuth2UserInfo.getName() : oAuth2UserInfo.getEmail());
+            khachHang.setTaiKhoan(tk);
             khachHang.setTrangThai(1);
             khachHang = khachHangRepository.save(khachHang);
         }

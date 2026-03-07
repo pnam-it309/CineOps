@@ -1,28 +1,24 @@
 <template>
-  <div class="admin-table-layout d-flex flex-column h-100" :class="{ 'p-4': !disablePadding }">
+  <div class="admin-table-layout d-flex flex-column h-100" :class="{ 'p-3': !disablePadding }">
     <!-- Header Section -->
     <div class="page-header d-flex justify-content-between align-items-end mb-4 flex-shrink-0">
       <div>
-        <h3 class="fw-bold text-dark mb-1" style="font-size: 22px;">
-          <i :class="[titleIcon, 'me-2 text-primary']" v-if="titleIcon"></i>{{ title }}
+        <h3 class="fw-bold text-dark mb-1 d-flex align-items-center" style="font-size: 20px;">
+          <i :class="[titleIcon, 'me-2 text-primary']" v-if="titleIcon"></i>
+          {{ title }}
+          <el-tooltip :content="showFilter ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'" placement="top" v-if="!hideFilter">
+            <button @click="showFilter = !showFilter" class="btn-filter-toggle ms-2" :class="{ active: showFilter }">
+              <el-icon><Filter /></el-icon>
+            </button>
+          </el-tooltip>
         </h3>
         <p v-if="subtitle" class="text-secondary small mb-0">{{ subtitle }}</p>
       </div>
       <div class="d-flex gap-2 align-items-center">
         <slot name="header-actions-left"></slot>
-        <div class="filter-item border-start ps-3 ms-2" v-if="!hideFilter">
-          <el-button @click="showFilter = !showFilter"
-            :class="[showFilter ? 'btn-premium-toggle-active' : 'btn-premium-toggle']" class="rounded-3">
-            <template #icon>
-              <el-icon>
-                <Filter />
-              </el-icon>
-            </template>
-            {{ showFilter ? 'Ẩn bộ lọc' : 'Hiện bộ lọc' }}
-          </el-button>
-        </div>
+        <!-- (Removed filter button from here) -->
         <div class="filter-item border-start ps-3 ms-2" v-if="addButtonLabel">
-          <el-button @click="$emit('add-click')" class="btn-add-premium">
+          <el-button @click="$emit('add-click')" type="primary">
             <template #icon>
               <el-icon>
                 <Plus />
@@ -46,12 +42,13 @@
         <div class="d-flex align-items-end gap-3 w-100 px-1 flex-wrap">
           <slot name="filters"></slot>
 
-          <div class="filter-item border-start ps-3 ms-1">
+          <div class="filter-item border-start ps-3 ms-1 d-flex align-items-center gap-2">
             <span class="filter-label mb-1 d-block"></span>
             <button @click="$emit('reset-filter')" class="btn-reset-square" title="Làm mới bộ lọc">
-              <el-icon>
-                <Refresh />
-              </el-icon>
+              <el-icon><Refresh /></el-icon>
+            </button>
+            <button @click="showFilter = false" class="btn-reset-square text-danger" title="Thu gọn bộ lọc">
+              <el-icon><Fold /></el-icon>
             </button>
           </div>
 
@@ -68,10 +65,8 @@
         <slot name="content"></slot>
       </div>
       <!-- #columns slot (used by pages with el-table directly) -->
-      <div v-else class="table-wrapper flex-grow-1 bg-white rounded-4 border shadow-sm overflow-hidden">
-        <el-table :data="data" v-loading="loading" stripe height="100%" class="admin-table" style="width: 100%;"
-          @selection-change="val => $emit('selection-change', val)">
-          <el-table-column v-if="selectable" type="selection" width="55" align="center" fixed="left" />
+      <div v-else class="table-wrapper flex-grow-1 bg-white rounded-4 border shadow-sm overflow-hidden text-center">
+        <el-table :data="data" v-loading="loading" stripe height="100%" class="admin-table" style="width: 100%;">
           <slot name="columns"></slot>
 
           <!-- Empty State -->
@@ -90,11 +85,11 @@
       class="pagination-footer d-flex align-items-center pt-4 px-1 flex-shrink-0 flex-wrap gap-3">
       <!-- Left: Total and Page Size -->
       <div class="pagination-left d-flex align-items-center gap-3" style="flex: 1; min-width: 200px;">
-        <div class="text-dark fw-bold" style="font-size: 25px;">
+        <div class="text-dark fw-bold" style="font-size: 14px;">
           Tổng cộng: {{ total || 0 }}
         </div>
 
-        <el-select :model-value="pageSize || 10" size="default" style="width: 140px; font-size: 25px;"
+        <el-select :model-value="pageSize || 10" size="default" style="width: 120px; font-size: 14px;"
           class="compact-select no-border-select" @update:model-value="handlePageSizeChange">
           <el-option label="5/trang" :value="5" />
           <el-option label="10/trang" :value="10" />
@@ -139,7 +134,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Plus, Refresh, Filter } from '@element-plus/icons-vue';
+import { Plus, Refresh, Filter, Fold } from '@element-plus/icons-vue';
 
 const props = defineProps({
   title: String,
@@ -151,10 +146,6 @@ const props = defineProps({
   total: Number,
   currentPage: Number,
   pageSize: Number,
-  selectable: {
-    type: Boolean,
-    default: true
-  },
   hidePagination: {
     type: Boolean,
     default: false
@@ -230,22 +221,23 @@ const pagesToShow = computed(() => {
 :deep(.el-table th) {
   background-color: #ffffff !important;
   font-weight: 700 !important;
-  color: #475569 !important;
-  height: 64px !important;
-  font-size: 25px !important;
+  color: #1e293b !important;
+  height: 46px !important;
+  font-size: 16px !important;
   text-transform: none;
   letter-spacing: normal;
-  border-bottom: 1px solid #f1f5f9 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
 }
 
 :deep(.el-table__row) {
-  height: 72px !important;
+  height: 48px !important;
 }
 
 :deep(.el-table td) {
-  color: #1e293b;
-  font-size: 25px !important;
-  border-bottom: 1px solid #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 500 !important;
+  font-size: 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
   vertical-align: middle;
 }
 
@@ -260,12 +252,12 @@ const pagesToShow = computed(() => {
 }
 
 .btn-reset-square {
-  width: 50px;
-  height: 50px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
   background: #fff;
   color: #64748b;
@@ -281,23 +273,45 @@ const pagesToShow = computed(() => {
   background-color: #fff1f1;
 }
 
+.btn-filter-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.btn-filter-toggle:hover {
+  background-color: #f1f5f9;
+  color: #E31E24;
+}
+
+.btn-filter-toggle.active {
+  color: #E31E24;
+}
+
 /* Tăng font-size cho thanh bộ lọc */
 :deep(.filter-card .el-input__inner),
 :deep(.filter-card .el-select__wrapper),
 :deep(.filter-card .el-select__placeholder),
 :deep(.filter-card .el-select__selected-item) {
-  font-size: 25px !important;
+  font-size: 14px !important;
   color: #1e293b !important;
 }
 
 :deep(.filter-card .el-select),
 :deep(.filter-card .el-date-editor),
 :deep(.filter-card .el-range-editor) {
-  width: 220px !important;
+  width: 180px !important;
 }
 
 :deep(.filter-card .el-date-editor.el-input) {
-  height: 50px !important;
+  height: 34px !important;
 }
 
 :deep(.filter-card .el-range-editor) {
@@ -305,23 +319,23 @@ const pagesToShow = computed(() => {
 }
 
 :deep(.filter-card .el-input) {
-  width: 320px !important;
+  width: 280px !important;
 }
 
 :deep(.filter-card .el-input__wrapper),
 :deep(.filter-card .el-select__wrapper),
 :deep(.filter-card .el-radio-button__inner) {
-  height: 50px !important;
+  height: 34px !important;
   box-shadow: 0 0 0 1px #e2e8f0 inset !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 18px !important;
+  font-size: 14px !important;
 }
 
 :deep(.filter-card .el-input__wrapper),
 :deep(.filter-card .el-select__wrapper) {
-  border-radius: 10px !important;
+  border-radius: 8px !important;
 }
 
 /* Fix Grouping for Radio Buttons */
@@ -350,13 +364,13 @@ const pagesToShow = computed(() => {
 
 /* Custom Pagination Style */
 .page-link-btn {
-  width: 45px !important;
-  height: 45px !important;
+  width: 34px !important;
+  height: 34px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   color: #475569 !important;
-  font-size: 25px !important;
+  font-size: 14px !important;
   font-weight: 500 !important;
   transition: all 0.2s !important;
   padding: 0 !important;
@@ -382,7 +396,7 @@ const pagesToShow = computed(() => {
 :deep(.compact-select .el-select__wrapper),
 :deep(.compact-select .el-select__placeholder),
 :deep(.compact-select .el-select__selected-item) {
-  font-size: 25px !important;
+  font-size: 14px !important;
   line-height: normal !important;
   color: #1e293b !important;
 }
@@ -392,7 +406,7 @@ const pagesToShow = computed(() => {
   background-color: #ffffff !important;
   box-shadow: none !important;
   border: 1px solid #e2e8f0 !important;
-  height: 45px !important;
+  height: 34px !important;
 }
 
 :deep(.no-border-select .el-input__wrapper) {

@@ -44,7 +44,8 @@ public class AdVeServiceImpl implements AdVeService {
         SuatChieu suatChieu = suatChieuRepository.findById(request.getIdSuatChieu())
                 .orElseThrow(() -> new RuntimeException("Suất chiếu không tồn tại"));
 
-        BigDecimal giaGoc = suatChieu.getPhim().getGiaPhim();
+        BigDecimal giaGoc = suatChieu.getPhim().getGiaPhim() != null ? 
+            java.math.BigDecimal.valueOf(suatChieu.getPhim().getGiaPhim()) : null;
         String idKhungGio = suatChieu.getKhungGio().getId();
 
         List<Ve> danhSachVe = new ArrayList<>();
@@ -63,21 +64,21 @@ public class AdVeServiceImpl implements AdVeService {
             Ghe ghe = gheRepository.findById(item.getIdGhe())
                     .orElseThrow(() -> new RuntimeException("Ghế không tồn tại"));
 
-            BigDecimal phuThu = adGiaVeChiTietRepository
+            Double phuThu = adGiaVeChiTietRepository
                     .timGiaPhuThuTheoTieuChi(
                             item.getIdLoaiKhachHang(),
                             request.getIdLoaiNgay(),
                             ghe.getLoaiGhe().getId(),
                             idKhungGio
                     )
-                    .orElse(BigDecimal.ZERO);
+                    .orElse(0.0);
 
             Ve ve = new Ve();
             ve.setId(UUID.randomUUID().toString());
             ve.setMaVe("VE-" + System.currentTimeMillis() + (int)(Math.random() * 100));
             ve.setSuatChieu(suatChieu);
             ve.setGhe(ghe);
-            ve.setGiaThanhToan(giaGoc.add(phuThu));
+            ve.setGiaThanhToan(giaGoc.add(BigDecimal.valueOf(phuThu)));
             ve.setTrangThai(1); // 1 = đã thanh toán
             ve.setLoaiVe(0);    // 0 = bán tại quầy
 
@@ -149,6 +150,14 @@ public class AdVeServiceImpl implements AdVeService {
         adVeRepository.save(ve);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public AdVeResponse getById(String id) {
+        Ve ve = adVeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy vé"));
+        return mapToResponse(ve);
+    }
+
     /**
      * ==========================
      * THỐNG KÊ
@@ -203,7 +212,9 @@ public class AdVeServiceImpl implements AdVeService {
         dto.setLoaiVe(ve.getLoaiVe());
         dto.setTrangThai(ve.getTrangThai());
         dto.setNgayTao(ve.getNgayTao());
-        dto.setNguoiTao(ve.getNguoiTao());
+        
+        // Priority: Audited creator field -> fallback string
+        dto.setNguoiTao(ve.getNguoiTao() != null ? ve.getNguoiTao() : "Hệ thống");
 
         if (ve.getLoaiKhachHang() != null) {
             dto.setTenLoaiKhachHang(ve.getLoaiKhachHang().getTenLoai());

@@ -7,13 +7,14 @@ import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
 import CCCDScanner from '@/components/common/CCCDScanner.vue';
 import { 
-  User, Message, Phone, Calendar, ArrowLeft, Check, 
-  Lock, Key, Shield, Picture
+  User, Message, Phone, ArrowLeft, Check, 
+  Picture
 } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
+const resetLoading = ref(false);
 const roles = ref([]);
 const chucVuOptions = ref([]);
 
@@ -97,11 +98,6 @@ const handleSave = async () => {
     return;
   }
 
-  if (!isEdit.value && !staffForm.matKhau) {
-    notification.validationError('Vui lòng nhập mật khẩu cho nhân viên mới');
-    return;
-  }
-
   try {
     if (isEdit.value) await confirmDialog.update('nhân viên');
     else await confirmDialog.add('nhân viên');
@@ -124,6 +120,21 @@ const handleSave = async () => {
     notification.error(errorData?.message || 'Lưu nhân viên thất bại');
   } finally {
     loading.value = false;
+  }
+};
+
+const handleSendPasswordReset = async () => {
+  try {
+    await confirmDialog.custom(`Bạn có chắc muốn gửi email đặt lại mật khẩu đến ${staffForm.email}?`, 'Xác nhận gửi email');
+    resetLoading.value = true;
+    await nhanVienService.resetPassword(route.params.id);
+    notification.success('Email đặt lại mật khẩu đã được gửi đến ' + staffForm.email);
+  } catch (e) {
+    if (e !== 'cancel') {
+      notification.error('Gửi email đặt lại mật khẩu thất bại');
+    }
+  } finally {
+    resetLoading.value = false;
   }
 };
 
@@ -170,11 +181,6 @@ onMounted(() => {
                 </el-form-item>
               </div>
               <div class="col-md-6">
-                <el-form-item label="Email *" required>
-                  <el-input v-model="staffForm.email" placeholder="vanna@cineops.com" :prefix-icon="Message" size="large" />
-                </el-form-item>
-              </div>
-              <div class="col-md-6">
                 <el-form-item label="Số điện thoại *" required>
                   <el-input v-model="staffForm.soDienThoai" placeholder="0901234567" :prefix-icon="Phone" size="large" />
                 </el-form-item>
@@ -218,6 +224,12 @@ onMounted(() => {
             <div class="fw-bold"><i class="bi bi-shield-lock me-2"></i>Tài khoản & Vai trò</div>
           </template>
           <el-form label-position="top">
+            <el-form-item label="Mã nhân viên" v-if="isEdit">
+              <el-input v-model="staffForm.maNhanVien" disabled size="large" />
+            </el-form-item>
+            <el-form-item label="Email đăng nhập *" required>
+              <el-input v-model="staffForm.email" placeholder="vanna@cineops.com" :prefix-icon="Message" size="large" />
+            </el-form-item>
             <el-form-item label="Vai trò hệ thống *" required>
               <el-select v-model="staffForm.idPhanQuyen" class="w-100" size="large">
                 <el-option v-for="r in roles" :key="r.id" :label="r.tenVaiTro" :value="r.id" />
@@ -228,16 +240,20 @@ onMounted(() => {
                 <el-option v-for="item in chucVuOptions" :key="item" :label="item" :value="item" />
               </el-select>
             </el-form-item>
-            <el-form-item label="Trạng thái">
-              <el-select v-model="staffForm.trangThai" class="w-100" size="large">
-                <el-option label="Đang hoạt động" :value="1" />
-                <el-option label="Ngừng hoạt động" :value="0" />
-              </el-select>
-            </el-form-item>
-            <el-form-item :label="isEdit ? 'Mật khẩu mới (bỏ trống nếu không đổi)' : 'Mật khẩu *'">
-              <el-input v-model="staffForm.matKhau" type="password" show-password size="large" />
-            </el-form-item>
-          </el-form>
+
+            <div v-if="!isEdit" class="account-info-box mb-3 p-3 rounded">
+               <p class="mb-0 text-secondary"><i class="bi bi-info-circle me-1"></i> Mật khẩu sẽ được hệ thống <strong>tạo ngẫu nhiên</strong> và gửi tới email trên sau khi tạo thành công.</p>
+            </div>
+
+            <div v-if="isEdit" class="password-reset-box mb-3 p-3 rounded">
+               <p class="mb-2 text-secondary"><i class="bi bi-shield-lock me-1"></i> <strong>Quản lý mật khẩu:</strong></p>
+               <p class="mb-2 text-secondary small">Admin không thể trực tiếp sửa mật khẩu. Vui lòng sử dụng chức năng gửi email để nhân viên tự đặt lại mật khẩu.</p>
+               <el-button type="warning" size="small" @click="handleSendPasswordReset" :loading="resetLoading">
+                 <i class="bi bi-envelope me-1"></i> Gửi email đặt lại mật khẩu
+               </el-button>
+            </div>
+
+                      </el-form>
         </el-card>
 
         <div v-if="staffForm.anhNhanVien" class="mt-4 text-center">
@@ -256,5 +272,16 @@ onMounted(() => {
 :deep(.el-card__header) {
   border-bottom: 1px solid #f1f5f9;
   background-color: #ffffff;
+}
+.account-info-box {
+  background-color: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  font-size: 14px;
+}
+
+.password-reset-box {
+  background-color: #fef3c7;
+  border: 1px solid #fbbf24;
+  font-size: 14px;
 }
 </style>

@@ -11,11 +11,25 @@ CREATE TABLE phan_quyen (
     nguoi_cap_nhat VARCHAR(100)
 );
 
--- 2. BẢNG LOẠI KHÁCH HÀNG
+-- 2. BẢNG TÀI KHOẢN (ACCOUNT)
+CREATE TABLE tai_khoan (
+    id VARCHAR(36) PRIMARY KEY,
+    id_phan_quyen VARCHAR(36),
+    email VARCHAR(100) UNIQUE NOT NULL,
+    mat_khau VARCHAR(255) NOT NULL,
+    trang_thai INT DEFAULT 1,
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    nguoi_tao VARCHAR(100),
+    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    nguoi_cap_nhat VARCHAR(100),
+    FOREIGN KEY (id_phan_quyen) REFERENCES phan_quyen(id)
+);
+
+-- 3. BẢNG LOẠI KHÁCH HÀNG
 CREATE TABLE loai_khach_hang (
     id VARCHAR(36) PRIMARY KEY,
     ten_loai VARCHAR(100),
-    he_so_giam_gia DECIMAL(5,2),
+    he_so_giam_gia DOUBLE,
     mo_ta TEXT,
     trang_thai INT DEFAULT 1,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -24,14 +38,13 @@ CREATE TABLE loai_khach_hang (
     nguoi_cap_nhat VARCHAR(100)
 );
 
--- 3. BẢNG KHÁCH HÀNG
+-- 4. BẢNG KHÁCH HÀNG
 CREATE TABLE khach_hang (
     id VARCHAR(36) PRIMARY KEY,
+    id_tai_khoan VARCHAR(36) UNIQUE,
     id_loai_khach_hang VARCHAR(36),
     ma_khach_hang VARCHAR(50) UNIQUE,
     ten_khach_hang VARCHAR(100) NOT NULL,
-    email VARCHAR(100),
-    mat_khau VARCHAR(255),
     gioi_tinh INT,
     sdt VARCHAR(20),
     ngay_sinh DATE,
@@ -42,21 +55,20 @@ CREATE TABLE khach_hang (
     nguoi_tao VARCHAR(100),
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
     nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id)
+    FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
+    FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
 );
 
--- 4. BẢNG NHÂN VIÊN
+-- 5. BẢNG NHÂN VIÊN
 CREATE TABLE nhan_vien (
     id VARCHAR(36) PRIMARY KEY,
-    id_phan_quyen VARCHAR(36),
+    id_tai_khoan VARCHAR(36) UNIQUE,
     ma_nhan_vien VARCHAR(50) UNIQUE,
     ten_nhan_vien VARCHAR(100) NOT NULL,
     cccd VARCHAR(20),
     ngay_sinh DATE,
     que_quan VARCHAR(255),
     gioi_tinh INT,
-    email VARCHAR(100),
-    mat_khau VARCHAR(255),
     chuc_vu VARCHAR(100),
     anh_nhan_vien VARCHAR(255),
     so_dien_thoai VARCHAR(20),
@@ -65,14 +77,13 @@ CREATE TABLE nhan_vien (
     nguoi_tao VARCHAR(100),
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
     nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_phan_quyen) REFERENCES phan_quyen(id)
+    FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
 );
 
--- 5. BẢNG TOKEN
+-- 6. BẢNG TOKEN
 CREATE TABLE token (
     id VARCHAR(36) PRIMARY KEY,
-    id_khach_hang VARCHAR(36),
-    id_nhan_vien VARCHAR(36),
+    id_tai_khoan VARCHAR(36),
     ma_token TEXT,
     ngay_het_han DATETIME,
     trang_thai INT DEFAULT 1,
@@ -80,8 +91,7 @@ CREATE TABLE token (
     nguoi_tao VARCHAR(100),
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
     nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id),
-    FOREIGN KEY (id_nhan_vien) REFERENCES nhan_vien(id)
+    FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
 );
 
 
@@ -121,7 +131,7 @@ CREATE TABLE phong_chieu (
 CREATE TABLE loai_ghe (
     id VARCHAR(36) PRIMARY KEY,
     ten_loai VARCHAR(50),
-    phu_phi DECIMAL(20,2),
+    phu_phi DOUBLE,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
@@ -149,8 +159,11 @@ CREATE TABLE ghe (
 CREATE TABLE khung_gio (
     id VARCHAR(36) PRIMARY KEY,
     ten_khung_gio VARCHAR(100),
+    thu_trong_tuan INT, -- 1=Thứ 2, 7=Chủ nhật
     gio_bat_dau TIME,
     gio_ket_thuc TIME,
+    he_so_gia DOUBLE DEFAULT 1.0, -- Hệ số nhân giá vé (1.2 = tăng 20%)
+    la_khung_gio_vang BOOLEAN DEFAULT FALSE, -- Đánh dấu khung giờ vàng
     mo_ta TEXT,
     trang_thai INT DEFAULT 1,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -173,11 +186,12 @@ CREATE TABLE phim (
     poster VARCHAR(255),
     ngon_ngu VARCHAR(100),
     do_tuoi INT,
-    danh_gia DECIMAL(3,1),
-    gia_phim DECIMAL(20,2),
-    -- Fix #8: Định dạng phim và phụ phí format
+    nhan_do_tuoi VARCHAR(10), -- Gắn nhãn độ tuổi theo chuẩn: P (Tất cả), T13, T16, T18
+    hien_thi_canh_bao_do_tuoi BOOLEAN DEFAULT TRUE, -- Cờ hiển thị cảnh báo độ tuổi trên giao diện khách hàng
+    danh_gia DOUBLE,
+    gia_phim DOUBLE,
     loai_phim VARCHAR(20) DEFAULT '2D',
-    phu_phi_loai_phim DECIMAL(10,2) DEFAULT 0,
+    phu_phi_loai_phim DOUBLE DEFAULT 0,
     trang_thai INT DEFAULT 1,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
@@ -210,6 +224,9 @@ CREATE TABLE suat_chieu (
     id_phong_chieu VARCHAR(36),
     id_phim VARCHAR(36),
     ngay_chieu DATE,
+    gio_bat_dau TIME,
+    gio_ket_thuc TIME,
+    thoi_gian_don_ve_sinh INT DEFAULT 15, -- Thời gian dọn vệ sinh phòng chiếu (phút)
     so_ghe_trong INT,
     trang_thai INT DEFAULT 1,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -228,10 +245,9 @@ CREATE TABLE ve (
     id_ghe VARCHAR(36),
     id_suat_chieu VARCHAR(36),
     ma_ve VARCHAR(50),
-    gia_thanh_toan DECIMAL(20,2),
+    gia_thanh_toan DOUBLE,
     loai_ve INT,
     trang_thai INT DEFAULT 1,
-    -- Fix #3: Optimistic Lock — chống race condition
     version INT DEFAULT 0,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
@@ -240,7 +256,6 @@ CREATE TABLE ve (
     FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
     FOREIGN KEY (id_ghe) REFERENCES ghe(id),
     FOREIGN KEY (id_suat_chieu) REFERENCES suat_chieu(id),
-    -- Fix #3: Chống double booking ở tầng DB
     UNIQUE KEY uk_ve_ghe_suat (id_ghe, id_suat_chieu)
 );
 
@@ -248,7 +263,7 @@ CREATE TABLE ve (
 CREATE TABLE loai_ngay (
     id VARCHAR(36) PRIMARY KEY,
     ten_loai_ngay VARCHAR(100),
-    he_so_ngay DECIMAL(5,2),
+    he_so_ngay DOUBLE,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
@@ -262,7 +277,7 @@ CREATE TABLE gia_ve_chi_tiet (
     id_loai_khach_hang VARCHAR(36),
     id_loai_ghe VARCHAR(36),
     id_khung_gio VARCHAR(36),
-    gia_tien DECIMAL(20,2),
+    gia_tien DOUBLE,
     trang_thai INT DEFAULT 1,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
@@ -279,12 +294,13 @@ CREATE TABLE phieu_giam_gia (
     id VARCHAR(36) PRIMARY KEY,
     ma_phieu_giam_gia VARCHAR(50) UNIQUE,
     ten_phieu VARCHAR(100),
+    kieu_phat_hanh INT DEFAULT 0,
     loai_phieu INT,
-    phan_tram_giam_gia DECIMAL(5,2),
-    so_tien_giam DECIMAL(20,2),
-    gia_tri_hoa_don_toi_thieu DECIMAL(20,2),
+    phan_tram_giam_gia DOUBLE,
+    so_tien_giam DOUBLE,
+    gia_tri_hoa_don_toi_thieu DOUBLE,
     co_cho_cong_don INT,
-    giam_toi_da DECIMAL(20,2),
+    giam_toi_da DOUBLE,
     ngay_bat_dau DATETIME,
     ngay_ket_thuc DATETIME,
     trang_thai INT DEFAULT 1,
@@ -320,14 +336,13 @@ CREATE TABLE hoa_don (
     id_phieu_giam_gia VARCHAR(36),
     id_khach_hang VARCHAR(36),
     ma_hoa_don VARCHAR(50),
-    tong_tien DECIMAL(20,2),
-    so_tien_giam DECIMAL(20,2),
-    tong_tien_thanh_toan DECIMAL(20,2),
+    tong_tien DOUBLE,
+    so_tien_giam DOUBLE,
+    tong_tien_thanh_toan DOUBLE,
     phuong_thuc_thanh_toan INT,
     kenh_ban_hang INT DEFAULT 0,
     trang_thai INT DEFAULT 1,
     ghi_chu TEXT,
-    -- Fix #10: Booking timeout — giải phóng ghế sau 10 phút nếu chưa thanh toán
     thoi_gian_het_han DATETIME NULL,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
@@ -358,7 +373,7 @@ CREATE TABLE thanh_toan (
     id_hoa_don VARCHAR(36),
     ma_giao_dich VARCHAR(100),
     phuong_thuc_thanh_toan INT,
-    so_tien DECIMAL(20,2),
+    so_tien DOUBLE,
     ngay_thanh_toan DATETIME DEFAULT CURRENT_TIMESTAMP,
     noi_dung TEXT,
     trang_thai INT DEFAULT 1,
@@ -432,7 +447,7 @@ CREATE TABLE chi_tiet_san_pham_di_kem (
     id_don_vi_tinh VARCHAR(36),
     gia_tri_dinh_luong DOUBLE,
     huong_vi VARCHAR(100),
-    gia_ban DECIMAL(20,2),
+    gia_ban DOUBLE,
     so_luong_ton INT DEFAULT 0,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
@@ -451,8 +466,8 @@ CREATE TABLE hoa_don_chi_tiet (
     id_chi_tiet_san_pham_di_kem VARCHAR(36),
     loai INT, -- 1: Vé, 2: Sản phẩm
     so_luong INT,
-    don_gia DECIMAL(20,2),
-    thanh_tien DECIMAL(20,2),
+    don_gia DOUBLE,
+    thanh_tien DOUBLE,
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao VARCHAR(100),
     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,

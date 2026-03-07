@@ -13,6 +13,9 @@ import service.cinema.be.infrastructure.security.user.UserPrincipal;
 import service.cinema.be.repository.KhachHangRepository;
 import service.cinema.be.repository.NhanVienRepository;
 
+import service.cinema.be.entity.TaiKhoan;
+import service.cinema.be.repository.TaiKhoanRepository;
+
 import java.util.Optional;
 
 @Service("customUserDetailsService")
@@ -20,30 +23,31 @@ import java.util.Optional;
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final KhachHangRepository khachHangRepository;
+    private final TaiKhoanRepository taiKhoanRepository;
     private final NhanVienRepository nhanVienRepository;
+    private final KhachHangRepository khachHangRepository;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         log.debug("Loading user by email: {}", email);
 
-        // 1. Try to find in NhanVien (Staff/Admin)
-        Optional<NhanVien> nhanVienOp = nhanVienRepository.findByEmail(email);
+        TaiKhoan taiKhoan = taiKhoanRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        // 1. Try to find if it's a NhanVien
+        Optional<NhanVien> nhanVienOp = nhanVienRepository.findByTaiKhoan(taiKhoan);
         if (nhanVienOp.isPresent()) {
-            log.debug("Successfully loaded NhanVien: {}", email);
             return UserPrincipal.createFromNhanVien(nhanVienOp.get());
         }
 
-        // 2. Try to find in KhachHang (Customer)
-        Optional<KhachHang> khachHangOp = khachHangRepository.findByEmail(email);
+        // 2. Try to find if it's a KhachHang
+        Optional<KhachHang> khachHangOp = khachHangRepository.findByTaiKhoan(taiKhoan);
         if (khachHangOp.isPresent()) {
-            log.debug("Successfully loaded KhachHang: {}", email);
             return UserPrincipal.createFromKhachHang(khachHangOp.get());
         }
 
-        log.error("User not found with email: {}", email);
-        throw new UsernameNotFoundException("User not found with email: " + email);
+        throw new UsernameNotFoundException("Profile not found for account: " + email);
     }
 
 }

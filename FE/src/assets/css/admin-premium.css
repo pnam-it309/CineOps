@@ -16,8 +16,8 @@
 }
 
 .premium-dialog .el-dialog__body {
-    padding: 20px !important; /* Giảm padding để thu nhỏ */
-    font-size: 23px !important; /* Tăng cỡ chữ cơ bản */
+    padding: 16px !important; /* Giảm padding để thu nhỏ */
+    font-size: 16px !important; 
 }
 
 .premium-dialog .el-dialog__footer {
@@ -50,7 +50,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
+    padding: 12px 20px;
     border-bottom: 1px solid #f1f5f9;
     background: #fff;
 }
@@ -62,27 +62,27 @@
 }
 
 .header-icon-box-modern {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     background: #fff1f1;
     color: #E31E24;
-    border-radius: 8px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .header-text-modern .title {
     margin: 0;
-    font-size: 28px; /* Tăng từ 16px lên 20px */
+    font-size: 19px; 
     font-weight: 700;
     color: #1e293b;
 }
 
 .header-text-modern .subtitle {
     margin: 0;
-    font-size: 20px; /* Tăng từ 12px lên 15px */
+    font-size: 15px; 
     color: #64748b;
 }
 
@@ -116,7 +116,7 @@
     font-weight: 600 !important;
     color: #334155 !important;
     padding-bottom: 4px !important;
-    font-size: 23px !important; /* Tăng từ 13px lên 15px */
+    font-size: 16px !important; 
 }
 
 .premium-form .el-input__wrapper,
@@ -125,7 +125,7 @@
     background-color: #f8fafc !important;
     border: 1px solid #e2e8f0 !important;
     box-shadow: none !important;
-    height: 60px !important;
+    height: 42px !important;
 }
 
 .premium-form .el-input__inner,
@@ -136,7 +136,7 @@
     height: 100% !important;
     color: #1e293b !important;
     font-weight: 500 !important;
-    font-size: 23px !important; /* Tăng cỡ chữ trong input */
+    font-size: 16px !important; 
 }
 
 .premium-form .el-input__wrapper.is-focus,
@@ -177,168 +177,11 @@
     box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1) !important;
 }
 
-/* 4. Action Buttons */
-/* 4. Modern Buttons (Square-ish) */
-.btn-modern-primary {
-    background: #fff !important;
-    border: 1px solid #E31E24 !important;
-    color: #E31E24 !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    height: 55px !important;
-    font-size: 23px !important;
-    padding: 0 30px !important;
-    text-transform: none;
-    transition: all 0.2s;
-}
-
-.btn-modern-primary:hover {
-    background: #fff1f1 !important;
-    border-color: #cc1b20 !important;
-    color: #cc1b20 !important;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(227, 30, 36, 0.15) !important;
-}
-
-.btn-modern-secondary {
-    background: #fff !important;
-    border: 1px solid #e2e8f0 !important;
-    color: #475569 !important;
-    border-radius: 6px !important;
-    font-weight: 600 !important;
-    height: 55px !important;
-    font-size: 23px !important;
-    padding: 0 30px !important;
-}
-
-.btn-modern-secondary:hover {
-    background: #f8fafc !important;
-    border-color: #cbd5e1 !important;
-    color: #1e293b !important;
-}
-
-/* Utility */
-/* Premium Toggle Buttons */
-.btn-premium-toggle {
-    background: #f1f5f9 !important;
-    border: none !important;
-    color: #64748b !important;
-    font-size: 13px !important;
-    transition: all 0.3s ease !important;
-}
-
-.btn-premium-toggle-active {
-    background: #ffffff !important;
-    border: 1px solid #E31E24 !important;
-    color: #E31E24 !important;
-    box-shadow: 0 4px 10px rgba(227, 30, 36, 0.1) !important;
-    font-size: 13px !important;
-}
-
-.btn-premium-toggle:hover:not(.btn-premium-toggle-active) {
-    background: #e2e8f0 !important;
-    color: #475569 !important;
-}
-
-.text-orange-custom {
-    color: #E31E24 !important;
-}
-
-.btn-add-premium {
-    background: #fff !important;
-    border: 1px solid #E31E24 !important;
-    color: #E31E24 !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    padding: 0 12px !important;
-    height: 34px !important;
-    font-size: 13px !important;
-    transition: all 0.2s !important;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    text-transform: none;
-}
-
-.btn-add-premium:hover {
-    background: #fff1f1 !important;
-    border-color: #cc1b20 !important;
-    color: #cc1b20 !important;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(227, 30, 36, 0.15) !important;
-}
-
-.btn-action-icon {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px !important;
-    border: none !important;
-    background: transparent;
-    cursor: pointer;
-    padding: 0;
-    font-size: 16px;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-action-icon::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 8px;
-    background: currentColor;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.btn-action-icon:hover::before {
-    opacity: 0.08;
-}
-
-.btn-action-icon:hover {
-    transform: translateY(-2px) scale(1.15);
-}
-
-.btn-action-icon:active {
-    transform: translateY(0) scale(0.95);
-}
-
-/* Unified Action Colors */
-.btn-action-view {
-    color: #6366f1 !important;
-}
-
-.btn-action-edit {
-    color: #f59e0b !important;
-}
-
-.btn-action-delete {
-    color: #ef4444 !important;
-}
-
-.btn-action-print {
-    color: #3b82f6 !important;
-}
-
-.btn-action-view:hover {
-    color: #4f46e5 !important;
-}
-
-.btn-action-edit:hover {
-    color: #d97706 !important;
-}
-
-.btn-action-delete:hover {
-    color: #dc2626 !important;
-}
-
-.btn-action-print:hover {
-    color: #2563eb !important;
-}
+/* Unified Action Colors (Context only, styles in buttons.scss) */
+.btn-action-view { color: #3b82f6 !important; }
+.btn-action-edit { color: #f37021 !important; }
+.btn-action-delete { color: #e31e24 !important; }
+.btn-action-print { color: #2563eb !important; }
 
 /* 5. CineOps Premium Notifications */
 .cine-notification {
@@ -581,22 +424,22 @@
 /* 10. Premium Input Number (+ / - Styling) */
 .premium-form .el-input-number {
     width: 100% !important;
-    line-height: 58px !important;
+    line-height: 38px !important;
 }
 
 .premium-form .el-input-number .el-input__wrapper {
-    padding-left: 50px !important;
-    padding-right: 50px !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
 }
 
 .premium-form .el-input-number__decrease,
 .premium-form .el-input-number__increase {
-    width: 45px !important;
-    height: 58px !important;
+    width: 35px !important;
+    height: 38px !important;
     background: transparent !important;
     border: none !important;
     color: #475569 !important;
-    font-size: 18px !important;
+    font-size: 14px !important;
     transition: all 0.2s !important;
     display: flex !important;
     align-items: center !important;
@@ -621,6 +464,7 @@
     text-align: center !important;
     font-weight: 700 !important;
     color: #1e293b !important;
+    font-size: 14px !important;
 }
 
 /* Ensure disabled input number also shows dark text */
@@ -640,8 +484,8 @@
 }
 
 .el-select-dropdown__item {
-    font-size: 18px !important;
-    padding: 12px 20px !important;
+    font-size: 14px !important;
+    padding: 8px 16px !important;
     height: auto !important;
     line-height: normal !important;
     color: #475569 !important;

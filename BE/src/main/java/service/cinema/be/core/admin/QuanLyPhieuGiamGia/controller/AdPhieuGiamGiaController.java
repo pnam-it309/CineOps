@@ -36,6 +36,11 @@ public class AdPhieuGiamGiaController {
         return ResponseEntity.ok(ApiResponse.success(service.create(request)));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<AdPhieuGiamGiaResponse>> getById(@PathVariable String id) {
+        return ResponseEntity.ok(ApiResponse.success(service.getById(id)));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AdPhieuGiamGiaResponse>> update(
             @PathVariable String id,

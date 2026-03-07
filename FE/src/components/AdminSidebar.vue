@@ -1,6 +1,6 @@
 <template>
-  <div class="d-flex flex-column h-100 bg-white border-end shadow-sm">
-    <div class="logo-container" :style="{ height: isCollapse ? '100px' : '180px' }">
+  <div class="d-flex flex-column h-100 bg-white sidebar-inner-wrapper">
+    <div class="logo-container" :style="{ height: isCollapse ? '50px' : '80px' }">
       <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" :class="['brand-logo', { 'is-collapsed': isCollapse }]" />
     </div>
 
@@ -43,49 +43,37 @@
           <el-icon><Place /></el-icon>
           <span>Quản lý ghế</span>
         </template>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS) + '?tab=list'">
+        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LIST.name)">
           <el-icon><Tickets /></el-icon>
           <template #title>Danh sách ghế</template>
         </el-menu-item>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS) + '?tab=layout'">
+        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LAYOUT.name)">
           <el-icon><Monitor /></el-icon>
           <template #title>Sơ đồ ghế</template>
         </el-menu-item>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS) + '?tab=config'">
+        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS.children.CONFIG.name)">
           <el-icon><Setting /></el-icon>
           <template #title>Cấu hình phòng</template>
         </el-menu-item>
       </el-sub-menu>
 
-      <el-sub-menu index="admin-movies-submenu">
-        <template #title>
-          <el-icon><Film /></el-icon>
-          <span>Quản lý phim & lịch chiếu</span>
-        </template>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE) + '?tab=phim'">
-          <el-icon><VideoPlay /></el-icon>
-          <template #title>Danh sách phim</template>
-        </el-menu-item>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE) + '?tab=lichChieu'">
-          <el-icon><Calendar /></el-icon>
-          <template #title>Lịch chiếu phim</template>
-        </el-menu-item>
-      </el-sub-menu>
+      <!-- Quản lý phim — item trực tiếp -->
+      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
+        <el-icon><Film /></el-icon>
+        <template #title>Quản lý phim</template>
+      </el-menu-item>
 
-      <el-sub-menu index="admin-showtimes-submenu">
-        <template #title>
-          <el-icon><Calendar /></el-icon>
-          <span>Quản lý suất chiếu</span>
-        </template>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES) + '?tab=list'">
-          <el-icon><Tickets /></el-icon>
-          <template #title>Danh sách suất chiếu</template>
-        </el-menu-item>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES) + '?tab=visual'">
-          <el-icon><Monitor /></el-icon>
-          <template #title>Sơ đồ lịch chiếu</template>
-        </el-menu-item>
-      </el-sub-menu>
+      <!-- Quản lý lịch chiếu — item trực tiếp, chỉ có sơ đồ -->
+      <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name)">
+        <el-icon><Grid /></el-icon>
+        <template #title>Quản lý lịch chiếu</template>
+      </el-menu-item>
+
+      <!-- Quản lý suất chiếu — item trực tiếp, không dropdown -->
+      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">
+        <el-icon><AlarmClock /></el-icon>
+        <template #title>Quản lý suất chiếu</template>
+      </el-menu-item>
 
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.FOOD)">
         <el-icon><Coffee /></el-icon>
@@ -141,6 +129,7 @@ import {
   Place,
   Film,
   Calendar,
+  AlarmClock,
   Coffee,
   PriceTag,
   Avatar,
@@ -148,7 +137,8 @@ import {
   Tickets,
   Monitor,
   Setting,
-  VideoPlay
+  VideoPlay,
+  Grid
 } from '@element-plus/icons-vue';
 
 const props = defineProps({
@@ -163,8 +153,15 @@ const route = useRoute();
 const router = useRouter();
 
 const activeMenu = computed(() => {
-  return route.path;
+  // Dùng fullPath (path + query) để match đúng với menu items có ?tab=xxx
+  return route.fullPath;
 });
+
+// Helper to construct path from named route
+const getNamedRoutePath = (routeName) => {
+  const r = router.resolve({ name: routeName });
+  return r ? r.path : '';
+};
 
 // Helper to construct full path for navigation
 const getRoutePath = (childRoute) => {
@@ -187,8 +184,8 @@ const handleCommand = async (command) => {
 :deep(.el-sub-menu__title) {
   margin: 0 !important;
   border-radius: 0 !important;
-  height: 65px !important;
-  line-height: 65px !important;
+  height: 45px !important;
+  line-height: 45px !important;
   transition: background-color 0.3s !important;
   display: flex !important;
   align-items: center !important;
@@ -214,9 +211,28 @@ const handleCommand = async (command) => {
 /* Icon enhancement */
 :deep(.el-menu-item .el-icon),
 :deep(.el-sub-menu__title .el-icon) {
-  font-size: 28px !important;
+  font-size: 20px !important; /* Thu nhỏ icon */
   margin-right: 12px !important;
+  min-width: 32px;
+  flex-shrink: 0;
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* Căn giữa icon khi thu gọn */
+:deep(.el-menu--collapse) {
+  width: 80px !important;
+}
+
+:deep(.el-menu--collapse .el-menu-item .el-icon),
+:deep(.el-menu--collapse .el-sub-menu__title .el-icon) {
+  margin: 0 !important;
+  font-size: 24px !important; /* Thu nhỏ icon khi thu gọn */
+}
+
+:deep(.el-menu--collapse .el-menu-item),
+:deep(.el-menu--collapse .el-sub-menu__title) {
+  justify-content: center !important;
+  padding: 0 !important;
 }
 
 :deep(.el-menu-item:hover .el-icon),
@@ -226,6 +242,11 @@ const handleCommand = async (command) => {
 }
 
 /* Fix misalignment and size for the arrow icon */
+/* Triệt tiêu mũi tên khi thu gọn - Đây là nguyên nhân gây lệch icon */
+:deep(.el-menu--collapse .el-sub-menu__icon-arrow) {
+  display: none !important;
+}
+
 :deep(.el-sub-menu__icon-arrow) {
   position: static !important;
   margin: 0 !important;
@@ -275,9 +296,28 @@ const handleCommand = async (command) => {
   cursor: pointer;
 }
 
-/* Hide scrollbar */
+/* Hide scrollbar and borders */
 .el-menu::-webkit-scrollbar {
   display: none;
+}
+
+:deep(.el-menu) {
+  border-right: none !important;
+  border-inline-end: none !important;
+}
+
+:deep(.el-aside) {
+  min-height: 100vh;
+  background: #ffffff !important;
+  border-right: 1px solid #cbd5e1 !important;
+  z-index: 10;
+  box-shadow: none !important;
+}
+
+.sidebar-inner-wrapper {
+  position: relative;
+  z-index: 11;
+  border-right: none !important; /* Clean up any internal border */
 }
 
 .logo-container {
@@ -290,18 +330,18 @@ const handleCommand = async (command) => {
 .brand-logo {
   width: 100%;
   height: auto;
-  max-width: 120%; /* Allow it to expand beyond if there's internal padding */
-  max-height: 220px;
+  max-width: 100%;
+  max-height: 120px;
   object-fit: contain;
   mix-blend-mode: multiply;
   filter: brightness(1.08) contrast(1.1);
   transition: all 0.3s;
-  transform: scale(1.3); /* Push the logo outwards to fill the "box" */
+  transform: scale(0.9);
 }
 
 .brand-logo.is-collapsed {
-  max-height: 90px;
-  transform: scale(1.3);
+  max-height: 80px;
+  width: 100%;
+  transform: scale(1.1);
 }
 </style>
-```

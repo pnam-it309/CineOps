@@ -99,14 +99,14 @@ const handleCheckin = () => {
             <el-button 
               v-if="scanResult.status === 'Hợp lệ'" 
               type="success" 
-              class="btn-premium-primary w-100 py-3 fw-bold"
+              class="btn-cine-primary w-100 py-3 fw-bold"
               @click="scanResult = null; ticketCode = '';"
             >
               XÁC NHẬN VÀO CỬA
             </el-button>
             <el-button 
               v-else 
-              class="btn-premium-secondary w-100 py-3"
+              class="btn-cine-secondary w-100 py-3"
               @click="scanResult = null; ticketCode = '';"
             >
               THỬ MÃ KHÁC
@@ -131,3 +131,4 @@ const handleCheckin = () => {
   overflow: hidden !important;
 }
 </style>
+

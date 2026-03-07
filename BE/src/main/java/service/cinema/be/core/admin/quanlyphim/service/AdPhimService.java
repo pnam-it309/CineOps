@@ -123,25 +123,84 @@ public class AdPhimService {
     // ==================== HELPER ====================
 
     private void mapRequestToEntity(AdPhimRequest request, Phim phim) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate start = request.getNgayKhoiChieu();
+        java.time.LocalDate end = request.getNgayKetThuc();
+
+        // 1. Validate ngày kết thúc không được trước ngày hôm nay
+        if (end != null && end.isBefore(today)) {
+            throw new IllegalArgumentException("Ngày kết thúc không được nhỏ hơn ngày hôm nay!");
+        }
+
+        // 2. Validate ngày kết thúc phải sau ngày khởi chiếu
+        if (start != null && end != null && end.isBefore(start)) {
+            throw new IllegalArgumentException("Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu!");
+        }
+
         phim.setTenPhim(request.getTenPhim());
         phim.setThoiLuong(request.getThoiLuong());
-        phim.setNgayKhoiChieu(request.getNgayKhoiChieu());
-        phim.setNgayKetThuc(request.getNgayKetThuc());
+        phim.setNgayKhoiChieu(start);
+        phim.setNgayKetThuc(end);
         phim.setLichChieu(request.getLichChieu());
         phim.setTrailer(request.getTrailer());
         phim.setPoster(request.getPoster());
         phim.setNgonNgu(request.getNgonNgu());
         phim.setDoTuoi(request.getDoTuoi());
+        phim.setNhanDoTuoi(request.getNhanDoTuoi());
+        phim.setHienThiCanhBaoDoTuoi(request.getHienThiCanhBaoDoTuoi());
         phim.setMoTa(request.getMoTa());
         phim.setDanhGia(request.getDanhGia());
-        phim.setGiaPhim(request.getGiaPhim()); // giaVeGoc
+        phim.setGiaPhim(request.getGiaPhim());
         phim.setMaPhim(request.getMaPhim());
-        phim.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : 1);
-        // Fix #8 — Định dạng phim
+
+        // 3. Tự động tính toán trạng thái
+        // 2 = Sắp chiếu, 1 = Đang chiếu, 0 = Ngừng chiếu
+        if (start != null && end != null) {
+            if (today.isBefore(start)) {
+                phim.setTrangThai(2); // Sắp chiếu
+            } else if (!today.isAfter(end)) {
+                phim.setTrangThai(1); // Đang chiếu
+            } else {
+                phim.setTrangThai(0); // Ngừng chiếu
+            }
+        } else {
+            // Trường hợp thiếu ngày thì dùng mặc định từ request hoặc 1
+            phim.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : 1);
+        }
+
         phim.setLoaiPhim(request.getLoaiPhim() != null ? request.getLoaiPhim() : "2D");
         phim.setPhuPhiLoaiPhim(request.getPhuPhiLoaiPhim() != null
                 ? request.getPhuPhiLoaiPhim()
-                : java.math.BigDecimal.ZERO);
+                : 0.0);
+    }
+
+    /**
+     * Tự động cập nhật trạng thái phim mỗi ngày vào lúc 0h00
+     */
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    public void autoUpdateMovieStatuses() {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        List<Phim> allPhim = adPhimRepository.findAll();
+        for (Phim phim : allPhim) {
+            java.time.LocalDate start = phim.getNgayKhoiChieu();
+            java.time.LocalDate end = phim.getNgayKetThuc();
+            if (start != null && end != null) {
+                int oldStatus = phim.getTrangThai() != null ? phim.getTrangThai() : -1;
+                int newStatus;
+                if (today.isBefore(start)) {
+                    newStatus = 2; // Sắp chiếu
+                } else if (!today.isAfter(end)) {
+                    newStatus = 1; // Đang chiếu
+                } else {
+                    newStatus = 0; // Ngừng chiếu
+                }
+                if (oldStatus != newStatus) {
+                    phim.setTrangThai(newStatus);
+                    adPhimRepository.save(phim);
+                }
+            }
+        }
     }
 
     private void savePhimTheLoai(Phim phim, List<String> idTheLoais) {
@@ -174,6 +233,10 @@ public class AdPhimService {
                 .poster(phim.getPoster())
                 .ngonNgu(phim.getNgonNgu())
                 .doTuoi(phim.getDoTuoi())
+                .nhanDoTuoi(phim.getNhanDoTuoi())
+                .hienThiCanhBaoDoTuoi(phim.getHienThiCanhBaoDoTuoi())
+                .loaiPhim(phim.getLoaiPhim())
+                .phuPhiLoaiPhim(phim.getPhuPhiLoaiPhim())
                 .moTa(phim.getMoTa())
                 .danhGia(phim.getDanhGia())
                 .giaPhim(phim.getGiaPhim()) // giaVeGoc

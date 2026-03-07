@@ -26,13 +26,13 @@ import java.util.Optional;
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private TokenProvider tokenProvider;
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private TokenService tokenService;
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Value("${frontend.url}")

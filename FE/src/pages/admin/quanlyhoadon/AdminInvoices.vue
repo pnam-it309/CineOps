@@ -46,7 +46,6 @@
             :data="invoices" 
             :columns="tableColumns"
             :total="total" 
-            :showCheckbox="false"
             v-model:current-page="listQuery.page"
             :page-size="listQuery.size" 
             v-model:page-size="listQuery.size"
@@ -61,7 +60,7 @@
             </template>
 
             <template #cell-ngayTao="{ row }">
-              <span>{{ formatDate(row.ngayTao) }}</span>
+              <span style="white-space: nowrap;">{{ formatDate(row.ngayTao) }}</span>
             </template>
 
             <template #cell-tongTien="{ row }">
@@ -97,7 +96,7 @@
             <template #actions="{ row }">
               <div class="d-flex gap-1 justify-content-center align-items-center">
                 <el-tooltip content="Chi tiết hóa đơn" placement="top">
-                  <button class="btn-action-icon btn-action-view" @click="viewDetails(row)">
+                  <button class="btn-action-icon action-view" @click="viewDetails(row)">
                     <i class="bi bi-eye"></i>
                   </button>
                 </el-tooltip>
@@ -129,15 +128,15 @@ const total = ref(0);
 const loading = ref(false);
 
 const tableColumns = [
-  { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'MÃ HÓA ĐƠN', key: 'maHoaDon' , width: '230px'},
-  { label: 'NGÀY TẠO', key: 'ngayTao', width: '230px' },
-  { label: 'TỔNG TIỀN', key: 'tongTien', width: '130px' },
-  { label: 'GIẢM GIÁ', key: 'soTienGiam', width: '110px' },
-  { label: 'THANH TOÁN', key: 'tongTienThanhToan', width: '140px' },
-  { label: 'KÊNH BÁN', key: 'kemBanHang', width: '140px' },
-  { label: 'HÌNH THỨC', key: 'phuongThucThanhToan', width: '160px' },
-  { label: 'TRẠNG THÁI', key: 'trangThai', width: '140px' }
+  { label: 'STT', key: 'stt', width: '60px' },
+  { label: 'Mã hóa đơn', key: 'maHoaDon' , width: '180px'},
+  { label: 'Ngày tạo', key: 'ngayTao', width: '170px' },
+  { label: 'Tổng tiền', key: 'tongTien', width: '120px' },
+  { label: 'Giảm giá', key: 'soTienGiam', width: '100px' },
+  { label: 'Thanh toán', key: 'tongTienThanhToan', width: '130px' },
+  { label: 'Kênh bán', key: 'kemBanHang', width: '120px' },
+  { label: 'Hình thức', key: 'phuongThucThanhToan', width: '140px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '130px' }
 ];
 
 // Query
@@ -206,7 +205,9 @@ const formatCurrency = (value) => {
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
-  return date.toLocaleString('vi-VN');
+  const time = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const day  = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${time} ${day}`;
 };
 
 watch(() => listQuery.page, fetchInvoices);

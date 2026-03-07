@@ -38,6 +38,11 @@ public class AdVeController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<AdVeResponse> getById(@PathVariable String id) {
+        return ResponseEntity.ok(adVeService.getById(id));
+    }
+
     /**
      * ==========================
      * ĐẶT VÉ

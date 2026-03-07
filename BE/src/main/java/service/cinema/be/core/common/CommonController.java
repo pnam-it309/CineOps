@@ -38,4 +38,9 @@ public class CommonController {
             return ResponseEntity.status(500).body(ApiResponse.error(500, "Database error: " + e.getMessage()));
         }
     }
+
+    @GetMapping("/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("Server is awake!");
+    }
 }

@@ -11,24 +11,25 @@ import { khachHangService } from '@/services/api/admin/khachHangService';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
+import ExcelActions from '@/components/common/ExcelActions.vue';
 
 // --- State ---
 const customers = ref([]);
-const selectedCustomers = ref([]);
 const loading = ref(false);
 const searchQuery = ref('');
 const filterTrangThai = ref(''); 
+const totalElements = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
 
 const customerColumns = [
-  { label: 'STT', key: 'stt', width: '70px' },
-  { label: 'Mã KH', key: 'maKhachHang', width: '130px' },
-  { label: 'Khách hàng', key: 'customer', minWidth: '350px' },
-  { label: 'Email', key: 'email', minWidth: '350px' },
-  { label: 'Số điện thoại', key: 'sdt', width: '220px' },
-  { label: 'Giới tính', key: 'gender', width: '150px' },
-  { label: 'Trạng thái', key: 'trangThai', width: '160px' },
+  { label: 'STT', key: 'stt', width: '60px' },
+  { label: 'Mã KH', key: 'maKhachHang', width: '110px' },
+  { label: 'Khách hàng', key: 'customer', width: '180px' },
+  { label: 'Email', key: 'email', width: '220px' },
+  { label: 'Số điện thoại', key: 'sdt', width: '150px' },
+  { label: 'Giới tính', key: 'gender', width: '110px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '140px' },
 ];
 
 // State điều khiển Modal
@@ -63,12 +64,26 @@ const rules = {
 const fetchCustomers = async () => {
   loading.value = true;
   try {
-    // QUAN TRỌNG: Truyền cả searchQuery và filterTrangThai để Backend lọc chính xác
-    const res = await khachHangService.getAll(searchQuery.value, filterTrangThai.value);
-    if (res.data && res.data.success) {
-      customers.value = res.data.data;
+    const res = await khachHangService.getAll(
+      searchQuery.value || null, 
+      filterTrangThai.value === '' ? null : filterTrangThai.value,
+      currentPage.value - 1, 
+      pageSize.value
+    );
+    
+    const apiRes = res.data;
+    if (apiRes && apiRes.data) {
+       // Backend trả về Page object
+       if (apiRes.data.content) {
+         customers.value = apiRes.data.content;
+         totalElements.value = apiRes.data.totalElements;
+       } else {
+         customers.value = Array.isArray(apiRes.data) ? apiRes.data : [];
+         totalElements.value = customers.value.length;
+       }
     } else {
-      customers.value = Array.isArray(res.data) ? res.data : (res.data.data || []);
+      customers.value = [];
+      totalElements.value = 0;
     }
   } catch (error) {
     notification.error('Không thể tải danh sách khách hàng');
@@ -151,11 +166,13 @@ const submitForm = async () => {
 };
 
 // --- Logic Xóa ---
-const handleDelete = (row) => {
+const handleUpdateStatus = (row, status = null) => {
   const isInactive = row.trangThai === 0;
-  const newStatus = isInactive ? 1 : 0;
-  const label = isInactive ? 'kích hoạt' : 'vô hiệu hóa';
+  const newStatus = status !== null ? status : (isInactive ? 1 : 0);
+  const label = newStatus === 1 ? 'kích hoạt' : 'vô hiệu hóa';
   
+  if (newStatus === row.trangThai) return;
+
   confirmDialog.custom(
     `Thay đổi trạng thái khách hàng <b>${row.tenKhachHang}</b> thành <b>${label}</b>?`,
     'Cập nhật trạng thái',
@@ -178,32 +195,9 @@ const resetFilter = () => {
   fetchCustomers();
 };
 
-const selectedIds = computed(() => selectedCustomers.value.map(item => item.id));
 
-const handleBulkDelete = () => {
-  confirmDialog.custom(
-    `Thay đổi trạng thái cho <b>${selectedIds.value.length}</b> khách hàng đã chọn?`,
-    'Cập nhật hàng loạt',
-    'Đồng ý'
-  ).then(async () => {
-    try {
-      await Promise.all(selectedCustomers.value.map(item => {
-        const newStatus = item.trangThai === 1 ? 0 : 1;
-        return khachHangService.update(item.id, { ...item, trangThai: newStatus });
-      }));
-      notification.success(`Đã cập nhật trạng thái cho ${selectedIds.value.length} khách hàng`);
-      selectedCustomers.value = [];
-      fetchCustomers();
-    } catch (error) {
-      notification.error('Có lỗi khi cập nhật hàng loạt');
-    }
-  }).catch(() => { });
-};
 
-const paginatedCustomers = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  return customers.value.slice(start, start + pageSize.value);
-});
+const paginatedCustomers = computed(() => customers.value);
 
 const getGenderText = (gender) => gender === 1 ? 'Nam' : (gender === 0 ? 'Nữ' : 'Khác');
 const getStatusLabel = (status) => status === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
@@ -219,20 +213,19 @@ watch([currentPage, pageSize], fetchCustomers);
         addButtonLabel="Thêm khách hàng"
         :data="customers"
         :loading="loading"
-        :total="customers.length"
+        :total="totalElements"
         v-model:currentPage="currentPage"
         v-model:pageSize="pageSize"
         @add-click="handleAdd"
         @reset-filter="resetFilter"
     >
-      <template #header-actions-left>
-        <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
-          Đổi trạng thái {{ selectedIds.length }} khách hàng
-        </el-button>
-      </template>
 
 
   
+      <template #header-actions-left>
+        <ExcelActions module="khach-hang" @import-success="fetchCustomers" />
+      </template>
+
       <template #filters>
         <div class="filter-item search-input-wrapper">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
@@ -251,16 +244,15 @@ watch([currentPage, pageSize], fetchCustomers);
   
       <template #content>
         <BaseTable
-          :data="paginatedCustomers"
+          :data="customers"
           :columns="customerColumns"
           :loading="loading"
-          :total="customers.length"
+          :total="totalElements"
           v-model:currentPage="currentPage"
           v-model:pageSize="pageSize"
-          v-model:selection="selectedCustomers"
           :hide-pagination="true"
           @edit="handleEdit"
-          @delete="handleDelete"
+          @delete="handleUpdateStatus"
         >
           <template #cell-stt="{ index }">
             <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
@@ -289,7 +281,7 @@ watch([currentPage, pageSize], fetchCustomers);
           </template>
 
           <template #cell-trangThai="{ row }">
-            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round>
+            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round :class="{ 'cursor-pointer': row.trangThai === 1 }" @click="row.trangThai === 1 ? handleUpdateStatus(row, 0) : null">
               {{ getStatusLabel(row.trangThai) }}
             </el-tag>
           </template>
@@ -298,12 +290,12 @@ watch([currentPage, pageSize], fetchCustomers);
             <div class="d-flex gap-1 justify-content-center">
 
               <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
+                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
                   <i class="bi bi-pencil"></i>
                 </button>
               </el-tooltip>
-              <el-tooltip :content="row.trangThai === 1 ? 'Vô hiệu hóa' : 'Kích hoạt'" placement="top">
-                <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
+              <el-tooltip content="Thay đổi trạng thái" placement="top">
+                <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0" @click="handleUpdateStatus(row, row.trangThai === 1 ? 0 : 1)">
                   <i class="bi bi-arrow-repeat"></i>
                 </button>
               </el-tooltip>
@@ -364,14 +356,7 @@ watch([currentPage, pageSize], fetchCustomers);
               </el-radio-group>
             </el-form-item>
           </div>
-          <div class="col-6" v-if="isEdit">
-            <el-form-item label="Trạng thái">
-              <el-radio-group v-model="form.trangThai">
-                <el-radio :value="1">Hoạt động</el-radio>
-                <el-radio :value="0">Ngừng</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </div>
+
         </div>
       </el-form>
     </BaseModal>

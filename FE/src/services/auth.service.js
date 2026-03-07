@@ -14,7 +14,11 @@ class AuthService {
      * BE trả về ApiResponse<AuthResponse> = { status, message, data: { accessToken, refreshToken, email, fullName, role } }
      */
     login(credentials) {
-        return axios.post(API_AUTH_LOGIN, credentials)
+        const loginData = {
+            email: credentials.email,
+            mat_khau: credentials.password
+        };
+        return axios.post(API_AUTH_LOGIN, loginData)
             .then(response => {
                 // BE bọc trong ApiResponse → lấy response.data.data
                 const authData = response.data?.data || response.data;

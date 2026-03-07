@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheGenerationRequest;
+import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheBulkRequest;
 import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheRequest;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdGheResponse;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdLoaiGheResponse;
@@ -116,6 +117,22 @@ public class AdGheServiceImpl implements AdGheService {
 
     @Override
     @Transactional
+    public void updateBulk(AdGheBulkRequest request) {
+        if (request.getIds() == null || request.getIds().isEmpty()) return;
+        
+        List<Ghe> seats = adGheRepository.findAllById(request.getIds());
+        LoaiGhe newLoaiGhe = request.getIdLoaiGhe() != null ? 
+            loaiGheRepository.findById(request.getIdLoaiGhe()).orElse(null) : null;
+            
+        seats.forEach(g -> {
+            if (newLoaiGhe != null) g.setLoaiGhe(newLoaiGhe);
+            if (request.getTrangThai() != null) g.setTrangThai(request.getTrangThai());
+        });
+        adGheRepository.saveAll(seats);
+    }
+
+    @Override
+    @Transactional
     public void deleteGhe(String id) {
         Ghe g = adGheRepository.findById(id).orElseThrow();
         g.setTrangThai(0); // 0 = Ngừng hoạt động
@@ -133,7 +150,8 @@ public class AdGheServiceImpl implements AdGheService {
                 .tenPhongChieu(g.getPhongChieu().getTenPhong())
                 .idLoaiGhe(g.getLoaiGhe().getId())
                 .tenLoaiGhe(g.getLoaiGhe().getTenLoai())
-                .phuPhi(g.getLoaiGhe().getPhuPhi())
+                .phuPhi(g.getLoaiGhe().getPhuPhi() != null ? 
+                    java.math.BigDecimal.valueOf(g.getLoaiGhe().getPhuPhi()) : null)
                 .build();
     }
 }

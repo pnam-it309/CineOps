@@ -46,21 +46,33 @@ public class AdPhimRequest {
     @Min(value = 0, message = "Độ tuổi không hợp lệ!")
     private Integer doTuoi;
 
+    /**
+     * Gắn nhãn độ tuổi theo chuẩn: P (Tất cả), T13, T16, T18
+     */
+    @Pattern(regexp = "^(P|T13|T16|T18)?$", message = "Nhãn độ tuổi không hợp lệ! Chỉ chấp nhận: P, T13, T16, T18")
+    private String nhanDoTuoi;
+
+    /**
+     * Cờ hiển thị cảnh báo độ tuổi trên giao diện khách hàng
+     */
+    private Boolean hienThiCanhBaoDoTuoi = true;
+
     private String moTa;
 
     @DecimalMin(value = "0.0", message = "Đánh giá không hợp lệ!")
     @DecimalMax(value = "10.0", message = "Đánh giá tối đa 10.0.")
-    private BigDecimal danhGia;
+    private Double danhGia;
 
     @NotNull(message = "Giá vé gốc không được để trống!")
     @DecimalMin(value = "0.0", inclusive = false, message = "Giá vé gốc phải lớn hơn 0.")
-    private BigDecimal giaPhim;
+    private Double giaPhim;
 
-    // Fix #8 — Định dạng phim: "2D", "3D", "IMAX", "4DX"
+    // Định dạng phim: "2D", "3D", "IMAX", "4DX"
+    @Pattern(regexp = "^(2D|3D|IMAX|4DX)?$", message = "Định dạng phim không hợp lệ! Chỉ chấp nhận: 2D, 3D, IMAX, 4DX")
     private String loaiPhim = "2D";
 
     // Phụ phí theo định dạng (3D = +30000đ, IMAX = +50000đ, 2D = 0)
-    private java.math.BigDecimal phuPhiLoaiPhim = java.math.BigDecimal.ZERO;
+    private Double phuPhiLoaiPhim = 0.0;
 
     private Integer trangThai = 1;
 

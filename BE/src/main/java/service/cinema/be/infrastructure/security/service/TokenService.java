@@ -7,10 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import service.cinema.be.entity.Token;
 import service.cinema.be.entity.KhachHang;
 import service.cinema.be.entity.NhanVien;
+import service.cinema.be.entity.TaiKhoan;
 import service.cinema.be.infrastructure.security.repository.RefreshTokenAuthRepository;
 import service.cinema.be.infrastructure.security.user.UserPrincipal;
 import service.cinema.be.repository.KhachHangRepository;
 import service.cinema.be.repository.NhanVienRepository;
+import service.cinema.be.repository.TaiKhoanRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -25,16 +27,19 @@ public class TokenService {
     private final RefreshTokenAuthRepository tokenRepository;
     private final KhachHangRepository khachHangRepository;
     private final NhanVienRepository nhanVienRepository;
+    private final TaiKhoanRepository taiKhoanRepository;
 
     @Autowired
     public TokenService(
             RefreshTokenAuthRepository tokenRepository,
             KhachHangRepository khachHangRepository,
-            NhanVienRepository nhanVienRepository
+            NhanVienRepository nhanVienRepository,
+            TaiKhoanRepository taiKhoanRepository
     ) {
         this.tokenRepository = tokenRepository;
         this.khachHangRepository = khachHangRepository;
         this.nhanVienRepository = nhanVienRepository;
+        this.taiKhoanRepository = taiKhoanRepository;
     }
 
     public Optional<Token> findByToken(String maToken) {
@@ -47,25 +52,28 @@ public class TokenService {
     }
 
     public Token createRefreshToken(String userId) {
-        // Try finding as Customer
-        Optional<KhachHang> khachHangOp = khachHangRepository.findById(userId);
-        if (khachHangOp.isPresent()) {
-            Optional<Token> optionalToken = tokenRepository.findByKhachHangId(userId);
-            Token token = optionalToken.orElse(new Token());
-            token.setKhachHang(khachHangOp.get());
-            return saveToken(token);
-        }
+        TaiKhoan taiKhoan = null;
 
         // Try finding as Staff/Admin
         Optional<NhanVien> nhanVienOp = nhanVienRepository.findById(userId);
         if (nhanVienOp.isPresent()) {
-            Optional<Token> optionalToken = tokenRepository.findByNhanVienId(userId);
-            Token token = optionalToken.orElse(new Token());
-            token.setNhanVien(nhanVienOp.get());
-            return saveToken(token);
+            taiKhoan = nhanVienOp.get().getTaiKhoan();
+        } else {
+            // Try finding as Customer
+            Optional<KhachHang> khachHangOp = khachHangRepository.findById(userId);
+            if (khachHangOp.isPresent()) {
+                taiKhoan = khachHangOp.get().getTaiKhoan();
+            }
         }
 
-        throw new RuntimeException("User not found for ID: " + userId);
+        if (taiKhoan == null) {
+            throw new RuntimeException("Account not found for user ID: " + userId);
+        }
+
+        Optional<Token> optionalToken = tokenRepository.findByTaiKhoanId(taiKhoan.getId());
+        Token token = optionalToken.orElse(new Token());
+        token.setTaiKhoan(taiKhoan);
+        return saveToken(token);
     }
 
     private Token saveToken(Token token) {

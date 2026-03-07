@@ -2,19 +2,16 @@
   <div class="cccd-scanner-wrapper">
     <!-- Nút mở Scanner -->
     <el-button 
-      type="primary" 
-      plain 
-      :icon="Camera" 
+      class="btn-cine-primary"
       @click="openScanner"
-      class="btn-scanner"
     >
-      <i class="bi bi-person-video me-2"></i> Quét thẻ CCCD
+      <i class="bi bi-qr-code-scan me-2"></i> Quét mã CCCD
     </el-button>
 
     <!-- Dialog chức năng Scan -->
     <el-dialog
       v-model="dialogVisible"
-      title="Quét Thẻ Căn Cước Công Dân"
+      title="Quét Mã QR Thẻ Căn Cước Công Dân"
       width="600px"
       class="premium-dialog scanner-dialog"
       :close-on-click-modal="false"
@@ -22,55 +19,54 @@
       @close="stopCamera"
     >
       <!-- Vùng hiển thị Camera -->
-      <div class="camera-container" v-loading="processing" element-loading-text="Đang xử lý hình ảnh và trích xuất dữ liệu, vui lòng đợi...">
+      <div class="camera-container" v-loading="processing" element-loading-text="Tối ưu hóa Engine CV...">
         <div class="video-wrapper">
-          <video ref="videoElement" autoplay playsinline></video>
+          <video ref="videoElement" autoplay playsinline muted></video>
           
           <!-- Lớp phủ hướng dẫn -->
           <div class="overlay-guide">
+            <!-- Stats Overlay (Nerd Mode) -->
+            <div class="cv-stats">
+                <div class="stat-item">
+                    <span class="label">FPS:</span>
+                    <span class="value" :class="stats.fps < 20 ? 'text-warning' : 'text-success'">{{ stats.fps }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">SHARP:</span>
+                    <span class="value" :class="stats.sharpScore < 30 ? 'text-danger' : 'text-success'">{{ stats.sharpScore }}</span>
+                </div>
+            </div>
+
             <div class="guide-frame">
               <div class="corner top-left"></div>
               <div class="corner top-right"></div>
               <div class="corner bottom-left"></div>
               <div class="corner bottom-right"></div>
+              <!-- Thanh quét hiệu ứng -->
+              <div class="scan-line"></div>
             </div>
-            <p class="guide-text bounce-anim">
-              <i class="bi bi-info-circle me-1"></i>
-              Vui lòng đặt CCCD vào đúng khung hình
-            </p>
+            
+            <div class="feedback-container">
+                <p class="guide-text" :class="{ 'pulse-alert': stats.sharpScore < 30 }">
+                    <i class="bi" :class="stats.sharpScore < 30 ? 'bi-camera' : 'bi-check-circle'"></i>
+                    {{ stats.sharpScore < 30 ? 'Đang lấy nét... Vui lòng giữ yên thẻ' : 'Đang giải mã QR thời gian thực...' }}
+                </p>
+            </div>
           </div>
         </div>
 
-        <!-- Canvas ẩn dùng để xử lý ảnh -->
+        <!-- Canvas ẩn dùng để xử lý CV -->
         <canvas ref="canvasElement" style="display: none;"></canvas>
       </div>
 
       <!-- Action Buttons -->
       <template #footer>
         <div class="d-flex justify-content-between align-items-center w-100">
-          <div class="status-msg" :class="{ 'text-danger': !!errorMsg }">
+          <div class="status-msg" :class="{ 'text-danger': !!errorMsg, 'text-success': isSuccess }">
             {{ errorMsg || statusMsg }}
           </div>
           <div class="d-flex gap-2">
-            <el-button @click="closeScanner" class="btn-premium-secondary" :disabled="processing"></el-button>
-            <el-button 
-              v-if="cameraActive" 
-              type="primary" 
-              @click="captureAndProcess" 
-              class="btn-premium-primary"
-              :loading="processing"
-            >
-              Chụp & Xử lý
-            </el-button>
-            <el-button 
-              v-else 
-              type="warning" 
-              @click="initCamera" 
-              class="btn-premium-primary"
-              :disabled="processing"
-            >
-              Thử Lại (Reset)
-            </el-button>
+            <el-button @click="closeScanner" class="btn-cine-secondary">Hủy</el-button>
           </div>
         </div>
       </template>
@@ -79,14 +75,14 @@
 </template>
 
 <script setup>
-import { ref, onBeforeUnmount } from 'vue';
+import { ref, onBeforeUnmount, onMounted } from 'vue';
 import { Camera } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import Tesseract from 'tesseract.js';
+import axios from '@/services/axios';
 
 const emit = defineEmits(['scanned']);
 
-// State
+// ── State ─────────────────────────────────────────────────────────────────────
 const dialogVisible = ref(false);
 const videoElement = ref(null);
 const canvasElement = ref(null);
@@ -94,222 +90,179 @@ const cameraActive = ref(false);
 const processing = ref(false);
 const statusMsg = ref('');
 const errorMsg = ref('');
+const isSuccess = ref(false);
+const stats = ref({ fps: 0, sharpScore: 0 });
+
 let stream = null;
+let animationId = null;
+let scanWorker = null;
+let isBeProcessing = false;
+let frameCount = 0;
+let lastFpsTime = Date.now();
 
-// Khởi chạy camera
-const initCamera = async () => {
-  errorMsg.value = '';
-  statusMsg.value = 'Đang kết nối camera...';
-  processing.value = false;
-  
-  try {
-    if (stream) stopCamera();
+// Consensus Logic (3 identical results required)
+let resultHistory = [];
+const CONSENSUS_REQUIRED = 2; // Need 2 identical matches for 100% accuracy
 
-    stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { 
-        facingMode: 'environment', // Ưu tiên camera sau nếu có
-        width: { ideal: 1920 },
-        height: { ideal: 1080 }
-      } 
-    });
+// ── Image Processing Loop (30 FPS) ───────────────────────────────────────────
+const startProcessLoop = () => {
+    if (animationId) cancelAnimationFrame(animationId);
     
-    if (videoElement.value) {
-      videoElement.value.srcObject = stream;
-      videoElement.value.play();
-      cameraActive.value = true;
-      statusMsg.value = 'Camera đã sẵn sàng. Vui lòng căn chỉnh thẻ.';
+    // Initialize Worker
+    if (!scanWorker) {
+        scanWorker = new Worker(new URL('@/workers/scanWorker.js', import.meta.url), { type: 'module' });
+        scanWorker.onmessage = handleWorkerMessage;
     }
-  } catch (err) {
-    console.error('Lỗi truy cập camera:', err);
-    errorMsg.value = 'Không thể truy cập camera. Vui lòng kiểm tra quyền!';
-    ElMessage.error('Không thể truy cập camera');
-  }
-};
-
-// Dừng camera
-const stopCamera = () => {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
-  }
-  cameraActive.value = false;
-  if (videoElement.value) {
-    videoElement.value.srcObject = null;
-  }
-};
-
-const openScanner = () => {
-  dialogVisible.value = true;
-  initCamera();
-};
-
-const closeScanner = () => {
-  dialogVisible.value = false;
-  stopCamera();
-};
-
-// Xử lý ảnh: Chuyển sang trắng đen và tăng độ tương phản
-const applyImageProcessing = (canvas, ctx, width, height) => {
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const data = imageData.data;
-  
-  // Áp dụng Grayscale và Contrast (Công thức cơ bản)
-  const contrast = 1.5; // Tăng phản quang 50%
-  const intercept = 128 * (1 - contrast);
-
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
     
-    // Grayscale (Tỷ lệ nhạy cảm ánh sáng của mắt)
-    let gray = 0.299 * r + 0.587 * g + 0.114 * b;
-    
-    // Contrast
-    gray = gray * contrast + intercept;
-    
-    // Cắt gọt về khoảng [0, 255]
-    if (gray > 255) gray = 255;
-    if (gray < 0) gray = 0;
+    const loop = () => {
+        if (!cameraActive.value || !videoElement.value) return;
+        
+        frameCount++;
+        if (Date.now() - lastFpsTime >= 1000) {
+            stats.value.fps = frameCount;
+            frameCount = 0;
+            lastFpsTime = Date.now();
+        }
 
-    data[i] = gray;
-    data[i + 1] = gray;
-    data[i + 2] = gray;
-    // data[i+3] là Alpha, không đổi
-  }
-  
-  ctx.putImageData(imageData, 0, 0);
+        // 1. Capture Frame to hidden Canvas
+        captureFrameToDetectBlur();
+        
+        animationId = requestAnimationFrame(loop);
+    };
+    animationId = requestAnimationFrame(loop);
 };
 
-// Chụp và OCR
-const captureAndProcess = async () => {
-  if (!videoElement.value || !canvasElement.value) return;
-
-  processing.value = true;
-  statusMsg.value = 'Đang xử lý hình ảnh...';
-  errorMsg.value = '';
-
-  try {
+const captureFrameToDetectBlur = () => {
     const video = videoElement.value;
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
     const canvas = canvasElement.value;
-    const ctx = canvas.getContext('2d');
-
-    // Thiết lập kích thước canvas bằng kích thước video thực
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Vẽ toàn bộ frame hiện tại lên Canvas
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Xử lý tiền kỳ ảnh (Trắng đen, Tăng sáng) để OCR đọc tốt hơn trên camera laptop
-    applyImageProcessing(canvas, ctx, canvas.width, canvas.height);
-
-    // Convert sang Base64 Image
-    const imageDataUrl = canvas.toDataURL('image/jpeg');
-
-    // Dừng camera (Snapshot mode)
-    stopCamera();
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     
-    statusMsg.value = 'Đang nhận dạng chữ (OCR)...';
+    // Resize for efficient CV processing (Scan-ROI only)
+    const ROI_SIZE = 400; 
+    canvas.width = ROI_SIZE;
+    canvas.height = ROI_SIZE;
 
-    // Bắt đầu Tesseract OCR (ngôn ngữ Tiếng Việt + Tiếng Anh)
-    const result = await Tesseract.recognize(
-      imageDataUrl,
-      'vie+eng',
-      { 
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            statusMsg.value = `Đang phân tích: ${Math.round(m.progress * 100)}%`;
-          }
-        }
-      }
-    );
+    // Center Crop (Focus on the QR area in the frame)
+    const sx = (video.videoWidth - ROI_SIZE) / 2;
+    const sy = (video.videoHeight - ROI_SIZE) / 2;
+    
+    ctx.drawImage(video, sx, sy, ROI_SIZE, ROI_SIZE, 0, 0, ROI_SIZE, ROI_SIZE);
+    
+    // Send to Worker for LAPLACIAN Blur Detection
+    const imageData = ctx.getImageData(0, 0, ROI_SIZE, ROI_SIZE);
+    scanWorker.postMessage({ imageData, width: ROI_SIZE, height: ROI_SIZE, threshold: 30 });
+};
 
-    const text = result.data.text;
-    console.log("OCR Result Text:\n", text);
+// ── Worker Response (Producer/Consumer Result) ────────────────────────────────
+const handleWorkerMessage = (e) => {
+    const { isSharp, score } = e.data;
+    stats.value.sharpScore = Math.floor(score);
+    
+    // 2. Only send to Backend if frame is sharp AND BE is not busy
+    if (isSharp && !isBeProcessing) {
+        sendFrameToBE();
+    }
+};
 
-    // Rút trích dữ liệu bằng Regex
-    const extractedData = extractCCCDData(text);
+const sendFrameToBE = async () => {
+    isBeProcessing = true;
+    try {
+        const video = videoElement.value;
+        const canvas = document.createElement('canvas'); // Temp high-res canvas
+        const ctx = canvas.getContext('2d');
+        
+        // Dynamic Resizing: Upscale small modules for better detection
+        canvas.width = 1000;
+        canvas.height = (video.videoHeight / video.videoWidth) * 1000;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    if (extractedData.cccd || extractedData.name || extractedData.dob) {
-      ElMessage.success('Quét dữ liệu thành công!');
-      emit('scanned', extractedData);
-      closeScanner();
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+        const formData = new FormData();
+        formData.append('file', blob, 'best_frame.jpg');
+
+        const response = await axios.post('/api/v1/scan/cccd', formData);
+        handleBeResult(response.data?.data);
+    } catch (err) {
+        // Silent fail (Normal for CV polling)
+    } finally {
+        // Throttle BE calls slightly even if fast
+        setTimeout(() => { isBeProcessing = false; }, 200);
+    }
+};
+
+// ── Consensus Logic (Filter Noise) ───────────────────────────────────────────
+const handleBeResult = (data) => {
+    if (!data || !data.cccd) return;
+
+    // Compare with history to ensure 100% accuracy
+    const lastResult = resultHistory[resultHistory.length - 1];
+    
+    if (lastResult && lastResult.cccd === data.cccd) {
+        resultHistory.push(data);
     } else {
-      errorMsg.value = 'Không tìm thấy thông tin hợp lệ. Vui lòng thử lại!';
+        resultHistory = [data]; // Reset if mismatch (noisy frame)
     }
 
-  } catch (error) {
-    console.error('OCR Error:', error);
-    errorMsg.value = 'Có lỗi trong quá trình quét. Vui lòng thử lại!';
-    ElMessage.error(errorMsg.value);
-  } finally {
-    processing.value = false;
-  }
-};
-
-// Regex trích xuất thông tin
-const extractCCCDData = (text) => {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  const data = {
-    cccd: '',
-    name: '',
-    dob: ''
-  };
-
-  // Nối chuỗi để regex hoạt động tốt hơn với form có ký tự xuống dòng
-  const fullText = lines.join(' ');
-
-  // 1. Tìm CCCD (Chuỗi 12 chữ số)
-  const cccdMatch = fullText.match(/\b\d{12}\b/);
-  if (cccdMatch) {
-    data.cccd = cccdMatch[0];
-  }
-
-  // 2. Tìm Ngày sinh (Định dạng DD/MM/YYYY hoặc tương tự)
-  const dobMatch = fullText.match(/\b(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})\b/);
-  if (dobMatch) {
-    data.dob = `${dobMatch[3]}-${dobMatch[2]}-${dobMatch[1]}`; // Convert to YYYY-MM-DD
-  }
-
-  // 3. Tìm Tên (Dựa theo dòng chữ IN HOA sau cụm Họ và tên/Họ tên)
-  // Tool trên laptop thư viện JS OCR thường sai sót, nên bắt tạm logic: 
-  // Dòng nào có toàn chữ in hoa (không dấu gạch dưới, không có số) khả năng cao là tên
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    // Tìm cụm báo hiệu tên
-    if (line.toLowerCase().includes('họ và tên') || line.toLowerCase().includes('ho và ten') || line.toLowerCase().includes('full name')) {
-        // Tên thường nằm ngay cạnh hoặc ở dòng tiếp theo
-        let nameCandidate = line.replace(/.*họ và tên[\s:]*/i, '').trim();
-        if(nameCandidate.length < 3 && i + 1 < lines.length) {
-            nameCandidate = lines[i+1].trim();
-        }
-        // Chuẩn hóa: lọc bỏ các ký tự đặc biệt lọt vào
-        data.name = nameCandidate.replace(/[^a-zA-ZÀ-Ỹà-ỹ\s]/g, '').trim().toUpperCase();
-        break;
+    if (resultHistory.length >= CONSENSUS_REQUIRED) {
+        finalizeScan(data);
+    } else {
+        statusMsg.value = `Đang xác thực bảo mật... (${resultHistory.length}/${CONSENSUS_REQUIRED})`;
     }
-  }
-
-  // Fallback tìm tên thủ công: Tìm dòng chỉ toàn chữ viết hoa (kể cả tiếng Việt)
-  if (!data.name) {
-    const nameRegex = /^[A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴÝỶỸ\s]{5,}$/;
-     for (let line of lines) {
-        // Trừ đi một số dòng in hoa mặc định của form
-        if (line.includes('CỘNG HÒA') || line.includes('ĐỘC LẬP') || line.includes('CĂN CƯỚC')) continue;
-        if (nameRegex.test(line)) {
-            data.name = line;
-            break;
-        }
-     }
-  }
-
-  return data;
 };
 
-// Clean up
-onBeforeUnmount(() => {
-  stopCamera();
-});
+const finalizeScan = (data) => {
+    stopCamera();
+    isSuccess.value = true;
+    statusMsg.value = 'Xác thực thành công!';
+    ElMessage.success('Đã quét thành công thẻ CCCD');
+    emit('scanned', data);
+    closeScanner();
+};
+
+// ── Lifecycle & Camera ────────────────────────────────────────────────────────
+const initCamera = async () => {
+    isSuccess.value = false;
+    errorMsg.value = '';
+    processing.value = true;
+    resultHistory = [];
+
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1920 }, // High-res for QR
+                height: { ideal: 1080 },
+                frameRate: { ideal: 30 }
+            }
+        });
+        
+        if (videoElement.value) {
+            videoElement.value.srcObject = stream;
+            cameraActive.value = true;
+            processing.value = false;
+            statusMsg.value = 'Đang phát hiện mã QR...';
+            startProcessLoop();
+        }
+    } catch (err) {
+        errorMsg.value = 'Không thể bật camera.';
+        processing.value = false;
+    }
+};
+
+const stopCamera = () => {
+    if (animationId) cancelAnimationFrame(animationId);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = null;
+    cameraActive.value = false;
+    isBeProcessing = false;
+};
+
+const openScanner = () => { dialogVisible.value = true; initCamera(); };
+const closeScanner = () => { dialogVisible.value = false; stopCamera(); };
+
+onBeforeUnmount(stopCamera);
 </script>
 
 <style scoped>
@@ -347,7 +300,7 @@ video {
 .overlay-guide {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4); /* Mask mờ xung quanh */
+  background: rgba(0, 0, 0, 0.4); 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -355,30 +308,50 @@ video {
   pointer-events: none;
 }
 
-/* Khoảng trống trong suốt có khung giới hạn */
+/* Khung vuông để quét QR */
 .guide-frame {
-  width: 80%;
-  height: 55%;
-  border: 1px dashed rgba(255, 255, 255, 0.5);
+  width: 250px;
+  height: 250px;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
   position: relative;
   background: transparent;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* Tạo hiệu ứng tối xung quanh */
-  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); 
+  border-radius: 12px;
   margin-bottom: 20px;
+  overflow: hidden;
 }
 
 /* Các góc màn hình quét (Corner brackets) */
 .corner {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  border: 3px solid #00d2d3; /* Đổi màu xanh premium */
+  width: 40px;
+  height: 40px;
+  border: 4px solid #00d2d3;
 }
 
-.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
-.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
-.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; border-bottom-left-radius: 8px;}
-.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; border-top-right-radius: 12px; }
+.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; border-bottom-left-radius: 12px;}
+.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
+
+/* Hiệu ứng quét vạch laser (Scan line) */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #00d2d3;
+  box-shadow: 0 0 10px #00d2d3, 0 0 20px #00d2d3;
+  animation: scan 2s infinite linear;
+}
+
+@keyframes scan {
+  0% { top: 0; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
 
 .guide-text {
   color: #fff;
@@ -386,7 +359,7 @@ video {
   font-weight: 500;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8);
   background: rgba(0,0,0,0.6);
-  padding: 6px 16px;
+  padding: 8px 16px;
   border-radius: 20px;
   z-index: 10;
 }
@@ -401,8 +374,12 @@ video {
 }
 
 .status-msg {
-  font-size: 13px;
+  font-size: 14px;
   color: #666;
   font-weight: 500;
+}
+
+.text-success {
+  color: #28a745 !important;
 }
 </style>

@@ -10,7 +10,7 @@
       :loading="loading"
       @fetch-seats="fetchSeats"
       @open-dialog="openDialog"
-      @delete-seat="handleDelete"
+      @update-status="handleUpdateStatus"
       @reset-filter="resetFilter"
     />
 
@@ -21,6 +21,7 @@
       :phongChieuList="phongChieuList"
       @fetch-seats="fetchSeats"
       @open-dialog="openDialog"
+      @bulk-edit="openBulkDialog"
     />
 
     <SeatConfigTab 
@@ -35,6 +36,8 @@
     <SeatDialog 
       v-model:visible="dialogVisible"
       :editingId="editingId"
+      :isBulk="isBulkMode"
+      :bulkCount="selectedSeatIds.length"
       :initialData="form"
       :phongChieuList="phongChieuList"
       :loaiGheList="loaiGheList"
@@ -45,7 +48,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
@@ -59,13 +63,19 @@ import SeatDialog from './SeatDialog.vue';
 
 // =================== STATE ===================
 const route = useRoute();
-const activeTab = ref(route.query.tab || 'list');
+const activeTab = computed(() => {
+  if (route.name === ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LAYOUT.name) return 'layout';
+  if (route.name === ROUTES_CONSTANTS.ADMIN.children.SEATS.children.CONFIG.name) return 'config';
+  return 'list'; // default
+});
 
 const loading = ref(false);
 const saving = ref(false);
 const generating = ref(false);
 const dialogVisible = ref(false);
 const editingId = ref(null);
+const isBulkMode = ref(false);
+const selectedSeatIds = ref([]);
 
 const seats = ref([]);
 const loaiGheList = ref([]);
@@ -73,10 +83,7 @@ const phongChieuList = ref([]);
 const selectedRoom = ref(null);
 const form = ref(null);
 
-// Theo dõi thay đổi query tab để chuyển đổi component
-watch(() => route.query.tab, (newTab) => {
-  activeTab.value = newTab || 'list';
-});
+// Xóa watcher query cũ
 
 // =================== METHODS ===================
 const fetchDropdowns = async () => {
@@ -143,24 +150,34 @@ const handleGenerate = (configData) => {
 
 const openDialog = (row = null) => {
   editingId.value = row?.id || null;
+  isBulkMode.value = false;
+  selectedSeatIds.value = [];
+  
   if (row) {
     form.value = { ...row };
   } else {
-    form.value = { 
-      idPhongChieu: selectedRoom.value || '', 
-      idLoaiGhe: loaiGheList.value[0]?.id || '', 
-      soGhe: '', 
-      soHang: '', 
-      soCot: 1, 
-      trangThai: 1 
-    };
+    form.value = null; // trigger default in dialog
   }
+  dialogVisible.value = true;
+};
+
+const openBulkDialog = (ids) => {
+  editingId.value = null;
+  isBulkMode.value = true;
+  selectedSeatIds.value = ids;
+  form.value = null; // trigger default in dialog
   dialogVisible.value = true;
 };
 
 const handleSubmit = async (formData) => {
   try {
-    if (editingId.value) {
+    if (isBulkMode.value) {
+      await confirmDialog.custom(
+        `Bạn có chắc muốn cập nhật trạng thái/loại cho ${selectedSeatIds.value.length} ghế?`,
+        'Xác nhận cập nhật hàng loạt',
+        'Cập nhật'
+      );
+    } else if (editingId.value) {
       await confirmDialog.update('ghế');
     } else {
       await confirmDialog.add('ghế');
@@ -169,7 +186,14 @@ const handleSubmit = async (formData) => {
 
   saving.value = true;
   try {
-    if (editingId.value) {
+    if (isBulkMode.value) {
+      await gheService.updateBulkSeats({
+        ids: selectedSeatIds.value,
+        idLoaiGhe: formData.idLoaiGhe || null,
+        trangThai: formData.trangThai
+      });
+      notification.success('Cập nhật hàng loạt thành công!');
+    } else if (editingId.value) {
       await gheService.updateSeat(editingId.value, formData);
       notification.updateSuccess('ghế');
     } else {
@@ -185,15 +209,38 @@ const handleSubmit = async (formData) => {
   }
 };
 
-const handleDelete = (row) => {
-  confirmDialog.delete('ghế', row.soGhe)
-    .then(async () => {
-      try {
-        await gheService.deleteSeat(row.id);
-        notification.deleteSuccess('ghế');
-        await fetchSeats();
-      } catch (e) { notification.error('Xóa thất bại'); }
-    }).catch(() => { });
+const handleUpdateStatus = async (target) => {
+  const isBulk = Array.isArray(target);
+  let items = isBulk ? target : [target.row];
+  let newStatus = isBulk ? (items[0].trangThai === 1 ? 0 : 1) : target.status;
+  
+  if (items.length === 0) return;
+
+  try {
+    const label = newStatus === 1 ? 'Hoạt động' : 'Bảo trì';
+    if (!isBulk) {
+      const row = items[0];
+      await confirmDialog.custom(`Đổi trạng thái ghế ${row.soGhe} sang ${label}?`, 'Xác nhận');
+      saving.value = true;
+      await gheService.updateSeat(row.id, { ...row, trangThai: newStatus });
+      notification.success('Cập nhật trạng thái thành công');
+    } else {
+      await confirmDialog.custom(`Đổi trạng thái ${items.length} ghế sang ${label}?`, 'Xác nhận hàng loạt');
+      saving.value = true;
+      await gheService.updateBulkSeats({
+        ids: items.map(i => i.id),
+        trangThai: newStatus
+      });
+      notification.success(`Đã chuyển ${items.length} ghế sang ${label}`);
+    }
+    await fetchSeats();
+  } catch (e) {
+    if (e !== 'cancel') {
+      notification.error('Thao tác thất bại');
+    }
+  } finally {
+    saving.value = false;
+  }
 };
 
 onMounted(async () => {

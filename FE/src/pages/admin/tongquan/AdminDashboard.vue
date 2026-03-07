@@ -6,8 +6,8 @@
         <h2 class="mb-1 fw-bold text-dark" style="font-size: 20px;">Tổng quan Hệ thống</h2>
       </div>
       <div class="d-flex gap-2">
-        <el-button class="btn-premium-secondary" :icon="Calendar">Tháng này</el-button>
-        <el-button class="btn-premium-primary" :icon="Download">Báo cáo</el-button>
+        <el-button class="btn-cine-secondary" :icon="Calendar">Tháng này</el-button>
+        <el-button class="btn-cine-primary" :icon="Download">Báo cáo</el-button>
       </div>
     </div>
 
@@ -419,3 +419,4 @@ const handleAction = (action) => {
   height: 52px !important;
 }
 </style>
+

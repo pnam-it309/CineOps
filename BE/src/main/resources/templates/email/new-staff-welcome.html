@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chào mừng bạn gia nhập CineOps</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px 12px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+        .content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .welcome-text {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+        .account-box {
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            border-radius: 8px;
+            margin: 24px 0;
+        }
+        .account-item {
+            margin-bottom: 12px;
+        }
+        .account-label {
+            font-weight: 600;
+            color: #64748b;
+            display: inline-block;
+            width: 120px;
+        }
+        .account-value {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: #0f172a;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 28px;
+            background-color: #2563eb;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .warning {
+            color: #dc2626;
+            font-size: 14px;
+            font-style: italic;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CineOps Management System</h1>
+    </div>
+    
+    <div class="content">
+        <p class="welcome-text">Chào mừng <strong><span th:text="${staffName}">Nhân viên</span></strong>,</p>
+        <p>Tài khoản nhân viên của bạn tại hệ thống <strong>CineOps</strong> đã được khởi tạo thành công. Dưới đây là thông tin đăng nhập của bạn:</p>
+        
+        <div class="account-box">
+            <div class="account-item">
+                <span class="account-label">Email:</span>
+                <span class="account-value" th:text="${email}">vanna@cineops.com</span>
+            </div>
+            <div class="account-item">
+                <span class="account-label">Mật khẩu:</span>
+                <span class="account-value" th:text="${password}">Abc123xyz</span>
+            </div>
+            <p class="warning">* Vui lòng thay đổi mật khẩu ngay sau khi đăng nhập lần đầu để đảm bảo tính bảo mật.</p>
+        </div>
+        
+        <div style="text-align: center;">
+            <a th:href="${loginUrl}" class="button">Đăng nhập vào hệ thống</a>
+        </div>
+        
+        <p style="margin-top: 30px; color: #64748b;">Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ với bộ phận Quản trị hệ thống.</p>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2026 CineOps Cinema. Hệ thống quản lý nội bộ.</p>
+        <p>Đây là email tự động, vui lòng không phản hồi email này.</p>
+    </div>
+</body>
+</html>

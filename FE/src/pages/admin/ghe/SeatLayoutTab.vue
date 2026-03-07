@@ -1,14 +1,35 @@
 <template>
     <div class="tab-content-wrapper d-flex flex-column h-100 p-3 bg-light">
-        <h3 class="fw-bold text-dark mb-4" style="font-size: 20px;">
-            <i class="bi bi-geo-alt me-2 text-primary"></i>Sơ đồ ghế trực quan
-        </h3>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark mb-0" style="font-size: 20px;">
+                <i class="bi bi-geo-alt me-2 text-primary"></i>Sơ đồ ghế trực quan
+            </h3>
+            <div class="d-flex gap-2">
+                <el-button
+                    v-if="selectedRoom && seats.length > 0"
+                    :type="selectionMode ? 'warning' : 'info'"
+                    plain
+                    :icon="selectionMode ? 'Pointer' : 'Mouse'"
+                    @click="toggleSelectionMode"
+                >
+                    {{ selectionMode ? 'Hủy chọn nhiều' : 'Chọn nhiều ghế' }}
+                </el-button>
+                <el-button
+                    v-if="selectionMode && selectedSeats.size > 0"
+                    type="primary"
+                    icon="Edit"
+                    @click="emit('bulk-edit', Array.from(selectedSeats))"
+                >
+                    Sửa {{ selectedSeats.size }} ghế đã chọn
+                </el-button>
+            </div>
+        </div>
 
         <div
             class="filter-mini mb-3 d-flex gap-3 align-items-center flex-shrink-0 p-3 bg-white border rounded-3 shadow-sm">
             <span class="fw-bold small text-secondary">Chọn phòng xem sơ đồ:</span>
-            <el-select :model-value="selectedRoom" @update:model-value="val => $emit('update:selectedRoom', val)"
-                placeholder="Chọn phòng" style="width: 250px;" @change="$emit('fetch-seats')">
+            <el-select :model-value="selectedRoom" @update:model-value="val => emit('update:selectedRoom', val)"
+                placeholder="Chọn phòng" style="width: 250px;" @change="emit('fetch-seats')">
                 <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong"
                     :value="pc.id" />
             </el-select>
@@ -20,7 +41,8 @@
         </div>
 
         <div v-if="selectedRoom && seats.length > 0"
-            class="seat-map-main flex-grow-1 bg-white rounded-3 border p-5 overflow-auto shadow-inner position-relative">
+            class="seat-map-main flex-grow-1 bg-white rounded-3 border p-5 overflow-auto shadow-inner position-relative"
+            :class="{ 'selection-active': selectionMode }">
             <div class="seat-map-container mx-auto">
                 <div class="text-center mb-5">
                     <div class="screen-bar-large mx-auto rounded-pill shadow-sm"></div>
@@ -32,8 +54,9 @@
                         <span class="row-label me-3 fw-bold text-secondary">{{ row.label }}</span>
                         <div v-for="seat in row.seats" :key="seat.id" class="seat-item" :class="{
                             'vip': seat.tenLoaiGhe?.toLowerCase().includes('vip'),
-                            'maintenance': seat.trangThai === 0
-                        }" @click="$emit('open-dialog', seat)">
+                            'maintenance': seat.trangThai === 0,
+                            'is-selected': selectedSeats.has(seat.id)
+                        }" @click="handleSeatClick(seat)">
                             {{ seat.soCot }}
                             <el-tooltip :content="`${seat.soGhe} - ${seat.tenLoaiGhe}`" placement="top" :hide-after="0">
                                 <div class="seat-click-overlay"></div>
@@ -48,7 +71,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     seats: Array,
@@ -56,7 +79,29 @@ const props = defineProps({
     selectedRoom: [Number, String]
 });
 
-defineEmits(['update:selectedRoom', 'fetch-seats', 'open-dialog']);
+const emit = defineEmits(['update:selectedRoom', 'fetch-seats', 'open-dialog', 'bulk-edit']);
+
+const selectionMode = ref(false);
+const selectedSeats = ref(new Set());
+
+const toggleSelectionMode = () => {
+    selectionMode.value = !selectionMode.value;
+    if (!selectionMode.value) {
+        selectedSeats.value.clear();
+    }
+};
+
+const handleSeatClick = (seat) => {
+    if (selectionMode.value) {
+        if (selectedSeats.value.has(seat.id)) {
+            selectedSeats.value.delete(seat.id);
+        } else {
+            selectedSeats.value.add(seat.id);
+        }
+    } else {
+        emit('open-dialog', seat);
+    }
+};
 
 const seatRows = computed(() => {
     if (!props.seats.length) return [];
@@ -126,6 +171,17 @@ const seatRows = computed(() => {
     color: #94a3b8;
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.seat-item.is-selected {
+    border-color: #3b82f6 !important;
+    background: #eff6ff !important;
+    color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
+}
+
+.selection-active .seat-item:not(.is-selected) {
+    opacity: 0.5;
 }
 
 .seat-legend {

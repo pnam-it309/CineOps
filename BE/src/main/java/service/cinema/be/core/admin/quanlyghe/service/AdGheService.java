@@ -1,6 +1,7 @@
 package service.cinema.be.core.admin.quanlyghe.service;
 
 import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheGenerationRequest;
+import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheBulkRequest;
 import service.cinema.be.core.admin.quanlyghe.dto.request.AdGheRequest;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdGheResponse;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdLoaiGheResponse;
@@ -15,6 +16,7 @@ public interface AdGheService {
     AdGheResponse createGhe(AdGheRequest request);
     void generateGhe(AdGheGenerationRequest request);
     AdGheResponse updateGhe(String id, AdGheRequest request);
+    void updateBulk(AdGheBulkRequest request);
     void deleteGhe(String id);
 }
 

@@ -35,14 +35,13 @@
 
     <template #footer v-if="!$slots.footer">
       <div class="premium-footer-modern">
-        <el-button @click="visible = false" class="btn-modern-secondary">
+        <el-button @click="visible = false">
           {{ cancelText }}
         </el-button>
         <el-button 
           type="primary" 
           @click="$emit('confirm')" 
           :loading="loading"
-          class="btn-modern-primary"
         >
           {{ confirmText }}
         </el-button>

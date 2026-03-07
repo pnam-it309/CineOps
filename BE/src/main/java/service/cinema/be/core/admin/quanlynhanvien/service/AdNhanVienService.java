@@ -1,16 +1,27 @@
 package service.cinema.be.core.admin.quanlynhanvien.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.cinema.be.core.admin.quanlynhanvien.dto.request.AdNhanVienRequest;
 import service.cinema.be.core.admin.quanlynhanvien.dto.response.AdNhanVienResponse;
 import service.cinema.be.core.admin.quanlynhanvien.repository.AdNhanVienRepository;
+import service.cinema.be.core.email.dto.EmailRequest;
+import service.cinema.be.core.email.service.IEmailService;
 import service.cinema.be.entity.NhanVien;
+import service.cinema.be.entity.TaiKhoan;
 import service.cinema.be.repository.PhanQuyenRepository;
+import service.cinema.be.repository.TaiKhoanRepository;
+import service.cinema.be.utils.RandomNumberGenerator;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,13 +29,22 @@ public class AdNhanVienService {
 
     private final AdNhanVienRepository adNhanVienRepository;
     private final PhanQuyenRepository phanQuyenRepository;
+    private final TaiKhoanRepository taiKhoanRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final IEmailService emailService;
+    private final RandomNumberGenerator randomGenerator = new RandomNumberGenerator();
 
     @Transactional(readOnly = true)
-    public List<AdNhanVienResponse> getAll(String search, String idPhanQuyen, Integer trangThai) {
-        // Gọi hàm search từ Repository đã cấu hình @Query
-        return adNhanVienRepository.searchNhanVien(search, idPhanQuyen, trangThai).stream()
-                .map(this::toResponse)
-                .toList();
+    public Page<AdNhanVienResponse> getAll(String search, String idPhanQuyen, Integer trangThai, Pageable pageable) {
+        return adNhanVienRepository.searchNhanVien(search, idPhanQuyen, trangThai, pageable)
+                .map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public AdNhanVienResponse getById(String id) {
+        NhanVien nv = adNhanVienRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên có ID: " + id));
+        return toResponse(nv);
     }
 
     @Transactional(readOnly = true)
@@ -34,7 +54,6 @@ public class AdNhanVienService {
 
     @Transactional
     public AdNhanVienResponse create(AdNhanVienRequest request) {
-        // 1. Kiểm tra các thông tin duy nhất (Unique)
         if (adNhanVienRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email nhân viên đã tồn tại trên hệ thống!");
         }
@@ -45,20 +64,54 @@ public class AdNhanVienService {
             throw new IllegalArgumentException("Số CCCD đã tồn tại trên hệ thống!");
         }
 
-        NhanVien nv = new NhanVien();
+        // 1. Generate random password
+        String rawPassword = randomGenerator.randomPassword();
 
-        // 2. Sinh mã tự động NVxxx thay vì dùng System.currentTimeMillis()
-        nv.setMaNhanVien(generateMaNhanVien());
+        // 2. Create TaiKhoan
+        TaiKhoan taiKhoan = new TaiKhoan();
+        taiKhoan.setId(UUID.randomUUID().toString());
+        taiKhoan.setEmail(request.getEmail());
+        taiKhoan.setMat_khau(passwordEncoder.encode(rawPassword));
+        taiKhoan.setTrangThai(1); 
 
-        nv.setNgayTao(LocalDateTime.now());
-
-        // Mật khẩu mặc định nếu không nhập
-        if (request.getMatKhau() == null || request.getMatKhau().isBlank()) {
-            nv.setMatKhau("123456");
+        if (request.getIdPhanQuyen() != null) {
+            phanQuyenRepository.findById(request.getIdPhanQuyen())
+                    .ifPresent(taiKhoan::setPhanQuyen);
         }
 
+        taiKhoan = taiKhoanRepository.save(taiKhoan);
+
+        // 3. Create NhanVien
+        NhanVien nv = new NhanVien();
+        nv.setId(UUID.randomUUID().toString());
+        nv.setMaNhanVien(generateMaNhanVien());
+        nv.setNgayTao(LocalDateTime.now());
+        nv.setTaiKhoan(taiKhoan); 
+
         transferData(request, nv);
-        return toResponse(adNhanVienRepository.save(nv));
+        NhanVien savedNv = adNhanVienRepository.save(nv);
+
+        // 4. Send email asynchronously
+        sendWelcomeEmail(request.getEmail(), request.getTenNhanVien(), rawPassword);
+
+        return toResponse(savedNv);
+    }
+
+    private void sendWelcomeEmail(String email, String name, String password) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("staffName", name);
+        variables.put("email", email);
+        variables.put("password", password);
+        variables.put("loginUrl", "http://localhost:3000/login"); 
+
+        EmailRequest emailRequest = EmailRequest.builder()
+                .to(email)
+                .subject("Chào mừng bạn gia nhập đội ngũ CineOps")
+                .templateName("email/new-staff-welcome")
+                .variables(variables)
+                .build();
+
+        emailService.sendEmailAsync(emailRequest);
     }
 
     @Transactional
@@ -66,7 +119,6 @@ public class AdNhanVienService {
         NhanVien nv = adNhanVienRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên có ID: " + id));
 
-        // Kiểm tra trùng lặp thông tin nhưng loại trừ bản ghi hiện tại
         if (adNhanVienRepository.existsByEmailAndIdNot(request.getEmail(), id)) {
             throw new IllegalArgumentException("Email đã được sử dụng bởi nhân viên khác!");
         }
@@ -77,6 +129,17 @@ public class AdNhanVienService {
             throw new IllegalArgumentException("Số CCCD đã được sử dụng bởi nhân viên khác!");
         }
 
+        // Update Account details
+            if (nv.getTaiKhoan() != null) {
+                nv.getTaiKhoan().setEmail(request.getEmail());
+                if (request.getIdPhanQuyen() != null) {
+                    phanQuyenRepository.findById(request.getIdPhanQuyen())
+                            .ifPresent(nv.getTaiKhoan()::setPhanQuyen);
+                }
+                // Admin is no longer allowed to change passwords for others directly.
+                // Removed nv.getTaiKhoan().setMat_khau(...)
+                taiKhoanRepository.save(nv.getTaiKhoan());
+            }
         transferData(request, nv);
         nv.setNgayCapNhat(LocalDateTime.now());
         return toResponse(adNhanVienRepository.save(nv));
@@ -86,31 +149,66 @@ public class AdNhanVienService {
     public void delete(String id) {
         NhanVien nv = adNhanVienRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên có ID: " + id));
-        nv.setTrangThai(0); // 0 = Ngừng hoạt động
+        nv.setTrangThai(0);
+        if (nv.getTaiKhoan() != null) {
+            nv.getTaiKhoan().setTrangThai(0);
+            taiKhoanRepository.save(nv.getTaiKhoan());
+        }
         adNhanVienRepository.save(nv);
     }
 
-    /**
-     * Logic sinh mã NV tự tăng: NV001, NV002...
-     */
     private String generateMaNhanVien() {
         String maxMa = adNhanVienRepository.findMaxMaNhanVien();
         if (maxMa == null || maxMa.isEmpty()) {
             return "NV001";
         }
         try {
-            // Cắt chuỗi "NV" và tăng số lên 1
             int lastNumber = Integer.parseInt(maxMa.substring(2));
             return String.format("NV%03d", lastNumber + 1);
         } catch (Exception e) {
-            // Backup trường hợp mã lỗi định dạng
-            return "NV" + (System.currentTimeMillis() % 10000);
+            return "NV" + System.currentTimeMillis() % 100000;
         }
+    }
+
+    @Transactional
+    public void requestPasswordReset(String id) {
+        NhanVien nv = adNhanVienRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên!"));
+        
+        TaiKhoan tk = nv.getTaiKhoan();
+        if (tk == null || tk.getEmail() == null) {
+            throw new IllegalArgumentException("Nhân viên chưa có tài khoản hoặc email!");
+        }
+
+        // Generate a reset token (reusing Token entity)
+        service.cinema.be.entity.Token resetToken = new service.cinema.be.entity.Token();
+        resetToken.setId(UUID.randomUUID().toString());
+        resetToken.setTaiKhoan(tk);
+        resetToken.setMaToken(UUID.randomUUID().toString());
+        resetToken.setNgayHetHan(LocalDateTime.now().plusHours(24));
+        resetToken.setTrangThai(1);
+        
+        // In a real app we'd save this to a specialized repository, 
+        // but for now we'll just send the email with the info.
+        // Reusing the template requirements: resetLink, expiryHours
+        
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("staffName", nv.getTenNhanVien());
+        variables.put("resetLink", "http://localhost:3456/reset-password?token=" + resetToken.getMaToken());
+        variables.put("expiryHours", 24);
+
+        EmailRequest emailRequest = EmailRequest.builder()
+                .to(tk.getEmail())
+                .subject("Yêu cầu đặt lại mật khẩu - CineOps")
+                .templateName("email/password-reset")
+                .variables(variables)
+                .build();
+
+        emailService.sendEmailAsync(emailRequest);
     }
 
     private void transferData(AdNhanVienRequest request, NhanVien nv) {
         nv.setTenNhanVien(request.getTenNhanVien());
-        nv.setEmail(request.getEmail());
         nv.setSoDienThoai(request.getSoDienThoai());
         nv.setCccd(request.getCccd());
         nv.setNgaySinh(request.getNgaySinh());
@@ -119,16 +217,6 @@ public class AdNhanVienService {
         nv.setChucVu(request.getChucVu());
         nv.setAnhNhanVien(request.getAnhNhanVien());
         nv.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : 1);
-
-        if (request.getMatKhau() != null && !request.getMatKhau().isBlank()) {
-            nv.setMatKhau(request.getMatKhau());
-        }
-
-        // Mapping phân quyền từ ID gửi lên
-        if (request.getIdPhanQuyen() != null) {
-            phanQuyenRepository.findById(request.getIdPhanQuyen())
-                    .ifPresent(nv::setPhanQuyen);
-        }
     }
 
     private AdNhanVienResponse toResponse(NhanVien nv) {
@@ -136,18 +224,16 @@ public class AdNhanVienService {
                 .id(nv.getId())
                 .maNhanVien(nv.getMaNhanVien())
                 .tenNhanVien(nv.getTenNhanVien())
-                .email(nv.getEmail())
-                // Tạo username từ phần trước dấu @ của email
-                .tenDangNhap("@" + (nv.getEmail() != null ? nv.getEmail().split("@")[0] : "user"))
+                .email(nv.getTaiKhoan() != null ? nv.getTaiKhoan().getEmail() : null)
                 .soDienThoai(nv.getSoDienThoai())
                 .cccd(nv.getCccd())
                 .ngaySinh(nv.getNgaySinh())
                 .queQuan(nv.getQueQuan())
-                .tenPhanQuyen(nv.getPhanQuyen() != null ? nv.getPhanQuyen().getTenVaiTro() : "Chưa xác định")
-                .idPhanQuyen(nv.getPhanQuyen() != null ? nv.getPhanQuyen().getId() : null)
                 .gioiTinh(nv.getGioiTinh())
                 .chucVu(nv.getChucVu())
                 .anhNhanVien(nv.getAnhNhanVien())
+                .idPhanQuyen(nv.getTaiKhoan() != null && nv.getTaiKhoan().getPhanQuyen() != null ? nv.getTaiKhoan().getPhanQuyen().getId() : null)
+                .tenPhanQuyen(nv.getTaiKhoan() != null && nv.getTaiKhoan().getPhanQuyen() != null ? nv.getTaiKhoan().getPhanQuyen().getTenVaiTro() : null)
                 .trangThai(nv.getTrangThai())
                 .ngayTao(nv.getNgayTao())
                 .build();

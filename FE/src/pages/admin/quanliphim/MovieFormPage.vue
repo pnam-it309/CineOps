@@ -14,16 +14,6 @@ const router = useRouter();
 const loading = ref(false);
 const genreOptions = ref([]);
 
-const isEdit = computed(() => !!route.params.id);
-
-const thuLabels = { '0': 'CN', '1': 'T2', '2': 'T3', '3': 'T4', '4': 'T5', '5': 'T6', '6': 'T7' };
-const thuOptions = [
-  { label: 'Thứ 2', value: '1' }, { label: 'Thứ 3', value: '2' },
-  { label: 'Thứ 4', value: '3' }, { label: 'Thứ 5', value: '4' },
-  { label: 'Thứ 6', value: '5' }, { label: 'Thứ 7', value: '6' },
-  { label: 'Chủ nhật', value: '0' },
-];
-
 const generateMovieCode = () => {
   const chars = '0123456789';
   let code = 'MP-';
@@ -41,8 +31,42 @@ const movieForm = ref({
   giaPhim: null, trangThai: 1,
   poster: '', trailer: '', moTa: '',
   ngonNgu: '', doTuoi: 0, danhGia: 0,
-  maPhim: generateMovieCode(), loaiPhim: '', phuPhiLoaiPhim: 0
+  maPhim: generateMovieCode(), loaiPhim: '2D', phuPhiLoaiPhim: 0,
+  nhanDoTuoi: '', hienThiCanhBaoDoTuoi: true
 });
+
+// Logic chặn chọn ngày quá khứ cho Ngày kết thúc
+const disabledDateEnd = (time) => {
+  return time.getTime() < Date.now() - 8.64e7; // Chặn trước ngày hôm nay
+};
+
+// Tự động tính trạng thái dựa trên ngày
+const predictedStatus = computed(() => {
+  if (!movieForm.value.ngayKhoiChieu || !movieForm.value.ngayKetThuc) return movieForm.value.trangThai;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(movieForm.value.ngayKhoiChieu);
+  const end = new Date(movieForm.value.ngayKetThuc);
+
+  if (today < start) return 2; // Sắp chiếu
+  if (today <= end) return 1; // Đang chiếu
+  return 0; // Ngừng chiếu
+});
+
+watch(predictedStatus, (newVal) => {
+  movieForm.value.trangThai = newVal;
+});
+
+const isEdit = computed(() => !!route.params.id);
+
+const thuLabels = { '0': 'CN', '1': 'T2', '2': 'T3', '3': 'T4', '4': 'T5', '5': 'T6', '6': 'T7' };
+const thuOptions = [
+  { label: 'Thứ 2', value: '1' }, { label: 'Thứ 3', value: '2' },
+  { label: 'Thứ 4', value: '3' }, { label: 'Thứ 5', value: '4' },
+  { label: 'Thứ 6', value: '5' }, { label: 'Thứ 7', value: '6' },
+  { label: 'Chủ nhật', value: '0' },
+];
 
 const fetchGenres = async () => {
   try {
@@ -85,6 +109,14 @@ const handleSave = async () => {
     notification.error('Tên phim không được để trống!');
     return;
   }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (movieForm.value.ngayKetThuc && new Date(movieForm.value.ngayKetThuc) < today) {
+    notification.error('Ngày kết thúc không được nhỏ hơn ngày hôm nay!');
+    return;
+  }
+
   if (movieForm.value.ngayKhoiChieu && movieForm.value.ngayKetThuc
       && movieForm.value.ngayKetThuc < movieForm.value.ngayKhoiChieu) {
     notification.error('Ngày kết thúc phải sau ngày khởi chiếu!');
@@ -200,7 +232,7 @@ onMounted(() => {
             </div>
             <div class="col-md-6">
               <el-form-item label="Ngày kết thúc">
-                <el-date-picker v-model="movieForm.ngayKetThuc" type="date" class="w-100" value-format="YYYY-MM-DD" size="large" />
+                <el-date-picker v-model="movieForm.ngayKetThuc" type="date" class="w-100" value-format="YYYY-MM-DD" size="large" :disabled-date="disabledDateEnd" />
               </el-form-item>
             </div>
             <div class="col-12">
@@ -224,13 +256,7 @@ onMounted(() => {
             <div class="fw-bold"><i class="bi bi-gear-fill me-2"></i>Cấu hình & Phân loại</div>
           </template>
           <el-form :model="movieForm" label-position="top">
-            <el-form-item label="Trạng thái">
-              <el-select v-model="movieForm.trangThai" class="w-100" size="large">
-                <el-option label="Đang chiếu" :value="1"/>
-                <el-option label="Sắp chiếu" :value="2"/>
-                <el-option label="Ngừng chiếu" :value="0"/>
-              </el-select>
-            </el-form-item>
+
             <el-form-item label="Giá phim (VNĐ)">
               <el-input-number v-model="movieForm.giaPhim" :min="0" :step="5000" class="w-100" size="large" controls-position="right" />
             </el-form-item>
@@ -248,6 +274,34 @@ onMounted(() => {
             </div>
             <el-form-item label="Đánh giá (0-10)">
               <el-input-number v-model="movieForm.danhGia" :min="0" :max="10" :precision="1" :step="0.1" class="w-100" size="large" controls-position="right" />
+            </el-form-item>
+            
+            <el-form-item label="Định dạng phim">
+              <el-select v-model="movieForm.loaiPhim" placeholder="Chọn định dạng" class="w-100" size="large">
+                <el-option label="2D" value="2D" />
+                <el-option label="3D" value="3D" />
+                <el-option label="IMAX" value="IMAX" />
+                <el-option label="4DX" value="4DX" />
+              </el-select>
+            </el-form-item>
+            
+            <el-form-item label="Phụ phí định dạng (VNĐ)">
+              <el-input-number v-model="movieForm.phuPhiLoaiPhim" :min="0" :step="5000" class="w-100" size="large" controls-position="right" />
+            </el-form-item>
+            
+            <el-divider content-position="left">Kiểm duyệt độ tuổi</el-divider>
+            
+            <el-form-item label="Nhãn độ tuổi">
+              <el-select v-model="movieForm.nhanDoTuoi" placeholder="Chọn nhãn độ tuổi" class="w-100" size="large">
+                <el-option label="P - Tất cả" value="P" />
+                <el-option label="T13" value="T13" />
+                <el-option label="T16" value="T16" />
+                <el-option label="T18" value="T18" />
+              </el-select>
+            </el-form-item>
+            
+            <el-form-item>
+              <el-checkbox v-model="movieForm.hienThiCanhBaoDoTuoi" label="Hiển thị cảnh báo độ tuổi trên giao diện khách hàng" />
             </el-form-item>
           </el-form>
         </el-card>
@@ -280,5 +334,30 @@ onMounted(() => {
   border-bottom: 1px solid #f1f5f9;
   background-color: #ffffff;
 }
-.text-primary { color: #4f46e5 !important; }
+.movie-form-page :deep(.el-form-item) {
+  margin-bottom: 24px;
+}
+.movie-form-page :deep(.el-select .el-select__tags) {
+  padding: 6px 0;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px;
+}
+.movie-form-page :deep(.el-select .el-tag) {
+  margin: 0 !important;
+  height: 28px;
+  line-height: 26px;
+  font-weight: 600;
+}
+.movie-form-page :deep(.el-form-item__label) {
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  margin-bottom: 8px !important;
+  line-height: 1.2 !important;
+}
+.movie-form-page :deep(.el-select__wrapper) {
+  min-height: 45px;
+  height: auto !important;
+  padding: 4px 12px;
+}
 </style>

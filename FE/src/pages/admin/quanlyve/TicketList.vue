@@ -1,13 +1,14 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { adVeService } from '@/services/api/admin/ad-ve-service.js';
-import { 
+import {
   Search, Plus, Monitor, Place, Refresh, Printer, Delete,
   Calendar, Timer, Download, Ticket, CircleCheck, CircleClose, Money
 } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseModal from '@/components/common/BaseModal.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
 
 import confirmDialog from '@/utils/confirm';
 import debounce from 'lodash/debounce';
@@ -27,13 +28,25 @@ const handleViewDetail = (ticket) => {
   detailVisible.value = true;
 };
 
+const ticketColumns = [
+  { label: 'Mã vé', key: 'maVe', width: '120px' },
+  { label: 'Loại khách', key: 'loaiKhach', width: '140px' },
+  { label: 'Tên phim', key: 'tenPhim', width: '180px' },
+  { label: 'Phòng', key: 'phong', width: '110px' },
+  { label: 'Ghế', key: 'ghe', width: '80px' },
+  { label: 'Kênh bán', key: 'kenhBan', width: '120px' },
+  { label: 'Thanh toán', key: 'thanhToan', width: '140px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '130px' },
+  { label: 'Thời gian', key: 'thoiGian', width: '180px' },
+  { label: 'Người tạo', key: 'nguoiTao', width: '150px' },
+];
 
 // Filters
-const params = reactive({ 
-  tuKhoa: '', 
-  trangThai: null, 
+const params = reactive({
+  tuKhoa: '',
+  trangThai: null,
   page: 1, // Đổi về 1 để khớp với AdminTableLayout
-  size: 10 
+  size: 10
 });
 
 // Load Data
@@ -54,11 +67,11 @@ const loadData = async () => {
 
 // Handlers
 const onSearch = debounce(() => { params.page = 1; loadData(); }, 500);
-const resetFilter = () => { 
-  params.tuKhoa = ''; 
-  params.trangThai = null; 
+const resetFilter = () => {
+  params.tuKhoa = '';
+  params.trangThai = null;
   params.page = 1;
-  loadData(); 
+  loadData();
 };
 
 const confirmCancel = (id) => {
@@ -130,7 +143,7 @@ const exportExcel = async () => {
     const exportParams = { ...params, page: 0, size: 10000 };
     const res = await adVeService.timKiemVe(exportParams);
     const dataToExport = res.data?.content || [];
-    
+
     if (dataToExport.length === 0) {
       ElMessage.warning('Không có dữ liệu để xuất');
       return;
@@ -151,17 +164,17 @@ const exportExcel = async () => {
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
-    
+
     const wscols = [
-      { wch: 5 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, 
-      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
+      { wch: 5 }, { wch: 15 }, { wch: 20 }, { wch: 30 },
+      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
       { wch: 15 }, { wch: 20 }, { wch: 25 }
     ];
     worksheet['!cols'] = wscols;
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Danh sách vé');
-    
+
     XLSX.writeFile(workbook, `DanhSachVe_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
     ElMessage.success('Xuất file Excel thành công');
   } catch (error) {
@@ -177,24 +190,28 @@ const exportExcel = async () => {
 onMounted(() => { loadData(); });
 </script>
 
+
 <style scoped>
 .ticket-stub-container {
   display: flex;
   justify-content: center;
   padding: 10px;
 }
+
 .ticket-stub {
   width: 100%;
   background: white;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border: 1px solid #eee;
 }
+
 .border-dashed {
   border-bottom-style: dashed !important;
   border-bottom-width: 2px !important;
 }
+
 .stub-cinema-brand {
   font-family: 'Outfit', sans-serif;
   letter-spacing: 3px;
@@ -202,6 +219,7 @@ onMounted(() => { loadData(); });
   font-weight: 700;
   font-size: 12px;
 }
+
 .lbl {
   font-size: 11px;
   text-transform: none;
@@ -209,52 +227,59 @@ onMounted(() => { loadData(); });
   font-weight: 700;
   margin-bottom: 2px;
 }
+
 .val {
   color: #1e293b;
   font-weight: 600;
 }
-.cutout-left, .cutout-right {
+
+.cutout-left,
+.cutout-right {
   position: absolute;
   top: 50%;
   width: 24px;
   height: 24px;
-  background: #fff; /* Matches modal background or parent */
+  background: #fff;
+  /* Matches modal background or parent */
   border-radius: 50%;
   z-index: 5;
   border: 1px solid #eee;
 }
+
 .cutout-left {
   left: -12px;
   transform: translateY(-50%);
 }
+
 .cutout-right {
   right: -12px;
   transform: translateY(-50%);
 }
+
 .bg-light {
   background-color: #f8fafc !important;
 }
 </style>
 
 <template>
+<!-- TicketList.vue — uses BaseTable in #content slot, consistent with other admin pages -->
   <div class="admin-ticket-page">
     <AdminTableLayout
       title="Quản Lý Giao Dịch Vé"
       titleIcon="bi bi-ticket-perforated-fill"
       :data="tickets"
+      :loading="loading"
       :total="totalElements"
       v-model:currentPage="params.page"
       v-model:pageSize="params.size"
-      v-loading="loading"
-      @change-page="loadData"
-      @change-size="loadData"
       @reset-filter="resetFilter"
     >
       <template #header-actions-left>
         <el-button type="primary" :icon="Plus" @click="$router.push('/admin/pos')">
           Xuất vé mới
         </el-button>
-        <el-button class="btn-premium-secondary text-success border-success-subtle" :icon="Download" @click="exportExcel">
+        <el-button class="btn-cine-secondary text-success border-success-subtle" :icon="Download"
+          @click="exportExcel">
           Xuất Excel
         </el-button>
       </template>
@@ -265,95 +290,80 @@ onMounted(() => { loadData(); });
         <div class="filter-item">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
           <el-select v-model="params.trangThai" @change="loadData" placeholder="Trạng thái" clearable>
-  <el-option label="Tất cả trạng thái" value="" /> <el-option label="Thành công" :value="1" />
-  <el-option label="Đã hủy" :value="0" />
-</el-select>
+            <el-option label="Tất cả trạng thái" value="" /> <el-option label="Thành công" :value="1" />
+            <el-option label="Đã hủy" :value="0" />
+          </el-select>
         </div>
         <div class="filter-item search-input-wrapper">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-input 
-            v-model="params.tuKhoa" 
-            placeholder="Tìm mã vé, tên phim, SĐT khách hàng..." 
-            :prefix-icon="Search" 
-            clearable 
-            @input="onSearch"
-          />
+          <el-input v-model="params.tuKhoa" placeholder="Tìm mã vé, tên phim, SĐT khách hàng..." :prefix-icon="Search"
+            clearable @input="onSearch" />
         </div>
       </template>
 
-      <template #columns>
-        <el-table-column label="MÃ VÉ" width="150" fixed="left" align="center">
-          <template #default="{ row }">
+      <template #content>
+        <BaseTable
+          :data="tickets"
+          :columns="ticketColumns"
+          :loading="loading"
+          :total="totalElements"
+          v-model:currentPage="params.page"
+          v-model:pageSize="params.size"
+          :hide-pagination="true"
+        >
+          <template #cell-maVe="{ row }">
             <span class="fw-bold text-indigo-500">#{{ row.maVe }}</span>
           </template>
-        </el-table-column>
 
-        <el-table-column label="LOẠI KHÁCH" width="200" align="center">
-          <template #default="{ row }">
+          <template #cell-loaiKhach="{ row }">
             <el-tag v-if="row.tenLoaiKhachHang" type="warning" size="small" effect="plain" round>
               {{ row.tenLoaiKhachHang }}
             </el-tag>
             <span v-else class="text-muted small">—</span>
           </template>
-        </el-table-column>
 
-        <el-table-column label="TÊN PHIM" min-width="220" align="center">
-          <template #default="{ row }">
+          <template #cell-tenPhim="{ row }">
             <div class="fw-bold text-dark">{{ row.tenPhim || '—' }}</div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="PHÒNG" width="120" align="center">
-          <template #default="{ row }">
-            <div class="text-muted small" style="white-space: nowrap;"><i class="bi bi-display me-1"></i>{{ row.tenPhongChieu || '---' }}</div>
+          <template #cell-phong="{ row }">
+            <div class="text-muted small text-nowrap"><i class="bi bi-display me-1"></i>{{ row.tenPhongChieu || '---' }}</div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="GHẾ" width="100" align="center">
-          <template #default="{ row }">
-            <div class="fw-bold text-danger" style="white-space: nowrap;">{{ row.viTriGhe || '—' }}</div>
+          <template #cell-ghe="{ row }">
+            <div class="fw-bold text-danger text-nowrap">{{ row.viTriGhe || '—' }}</div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="KÊNH BÁN" width="180" align="center">
-          <template #default="{ row }">
+          <template #cell-kenhBan="{ row }">
             <el-tag :type="row.loaiVe === 0 ? 'info' : 'success'" size="small" effect="dark">
               {{ row.loaiVe === 0 ? 'Tại quầy' : 'Online' }}
             </el-tag>
           </template>
-        </el-table-column>
 
-        <el-table-column label="THANH TOÁN" width="220" align="center">
-          <template #default="{ row }">
+          <template #cell-thanhToan="{ row }">
             <span class="fw-bold text-primary">{{ formatPrice(row.giaThanhToan) }}đ</span>
           </template>
-        </el-table-column>
 
-        <el-table-column label="TRẠNG THÁI" width="190" align="center">
-          <template #default="{ row }">
+          <template #cell-trangThai="{ row }">
             <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="small" round effect="light">
               {{ row.trangThai === 1 ? 'Thành công' : 'Đã hủy' }}
             </el-tag>
           </template>
-        </el-table-column>
 
-        <el-table-column label="THỜI GIAN" width="320" align="center">
-          <template #default="{ row }">
-            <div class="small text-secondary" style="white-space: nowrap;"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }} {{ formatTime(row.ngayTao) }}</div>
+          <template #cell-thoiGian="{ row }">
+            <div class="small text-secondary text-nowrap">
+              <i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }} {{ formatTime(row.ngayTao) }}
+            </div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="NGƯỜI TẠO" width="300" align="center">
-          <template #default="{ row }">
-            <div class="small text-muted" style="white-space: nowrap;"><i class="bi bi-person me-1"></i>{{ row.nguoiTao || '—' }}</div>
+          <template #cell-nguoiTao="{ row }">
+            <div class="small text-muted text-nowrap"><i class="bi bi-person me-1"></i>{{ row.nguoiTao || '—' }}</div>
           </template>
-        </el-table-column>
 
-        <el-table-column label="THAO TÁC" width="167" align="center" fixed="right">
-          <template #default="{ row }">
+          <template #actions="{ row }">
             <div class="d-flex justify-content-center gap-1">
               <el-tooltip content="Chi tiết vé" placement="top">
-                <button class="btn-action-icon btn-action-view" @click="handleViewDetail(row)">
+                <button class="btn-action-icon action-view" @click="handleViewDetail(row)">
                   <i class="bi bi-eye"></i>
                 </button>
               </el-tooltip>
@@ -363,23 +373,18 @@ onMounted(() => { loadData(); });
                 </button>
               </el-tooltip>
               <el-tooltip content="Hủy vé" placement="top" v-if="row.trangThai === 1">
-                <button class="btn-action-icon btn-action-delete" @click="confirmCancel(row.id)">
+                <button class="btn-action-icon action-delete" @click="confirmCancel(row.id)">
                   <i class="bi bi-slash-circle"></i>
                 </button>
               </el-tooltip>
             </div>
           </template>
-        </el-table-column>
+        </BaseTable>
       </template>
     </AdminTableLayout>
 
     <!-- ===== DIGITAL TICKET DETAIL ===== -->
-    <BaseModal
-      v-model="detailVisible"
-      title="Chi tiết Vé Xem Phim"
-      icon="bi bi-ticket-perforated"
-      width="450px"
-    >
+    <BaseModal v-model="detailVisible" title="Chi tiết Vé Xem Phim" icon="bi bi-ticket-perforated" width="450px">
       <div v-if="selectedTicket" class="ticket-stub-container">
         <div class="ticket-stub">
           <!-- Phim Section -->
@@ -388,13 +393,13 @@ onMounted(() => { loadData(); });
             <h4 class="fw-bold text-dark m-0">{{ selectedTicket.tenPhim }}</h4>
             <div class="text-secondary small mt-1">Định dạng: 2D Normal</div>
           </div>
-          
+
           <!-- Details Section -->
           <div class="stub-body p-4 border-bottom border-dashed position-relative">
             <!-- Cutout circles side -->
             <div class="cutout-left"></div>
             <div class="cutout-right"></div>
-            
+
             <div class="row g-3">
               <div class="col-6">
                 <div class="lbl">Ngày chiếu</div>
@@ -414,21 +419,21 @@ onMounted(() => { loadData(); });
               </div>
             </div>
           </div>
-          
+
           <!-- Pricing & Code Section -->
           <div class="stub-footer p-4 bg-light bg-opacity-50 text-center">
             <div class="barcode-wrapper mb-3 p-3 bg-white rounded-3 shadow-sm border">
-               <div class="qr-placeholder d-flex flex-column align-items-center">
-                 <i class="bi bi-qr-code fs-1 text-dark"></i>
-                 <div class="fw-bold mt-2">#{{ selectedTicket.maVe }}</div>
-               </div>
+              <div class="qr-placeholder d-flex flex-column align-items-center">
+                <i class="bi bi-qr-code fs-1 text-dark"></i>
+                <div class="fw-bold mt-2">#{{ selectedTicket.maVe }}</div>
+              </div>
             </div>
-            
+
             <div class="d-flex justify-content-between align-items-center px-2">
               <span class="text-secondary small">Thanh toán</span>
               <span class="fw-bold text-dark fs-5">{{ formatPrice(selectedTicket.giaThanhToan) }} đ</span>
             </div>
-            
+
             <div class="mt-3 pt-3 border-top small text-secondary">
               <div>Người tạo: <b>{{ selectedTicket.nguoiTao || '—' }}</b></div>
               <div class="mt-1">Kênh: {{ selectedTicket.loaiVe === 0 ? 'Tại quầy' : 'Online' }}</div>
@@ -442,8 +447,13 @@ onMounted(() => { loadData(); });
 </template>
 
 <style scoped>
-.text-indigo-500 { color: #4f46e5; }
-.admin-ticket-page { padding: 0; }
+.text-indigo-500 {
+  color: #4f46e5;
+}
+
+.admin-ticket-page {
+  padding: 0;
+}
 
 /* Action buttons — đồng bộ với BaseTable.vue */
 .btn-action-icon {
@@ -460,9 +470,26 @@ onMounted(() => { loadData(); });
   cursor: pointer;
   font-size: 16px;
 }
-.btn-action-icon:hover { background-color: #f1f5f9; }
-.btn-action-print { color: #3b82f6; }
-.btn-action-print:hover { color: #1d4ed8; background-color: #eff6ff !important; }
-.btn-action-delete { color: #ef4444; }
-.btn-action-delete:hover { color: #b91c1c; background-color: #fef2f2 !important; }
+
+.btn-action-icon:hover {
+  background-color: #f1f5f9;
+}
+
+.btn-action-print {
+  color: #3b82f6;
+}
+
+.btn-action-print:hover {
+  color: #1d4ed8;
+  background-color: #eff6ff !important;
+}
+
+.action-delete {
+  color: #ef4444;
+}
+
+.action-delete:hover {
+  color: #b91c1c;
+  background-color: #fef2f2 !important;
+}
 </style>

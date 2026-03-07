@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Ticket Confirmation - CineOps</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .ticket {
+            background-color: white;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #ff6b6b;
+        }
+        .movie-info {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed #ddd;
+        }
+        .movie-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .showtime {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .seat-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .seat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        .qr-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            border: 2px solid #ddd;
+            padding: 10px;
+            background-color: white;
+            display: inline-block;
+        }
+        .total-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎬 CineOps</div>
+        <h1>Movie Ticket Confirmation</h1>
+    </div>
+    
+    <div class="ticket">
+        <div class="movie-info">
+            <div class="movie-title" th:text="${movieTitle}">Movie Title</div>
+            <div class="showtime" th:text="${showDate} + ' at ' + ${showTime}">Date at Time</div>
+            <div class="showtime" th:text="${theaterName}">Theater Name</div>
+            <div class="showtime" th:text="${screenNumber}">Screen X</div>
+        </div>
+        
+        <div class="seat-info">
+            <div>Seat Number</div>
+            <div class="seat-number" th:text="${seatNumber}">A1</div>
+        </div>
+        
+        <div th:if="${qrCodeData}" class="qr-section">
+            <div style="margin-bottom: 10px;">QR Code for Entry</div>
+            <div class="qr-code">
+                <img th:src="${qrCodeData}" alt="QR Code" style="width: 100%; height: 100%;" />
+            </div>
+        </div>
+        
+        <div class="total-price">
+            Total: <span th:text="${totalPrice}">$15.00</span>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background-color: #fff3cd; border-radius: 5px;">
+            <h4>Important Information:</h4>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>Please arrive 15 minutes before showtime</li>
+                <li>Bring this email (digital or printed) for entry</li>
+                <li>No refunds after showtime starts</li>
+                <li>Outside food and drinks are not permitted</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2026 CineOps. All rights reserved.</p>
+        <p>This is an automated message. Please do not reply to this email.</p>
+        <p>For support, contact: support@cineops.com | Phone: 1-800-CINEOPS</p>
+    </div>
+</body>
+</html>

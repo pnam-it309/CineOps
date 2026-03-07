@@ -17,12 +17,8 @@ import java.time.LocalDateTime;
 public class Token extends PrimaryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_khach_hang")
-    private KhachHang khachHang;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_nhan_vien")
-    private NhanVien nhanVien;
+    @JoinColumn(name = "id_tai_khoan")
+    private TaiKhoan taiKhoan;
 
     @Column(name = "ma_token", columnDefinition = "TEXT")
     private String maToken;

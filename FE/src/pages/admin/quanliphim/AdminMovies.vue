@@ -1,926 +1,375 @@
 <script setup>
-  import { ref, onMounted, watch, computed } from 'vue';
-  import { useRouter, useRoute } from 'vue-router';
-  import {Search, Plus, Refresh, Delete} from '@element-plus/icons-vue';
-  import {phimApi} from '@/services/api/admin/phimService';
-  import BaseTable from '@/components/common/BaseTable.vue';
-  import AdminTableLayout from '@/components/AdminTableLayout.vue';
-  import BaseModal from '@/components/common/BaseModal.vue';
-  import notification from '@/utils/notifications';
-  import confirmDialog from '@/utils/confirm';
-  import { 
-    Tickets, 
-    Files, 
-    Menu, 
-    Calendar, 
-    Star, 
-    Timer, 
-    Money, 
-    User, 
-    Link, 
-    Document, 
-    Monitor, 
-    VideoPlay,
-    Opportunity
-  } from '@element-plus/icons-vue';
+import { ref, onMounted, watch, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { Search, Refresh } from '@element-plus/icons-vue';
+import { phimApi } from '@/services/api/admin/phimService';
+import BaseTable from '@/components/common/BaseTable.vue';
+import AdminTableLayout from '@/components/AdminTableLayout.vue';
+import notification from '@/utils/notifications';
+import confirmDialog from '@/utils/confirm';
+import ExcelActions from '@/components/common/ExcelActions.vue';
 
-  const currentData = computed(() => activeTab.value === 'phim' ? moviesList.value : lcMoviesList.value);
-  const currentTotal = computed(() => activeTab.value === 'phim' ? totalElements.value : lcTotalElements.value);
-  const currentLoading = computed(() => activeTab.value === 'phim' ? loading.value : lcLoading.value);
-  const currentSearch = computed({
-    get: () => activeTab.value === 'phim' ? searchQuery.value : lcSearchQuery.value,
-    set: (val) => {
-      if (activeTab.value === 'phim') searchQuery.value = val;
-      else lcSearchQuery.value = val;
-    }
-  });
-  const layoutCurrentPage = computed({
-    get: () => activeTab.value === 'phim' ? currentPage.value : lcCurrentPage.value,
-    set: (val) => {
-      if (activeTab.value === 'phim') currentPage.value = val;
-      else lcCurrentPage.value = val;
-    }
-  });
+// ── State ─────────────────────────────────────────────────────────────────────
+const router       = useRouter();
+const moviesList   = ref([]);
+const loading      = ref(false);
+const totalElements = ref(0);
+const currentPage  = ref(1);
+const pageSize     = ref(10);
 
+const searchQuery  = ref('');
+const statusFilter = ref(null);
+const genreFilter  = ref(null);
+const genreOptions = ref([]);
 
-  // ==================== STATE ====================
-  const route = useRoute();
-  const activeTab = ref(route.query.tab || 'phim');
+const selectedPhim = ref([]);
 
-  watch(() => route.query.tab, (newTab) => {
-    activeTab.value = newTab || 'phim';
-  });
-  const moviesList = ref([]);
-  const loading = ref(false);
-  const totalElements = ref(0);
-  const currentPage = ref(1);
-  const pageSize = ref(10);
+// ── Columns ───────────────────────────────────────────────────────────────────
+const tableColumns = [
+  { label: 'STT',           key: 'stt',          width: '60px'   },
+  { label: 'Mã phim',       key: 'maPhim',        width: '100px'  },
+  { label: 'Poster',        key: 'poster',         width: '75px'   },
+  { label: 'Tên phim',      key: 'tenPhim',        minWidth: '200px' },
+  { label: 'Đánh giá',      key: 'danhGia',        width: '90px'  },
+  { label: 'Thể loại',      key: 'theLoais',       minWidth: '160px'  },
+  { label: 'Định dạng',    key: 'loaiPhim',       width: '80px'   },
+  { label: 'Độ tuổi',       key: 'doTuoi',         width: '80px'   },
+  { label: 'Nhãn ĐT',       key: 'nhanDoTuoi',     width: '80px'   },
+  { label: 'Thời lượng',    key: 'thoiLuong',      width: '120px'  },
+  { label: 'Ngày bắt đầu',  key: 'ngayKhoiChieu',  width: '140px'  },
+  { label: 'Ngày kết thúc', key: 'ngayKetThuc',    width: '140px'  },
+  { label: 'Giá phim',      key: 'giaPhim',        width: '120px'  },
+  { label: 'Ngày tạo',      key: 'ngayTao',        width: '140px'  },
+  { label: 'Trạng thái',    key: 'trangThai',      width: '130px'  },
+];
 
-  const searchQuery = ref('');
-  const statusFilter = ref(null);
-  const genreFilter = ref(null);
-  const genreOptions = ref([]);
+// ── Computed ──────────────────────────────────────────────────────────────────
+const selectedIdsCount = computed(() => selectedPhim.value.length);
 
-  const lcSearchQuery = ref('');
-  const lcThuFilter = ref(null);
-  const lcCurrentPage = ref(1);
-  const lcTotalElements = ref(0);
-  const lcMoviesList = ref([]);
-  const lcLoading = ref(false);
-  const router = useRouter();
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const getTrangThaiLabel = (tt) => ({ 1: 'Đang chiếu', 2: 'Sắp chiếu', 0: 'Ngừng chiếu' }[tt] ?? '—');
+const getTrangThaiClass = (tt) => ({ 1: 'status-now', 2: 'status-soon', 0: 'status-stop' }[tt] ?? '');
 
-  // ==================== DIALOG STATE ====================
-  const dialogVisible = ref(false);
-  const detailVisible = ref(false);
-  const scheduleVisible = ref(false);
-  const editLCVisible = ref(false);
-  const editingMovie = ref(null);
-  const selectedMovie = ref(null);
+const getLoaiPhimType = (loaiPhim) => {
+  const types = { '2D': 'info', '3D': 'primary', 'IMAX': 'danger', '4DX': 'warning' };
+  return types[loaiPhim] || 'info';
+};
 
+const getDoTuoiTagType = (nhanDoTuoi) => {
+  const types = { 'P': 'success', 'T13': 'warning', 'T16': 'danger', 'T18': 'info' };
+  return types[nhanDoTuoi] || 'info';
+};
 
-  const selectedPhim = ref([]);
-  const selectedLC = ref([]);
+const formatDate = (d) => {
+  if (!d) return '—';
+  try {
+    return new Date(d).toLocaleString('vi-VN', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  } catch { return '—'; }
+};
 
-  const handleSelectionChangePhim = (val) => {
-    selectedPhim.value = val;
-  };
+// ── API ───────────────────────────────────────────────────────────────────────
+const fetchMovies = async () => {
+  loading.value = true;
+  try {
+    const res = await phimApi.getPhim({
+      tenPhim:   searchQuery.value || null,
+      trangThai: statusFilter.value,
+      idTheLoai: genreFilter.value || null,
+      page:      currentPage.value - 1,
+      size:      pageSize.value,
+    });
+    moviesList.value    = res.data.data.content;
+    totalElements.value = res.data.data.totalElements;
+  } catch {
+    notification.error('Lỗi tải dữ liệu phim');
+  } finally {
+    loading.value = false;
+  }
+};
 
-  const handleSelectionChangeLC = (val) => {
-    selectedLC.value = val;
-  };
+const fetchGenres = async () => {
+  try {
+    const res = await phimApi.getTheLoai();
+    genreOptions.value = res.data.data;
+  } catch { console.error('Lỗi tải thể loại'); }
+};
 
-  const selectedIdsCount = computed(() => {
-      return activeTab.value === 'phim' ? selectedPhim.value.length : selectedLC.value.length;
-  });
+// ── CRUD ──────────────────────────────────────────────────────────────────────
+const handleAdd  = () => router.push('/admin/movies/add');
+const handleEdit = (row) => router.push(`/admin/movies/edit/${row.id}`);
 
-  const handleBulkDelete = () => {
-      const isPhim = activeTab.value === 'phim';
-      const selection = isPhim ? selectedPhim.value : selectedLC.value;
-      const count = selection.length;
-      const label = isPhim ? 'phim' : 'lịch chiếu';
+const handleUpdateStatus = (row, status = null) => {
+  const isInactive = row.trangThai === 0;
+  const newStatus = status !== null ? status : (isInactive ? 1 : 0);
+  const label = getTrangThaiLabel(newStatus).toLowerCase();
+  
+  if (newStatus === row.trangThai) return;
+
+  confirmDialog.custom(
+    `Thay đổi trạng thái phim "${row.tenPhim}" thành <b>${label}</b>?`,
+    'Cập nhật trạng thái', 'Xác nhận'
+  ).then(async () => {
+    try {
+      const now = new Date();
+      const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
       
-      confirmDialog.custom(
-          `Xác nhận <b>thay đổi trạng thái</b> của <b>${count}</b> ${label} đã chọn?`,
-          'Cập nhật hàng loạt',
-          'Đồng ý'
-      ).then(async () => {
-          try {
-              await Promise.all(selection.map(item => {
-                  const newStatus = item.trangThai === 0 ? 1 : 0;
-                  return phimApi.updateTrangThai(item.id, newStatus);
-              }));
-              notification.success(`Đã cập nhật ${count} ${label} thành công`);
-              if (isPhim) selectedPhim.value = [];
-              else selectedLC.value = [];
-              fetchMovies();
-              if (activeTab.value === 'lichChieu') fetchLichChieu();
-          } catch (error) {
-              notification.error('Có lỗi khi cập nhật hàng loạt');
-          }
-      }).catch(() => {});
-  };
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      const tomorrowStr = tomorrow.getFullYear() + '-' + String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + String(tomorrow.getDate()).padStart(2, '0');
 
-  const editLCForm = ref({lichChieu: [], ngayKetThuc: ''});
+      const payload = { ...row };
+      payload.trangThai = newStatus;
 
-  // ==================== HELPER ====================
-  const thuLabels = {'0': 'CN', '1': 'T2', '2': 'T3', '3': 'T4', '4': 'T5', '5': 'T6', '6': 'T7'};
-  const thuOptions = [
-    {label: 'Thứ 2', value: '1'}, {label: 'Thứ 3', value: '2'},
-    {label: 'Thứ 4', value: '3'}, {label: 'Thứ 5', value: '4'},
-    {label: 'Thứ 6', value: '5'}, {label: 'Thứ 7', value: '6'},
-    {label: 'Chủ nhật', value: '0'},
-  ];
-
-  const getLichChieuTags = (lichChieu) => {
-    if (!lichChieu) return [];
-    return lichChieu.split(',').map(t => thuLabels[t.trim()]).filter(Boolean);
-  };
-
-  const getTrangThaiLabel = (tt) => ({1: 'Đang chiếu', 2: 'Sắp chiếu', 0: 'Ngừng chiếu'}[tt] ?? '—');
-  const getTrangThaiClass = (tt) => ({1: 'status-now', 2: 'status-soon', 0: 'status-stop'}[tt] ?? '');
-
-  // Tính 5 ngày gần nhất theo lịch chiếu
-  const getDatesFromSchedule = (lichChieuStr) => {
-    if (!lichChieuStr) return [];
-    const allowedDays = lichChieuStr.split(',').map(Number);
-    const dates = [];
-    const today = new Date();
-    for (let i = 0; i < 14; i++) {
-      const d = new Date();
-      d.setDate(today.getDate() + i);
-      if (allowedDays.includes(d.getDay())) {
-        dates.push({
-          isToday: i === 0,
-          thu: i === 0 ? 'H.nay' : thuLabels[d.getDay()],
-          ngay: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`,
-        });
+      if (newStatus === 1) { // Đang chiếu
+        payload.ngayKhoiChieu = todayStr;
+      } else if (newStatus === 2) { // Sắp chiếu
+        if (!payload.ngayKhoiChieu || payload.ngayKhoiChieu <= todayStr) {
+          payload.ngayKhoiChieu = tomorrowStr;
+        }
+      } else if (newStatus === 0) { // Ngừng chiếu
+        payload.ngayKetThuc = todayStr;
       }
-      if (dates.length >= 5) break;
-    }
-    return dates;
-  };
 
-  const formatPrice = (v) => new Intl.NumberFormat('vi-VN').format(v || 0);
-  const formatDate = (d) => {
-    if (!d) return '---';
-    try {
-      return new Date(d).toLocaleString('vi-VN', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
-    } catch (e) {
-      return '---';
-    }
-  };
-
-  // ==================== API ====================
-  const fetchMovies = async () => {
-    loading.value = true;
-    try {
-      const res = await phimApi.getPhim({
-        tenPhim: searchQuery.value || null,
-        trangThai: statusFilter.value,
-        idTheLoai: genreFilter.value || null,
-        page: currentPage.value - 1,
-        size: pageSize.value,
-      });
-      moviesList.value = res.data.data.content;
-      totalElements.value = res.data.data.totalElements;
-    } catch {
-      notification.error('Lỗi tải dữ liệu phim');
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const fetchGenres = async () => {
-    try {
-      const res = await phimApi.getTheLoai();
-      genreOptions.value = res.data.data;
-    } catch {
-      console.error('Lỗi tải thể loại');
-    }
-  };
-
-  const fetchLichChieu = async () => {
-    lcLoading.value = true;
-    try {
-      const res = await phimApi.getPhim({
-        tenPhim: lcSearchQuery.value || null,
-        trangThai: null, idTheLoai: null,
-        page: lcCurrentPage.value - 1,
-        size: pageSize.value,
-      });
-      let data = res.data.data.content;
-      if (lcThuFilter.value) {
-        data = data.filter(m =>
-            (m.lichChieu || '').split(',').map(t => t.trim()).includes(String(lcThuFilter.value))
-        );
-      }
-      lcMoviesList.value = data;
-      lcTotalElements.value = res.data.data.totalElements;
-    } catch {
-      notification.error('Lỗi tải dữ liệu lịch chiếu');
-    } finally {
-      lcLoading.value = false;
-    }
-  };
-
-  // ==================== CRUD ====================
-  const handleAdd = () => {
-    router.push('/admin/movies/add');
-  };
-
-  const handleEdit = (row) => {
-    router.push(`/admin/movies/edit/${row.id}`);
-  };
-
-
-
-  const handleDelete = (row) => {
-    const isInactive = row.trangThai === 0;
-    const newStatus = isInactive ? 1 : 0;
-    const label = isInactive ? 'kích hoạt' : 'ngừng chiếu';
-    
-    confirmDialog.custom(
-      `Xác nhận <b>${label}</b> phim "${row.tenPhim}"?`,
-      'Thay đổi trạng thái',
-      'Xác nhận'
-    ).then(async () => {
-      try {
-        await phimApi.updateTrangThai(row.id, newStatus);
-        notification.success(`Đã ${label} phim thành công`);
-        fetchMovies();
-        fetchLichChieu();
-      } catch (e) {
-        notification.error('Thay đổi trạng thái thất bại');
-      }
-    }).catch(() => {});
-  };
-
-
-
-  // ==================== SỬA LỊCH CHIẾU ====================
-  const handleEditLichChieu = (row) => {
-    selectedMovie.value = row;
-    editLCForm.value = {
-      lichChieu: row.lichChieu ? row.lichChieu.split(',').map(t => t.trim()) : [],
-      ngayKetThuc: row.ngayKetThuc || '',
-    };
-    editLCVisible.value = true;
-  };
-
-  const onEditLCChange = (val) => {
-    if (val.length > 5) {
-      editLCForm.value.lichChieu = val.slice(0, 5);
-      notification.warning('Lịch chiếu tối đa 5 thứ trong tuần!');
-    }
-  };
-
-  const handleSaveLC = async () => {
-    if (editLCForm.value.ngayKetThuc && selectedMovie.value.ngayKhoiChieu
-        && editLCForm.value.ngayKetThuc < selectedMovie.value.ngayKhoiChieu) {
-      notification.error('Ngày kết thúc phải sau ngày khởi chiếu!');
-      return;
-    }
-    
-    try {
-      await confirmDialog.update('lịch chiếu');
-    } catch { return; }
-
-    try {
-      const payload = {
-        ...selectedMovie.value,
-        idTheLoais: (selectedMovie.value.theLoais || []).map(t => t.id),
-        lichChieu: editLCForm.value.lichChieu.length > 0
-            ? editLCForm.value.lichChieu.sort().join(',')
-            : null,
-        ngayKetThuc: editLCForm.value.ngayKetThuc || null,
-      };
-      await phimApi.update(selectedMovie.value.id, payload);
-      notification.updateSuccess('lịch chiếu');
-      editLCVisible.value = false;
+      await phimApi.update(row.id, payload);
+      notification.success(`Đã chuyển trạng thái phim thành công`);
       fetchMovies();
-      fetchLichChieu();
-    } catch (e) {
-      const msg = e?.response?.data?.message || 'Lỗi cập nhật lịch chiếu!';
-      notification.error(msg);
-    }
-  };
+    } catch { notification.error('Thay đổi trạng thái thất bại'); }
+  }).catch(() => {});
+};
 
-  const handleReset = () => {
-    searchQuery.value = '';
-    statusFilter.value = null;
-    genreFilter.value = null;
-    currentPage.value = 1;
-    fetchMovies();
-  };
-  const handleResetLC = () => {
-    lcSearchQuery.value = '';
-    lcThuFilter.value = null;
-    lcCurrentPage.value = 1;
-    fetchLichChieu();
-  };
+const handleBulkStatusChange = () => {
+  const count = selectedPhim.value.length;
+  confirmDialog.custom(
+    `Xác nhận <b>đổi trạng thái</b> cho <b>${count}</b> phim đã chọn?`,
+    'Cập nhật hàng loạt', 'Đồng ý'
+  ).then(async () => {
+    try {
+      const now = new Date();
+      const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      
+      await Promise.all(selectedPhim.value.map(item => {
+        const newStatus = item.trangThai === 0 ? 1 : 0;
+        const payload = { ...item };
+        payload.trangThai = newStatus;
+        
+        if (newStatus === 1) {
+          payload.ngayKhoiChieu = todayStr;
+        } else if (newStatus === 0) {
+          payload.ngayKetThuc = todayStr;
+        }
+        
+        return phimApi.update(item.id, payload);
+      }));
+      notification.success(`Đã cập nhật ${count} phim thành công`);
+      selectedPhim.value = [];
+      fetchMovies();
+    } catch { notification.error('Có lỗi khi cập nhật hàng loạt'); }
+  }).catch(() => {});
+};
 
-  // ==================== LIFECYCLE ====================
-  onMounted(() => {
-    fetchMovies();
-    fetchGenres();
-  });
-  watch([currentPage, pageSize], fetchMovies);
-  watch([lcCurrentPage, pageSize], fetchLichChieu);
-  watch(activeTab, (tab) => {
-    if (tab === 'lichChieu') fetchLichChieu();
-  });
+const handleReset = () => {
+  searchQuery.value = ''; statusFilter.value = null;
+  genreFilter.value = null; currentPage.value = 1;
+  fetchMovies();
+};
 
-  const selectedDateIdx = ref(0);
+// ── Lifecycle ─────────────────────────────────────────────────────────────────
+onMounted(() => { fetchGenres(); fetchMovies(); });
+watch([currentPage, pageSize], fetchMovies);
+</script>
 
-  // ==================== COLUMNS ====================
-  const tableColumnsPhim = [
-    {label: 'STT', key: 'stt', width: '70px'},
-    {label: 'Mã phim', key: 'maPhim', width: '120px'},
-    {label: 'Poster', key: 'poster', width: '80px'},
-    {label: 'Tên phim', key: 'tenPhim', minWidth: '350px'},
-    {label: 'Đánh giá', key: 'danhGia', width: '130px'},
-    {label: 'Thể loại', key: 'theLoais', width: '600px'},
-    {label: 'Thời lượng', key: 'thoiLuong', width: '160px'},
-    {label: 'Ngày bắt đầu', key: 'ngayKhoiChieu', width: '180px'},
-    {label: 'Ngày kết thúc', key: 'ngayKetThuc', width: '180px'},
-    {label: 'Lịch chiếu', key: 'lichChieu', width: '280px'},
-    {label: 'Gía phim', key: 'giaPhim', width: '150px'},
-    {label: 'Ngày tạo', key: 'ngayTao', width: '180px'},
-    {label: 'Trạng thái', key: 'trangThai', width: '180px'},
-  ];
+<template>
+  <div class="movie-management w-100 h-100 bg-transparent overflow-hidden">
+    <AdminTableLayout
+      title="Quản lý phim"
+      titleIcon="bi bi-film"
+      addButtonLabel="Thêm phim mới"
+      :data="moviesList"
+      :loading="loading"
+      :total="totalElements"
+      v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize"
+      @add-click="handleAdd"
+      @reset-filter="handleReset"
+    >
+      <!-- Header actions -->
+      <template #header-actions-left>
+        <ExcelActions module="phim" @import-success="fetchMovies" />
+        <el-button v-if="selectedIdsCount" type="warning" :icon="Refresh"
+          @click="handleBulkStatusChange">
+          Đổi trạng thái {{ selectedIdsCount }} phim
+        </el-button>
+      </template>
 
-  const tableColumnsLC = [
-    {label: 'STT', key: 'stt', width: '70px'},
-    {label: 'Poster', key: 'poster', width: '80px'},
-    {label: 'Tên phim', key: 'tenPhim', minWidth: '500px'},
-    {label: 'Thể loại', key: 'theLoais', width: '550px'},
-    {label: 'Ngày bắt đầu', key: 'ngayKhoiChieu', width: '180px'},
-    {label: 'Ngày kết thúc', key: 'ngayKetThuc', width: '180px'},
-    {label: 'Lịch chiếu', key: 'lichChieu', width: '350px'},
-    {label: 'Trạng thái', key: 'trangThai', width: '150px'},
-  ];
-  </script>
+      <!-- Filters -->
+      <template #filters>
+        <div class="filter-item">
+          <el-input v-model="searchQuery" placeholder="Nhập tên phim..." :prefix-icon="Search"
+            clearable @keyup.enter="fetchMovies" />
+        </div>
+        <div class="filter-item">
+          <el-select v-model="statusFilter" placeholder="Tất cả trạng thái" clearable @change="fetchMovies">
+            <el-option label="Đang chiếu" :value="1" />
+            <el-option label="Sắp chiếu"  :value="2" />
+            <el-option label="Ngừng chiếu" :value="0" />
+          </el-select>
+        </div>
+        <div class="filter-item">
+          <el-select v-model="genreFilter" placeholder="Chọn thể loại" clearable @change="fetchMovies">
+            <el-option v-for="g in genreOptions" :key="g.id" :label="g.tenTheLoai" :value="g.id" />
+          </el-select>
+        </div>
+      </template>
 
-  <template>
-    <div class="movie-management w-100 h-100 bg-transparent overflow-hidden">
-      <AdminTableLayout
-        :title="activeTab === 'phim' ? 'Phim' : 'Lịch chiếu'"
-        :titleIcon="activeTab === 'phim' ? 'bi bi-film' : 'bi bi-calendar-event'"
-        addButtonLabel="Thêm phim mới"
-        :data="currentData"
-        :loading="currentLoading"
-        :total="currentTotal"
-        v-model:currentPage="layoutCurrentPage"
-        v-model:pageSize="pageSize"
-        @add-click="handleAdd"
-        @reset-filter="activeTab === 'phim' ? handleReset : handleResetLC"
-      >
-        <!-- Header actions -->
-        <template #header-actions-left>
-          <el-button v-if="selectedIdsCount" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
-            Đổi trạng thái {{ selectedIdsCount }} mục
-          </el-button>
-        </template>
-
-        <!-- Filters Slot -->
-        <template #filters>
-          <!-- Phim Filters -->
-          <template v-if="activeTab === 'phim'">
-            <div class="filter-item">
-              <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-              <el-input v-model="searchQuery" placeholder="Nhập tên phim..." :prefix-icon="Search" clearable
-                          @keyup.enter="fetchMovies"/>
-            </div>
-            <div class="filter-item">
-              <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-              <el-select v-model="statusFilter" placeholder="Tất cả trạng thái" clearable
-                          @change="fetchMovies">
-                  <el-option label="Đang chiếu" :value="1"/>
-                  <el-option label="Sắp chiếu" :value="2"/>
-                  <el-option label="Ngừng chiếu" :value="0"/>
-              </el-select>
-            </div>
-            <div class="filter-item">
-              <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-              <el-select v-model="genreFilter" placeholder="Chọn thể loại" clearable
-                          @change="fetchMovies">
-                  <el-option v-for="g in genreOptions" :key="g.id" :label="g.tenTheLoai" :value="g.id"/>
-              </el-select>
-            </div>
+      <!-- Content -->
+      <template #content>
+        <BaseTable
+          v-loading="loading"
+          :data="moviesList"
+          :columns="tableColumns"
+          :total="totalElements"
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          v-model:selection="selectedPhim"
+          :hide-pagination="true"
+          @edit="handleEdit"
+          @delete="handleUpdateStatus"
+        >
+          <template #cell-stt="{ index }">
+            <span class="fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
           </template>
 
-          <!-- Lịch chiếu Filters -->
-          <template v-else>
-            <div class="filter-item">
-              <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-              <el-input v-model="lcSearchQuery" placeholder="Tìm theo tên phim..." :prefix-icon="Search" clearable
-                          @keyup.enter="fetchLichChieu"/>
-            </div>
-            <div class="filter-item">
-              <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-              <el-select v-model="lcThuFilter" placeholder="Lọc theo thứ" clearable
-                          @change="fetchLichChieu">
-                  <el-option v-for="t in thuOptions" :key="t.value" :label="t.label" :value="t.value"/>
-              </el-select>
-            </div>
-          </template>
-        </template>
-
-        <!-- Content Slot with BaseTable -->
-        <template #content>
-          <div class="h-100 overflow-hidden">
-              <!-- ==================== TAB PHIM ==================== -->
-              <template v-if="activeTab==='phim'">
-                  <BaseTable v-loading="loading" :data="moviesList" :columns="tableColumnsPhim"
-                            :total="totalElements" v-model:current-page="currentPage"
-                            :page-size="pageSize" v-model:page-size="pageSize"
-                            v-model:selection="selectedPhim"
-                            :hide-pagination="true"
-                            @edit="handleEdit" @delete="handleDelete">
-          
-                    <template #cell-stt="{ index }">
-                      <span class="fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
-                    </template>
-
-                    <template #actions="{ row }">
-                      <div class="d-flex gap-1 justify-content-center align-items-center">
-                        <el-tooltip content="Xếp lịch chiếu" placement="top">
-                          <button class="btn-action-icon btn-action-view" @click="$router.push({ path: '/admin/showtimes', query: { movieId: row.id } })">
-                            <i class="bi bi-calendar-plus"></i>
-                          </button>
-                        </el-tooltip>
-                        <el-tooltip content="Chỉnh sửa" placement="top">
-                          <button class="btn-action-icon btn-action-edit" @click="handleEdit(row)">
-                            <i class="bi bi-pencil"></i>
-                          </button>
-                        </el-tooltip>
-                        <el-tooltip :content="row.trangThai === 0 ? 'Kích hoạt' : 'Ngừng chiếu'" placement="top">
-                          <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
-                            <i class="bi bi-arrow-repeat"></i>
-                          </button>
-                        </el-tooltip>
-                      </div>
-                    </template>
-          
-                    <template #cell-maPhim="{ row }">
-                      <span class="text-secondary fw-bold">#{{ row.maPhim || '---' }}</span>
-                    </template>
-
-                    <template #cell-poster="{ row }">
-                      <div class="py-1">
-                        <img v-if="row.poster" :src="row.poster" class="rounded-3 shadow-sm"
-                            style="width:42px;height:62px;object-fit:cover;"
-                            @error="e => e.target.style.display='none'"/>
-                        <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center"
-                            style="width:42px;height:62px;">
-                          <i class="bi bi-film text-secondary" style="font-size:18px;"></i>
-                        </div>
-                      </div>
-                    </template>
-          
-                    <template #cell-tenPhim="{ row }">
-                      <div class="text-center">
-                        <div class="fw-bold" style="color:#344767;">{{ row.tenPhim }}</div>
-                      </div>
-                    </template>
-          
-                    <template #cell-danhGia="{ row }">
-                      <div class="text-center">
-                        <span v-if="row.danhGia > 0" class="text-warning fw-bold">⭐ {{ row.danhGia }}</span>
-                        <span v-else class="text-secondary">—</span>
-                      </div>
-                    </template>
-          
-                    <template #cell-theLoais="{ row }">
-                      <div class="d-flex flex-wrap gap-1 justify-content-center">
-                        <el-tag v-for="g in (row.theLoais || [])" :key="g.id"
-                                size="large" effect="plain" class="genre-tag">{{ g.tenTheLoai }}
-                        </el-tag>
-                        <span v-if="!row.theLoais?.length" class="text-secondary">—</span>
-                      </div>
-                    </template>
-          
-                    <template #cell-thoiLuong="{ row }">
-                      <span style="color:#606266;">{{ row.thoiLuong }} phút</span>
-                    </template>
-
-                    <template #cell-doTuoi="{ row }">
-                      <el-tag v-if="row.doTuoi" type="danger" size="small" effect="dark" round>T{{ row.doTuoi }}</el-tag>
-                      <span v-else class="text-secondary">—</span>
-                    </template>
-
-                    <template #cell-ngonNgu="{ row }">
-                      <span class="text-dark">{{ row.ngonNgu || '—' }}</span>
-                    </template>
-          
-                    <template #cell-ngayKhoiChieu="{ row }">
-                      <span style="color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
-                    </template>
-          
-                    <template #cell-ngayKetThuc="{ row }">
-                      <span style="color:#ff4d4f;font-weight:600;">{{ row.ngayKetThuc || '—' }}</span>
-                    </template>
-          
-                    <template #cell-lichChieu="{ row }">
-                      <div v-if="row.lichChieu" class="d-flex justify-content-center">
-                        <button class="btn-xem-lich" @click="selectedMovie=row; selectedDateIdx=0; scheduleVisible=true">
-                          <i class="bi bi-calendar3 me-1"></i>Xem lịch chiếu
-                        </button>
-                      </div>
-                      <span v-else class="text-secondary">Chưa có</span>
-                    </template>
-          
-                    <template #cell-giaPhim="{ row }">
-                      <span class="fw-bold text-price">{{ row.giaPhim?.toLocaleString('vi-VN') }} đ</span>
-                    </template>
-
-                    <template #cell-ngayTao="{ row }">
-                        <div class="text-secondary" style="white-space: nowrap;"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }}</div>
-                    </template>
-          
-                    <template #cell-trangThai="{ row }">
-                      <span class="badge rounded-pill px-2 py-1" :class="getTrangThaiClass(row.trangThai)">
-                        {{ getTrangThaiLabel(row.trangThai) }}
-                      </span>
-                    </template>
-                  </BaseTable>
-              </template>
-          
-              <!-- ==================== TAB LỊCH CHIẾU ==================== -->
-              <template v-if="activeTab==='lichChieu'">
-                  <BaseTable v-loading="lcLoading" :data="lcMoviesList" :columns="tableColumnsLC"
-                            :total="lcTotalElements" v-model:current-page="lcCurrentPage"
-                            :page-size="pageSize" v-model:page-size="pageSize"
-                            v-model:selection="selectedLC"
-                            :hide-pagination="true">
-          
-                    <template #cell-stt="{ index }">
-                      <span class="fw-bold text-secondary">{{ (lcCurrentPage - 1) * pageSize + index + 1 }}</span>
-                    </template>
-
-                    <template #actions="{ row }">
-                      <div class="d-flex gap-1 justify-content-center align-items-center">
-                        <el-tooltip content="Xếp lịch chiếu" placement="top">
-                          <button class="btn-action-icon btn-action-view" @click="$router.push({ path: '/admin/showtimes', query: { movieId: row.id } })">
-                            <i class="bi bi-calendar-plus"></i>
-                          </button>
-                        </el-tooltip>
-                        <el-tooltip content="Sửa lịch chiếu" placement="top">
-                          <button class="btn-action-icon btn-action-edit" @click="handleEditLichChieu(row)">
-                            <i class="bi bi-pencil"></i>
-                          </button>
-                        </el-tooltip>
-                        <el-tooltip :content="row.trangThai === 0 ? 'Kích hoạt' : 'Vô hiệu hóa'" placement="top">
-                          <button class="btn-action-icon btn-action-refresh" @click="handleDelete(row)">
-                            <i class="bi bi-arrow-repeat"></i>
-                          </button>
-                        </el-tooltip>
-                      </div>
-                    </template>
-          
-                    <template #cell-poster="{ row }">
-                      <div class="py-1">
-                        <img v-if="row.poster" :src="row.poster" class="rounded-3 shadow-sm"
-                            style="width:42px;height:62px;object-fit:cover;"
-                            @error="e => e.target.style.display='none'"/>
-                        <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center"
-                            style="width:42px;height:62px;">
-                          <i class="bi bi-film text-secondary" style="font-size:18px;"></i>
-                        </div>
-                      </div>
-                    </template>
-          
-                    <template #cell-tenPhim="{ row }">
-                      <div class="fw-bold" style="color:#344767;">{{ row.tenPhim }}</div>
-                    </template>
-          
-                    <template #cell-theLoais="{ row }">
-                      <div class="d-flex flex-wrap gap-1 justify-content-center">
-                        <el-tag v-for="g in (row.theLoais || [])" :key="g.id"
-                                size="large" effect="plain" class="genre-tag">{{ g.tenTheLoai }}
-                        </el-tag>
-                        <span v-if="!row.theLoais?.length" class="text-secondary">—</span>
-                      </div>
-                    </template>
-          
-                    <template #cell-ngayKhoiChieu="{ row }">
-                      <span style="color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
-                    </template>
-          
-                    <template #cell-ngayKetThuc="{ row }">
-                      <span style="color:#ff4d4f;font-weight:600;">{{ row.ngayKetThuc || '—' }}</span>
-                    </template>
-          
-                    <template #cell-lichChieu="{ row }">
-                      <div v-if="row.lichChieu" class="d-flex flex-wrap gap-1 justify-content-center">
-                        <el-tag v-for="t in getLichChieuTags(row.lichChieu)" :key="t"
-                                size="large" effect="light" type="primary" class="tag-thu">{{ t }}
-                        </el-tag>
-                      </div>
-                      <span v-else class="text-secondary">Chưa có</span>
-                    </template>
-          
-                    <template #cell-trangThai="{ row }">
-                      <span class="badge rounded-pill px-2 py-1" :class="getTrangThaiClass(row.trangThai)">
-                        {{ getTrangThaiLabel(row.trangThai) }}
-                      </span>
-                    </template>
-                  </BaseTable>
-              </template>
-          </div>
-        </template>
-      </AdminTableLayout>
-
-
-
-
-
-
-      <!-- ===== DIALOG XEM LỊCH CHIẾU ===== -->
-      <BaseModal
-        v-model="scheduleVisible"
-        title="Lịch chiếu phim"
-        subtitle="Danh sách các ngày chiếu dự kiến"
-        icon="bi bi-calendar3"
-        width="600px"
-      >
-        <div v-if="selectedMovie" class="p-2">
-          <div class="d-flex gap-3 mb-4 pb-3 border-bottom align-items-center">
-            <div class="flex-shrink-0" style="width:70px;height:100px;position:relative;">
-              <img :src="selectedMovie.poster || ''" style="width:70px;height:100px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:block;" @error="e => e.target.style.display='none'"/>
-              <div style="display:none;width:70px;height:100px;background:#f0f2f5;border-radius:8px;align-items:center;justify-content:center;"><i class="bi bi-film text-secondary fs-3"></i></div>
-            </div>
-            <div>
-              <h5 class="fw-bold mb-1 text-dark" style="font-size:15px;">{{ selectedMovie.tenPhim }}</h5>
-              <div class="d-flex gap-1 flex-wrap mb-1">
-                <span class="badge rounded-pill px-2 py-1" :class="getTrangThaiClass(selectedMovie.trangThai)" style="font-size:10px;">{{ getTrangThaiLabel(selectedMovie.trangThai) }}</span>
-                <el-tag v-for="g in (selectedMovie.theLoais||[])" :key="g.id" size="small" effect="plain" class="genre-tag rounded-pill">{{ g.tenTheLoai }}</el-tag>
-              </div>
-              <div style="font-size:11px;color:#909399;" class="mt-1">
-                <i class="bi bi-clock me-1"></i>{{ selectedMovie.thoiLuong }} phút
-                <span v-if="selectedMovie.ngayKhoiChieu" class="ms-2"><i class="bi bi-calendar me-1"></i>{{ selectedMovie.ngayKhoiChieu }}
-                  <span v-if="selectedMovie.ngayKetThuc"> → <span style="color:#ff4d4f;">{{ selectedMovie.ngayKetThuc }}</span></span>
+          <template #actions="{ row }">
+            <div class="d-flex gap-1 justify-content-center align-items-center">
+              <el-tooltip content="Chỉnh sửa" placement="top">
+                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </el-tooltip>
+              <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0">
+                <span class="el-dropdown-link d-inline-block">
+                  <el-tooltip content="Thay đổi trạng thái" placement="top">
+                    <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0">
+                      <i class="bi bi-list-check"></i>
+                    </button>
+                  </el-tooltip>
                 </span>
-              </div>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Đang chiếu</el-dropdown-item>
+                    <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Sắp chiếu</el-dropdown-item>
+                    <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Ngừng chiếu</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
-          </div>
-          <div class="mb-3">
-            <div class="small fw-bold text-secondary text-uppercase mb-3" style="font-size:11px;">Lịch chiếu</div>
-            <div v-if="getDatesFromSchedule(selectedMovie.lichChieu).length > 0" class="d-flex gap-2 flex-wrap">
-              <div v-for="(item, idx) in getDatesFromSchedule(selectedMovie.lichChieu)" :key="idx" class="date-card" :class="idx === selectedDateIdx ? 'active' : ''" @click="selectedDateIdx=idx">
-                <div class="card-ngay">{{ item.ngay }}</div><div class="card-thu">{{ item.thu }}</div>
-              </div>
-            </div>
-            <div v-else class="p-3 bg-light rounded-3 text-center text-secondary" style="font-size:12px;"><i class="bi bi-calendar-x me-2"></i>Chưa có lịch chiếu. Vui lòng cập nhật ở tab Lịch chiếu.</div>
-          </div>
-          <div v-if="getDatesFromSchedule(selectedMovie.lichChieu).length > 0" class="p-3 bg-light rounded-3 text-center text-secondary" style="font-size:12px;"><i class="bi bi-info-circle me-2"></i> Suất chiếu sẽ được xếp bởi quản lý sau khi lịch chiếu được duyệt.</div>
-        </div>
-        <template #footer></template>
-      </BaseModal>
+          </template>
 
-      <!-- ===== DIALOG SỬA LỊCH CHIẾU ===== -->
-      <BaseModal
-        v-model="editLCVisible"
-        title="Cập nhật lịch chiếu"
-        subtitle="Thiết lập thời gian biểu và ngày kết thúc phim"
-        icon="bi bi-calendar-check"
-        width="460px"
-        confirmText="Lưu lịch chiếu"
-        @confirm="handleSaveLC"
-      >
-        <div v-if="selectedMovie" class="px-1">
-          <div class="d-flex gap-3 mb-4 pb-3 border-bottom align-items-center">
-            <img v-if="selectedMovie.poster" :src="selectedMovie.poster" class="rounded-3 shadow-sm" style="width:50px;height:72px;object-fit:cover;" @error="e => e.target.style.display='none'"/>
-            <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center" style="width:50px;height:72px;"><i class="bi bi-film text-secondary fs-4"></i></div>
-            <div>
-              <div class="fw-bold" style="font-size:14px;color:#344767;">{{ selectedMovie.tenPhim }}</div>
-              <div style="font-size:11px;color:#909399;" class="mt-1"><i class="bi bi-calendar me-1"></i>Khởi chiếu: <span style="color:#00b341;font-weight:600;">{{ selectedMovie.ngayKhoiChieu || '—' }}</span></div>
+          <template #cell-maPhim="{ row }">
+            <span class="text-secondary fw-bold">#{{ row.maPhim || '—' }}</span>
+          </template>
+
+          <template #cell-poster="{ row }">
+            <div class="py-1">
+              <img v-if="row.poster" :src="row.poster" class="rounded-3 shadow-sm"
+                style="width:42px;height:62px;object-fit:cover;"
+                @error="e => e.target.style.display='none'" />
+              <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center"
+                style="width:42px;height:62px;">
+                <i class="bi bi-film text-secondary" style="font-size:18px;"></i>
+              </div>
             </div>
-          </div>
-          <el-form :model="editLCForm" label-position="top" class="premium-form">
-            <el-form-item label="Ngày kết thúc chiếu">
-              <el-date-picker v-model="editLCForm.ngayKetThuc" type="date" class="w-100" value-format="YYYY-MM-DD" :prefix-icon="Calendar" />
-            </el-form-item>
-            <el-form-item>
-              <template #label>
-                <span style="font-size:13px;">Lịch chiếu trong tuần</span>
-                <span class="text-secondary ms-2" style="font-size:11px;">(tối đa 5 thứ)</span>
+          </template>
+
+          <template #cell-tenPhim="{ row }">
+            <div class="fw-bold" style="color:#344767; white-space: nowrap;">{{ row.tenPhim }}</div>
+          </template>
+
+          <template #cell-danhGia="{ row }">
+            <div class="text-center">
+              <span v-if="row.danhGia > 0" class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i>{{ row.danhGia }}</span>
+              <span v-else class="text-secondary">—</span>
+            </div>
+          </template>
+
+          <template #cell-loaiPhim="{ row }">
+            <div class="text-center">
+              <el-tag v-if="row.loaiPhim" :type="getLoaiPhimType(row.loaiPhim)" size="small">
+                {{ row.loaiPhim }}
+              </el-tag>
+              <span v-else class="text-secondary">—</span>
+            </div>
+          </template>
+
+          <template #cell-doTuoi="{ row }">
+            <div class="text-center">
+              <span v-if="row.doTuoi" class="fw-bold">{{ row.doTuoi }}+</span>
+              <span v-else class="text-secondary">—</span>
+            </div>
+          </template>
+
+          <template #cell-nhanDoTuoi="{ row }">
+            <div class="text-center">
+              <el-tag v-if="row.nhanDoTuoi" :type="getDoTuoiTagType(row.nhanDoTuoi)" size="small">
+                {{ row.nhanDoTuoi }}
+              </el-tag>
+              <span v-else class="text-secondary">—</span>
+            </div>
+          </template>
+
+          <template #cell-theLoais="{ row }">
+            <div class="d-flex flex-nowrap gap-1 justify-content-center" style="overflow: hidden;">
+              <el-tag v-for="g in (row.theLoais || [])" :key="g.id"
+                size="small" effect="plain" class="genre-tag flex-shrink-0">{{ g.tenTheLoai }}</el-tag>
+              <span v-if="!row.theLoais?.length" class="text-secondary">—</span>
+            </div>
+          </template>
+
+          <template #cell-thoiLuong="{ row }">
+            <span style="color:#606266;">{{ row.thoiLuong }} phút</span>
+          </template>
+
+          <template #cell-ngayKhoiChieu="{ row }">
+            <span style="color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
+          </template>
+
+          <template #cell-ngayKetThuc="{ row }">
+            <span style="color:#ff4d4f;font-weight:600;">{{ row.ngayKetThuc || '—' }}</span>
+          </template>
+
+          <template #cell-giaPhim="{ row }">
+            <span class="fw-bold text-price">{{ row.giaPhim?.toLocaleString('vi-VN') }} đ</span>
+          </template>
+
+          <template #cell-ngayTao="{ row }">
+            <div class="text-secondary" style="white-space:nowrap;">
+              <i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }}
+            </div>
+          </template>
+
+          <template #cell-trangThai="{ row }">
+            <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0">
+              <span class="badge rounded-pill px-2 py-1" :class="[getTrangThaiClass(row.trangThai), row.trangThai === 1 ? 'badge-pulse' : '', row.trangThai !== 0 ? 'cursor-pointer' : '']">
+                {{ getTrangThaiLabel(row.trangThai) }}
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Đang chiếu</el-dropdown-item>
+                  <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Sắp chiếu</el-dropdown-item>
+                  <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Ngừng chiếu</el-dropdown-item>
+                </el-dropdown-menu>
               </template>
-              <el-checkbox-group v-model="editLCForm.lichChieu" @change="onEditLCChange" class="d-flex flex-wrap gap-2 mt-2">
-                <el-checkbox-button v-for="t in thuOptions" :key="t.value" :value="t.value">{{ t.label }}</el-checkbox-button>
-              </el-checkbox-group>
-              <div class="text-secondary mt-2 small" v-if="editLCForm.lichChieu.length > 0">
-                Đã chọn: <strong class="text-primary">{{ editLCForm.lichChieu.map(t => thuLabels[t]).join(' · ') }}</strong>
-              </div>
-            </el-form-item>
-          </el-form>
-        </div>
-      </BaseModal>
-    </div>
-  </template>
+            </el-dropdown>
+          </template>
+        </BaseTable>
+      </template>
+    </AdminTableLayout>
+  </div>
+</template>
 
-  <style scoped>
-  .btn-red {
-    background-color: #d32f2f !important;
-    color: #fff !important;
-    border-color: #d32f2f !important;
-  }
-
-  .btn-add-movie {
-    background-color: #409eff !important;
-    font-weight: 600;
-    padding: 9px 22px;
-  }
-
-  .filter-wrapper {
-    border: 1px solid #dcdfe6;
-    background: #fff;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
-  }
-
-  .text-price {
-    color: #00b341;
-  }
-
-  .status-now {
-    background: #e6f9f0;
-    color: #00b341;
-  }
-
-  .status-soon {
-    background: #fff9e6;
-    color: #ff9900;
-  }
-
-  .status-stop {
-    background: #ffeef0;
-    color: #ff4d4f;
-  }
-
-  .genre-tag {
-    border: 1px solid #dcdfe6 !important;
-    color: #909399 !important;
-    background: #fff;
-    border-radius: 6px;
-  }
-
-  /* Action buttons are now using unified classes from admin-premium.css */
-  /* Removed .btn-action, .text-detail, etc. */
-
-  .btn-action:hover {
-    opacity: .75;
-    transform: translateY(-1px);
-  }
-
-  /* Nút xem lịch chiếu trong cột */
-  .btn-xem-lich {
-    background: none;
-    border: 1px solid #409eff;
-    color: #409eff;
-    border-radius: 6px;
-    padding: 2px 8px;
-    cursor: pointer;
-    transition: .15s;
-  }
-
-  .btn-xem-lich:hover {
-    background: #409eff;
-    color: #fff;
-  }
-
-  /* Tag thứ nhỏ */
-  .tag-thu {
-    padding: 0 6px !important;
-  }
-
-  /* Dialog detail */
-  .dialog-detail .lbl {
-    color: #909399;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-  }
-
-  .dialog-detail .val {
-    font-weight: 700;
-    font-size: 13px;
-    color: #303133;
-  }
-
-  /* Date cards in dialog */
-  .date-card {
-    border: 1px solid #dcdfe6;
-    border-radius: 10px;
-    padding: 7px 11px;
-    min-width: 64px;
-    text-align: center;
-    cursor: pointer;
-    transition: .2s;
-  }
-
-  .date-card:hover {
-    border-color: #d32f2f;
-  }
-
-  .date-card.active {
-    background: #d32f2f;
-    color: #fff;
-    border-color: #d32f2f;
-  }
-
-  .card-ngay {
-    font-weight: 800;
-    font-size: 14px;
-  }
-
-  .card-thu {
-    font-size: 10px;
-    opacity: .85;
-  }
-
-  /* Date cards mini in detail dialog */
-  .date-card-mini {
-    background: #f0f7ff;
-    border: 1px solid #b3d4ff;
-    border-radius: 10px;
-    padding: 10px 15px;
-    text-align: center;
-    min-width: 80px;
-    transition: all 0.2s;
-  }
-
-  .date-card-mini:hover {
-    background: #e1effe;
-    transform: translateY(-2px);
-  }
-
-  .date-card-mini .card-thu {
-    font-size: 16px;
-    font-weight: 800;
-    color: #409eff;
-    margin-bottom: 2px;
-  }
-
-  .date-card-mini .card-ngay {
-    font-size: 23px;
-    font-weight: 700;
-    color: #1e293b;
-  }
-
-  /* Info grid */
-  .info-grid .lbl {
-    color: #909399;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    margin-bottom: 1px;
-  }
-
-  .info-grid .val {
-    font-weight: 700;
-    font-size: 13px;
-    color: #303133;
-  }
-
-  :deep(.el-checkbox-button__inner) {
-    border-radius: 6px !important;
-    margin: 2px;
-  }
-
-  /* Poster trong dialog chi tiết */
-  .poster-wrap {
-    width: 220px;
-    height: 300px;
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
-    background: #f0f2f5;
-    flex-shrink: 0;
-  }
-
-  .detail-poster {
-    width: 220px;
-    height: 300px;
-    object-fit: cover;
-    display: block;
-    border-radius: 12px;
-  }
-
-  .detail-poster-fallback {
-    display: flex;
-    width: 220px;
-    height: 300px;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    color: #c0c4cc;
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-  </style>
+<style scoped>
+.genre-tag   { border: 1px solid #dcdfe6 !important; color: #909399 !important; background: #fff; border-radius: 6px; }
+</style>

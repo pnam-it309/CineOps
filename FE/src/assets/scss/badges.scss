@@ -1,0 +1,129 @@
+// CineOps Project - Unified Premium Badge System (Premium Glass Style)
+
+// Color Variables
+$cine-success-bg: #ECFDF5;
+$cine-success-text: #10B981;
+$cine-warning-bg: #FFFBEB;
+$cine-warning-text: #F59E0B;
+$cine-danger-bg: #FEF2F2;
+$cine-danger-text: #EF4444;
+$cine-info-bg: #EFF6FF;
+$cine-info-text: #3B82F6;
+$cine-special-bg: #FFF7ED;
+$cine-special-text: #EA580C;
+
+// Animation
+$badge-transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+@keyframes cine-pulse-soft {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+// ---------------------------------------------------------
+// Global Element Plus Tag Synchronization
+// ---------------------------------------------------------
+.el-tag {
+    height: 28px !important;
+    padding: 0 12px !important;
+    border-radius: 20px !important; // Pill shape
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: $badge-transition !important;
+    cursor: default;
+
+    &:hover {
+        filter: brightness(0.95);
+    }
+
+    // Success Type
+    &.el-tag--success {
+        background-color: $cine-success-bg !important;
+        color: $cine-success-text !important;
+    }
+
+    // Warning Type
+    &.el-tag--warning {
+        background-color: $cine-warning-bg !important;
+        color: $cine-warning-text !important;
+    }
+
+    // Danger Type
+    &.el-tag--danger {
+        background-color: $cine-danger-bg !important;
+        color: $cine-danger-text !important;
+    }
+
+    // Info Type (Default)
+    &.el-tag--info, &:not(.el-tag--success):not(.el-tag--warning):not(.el-tag--danger) {
+        background-color: $cine-info-bg !important;
+        color: $cine-info-text !important;
+    }
+}
+
+// ---------------------------------------------------------
+// Specialized Classes (Optional utilities)
+// ---------------------------------------------------------
+
+.badge-cine-success {
+    @extend .el-tag;
+    @extend .el-tag--success;
+}
+
+.badge-cine-warning {
+    @extend .el-tag;
+    @extend .el-tag--warning;
+}
+
+.badge-cine-danger {
+    @extend .el-tag;
+    @extend .el-tag--danger;
+}
+
+.badge-cine-info {
+    @extend .el-tag;
+    background-color: $cine-info-bg !important;
+    color: $cine-info-text !important;
+}
+
+.badge-cine-special {
+    @extend .el-tag;
+    background-color: $cine-special-bg !important;
+    color: $cine-special-text !important;
+}
+
+// ---------------------------------------------------------
+// Pulse Effect for Active Status
+// ---------------------------------------------------------
+.badge-pulse {
+    animation: cine-pulse-soft 2s infinite !important;
+}
+
+// Common legacy class names from bootstrap-like badges to sync
+.badge.rounded-pill {
+    @extend .el-tag;
+    border: none;
+    
+    &.bg-success, &.status-now { 
+        background-color: $cine-success-bg !important; 
+        color: $cine-success-text !important;
+        @extend .badge-pulse;
+    }
+    &.bg-warning, &.status-soon { 
+        background-color: $cine-warning-bg !important; 
+        color: $cine-warning-text !important; 
+    }
+    &.bg-danger, &.status-stop { 
+        background-color: $cine-danger-bg !important; 
+        color: $cine-danger-text !important; 
+    }
+    &.bg-info { 
+        background-color: $cine-info-bg !important; 
+        color: $cine-info-text !important; 
+    }
+}

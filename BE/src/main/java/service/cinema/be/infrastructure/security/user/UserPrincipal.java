@@ -51,9 +51,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
         return new UserPrincipal(
                 khachHang.getId(),
-                khachHang.getEmail(),
+                khachHang.getTaiKhoan().getEmail(),
                 khachHang.getTenKhachHang(),
-                khachHang.getMatKhau(),
+                khachHang.getTaiKhoan().getMat_khau(),
                 authorities
         );
     }
@@ -63,8 +63,8 @@ public class UserPrincipal implements OAuth2User, UserDetails {
      */
     public static UserPrincipal createFromNhanVien(NhanVien nhanVien) {
         Collection<GrantedAuthority> authorities;
-        if (nhanVien.getPhanQuyen() != null) {
-            PhanQuyen phanQuyen = nhanVien.getPhanQuyen();
+        if (nhanVien.getTaiKhoan() != null && nhanVien.getTaiKhoan().getPhanQuyen() != null) {
+            PhanQuyen phanQuyen = nhanVien.getTaiKhoan().getPhanQuyen();
             EntityRole entityRole = convertToEntityRole(phanQuyen.getMaPhanQuyen());
             authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(entityRole.getAuthority())
@@ -77,9 +77,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
         return new UserPrincipal(
                 nhanVien.getId(),
-                nhanVien.getEmail(),
+                nhanVien.getTaiKhoan().getEmail(),
                 nhanVien.getTenNhanVien(),
-                nhanVien.getMatKhau(),
+                nhanVien.getTaiKhoan().getMat_khau(),
                 authorities
         );
     }

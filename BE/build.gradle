@@ -42,6 +42,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     // ===== Database =====
     runtimeOnly 'com.mysql:mysql-connector-j'
 
@@ -69,6 +71,19 @@ dependencies {
     implementation('com.cloudinary:cloudinary-http44:1.36.0') {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
+
+    // ===== Apache POI for Excel =====
+    implementation 'org.apache.poi:poi:5.2.5'
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+
+    // ===== Spring Batch =====
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.batch:spring-batch-core:5.1.0'
+
+    // ===== ZXing for QR Code Scanning =====
+    implementation 'com.google.zxing:core:3.5.3'
+    implementation 'com.google.zxing:javase:3.5.3'
+    implementation 'org.openpnp:opencv:4.9.0-0'
 
     // ===== Dev =====
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

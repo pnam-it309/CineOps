@@ -1,4 +1,5 @@
 -- DATA SEED FOR CINEOPS
+
 -- 0. LOẠI NGÀY
 INSERT INTO loai_ngay (id, ten_loai_ngay, he_so_ngay, nguoi_tao) VALUES 
 ('ln-thuong', 'Ngày thường', 1.00, 'system'),
@@ -14,7 +15,9 @@ VALUES ('lg-normal-uuid', 'Thường', 0, 'system'),
 -- 2. PHÒNG CHIẾU
 INSERT INTO phong_chieu (id, ten_phong, loai_man_hinh, tong_ghe, nguoi_tao) VALUES 
 ('pc-001-uuid-001', 'Phòng 01', 'IMAX 3D', 40, 'system'),
-('pc-002-uuid-002', 'Phòng 02', '2D Digital', 30, 'system');
+('pc-002-uuid-002', 'Phòng 02', '2D Digital', 30, 'system'),
+('pc-003-uuid-003', 'Phòng 03', '2D', 30, 'system'),
+('pc-004-uuid-004', 'Phòng 04', 'IMAX', 30, 'system');
 
 -- 3. GHẾ (Seed cho Phòng 01 - Hàng A, B, C)
 -- Hàng A (Thường - 10 ghế)
@@ -258,22 +261,39 @@ INSERT INTO loai_khach_hang (id, ten_loai, he_so_giam_gia, mo_ta, nguoi_tao) VAL
 ('lkh-vip-uuid', 'VIP', 5, 'Khách hàng thân thiết', 'system'),
 ('lkh-diamond-uuid', 'Diamond', 10, 'Khách hàng hạng kim cương', 'system');
 
--- 8. KHÁCH HÀNG
-INSERT INTO khach_hang (id, id_loai_khach_hang, ma_khach_hang, ten_khach_hang, email, sdt, gioi_tinh, trang_thai, nguoi_tao) VALUES 
-('kh-001-uuid', 'lkh-member-uuid', 'KH001', 'Nguyễn Văn A', 'anv@example.com', '0987654321', 1, 1, 'system'),
-('kh-002-uuid', 'lkh-vip-uuid', 'KH002', 'Trần Thị B', 'btt@example.com', '0123456789', 0, 1, 'system');
+-- =================================================================
+-- 8. PHÂN QUYỀN (Roles)
+-- =================================================================
+INSERT INTO phan_quyen (id, ma_phan_quyen, ten_vai_tro, quyen_han, nguoi_tao) VALUES
+('pq-admin', 'ROLE_ADMIN', 'Quản trị viên', 'ALL', 'system'),
+('pq-staff', 'ROLE_STAFF', 'Nhân viên bán vé', 'POS,CHECKIN', 'system'),
+('pq-customer', 'ROLE_CUSTOMER', 'Khách hàng', 'BOOKING', 'system');
 
--- 9. PHIẾU GIẢM GIÁ
+-- =================================================================
+-- 9. TÀI KHOẢN (Accounts)
+-- =================================================================
+INSERT INTO tai_khoan (id, id_phan_quyen, email, mat_khau, trang_thai, nguoi_tao) VALUES
+('tk-nv-admin', 'pq-admin', 'admin@cineops.com', '$2a$12$7kS8B.zE3h.Wv.r6G.n.u.V8Y.n.u.V8Y.n.u.V8Y.n.u', 1, 'system'),
+('tk-nv-staff', 'pq-staff', 'staff@cineops.com', '$2a$12$7kS8B.zE3h.Wv.r6G.n.u.V8Y.n.u.V8Y.n.u.V8Y.n.u', 1, 'system'),
+('tk-kh-001', 'pq-customer', 'anv@example.com', '$2a$12$7kS8B.zE3h.Wv.r6G.n.u.V8Y.n.u.V8Y.n.u.V8Y.n.u', 1, 'system'),
+('tk-kh-002', 'pq-customer', 'btt@example.com', '$2a$12$7kS8B.zE3h.Wv.r6G.n.u.V8Y.n.u.V8Y.n.u.V8Y.n.u', 1, 'system');
+
+-- 10. KHÁCH HÀNG
+INSERT INTO khach_hang (id, id_tai_khoan, id_loai_khach_hang, ma_khach_hang, ten_khach_hang, sdt, gioi_tinh, trang_thai, nguoi_tao) VALUES 
+('kh-001-uuid', 'tk-kh-001', 'lkh-member-uuid', 'KH001', 'Nguyễn Văn A', '0987654321', 1, 1, 'system'),
+('kh-002-uuid', 'tk-kh-002', 'lkh-vip-uuid', 'KH002', 'Trần Thị B', '0123456789', 0, 1, 'system');
+
+-- 11. PHIẾU GIẢM GIÁ
 INSERT INTO phieu_giam_gia (id, ma_phieu_giam_gia, ten_phieu, loai_phieu, phan_tram_giam_gia, so_tien_giam, gia_tri_hoa_don_toi_thieu, co_cho_cong_don, giam_toi_da, ngay_bat_dau, ngay_ket_thuc, trang_thai, so_luong, dieu_kien_ap_dung, ghi_chu, nguoi_tao) VALUES 
 ('pgg-01-uuid', 'PGG001', 'Chào mừng thành viên mới', 1, 10.00, 0, 100000, 0, 50000, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 100, 'Áp dụng cho KH mới', 'Voucher dành cho khách hàng lần đầu thực hiện giao dịch', 'system'),
 ('pgg-02-uuid', 'PGG002', 'Tri ân khách hàng VIP', 2, 0, 50000, 200000, 1, 50000, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 50, 'Áp dụng cho hạng VIP trở lên', 'Ưu đãi đặc biệt tri ân các khách hành thân thiết', 'system');
 
--- 10. PHIẾU GIẢM GIÁ CHI TIẾT
+-- 12. PHIẾU GIẢM GIÁ CHI TIẾT
 INSERT INTO phieu_giam_gia_chi_tiet (id, id_phieu_giam_gia, id_khach_hang, ma_phieu_giam_gia_chi_tiet, so_luong_dung, trang_thai, nguoi_tao) VALUES 
 (UUID(), 'pgg-01-uuid', 'kh-001-uuid', 'PGGCT-001', 0, 1, 'system'),
 (UUID(), 'pgg-02-uuid', 'kh-002-uuid', 'PGGCT-002', 0, 1, 'system');
 
--- 11. THỂ LOẠI
+-- 13. THỂ LOẠI
 INSERT INTO the_loai (id, ten_the_loai, nguoi_tao)
 VALUES ('TL1', 'Hành động', 'admin'),
        ('TL2', 'Hoạt hình', 'admin'),
@@ -286,161 +306,52 @@ VALUES ('TL1', 'Hành động', 'admin'),
        ('TL9', 'Tâm lý', 'admin'),
        ('TL10', 'Khoa học viễn tưởng', 'admin');
 
--- 12. PHIM THỂ LOẠI
-
+-- 14. PHIM THỂ LOẠI
 INSERT INTO phim_the_loai (id, id_phim, id_the_loai) VALUES
-
--- P1 - Thỏ Ơi!! → Hoạt hình, Hài, Gia đình
-('PTL001', 'P1', 'TL2'),
-('PTL002', 'P1', 'TL5'),
-('PTL003', 'P1', 'TL7'),
-
--- P2 - Mùi Phở → Hài, Gia đình, Tâm lý
-('PTL004', 'P2', 'TL5'),
-('PTL005', 'P2', 'TL7'),
-('PTL006', 'P2', 'TL9'),
-
--- P3 - Tài → Tâm lý, Tình cảm
-('PTL007', 'P3', 'TL9'),
-('PTL008', 'P3', 'TL4'),
-
--- P4 - Quỷ Nhập Tràng 2 → Kinh dị
+('PTL001', 'P1', 'TL2'), ('PTL002', 'P1', 'TL5'), ('PTL003', 'P1', 'TL7'),
+('PTL004', 'P2', 'TL5'), ('PTL005', 'P2', 'TL7'), ('PTL006', 'P2', 'TL9'),
+('PTL007', 'P3', 'TL9'), ('PTL008', 'P3', 'TL4'),
 ('PTL009', 'P4', 'TL3'),
-
--- P5 - Avatar: Lửa và Tro Tàn → Hành động, Khoa học viễn tưởng, Phiêu lưu
-('PTL010', 'P5', 'TL1'),
-('PTL011', 'P5', 'TL10'),
-('PTL012', 'P5', 'TL6'),
-
--- P6 - Khủng Long Đón Tết → Hoạt hình, Gia đình, Hài
-('PTL013', 'P6', 'TL2'),
-('PTL014', 'P6', 'TL7'),
-('PTL015', 'P6', 'TL5'),
-
--- P7 - Tuyển Thủ Dê → Hoạt hình, Gia đình
-('PTL016', 'P7', 'TL2'),
-('PTL017', 'P7', 'TL7'),
-
--- P8 - Doraemon Movie → Hoạt hình, Phiêu lưu, Gia đình
-('PTL018', 'P8', 'TL2'),
-('PTL019', 'P8', 'TL6'),
-('PTL020', 'P8', 'TL7'),
-
--- P9 - Conan Movie → Hành động, Phiêu lưu
-('PTL021', 'P9', 'TL1'),
-('PTL022', 'P9', 'TL6'),
-
--- P10 - One Piece Film → Hành động, Phiêu lưu, Giả tưởng
-('PTL023', 'P10', 'TL1'),
-('PTL024', 'P10', 'TL6'),
-('PTL025', 'P10', 'TL8'),
-
--- P11 - Fast & Furious 10 → Hành động
+('PTL010', 'P5', 'TL1'), ('PTL011', 'P5', 'TL10'), ('PTL012', 'P5', 'TL6'),
+('PTL013', 'P6', 'TL2'), ('PTL014', 'P6', 'TL7'), ('PTL015', 'P6', 'TL5'),
+('PTL016', 'P7', 'TL2'), ('PTL017', 'P7', 'TL7'),
+('PTL018', 'P8', 'TL2'), ('PTL019', 'P8', 'TL6'), ('PTL020', 'P8', 'TL7'),
+('PTL021', 'P9', 'TL1'), ('PTL022', 'P9', 'TL6'),
+('PTL023', 'P10', 'TL1'), ('PTL024', 'P10', 'TL6'), ('PTL025', 'P10', 'TL8'),
 ('PTL026', 'P11', 'TL1'),
-
--- P12 - Spider-Man: New World → Hành động, Giả tưởng, Phiêu lưu
-('PTL027', 'P12', 'TL1'),
-('PTL028', 'P12', 'TL8'),
-('PTL029', 'P12', 'TL6'),
-
--- P13 - Frozen 3 → Hoạt hình, Gia đình, Giả tưởng
-('PTL030', 'P13', 'TL2'),
-('PTL031', 'P13', 'TL7'),
-('PTL032', 'P13', 'TL8'),
-
--- P14 - The Nun 3 → Kinh dị
+('PTL027', 'P12', 'TL1'), ('PTL028', 'P12', 'TL8'), ('PTL029', 'P12', 'TL6'),
+('PTL030', 'P13', 'TL2'), ('PTL031', 'P13', 'TL7'), ('PTL032', 'P13', 'TL8'),
 ('PTL033', 'P14', 'TL3'),
-
--- P15 - Joker 2 → Tâm lý, Hành động
-('PTL034', 'P15', 'TL9'),
-('PTL035', 'P15', 'TL1'),
-
--- P16 - Avengers: Endgame → Hành động, Giả tưởng, Khoa học viễn tưởng
-('PTL036', 'P16', 'TL1'),
-('PTL037', 'P16', 'TL8'),
-('PTL038', 'P16', 'TL10'),
-
--- P17 - Titanic → Tình cảm
+('PTL034', 'P15', 'TL9'), ('PTL035', 'P15', 'TL1'),
+('PTL036', 'P16', 'TL1'), ('PTL037', 'P16', 'TL8'), ('PTL038', 'P16', 'TL10'),
 ('PTL039', 'P17', 'TL4'),
+('PTL040', 'P18', 'TL10'), ('PTL041', 'P18', 'TL9'), ('PTL042', 'P18', 'TL6'),
+('PTL043', 'P19', 'TL2'), ('PTL044', 'P19', 'TL7'),
+('PTL045', 'P20', 'TL2'), ('PTL046', 'P20', 'TL5'), ('PTL047', 'P20', 'TL7'),
+('PTL048', 'P21', 'TL1'), ('PTL049', 'P21', 'TL10'),
+('PTL050', 'P22', 'TL1'), ('PTL051', 'P22', 'TL6'), ('PTL052', 'P22', 'TL10'),
+('PTL053', 'P23', 'TL2'), ('PTL054', 'P23', 'TL7'), ('PTL055', 'P23', 'TL8'),
+('PTL056', 'P24', 'TL1'), ('PTL057', 'P24', 'TL10'), ('PTL058', 'P24', 'TL9'),
+('PTL059', 'P25', 'TL1'), ('PTL060', 'P25', 'TL8'),
+('PTL061', 'P26', 'TL1'), ('PTL062', 'P26', 'TL6'), ('PTL063', 'P26', 'TL8'),
+('PTL064', 'P27', 'TL1'), ('PTL065', 'P27', 'TL8'),
+('PTL066', 'P28', 'TL2'), ('PTL067', 'P28', 'TL6'), ('PTL068', 'P28', 'TL7'), ('PTL069', 'P28', 'TL8'),
+('PTL073', 'P30', 'TL2'), ('PTL074', 'P30', 'TL1'), ('PTL075', 'P30', 'TL5'), ('PTL076', 'P30', 'TL7');
 
--- P18 - Interstellar → Khoa học viễn tưởng, Tâm lý, Phiêu lưu
-('PTL040', 'P18', 'TL10'),
-('PTL041', 'P18', 'TL9'),
-('PTL042', 'P18', 'TL6'),
-
--- P19 - The Lion King → Hoạt hình, Gia đình
-('PTL043', 'P19', 'TL2'),
-('PTL044', 'P19', 'TL7'),
-
--- P20 - Minions → Hoạt hình, Hài, Gia đình
-('PTL045', 'P20', 'TL2'),
-('PTL046', 'P20', 'TL5'),
-('PTL047', 'P20', 'TL7'),
-
--- P21 - Transformers → Hành động, Khoa học viễn tưởng
-('PTL048', 'P21', 'TL1'),
-('PTL049', 'P21', 'TL10'),
-
--- P22 - Jurassic World → Hành động, Phiêu lưu, Khoa học viễn tưởng
-('PTL050', 'P22', 'TL1'),
-('PTL051', 'P22', 'TL6'),
-('PTL052', 'P22', 'TL10'),
-
--- P23 - Frozen → Hoạt hình, Gia đình, Giả tưởng
-('PTL053', 'P23', 'TL2'),
-('PTL054', 'P23', 'TL7'),
-('PTL055', 'P23', 'TL8'),
-
--- P24 - Inception → Hành động, Khoa học viễn tưởng, Tâm lý
-('PTL056', 'P24', 'TL1'),
-('PTL057', 'P24', 'TL10'),
-('PTL058', 'P24', 'TL9'),
-
--- P25 - Doctor Strange → Hành động, Giả tưởng
-('PTL059', 'P25', 'TL1'),
-('PTL060', 'P25', 'TL8'),
-
--- P26 - Aquaman → Hành động, Phiêu lưu, Giả tưởng
-('PTL061', 'P26', 'TL1'),
-('PTL062', 'P26', 'TL6'),
-('PTL063', 'P26', 'TL8'),
-
--- P27 - Black Panther → Hành động, Giả tưởng
-('PTL064', 'P27', 'TL1'),
-('PTL065', 'P27', 'TL8'),
-
--- P28 - Aladdin → Hoạt hình, Phiêu lưu, Gia đình, Giả tưởng
-('PTL066', 'P28', 'TL2'),
-('PTL067', 'P28', 'TL6'),
-('PTL068', 'P28', 'TL7'),
-('PTL069', 'P28', 'TL8'),
-
--- P30 - Kung Fu Panda → Hoạt hình, Hành động, Hài, Gia đình
-('PTL073', 'P30', 'TL2'),
-('PTL074', 'P30', 'TL1'),
-('PTL075', 'P30', 'TL5'),
-('PTL076', 'P30', 'TL7');
-
--- 13. LOẠI SẢN PHẨM ĐI KÈM
+-- 15. LOẠI SẢN PHẨM ĐI KÈM
 INSERT INTO loai_san_pham_di_kem (id, ten_loai, nguoi_tao) VALUES 
 ('lsp-popcorn', 'Bắp', 'system'),
 ('lsp-drink', 'Nước', 'system');
 
--- 14. KÍCH CỠ
+-- 16. KÍCH CỠ
 INSERT INTO kich_co (id, ten_kich_co, mo_ta) VALUES 
-('kc-s', 'S', 'Nhỏ'),
-('kc-m', 'M', 'Vừa'),
-('kc-l', 'L', 'Lớn'),
-('kc-xl', 'XL', 'Rất lớn');
+('kc-s', 'S', 'Nhỏ'), ('kc-m', 'M', 'Vừa'), ('kc-l', 'L', 'Lớn'), ('kc-xl', 'XL', 'Rất lớn');
 
--- 15. ĐƠN VỊ TÍNH
+-- 17. ĐƠN VỊ TÍNH
 INSERT INTO don_vi_tinh (id, ten_don_vi_tinh, mo_ta) VALUES 
-('dvt-g', 'g', 'Gram'),
-('dvt-ml', 'ml', 'Milliliter'),
-('dvt-ly', 'Ly', 'Ly'),
-('dvt-hop', 'Hộp', 'Hộp');
+('dvt-g', 'g', 'Gram'), ('dvt-ml', 'ml', 'Milliliter'), ('dvt-ly', 'Ly', 'Ly'), ('dvt-hop', 'Hộp', 'Hộp');
 
--- 16. SẢN PHẨM ĐI KÈM
+-- 18. SẢN PHẨM ĐI KÈM
 INSERT INTO san_pham_di_kem (id, id_loai_san_pham, ten_san_pham, mo_ta, hinh_anh, trang_thai, nguoi_tao) VALUES
 ('sp-popcorn-cheese', 'lsp-popcorn', 'Bắp Phô Mai', 'Bắp rang bơ vị phô mai thơm ngon, giòn tan', 'https://images.unsplash.com/photo-1585735024088-0c4e0e5b3b3e?w=400', 1, 'system'),
 ('sp-popcorn-caramel', 'lsp-popcorn', 'Bắp Caramel', 'Bắp rang bơ caramel ngọt ngào, hấp dẫn', 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=400', 1, 'system'),
@@ -451,95 +362,68 @@ INSERT INTO san_pham_di_kem (id, id_loai_san_pham, ten_san_pham, mo_ta, hinh_anh
 ('sp-nuoc-suoi', 'lsp-drink', 'Nước Suối', 'Nước suối tinh khiết Aquafina', 'https://images.unsplash.com/photo-1560023907-5f339617ea55?w=400', 1, 'system'),
 ('sp-popcorn-spicy', 'lsp-popcorn', 'Bắp Cay', 'Bắp rang bơ vị cay nồng, kích thích vị giác', 'https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?w=400', 1, 'system');
 
--- 17. CHI TIẾT SẢN PHẨM ĐI KÈM (Biến thể theo Size)
+-- 19. CHI TIẾT SẢN PHẨM ĐI KÈM
 INSERT INTO chi_tiet_san_pham_di_kem (id, id_san_pham, id_kich_co, id_don_vi_tinh, gia_tri_dinh_luong, huong_vi, gia_ban, so_luong_ton, nguoi_tao) VALUES
--- Bắp Phô Mai: S/M/L
 ('ct-pc-s', 'sp-popcorn-cheese', 'kc-s', 'dvt-g', 50, 'Phô Mai', 35000, 100, 'system'),
 ('ct-pc-m', 'sp-popcorn-cheese', 'kc-m', 'dvt-g', 80, 'Phô Mai', 49000, 80, 'system'),
 ('ct-pc-l', 'sp-popcorn-cheese', 'kc-l', 'dvt-g', 120, 'Phô Mai', 65000, 60, 'system'),
-
--- Bắp Caramel: S/M/L
 ('ct-pcr-s', 'sp-popcorn-caramel', 'kc-s', 'dvt-g', 50, 'Caramel', 35000, 90, 'system'),
 ('ct-pcr-m', 'sp-popcorn-caramel', 'kc-m', 'dvt-g', 80, 'Caramel', 49000, 70, 'system'),
 ('ct-pcr-l', 'sp-popcorn-caramel', 'kc-l', 'dvt-g', 120, 'Caramel', 65000, 50, 'system'),
-
--- Bắp Bơ Truyền Thống: S/M/L
 ('ct-pb-s', 'sp-popcorn-butter', 'kc-s', 'dvt-g', 50, 'Bơ', 30000, 120, 'system'),
 ('ct-pb-m', 'sp-popcorn-butter', 'kc-m', 'dvt-g', 80, 'Bơ', 42000, 100, 'system'),
 ('ct-pb-l', 'sp-popcorn-butter', 'kc-l', 'dvt-g', 120, 'Bơ', 55000, 80, 'system'),
-
--- Bắp Cay: M/L
 ('ct-ps-m', 'sp-popcorn-spicy', 'kc-m', 'dvt-g', 80, 'Cay', 49000, 60, 'system'),
 ('ct-ps-l', 'sp-popcorn-spicy', 'kc-l', 'dvt-g', 120, 'Cay', 65000, 40, 'system'),
-
--- Coca Cola: S/M/L
 ('ct-cc-s', 'sp-coca', 'kc-s', 'dvt-ml', 300, NULL, 25000, 200, 'system'),
 ('ct-cc-m', 'sp-coca', 'kc-m', 'dvt-ml', 500, NULL, 35000, 150, 'system'),
 ('ct-cc-l', 'sp-coca', 'kc-l', 'dvt-ml', 700, NULL, 45000, 100, 'system'),
-
--- Pepsi: S/M/L
 ('ct-pp-s', 'sp-pepsi', 'kc-s', 'dvt-ml', 300, NULL, 25000, 180, 'system'),
 ('ct-pp-m', 'sp-pepsi', 'kc-m', 'dvt-ml', 500, NULL, 35000, 130, 'system'),
 ('ct-pp-l', 'sp-pepsi', 'kc-l', 'dvt-ml', 700, NULL, 45000, 90, 'system'),
-
--- Trà Đào Cam Sả: M/L
 ('ct-td-m', 'sp-tra-dao', 'kc-m', 'dvt-ml', 500, 'Đào Cam Sả', 39000, 80, 'system'),
 ('ct-td-l', 'sp-tra-dao', 'kc-l', 'dvt-ml', 700, 'Đào Cam Sả', 49000, 60, 'system'),
-
--- Nước Suối: S
 ('ct-ns-s', 'sp-nuoc-suoi', 'kc-s', 'dvt-ml', 500, NULL, 15000, 300, 'system');
--- =================================================================
--- 18. BẢNG PHÂN QUYỀN (Bắt buộc để đăng nhập)
--- =================================================================
-INSERT INTO phan_quyen (id, ma_phan_quyen, ten_vai_tro, quyen_han, nguoi_tao) VALUES
-                                                                                  ('pq-admin', 'ROLE_ADMIN', 'Quản trị viên', 'ALL', 'system'),
-                                                                                  ('pq-staff', 'ROLE_STAFF', 'Nhân viên bán vé', 'POS,CHECKIN', 'system');
 
 -- =================================================================
--- 19. BẢNG NHÂN VIÊN (Để lưu người tạo Hóa đơn)
+-- 20. NHÂN VIÊN
 -- =================================================================
-INSERT INTO nhan_vien (id, id_phan_quyen, ma_nhan_vien, ten_nhan_vien, chuc_vu, email, mat_khau, so_dien_thoai, nguoi_tao) VALUES
-                                                                                                                               ('nv-admin', 'pq-admin', 'NV001', 'Nguyễn Huy Đức', 'Quản lý', 'admin@cineops.com', '$2a$12$7k...', '0988888888', 'system'),
-                                                                                                                               ('nv-staff', 'pq-staff', 'NV002', 'Lê Thị Nhân Viên', 'Bán vé', 'staff@cineops.com', '$2a$12$7k...', '0911111111', 'system');
+INSERT INTO nhan_vien (id, id_tai_khoan, ma_nhan_vien, ten_nhan_vien, chuc_vu, so_dien_thoai, cccd, ngay_sinh, gioi_tinh, trang_thai, nguoi_tao) VALUES
+('nv-admin', 'tk-nv-admin', 'NV001', 'Nguyễn Huy Đức', 'Quản lý', '0988888888', '123456789012', '1995-01-01', 1, 1, 'system'),
+('nv-staff', 'tk-nv-staff', 'NV002', 'Lê Thị Nhân Viên', 'Bán vé', '0911111111', '123456789013', '1998-05-15', 0, 1, 'system');
 
 -- =================================================================
--- 20. BẢNG GIÁ VÉ CHI TIẾT (Bắt buộc để hàm Tính Giá Vé không bị lỗi Null)
--- Map chuẩn với các ID loại ngày, khách, ghế, khung giờ trong script của Đức
+-- 21. BẢNG GIÁ VÉ CHI TIẾT
 -- =================================================================
 INSERT INTO gia_ve_chi_tiet (id, id_loai_ngay, id_loai_khach_hang, id_loai_ghe, id_khung_gio, gia_tien, nguoi_tao) VALUES
-                                                                                                                       ('gvct-1', 'ln-thuong', 'lkh-member-uuid', 'lg-normal-uuid', 'kg-02-uuid', 0, 'system'),
-                                                                                                                       ('gvct-2', 'ln-thuong', 'lkh-member-uuid', 'lg-vip-uuid', 'kg-02-uuid', 20000, 'system'),
-                                                                                                                       ('gvct-3', 'ln-cuoituan', 'lkh-member-uuid', 'lg-normal-uuid', 'kg-04-uuid', 10000, 'system'),
-                                                                                                                       ('gvct-4', 'ln-cuoituan', 'lkh-member-uuid', 'lg-vip-uuid', 'kg-04-uuid', 30000, 'system');
+('gvct-1', 'ln-thuong', 'lkh-member-uuid', 'lg-normal-uuid', 'kg-02-uuid', 0, 'system'),
+('gvct-2', 'ln-thuong', 'lkh-member-uuid', 'lg-vip-uuid', 'kg-02-uuid', 20000, 'system'),
+('gvct-3', 'ln-cuoituan', 'lkh-member-uuid', 'lg-normal-uuid', 'kg-04-uuid', 10000, 'system'),
+('gvct-4', 'ln-cuoituan', 'lkh-member-uuid', 'lg-vip-uuid', 'kg-04-uuid', 30000, 'system');
 
 -- =================================================================
--- 21. TẠO 1 SUẤT CHIẾU CÓ ID CỐ ĐỊNH (Dùng làm mồi cho Hóa Đơn)
+-- 22. TẠO 1 SUẤT CHIẾU CÓ ID CỐ ĐỊNH
 -- =================================================================
 INSERT INTO suat_chieu (id, id_khung_gio, id_phong_chieu, id_phim, ngay_chieu, so_ghe_trong, trang_thai, nguoi_tao) VALUES
-    ('sc-fix-001', 'kg-04-uuid', 'pc-001-uuid-001', 'P1', CURDATE(), 40, 1, 'system');
+('sc-fix-001', 'kg-04-uuid', 'pc-001-uuid-001', 'P1', CURDATE(), 40, 1, 'system');
 
 -- =================================================================
--- 22. TẠO HÓA ĐƠN & GIAO DỊCH MẪU (Để xem được trên màn hình Vue 3)
+-- 23. TẠO HÓA ĐƠN & GIAO DỊCH MẪU
 -- =================================================================
--- a. Tạo 1 Vé (Đã thanh toán, version=0)
-INSERT INTO ve (id, id_loai_khach_hang, id_ghe, id_suat_chieu, ma_ve, gia_thanh_toan, loai_ve, trang_thai, version) VALUES
-                                                                                                               ('ve-001', 'lkh-member-uuid', (SELECT id FROM ghe WHERE so_ghe = 'A1' AND id_phong_chieu = 'pc-001-uuid-001' LIMIT 1), 'sc-fix-001', 'VE-001', 65000, 0, 1, 0);
+INSERT INTO ve (id, id_loai_khach_hang, id_ghe, id_suat_chieu, ma_ve, gia_thanh_toan, loai_ve, trang_thai, version, ngay_tao, nguoi_tao) VALUES
+('ve-001-uuid', 'lkh-member-uuid', (SELECT id FROM ghe WHERE so_ghe = 'A1' AND id_phong_chieu = 'pc-001-uuid-001' LIMIT 1), 'sc-fix-001', 'VE-001', 65000.00, 0, 1, 0, NOW(), 'staff@cineops.com');
 
--- b. Tạo Hóa Đơn đã thanh toán (trang_thai=1, thoi_gian_het_han=NULL vì đã xong)
-INSERT INTO hoa_don (id, id_nhan_vien, id_khach_hang, ma_hoa_don, tong_tien, so_tien_giam, tong_tien_thanh_toan, phuong_thuc_thanh_toan, trang_thai, thoi_gian_het_han) VALUES
-    ('hd-001', 'nv-staff', 'kh-001-uuid', 'HD-1700000000', 114000, 0, 114000, 1, 1, NULL);
+INSERT INTO hoa_don (id, id_nhan_vien, id_khach_hang, id_phieu_giam_gia, ma_hoa_don, tong_tien, so_tien_giam, tong_tien_thanh_toan, phuong_thuc_thanh_toan, kenh_ban_hang, trang_thai, ghi_chu, thoi_gian_het_han, ngay_tao, nguoi_tao) VALUES
+('hd-001-uuid', 'nv-staff', 'kh-001-uuid', NULL, 'HD-1700000000', 114000.00, 0.00, 114000.00, 1, 1, 1, 'Hóa đơn bán vé tại quầy', NULL, NOW(), 'staff@cineops.com');
 
--- c. Tạo Chi tiết Hóa Đơn (1 dòng vé phim, 1 dòng bắp)
 INSERT INTO hoa_don_chi_tiet (id, id_hoa_don, id_ve, loai, so_luong, don_gia, thanh_tien) VALUES
-    ('hdct-ve1', 'hd-001', 've-001', 0, 1, 65000, 65000);
+('hdct-ve1', 'hd-001-uuid', 've-001-uuid', 0, 1, 65000.00, 65000.00);
 
--- Map với id 'ct-pc-m' (Bắp Phô Mai size M) trong script của Đức
 INSERT INTO hoa_don_chi_tiet (id, id_hoa_don, id_chi_tiet_san_pham_di_kem, loai, so_luong, don_gia, thanh_tien) VALUES
-    ('hdct-sp1', 'hd-001', 'ct-pc-m', 1, 1, 49000, 49000);
+('hdct-sp1', 'hd-001-uuid', 'ct-pc-m', 1, 1, 49000.00, 49000.00);
 
--- d. Ghi nhận Thanh toán và Lịch sử
 INSERT INTO thanh_toan (id, id_hoa_don, ma_giao_dich, phuong_thuc_thanh_toan, so_tien, trang_thai) VALUES
-    ('tt-001', 'hd-001', 'VNPay-12345', 1, 114000, 1);
+('tt-001', 'hd-001-uuid', 'VNPay-12345', 1, 114000.00, 1);
 
 INSERT INTO lich_su_hoa_don (id, hoa_don_id, hanh_dong, trang_thai) VALUES
-    ('lshd-001', 'hd-001', 'Tạo hóa đơn tại quầy', 1);
+('lshd-001', 'hd-001-uuid', 'Tạo hóa đơn tại quầy', 1);

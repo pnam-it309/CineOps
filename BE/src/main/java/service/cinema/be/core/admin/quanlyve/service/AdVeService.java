@@ -13,6 +13,7 @@ public interface AdVeService {
     // Nghiệp vụ chốt đơn đặt vé
     List<AdVeResponse> datVeMoi(AdDatVeRequest request);
     void huyVe(String idVe);
+    AdVeResponse getById(String id);
     AdVeThongKeResponse getThongKe();
 
 }

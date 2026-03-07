@@ -37,6 +37,11 @@ export const gheService = {
     return axios.put(`${API_ADMIN_GHE}/${id}`, seatData);
   },
 
+  // Cập nhật nhiều ghế cùng lúc
+  updateBulkSeats(bulkData) {
+    return axios.put(`${API_ADMIN_GHE}/bulk`, bulkData);
+  },
+
   // Xóa ghế
   deleteSeat(id) {
     return axios.delete(`${API_ADMIN_GHE}/${id}`);
