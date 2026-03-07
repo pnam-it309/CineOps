@@ -180,113 +180,219 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
 
         return savedHoaDon;
     }
-    @Override
-    @Transactional(readOnly = true)
-    public Page<AdHoaDonResponse> timKiemHoaDon(
-            String tuKhoa, Integer trangThai,
-            BigDecimal minPrice, BigDecimal maxPrice,
-            LocalDate tuNgay, LocalDate denNgay,
-            String kyThoiGian, // THÊM THAM SỐ NÀY
-            Integer phuongThucThanhToan, // THÊM TRƯỜNG KHÁC VÍ DỤ
-            int page, int size) {
+//    @Override
+//    @Transactional(readOnly = true)
+//    public Page<AdHoaDonResponse> timKiemHoaDon(
+//            String tuKhoa, Integer trangThai,
+//            BigDecimal minPrice, BigDecimal maxPrice,
+//            LocalDate tuNgay, LocalDate denNgay,
+//            String kyThoiGian, // THÊM THAM SỐ NÀY
+//            Integer phuongThucThanhToan, // THÊM TRƯỜNG KHÁC VÍ DỤ
+//            int page, int size) {
+//
+//        // 1. XỬ LÝ LOGIC "KỲ THỜI GIAN" (NẾU CÓ)
+//        if (kyThoiGian != null && !kyThoiGian.trim().isEmpty()) {
+//            LocalDate now = LocalDate.now(); // Lấy ngày hiện tại của Server
+//            switch (kyThoiGian.toUpperCase()) {
+//                case "TODAY": // Hôm nay
+//                    tuNgay = now;
+//                    denNgay = now;
+//                    break;
+//                case "THIS_WEEK": // Tuần này (Từ Thứ 2 đến Chủ nhật)
+//                    tuNgay = now.with(DayOfWeek.MONDAY);
+//                    denNgay = now.with(DayOfWeek.SUNDAY);
+//                    break;
+//                case "THIS_MONTH": // Tháng này (Từ ngày 1 đến ngày cuối tháng)
+//                    tuNgay = now.with(TemporalAdjusters.firstDayOfMonth());
+//                    denNgay = now.with(TemporalAdjusters.lastDayOfMonth());
+//                    break;
+//                case "THIS_QUARTER": // Quý này
+//                    int currentQuarter = (now.getMonthValue() - 1) / 3 + 1;
+//                    int startMonth = (currentQuarter - 1) * 3 + 1;
+//                    tuNgay = LocalDate.of(now.getYear(), startMonth, 1);
+//                    denNgay = tuNgay.plusMonths(2).with(TemporalAdjusters.lastDayOfMonth());
+//                    break;
+//                case "THIS_YEAR": // Năm nay
+//                    tuNgay = now.with(TemporalAdjusters.firstDayOfYear());
+//                    denNgay = now.with(TemporalAdjusters.lastDayOfYear());
+//                    break;
+//            }
+//        }
+//
+//        // Cần copy các biến này ra final/effectively final để dùng trong Lambda (Specification)
+//        final LocalDate finalTuNgay = tuNgay;
+//        final LocalDate finalDenNgay = denNgay;
+//
+//        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
+//
+//        // 2. BUILD SPECIFICATION (CÂU QUERY ĐỘNG)
+//        Specification<HoaDon> spec = (root, query, cb) -> {
+//            List<Predicate> predicates = new ArrayList<>();
+//
+//            // Lọc từ khóa
+//            if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+//                predicates.add(cb.like(cb.lower(root.get("maHoaDon")), "%" + tuKhoa.trim().toLowerCase() + "%"));
+//            }
+//            // Lọc trạng thái
+//            if (trangThai != null) predicates.add(cb.equal(root.get("trangThai"), trangThai));
+//
+//            // LỌC CÁC TRƯỜNG KHÁC (Ví dụ: Phương thức thanh toán)
+//            if (phuongThucThanhToan != null) {
+//                predicates.add(cb.equal(root.get("phuongThucThanhToan"), phuongThucThanhToan));
+//            }
+//            // TODO: Nếu muốn lọc theo ID Khách hàng, ID Nhân viên, chỉ cần copy block if trên và đổi tên cột!
+//
+//            // Lọc khoảng giá
+//            if (minPrice != null) predicates.add(cb.greaterThanOrEqualTo(root.get("tongTienThanhToan"), minPrice));
+//            if (maxPrice != null) predicates.add(cb.lessThanOrEqualTo(root.get("tongTienThanhToan"), maxPrice));
+//
+//            // Lọc khoảng ngày (Đã được nội suy từ kyThoiGian ở trên)
+//            if (finalTuNgay != null) predicates.add(cb.greaterThanOrEqualTo(root.get("ngayTao"), finalTuNgay.atStartOfDay()));
+//            if (finalDenNgay != null) predicates.add(cb.lessThanOrEqualTo(root.get("ngayTao"), finalDenNgay.atTime(23, 59, 59)));
+//
+//            return cb.and(predicates.toArray(new Predicate[0]));
+//        };
+//
+//        // Trả về DTO như cũ...
+//        return adHoaDonRepository.findAll(spec, pageable).map(hoaDon -> {
+//            AdHoaDonResponse dto = new AdHoaDonResponse();
+//
+//            // Map các trường cơ bản
+//            dto.setId(hoaDon.getId());
+//            dto.setMaHoaDon(hoaDon.getMaHoaDon());
+//            dto.setTongTien(hoaDon.getTongTien());
+//            dto.setSoTienGiam(hoaDon.getSoTienGiam());
+//            dto.setTongTienThanhToan(hoaDon.getTongTienThanhToan());
+//            dto.setPhuongThucThanhToan(hoaDon.getPhuongThucThanhToan());
+//            dto.setTrangThai(hoaDon.getTrangThai());
+//            dto.setGhiChu(hoaDon.getGhiChu());
+//
+//            // Lấy ngayTao từ PrimaryEntity (Giả sử PrimaryEntity có hàm getNgayTao())
+//            dto.setNgayTao(hoaDon.getNgayTao());
+//            dto.setKemBanHang(hoaDon.getKenhBanHang());
+//
+//            // Map an toàn NhanVien và KhachHang (Tránh lỗi NullPointerException)
+//            if (hoaDon.getNhanVien() != null) {
+//                dto.setTenNhanVien(hoaDon.getNhanVien().getTenNhanVien());
+//            } else {
+//                dto.setTenNhanVien("Hệ thống");
+//            }
+//
+//            if (hoaDon.getKhachHang() != null) {
+//                dto.setTenKhachHang(hoaDon.getKhachHang().getTenKhachHang());
+//            } else {
+//                dto.setTenKhachHang("Khách lẻ");
+//            }
+//
+//            return dto;
+//        });
+//    }
+@Override
+@Transactional(readOnly = true)
+public Page<AdHoaDonResponse> timKiemHoaDon(
+        String tuKhoa, Integer trangThai,
+        BigDecimal minPrice, BigDecimal maxPrice,
+        LocalDate tuNgay, LocalDate denNgay,
+        String kyThoiGian,
+        Integer phuongThucThanhToan,
+        String sortDir,
+        int page, int size) {
 
-        // 1. XỬ LÝ LOGIC "KỲ THỜI GIAN" (NẾU CÓ)
-        if (kyThoiGian != null && !kyThoiGian.trim().isEmpty()) {
-            LocalDate now = LocalDate.now(); // Lấy ngày hiện tại của Server
-            switch (kyThoiGian.toUpperCase()) {
-                case "TODAY": // Hôm nay
-                    tuNgay = now;
-                    denNgay = now;
-                    break;
-                case "THIS_WEEK": // Tuần này (Từ Thứ 2 đến Chủ nhật)
-                    tuNgay = now.with(DayOfWeek.MONDAY);
-                    denNgay = now.with(DayOfWeek.SUNDAY);
-                    break;
-                case "THIS_MONTH": // Tháng này (Từ ngày 1 đến ngày cuối tháng)
-                    tuNgay = now.with(TemporalAdjusters.firstDayOfMonth());
-                    denNgay = now.with(TemporalAdjusters.lastDayOfMonth());
-                    break;
-                case "THIS_QUARTER": // Quý này
-                    int currentQuarter = (now.getMonthValue() - 1) / 3 + 1;
-                    int startMonth = (currentQuarter - 1) * 3 + 1;
-                    tuNgay = LocalDate.of(now.getYear(), startMonth, 1);
-                    denNgay = tuNgay.plusMonths(2).with(TemporalAdjusters.lastDayOfMonth());
-                    break;
-                case "THIS_YEAR": // Năm nay
-                    tuNgay = now.with(TemporalAdjusters.firstDayOfYear());
-                    denNgay = now.with(TemporalAdjusters.lastDayOfYear());
-                    break;
-            }
+    // 1. NỘI SUY KHOẢNG NGÀY NẾU CHỌN "KỲ THỜI GIAN"
+    if (kyThoiGian != null && !kyThoiGian.trim().isEmpty()) {
+        LocalDate now = LocalDate.now();
+        switch (kyThoiGian.toUpperCase()) {
+            case "TODAY":
+                tuNgay = now; denNgay = now; break;
+            case "THIS_WEEK":
+                tuNgay = now.with(java.time.DayOfWeek.MONDAY);
+                denNgay = now.with(java.time.DayOfWeek.SUNDAY); break;
+            case "THIS_MONTH":
+                tuNgay = now.with(java.time.temporal.TemporalAdjusters.firstDayOfMonth());
+                denNgay = now.with(java.time.temporal.TemporalAdjusters.lastDayOfMonth()); break;
+            case "THIS_YEAR":
+                tuNgay = now.with(java.time.temporal.TemporalAdjusters.firstDayOfYear());
+                denNgay = now.with(java.time.temporal.TemporalAdjusters.lastDayOfYear()); break;
+        }
+    }
+
+    // Biến final để dùng trong Lambda Specification
+    final LocalDate finalTuNgay = tuNgay;
+    final LocalDate finalDenNgay = denNgay;
+    // 1. Tính toán hướng sắp xếp dựa trên tham số sortDir
+    Sort.Direction direction = sortDir.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+// 2. Sử dụng biến 'direction' để Pageable thực thi sắp xếp động
+    Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "ngayTao"));
+
+    // 2. XÂY DỰNG SPECIFICATION (CÂU TRUY VẤN ĐỘNG)
+    Specification<HoaDon> spec = (root, query, cb) -> {
+        List<Predicate> predicates = new ArrayList<>();
+
+        // A. TÌM KIẾM TỪ KHÓA ĐA NĂNG (Mã HD | Tên khách hàng | SĐT khách hàng)
+        if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+            String keyword = "%" + tuKhoa.trim().toLowerCase() + "%";
+            // Thực hiện Join sang bảng khách hàng (Dùng LEFT JOIN cho cả khách lẻ)
+            jakarta.persistence.criteria.Join<HoaDon, KhachHang> khJoin = root.join("khachHang", jakarta.persistence.criteria.JoinType.LEFT);
+
+            predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("maHoaDon")), keyword),
+                    cb.like(cb.lower(khJoin.get("tenKhachHang")), keyword),
+                    cb.like(khJoin.get("sdt"), keyword)
+            ));
         }
 
-        // Cần copy các biến này ra final/effectively final để dùng trong Lambda (Specification)
-        final LocalDate finalTuNgay = tuNgay;
-        final LocalDate finalDenNgay = denNgay;
+        // B. LỌC THEO TRẠNG THÁI & PHƯƠNG THỨC THANH TOÁN
+        if (trangThai != null) predicates.add(cb.equal(root.get("trangThai"), trangThai));
+        if (phuongThucThanhToan != null) predicates.add(cb.equal(root.get("phuongThucThanhToan"), phuongThucThanhToan));
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
+        // C. LỌC THEO KHOẢNG GIÁ (Tổng thanh toán cuối cùng)
+        if (minPrice != null) predicates.add(cb.greaterThanOrEqualTo(root.get("tongTienThanhToan"), minPrice));
+        if (maxPrice != null) predicates.add(cb.lessThanOrEqualTo(root.get("tongTienThanhToan"), maxPrice));
 
-        // 2. BUILD SPECIFICATION (CÂU QUERY ĐỘNG)
-        Specification<HoaDon> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
+        // D. LỌC THEO KHOẢNG THỜI GIAN (Xử lý mốc 00:00:00 và 23:59:59)
+        if (finalTuNgay != null) predicates.add(cb.greaterThanOrEqualTo(root.get("ngayTao"), finalTuNgay.atStartOfDay()));
+        if (finalDenNgay != null) predicates.add(cb.lessThanOrEqualTo(root.get("ngayTao"), finalDenNgay.atTime(23, 59, 59)));
 
-            // Lọc từ khóa
-            if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("maHoaDon")), "%" + tuKhoa.trim().toLowerCase() + "%"));
-            }
-            // Lọc trạng thái
-            if (trangThai != null) predicates.add(cb.equal(root.get("trangThai"), trangThai));
+        return cb.and(predicates.toArray(new Predicate[0]));
+    };
 
-            // LỌC CÁC TRƯỜNG KHÁC (Ví dụ: Phương thức thanh toán)
-            if (phuongThucThanhToan != null) {
-                predicates.add(cb.equal(root.get("phuongThucThanhToan"), phuongThucThanhToan));
-            }
-            // TODO: Nếu muốn lọc theo ID Khách hàng, ID Nhân viên, chỉ cần copy block if trên và đổi tên cột!
+    // 3. THỰC THI TRUY VẤN VÀ MAPPING SANG DTO
+    return adHoaDonRepository.findAll(spec, pageable).map(hoaDon -> {
+        AdHoaDonResponse dto = new AdHoaDonResponse();
 
-            // Lọc khoảng giá
-            if (minPrice != null) predicates.add(cb.greaterThanOrEqualTo(root.get("tongTienThanhToan"), minPrice));
-            if (maxPrice != null) predicates.add(cb.lessThanOrEqualTo(root.get("tongTienThanhToan"), maxPrice));
+        // Mapping các trường tài chính & định danh
+        dto.setId(hoaDon.getId());
+        dto.setMaHoaDon(hoaDon.getMaHoaDon());
+        dto.setTongTien(hoaDon.getTongTien());
+        dto.setSoTienGiam(hoaDon.getSoTienGiam());
+        dto.setTongTienThanhToan(hoaDon.getTongTienThanhToan());
+        dto.setPhuongThucThanhToan(hoaDon.getPhuongThucThanhToan());
+        dto.setTrangThai(hoaDon.getTrangThai());
+        dto.setGhiChu(hoaDon.getGhiChu());
+        dto.setNgayTao(hoaDon.getNgayTao());
 
-            // Lọc khoảng ngày (Đã được nội suy từ kyThoiGian ở trên)
-            if (finalTuNgay != null) predicates.add(cb.greaterThanOrEqualTo(root.get("ngayTao"), finalTuNgay.atStartOfDay()));
-            if (finalDenNgay != null) predicates.add(cb.lessThanOrEqualTo(root.get("ngayTao"), finalDenNgay.atTime(23, 59, 59)));
+        // ĐỒNG BỘ: Map kenhBanHang sang kemBanHang để khớp với row.kemBanHang trên Vue 3
+        dto.setKemBanHang(hoaDon.getKenhBanHang());
 
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
+        // Mapping Nhân viên (Xử lý an toàn Null)
+        if (hoaDon.getNhanVien() != null) {
+            dto.setTenNhanVien(hoaDon.getNhanVien().getTenNhanVien());
+        } else {
+            dto.setTenNhanVien("Hệ thống");
+        }
 
-        // Trả về DTO như cũ...
-        return adHoaDonRepository.findAll(spec, pageable).map(hoaDon -> {
-            AdHoaDonResponse dto = new AdHoaDonResponse();
+        // Mapping Khách hàng (Xử lý an toàn Null)
+        if (hoaDon.getKhachHang() != null) {
+            dto.setTenKhachHang(hoaDon.getKhachHang().getTenKhachHang());
+            // Bổ sung thêm SĐT khách hàng vào DTO nếu cần hiển thị
+        } else {
+            dto.setTenKhachHang("Khách lẻ");
+        }
 
-            // Map các trường cơ bản
-            dto.setId(hoaDon.getId());
-            dto.setMaHoaDon(hoaDon.getMaHoaDon());
-            dto.setTongTien(hoaDon.getTongTien());
-            dto.setSoTienGiam(hoaDon.getSoTienGiam());
-            dto.setTongTienThanhToan(hoaDon.getTongTienThanhToan());
-            dto.setPhuongThucThanhToan(hoaDon.getPhuongThucThanhToan());
-            dto.setTrangThai(hoaDon.getTrangThai());
-            dto.setGhiChu(hoaDon.getGhiChu());
-
-            // Lấy ngayTao từ PrimaryEntity (Giả sử PrimaryEntity có hàm getNgayTao())
-            dto.setNgayTao(hoaDon.getNgayTao());
-            dto.setKemBanHang(hoaDon.getKenhBanHang());
-
-            // Map an toàn NhanVien và KhachHang (Tránh lỗi NullPointerException)
-            if (hoaDon.getNhanVien() != null) {
-                dto.setTenNhanVien(hoaDon.getNhanVien().getTenNhanVien());
-            } else {
-                dto.setTenNhanVien("Hệ thống");
-            }
-
-            if (hoaDon.getKhachHang() != null) {
-                dto.setTenKhachHang(hoaDon.getKhachHang().getTenKhachHang());
-            } else {
-                dto.setTenKhachHang("Khách lẻ");
-            }
-
-            return dto;
-        });
-    }
+        return dto;
+    });
+}
 
     /**
      * LẤY CHI TIẾT 1 HÓA ĐƠN (KHI BẤM NÚT XEM CHI TIẾT)

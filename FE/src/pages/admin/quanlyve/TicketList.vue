@@ -22,6 +22,7 @@ const totalElements = ref(0);
 const loading = ref(false);
 const detailVisible = ref(false);
 const selectedTicket = ref(null);
+const customDateRange = ref([]);
 
 const handleViewDetail = (ticket) => {
   selectedTicket.value = ticket;
@@ -287,19 +288,86 @@ onMounted(() => { loadData(); });
 
 
       <template #filters>
-        <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="params.trangThai" @change="loadData" placeholder="Trạng thái" clearable>
-            <el-option label="Tất cả trạng thái" value="" /> <el-option label="Thành công" :value="1" />
-            <el-option label="Đã hủy" :value="0" />
-          </el-select>
+        <div class="card border-0 bg-transparent w-100 p-0">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <el-input 
+                v-model="params.tuKhoa" 
+                placeholder="Mã vé, tên phim, SĐT khách..." 
+                :prefix-icon="Search" 
+                clearable 
+                class="w-100"
+                @input="onSearch" 
+              />
+            </div>
+            <div class="col-md-5">
+              <el-date-picker
+                v-model="customDateRange"
+                type="daterange"
+                range-separator="đến"
+                start-placeholder="Từ ngày"
+                end-placeholder="Đến ngày"
+                format="DD/MM/YYYY"
+                value-format="YYYY-MM-DD"
+                @change="handleDateChange"
+                class="w-100"
+              />
+            </div>
+            <div class="col-md-3">
+              <el-select v-model="params.kyThoiGian" placeholder="Kỳ thời gian nhanh" clearable @change="handlePeriodChange" class="w-100">
+                <el-option label="Hôm nay" value="TODAY"/>
+                <el-option label="Tuần này" value="THIS_WEEK"/>
+                <el-option label="Tháng này" value="THIS_MONTH"/>
+              </el-select>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-2">
+              <el-select v-model="params.trangThai" placeholder="Trạng thái" clearable @change="loadData" class="w-100">
+                <el-option label="Thành công" :value="1" />
+                <el-option label="Đã hủy" :value="0" />
+              </el-select>
+            </div>
+
+            <div class="col-md-4">
+              <div class="input-group shadow-sm rounded">
+                <span class="input-group-text bg-white text-secondary border-end-0">
+                  <i class="bi bi-cash-stack"></i>
+                </span>
+                <el-input-number 
+                  v-model="params.minPrice" 
+                  :controls="false" 
+                  placeholder="Giá từ" 
+                  class="flex-grow-1"
+                  @change="loadData"
+                />
+                <span class="input-group-text bg-white border-start-0 border-end-0">-</span>
+                <el-input-number 
+                  v-model="params.maxPrice" 
+                  :controls="false" 
+                  placeholder="Đến" 
+                  class="flex-grow-1"
+                  @change="loadData"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <el-select v-model="params.sortDir" placeholder="Sắp xếp" @change="loadData" class="w-100">
+                <template #prefix><i class="bi bi-sort-numeric-down"></i></template>
+                <el-option label="Mới nhất trước" value="DESC"/>
+                <el-option label="Cũ nhất trước" value="ASC"/>
+              </el-select>
+            </div>
+
+            <div class="col-md-3 d-flex gap-2 justify-content-end">
+              <el-button @click="resetFilter" icon="RefreshLeft" class="w-50">Làm mới</el-button>
+            
+            </div>
+          </div>
         </div>
-        <div class="filter-item search-input-wrapper">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-input v-model="params.tuKhoa" placeholder="Tìm mã vé, tên phim, SĐT khách hàng..." :prefix-icon="Search"
-            clearable @input="onSearch" />
-        </div>
-      </template>
+      </template> 
 
       <template #content>
         <BaseTable

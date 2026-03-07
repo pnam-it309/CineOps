@@ -10,6 +10,9 @@ import service.cinema.be.core.admin.quanlyve.dto.request.AdDatVeRequest;
 import service.cinema.be.core.admin.quanlyve.dto.response.AdVeResponse;
 import service.cinema.be.core.admin.quanlyve.dto.response.AdVeThongKeResponse;
 import service.cinema.be.core.admin.quanlyve.service.AdVeService;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import java.util.List;
 
@@ -25,15 +28,27 @@ public class AdVeController {
      * TÌM KIẾM + PHÂN TRANG
      * ==========================
      */
+    // Bổ sung các import cần thiết cho Date và BigDecimal
+
+
     @GetMapping("/tim-kiem")
     public ResponseEntity<Page<AdVeResponse>> timKiemVe(
-            @RequestParam(defaultValue = "") String tuKhoa,
+            @RequestParam(defaultValue = "") String tuKhoa, // Mã vé, Tên phim, SĐT khách
             @RequestParam(required = false) Integer trangThai,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate tuNgay,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate denNgay,
+            @RequestParam(required = false) String kyThoiGian, // TODAY, THIS_WEEK...
+            @RequestParam(defaultValue = "DESC") String sortDir,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<AdVeResponse> result =
-                adVeService.timKiemVe(tuKhoa, trangThai, page, size);
+        // Truyền đầy đủ tham số xuống tầng Service xử lý logic
+        Page<AdVeResponse> result = adVeService.timKiemVe(
+                tuKhoa, trangThai, minPrice, maxPrice,
+                tuNgay, denNgay, kyThoiGian, sortDir, page, size
+        );
 
         return ResponseEntity.ok(result);
     }
