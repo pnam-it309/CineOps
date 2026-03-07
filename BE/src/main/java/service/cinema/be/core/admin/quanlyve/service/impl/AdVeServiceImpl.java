@@ -204,7 +204,7 @@ public class AdVeServiceImpl implements AdVeService {
 
         if (ve.getGhe() != null) {
             dto.setViTriGhe(
-                    ve.getGhe().getSoHang() + ve.getGhe().getSoGhe()
+                    ve.getGhe().getSoGhe()
             );
         }
 
