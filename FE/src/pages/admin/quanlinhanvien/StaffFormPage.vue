@@ -8,8 +8,10 @@ import confirmDialog from '@/utils/confirm';
 import CCCDScanner from '@/components/common/CCCDScanner.vue';
 import { 
   User, Message, Phone, ArrowLeft, Check, 
-  Picture
+  Picture, MapLocation, Location
 } from '@element-plus/icons-vue';
+import { addressService } from '@/services/api/common/addressService';
+import { watch } from 'vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -32,8 +34,47 @@ const staffForm = reactive({
   anhNhanVien: '',
   idPhanQuyen: '',
   trangThai: 1,
+  thanhPhoTinh: '',
+  quanHuyen: '',
+  phuongXa: '',
+  diaChiChiTiet: '',
   matKhau: '',
 });
+
+const provinces = ref([]);
+const districts = ref([]);
+const wards = ref([]);
+
+const fetchProvinces = async () => {
+    try {
+        const res = await addressService.getProvinces();
+        provinces.value = res.data;
+    } catch (err) { console.error(err); }
+};
+
+const handleProvinceChange = async (val) => {
+    staffForm.quanHuyen = '';
+    staffForm.phuongXa = '';
+    districts.value = [];
+    wards.value = [];
+    if (!val) return;
+    const p = provinces.value.find(x => x.name === val);
+    if (p) {
+        const res = await addressService.getDistricts(p.code);
+        districts.value = res.data.districts;
+    }
+};
+
+const handleDistrictChange = async (val) => {
+    staffForm.phuongXa = '';
+    wards.value = [];
+    if (!val) return;
+    const d = districts.value.find(x => x.name === val);
+    if (d) {
+        const res = await addressService.getWards(d.code);
+        wards.value = res.data.wards;
+    }
+};
 
 const fetchRoles = async () => {
   try {
@@ -62,8 +103,15 @@ const fetchStaffDetail = async () => {
     if (row) {
       Object.assign(staffForm, {
         ...row,
-        matKhau: '', // Don't show password
+        matKhau: '', 
       });
+      // Trigger address loading chain
+      if (staffForm.thanhPhoTinh) {
+          await handleProvinceChange(staffForm.thanhPhoTinh);
+          if (staffForm.quanHuyen) {
+              await handleDistrictChange(staffForm.quanHuyen);
+          }
+      }
     }
   } catch {
     notification.error('Không thể tải thông tin nhân viên');
@@ -143,6 +191,7 @@ const disabledDate = (time) => time.getTime() > Date.now();
 onMounted(() => {
   fetchRoles();
   fetchChucVu();
+  fetchProvinces();
   if (isEdit.value) fetchStaffDetail();
 });
 </script>
@@ -204,8 +253,29 @@ onMounted(() => {
                 </el-form-item>
               </div>
               <div class="col-md-4">
-                <el-form-item label="Quê quán">
-                  <el-input v-model="staffForm.queQuan" placeholder="VD: Hà Nội" size="large" />
+                <el-form-item label="Tỉnh/Thành phố">
+                  <el-select v-model="staffForm.thanhPhoTinh" placeholder="Chọn tỉnh" class="w-100" size="large" filterable @change="handleProvinceChange">
+                    <el-option v-for="p in provinces" :key="p.code" :label="p.name" :value="p.name" />
+                  </el-select>
+                </el-form-item>
+              </div>
+              <div class="col-md-4">
+                <el-form-item label="Quận/Huyện">
+                  <el-select v-model="staffForm.quanHuyen" placeholder="Chọn huyện" class="w-100" size="large" filterable @change="handleDistrictChange" :disabled="!staffForm.thanhPhoTinh">
+                    <el-option v-for="d in districts" :key="d.code" :label="d.name" :value="d.name" />
+                  </el-select>
+                </el-form-item>
+              </div>
+              <div class="col-md-4">
+                <el-form-item label="Phường/Xã">
+                  <el-select v-model="staffForm.phuongXa" placeholder="Chọn xã" class="w-100" size="large" filterable :disabled="!staffForm.quanHuyen">
+                    <el-option v-for="w in wards" :key="w.code" :label="w.name" :value="w.name" />
+                  </el-select>
+                </el-form-item>
+              </div>
+              <div class="col-12">
+                <el-form-item label="Số nhà, tên đường">
+                  <el-input v-model="staffForm.diaChiChiTiet" placeholder="VD: 123 Đường ABC..." :prefix-icon="MapLocation" size="large" />
                 </el-form-item>
               </div>
               <div class="col-12">

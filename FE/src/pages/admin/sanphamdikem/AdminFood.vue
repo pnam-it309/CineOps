@@ -7,12 +7,12 @@
       :data="filteredItems"
       :loading="loading"
       :total="filteredItems.length"
-      hide-pagination
+      v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize"
       @add-click="openDialog()"
     >
       <!-- Header Actions Left Slot -->
       <template #header-actions-left>
-        <ExcelActions module="san-pham-dich-vu" @import-success="fetchItems" />
       </template>
 
 
@@ -26,78 +26,108 @@
             :prefix-icon="Search"
             clearable
             @input="handleSearch"
+            style="width: 250px;"
           />
         </div>
 
         <div class="filter-item">
-          <el-select v-model="activeCategory" placeholder="Tất cả danh mục" @change="handleSearch">
+          <el-select v-model="activeCategory" placeholder="Chọn danh mục" style="width: 180px;" @change="handleSearch" clearable>
             <el-option label="Tất cả danh mục" value="All"/>
             <el-option v-for="cat in categories" :key="cat.id" :label="cat.tenLoai" :value="cat.id"/>
+          </el-select>
+        </div>
+
+        <div class="filter-item">
+          <el-select v-model="filterTrangThai" placeholder="Chọn trạng thái" style="width: 180px;" @change="handleSearch" clearable>
+            <el-option label="Tất cả trạng thái" value=""/>
+            <el-option label="Đang bán" :value="1"/>
+            <el-option label="Ngừng bán" :value="0"/>
           </el-select>
         </div>
       </template>
 
       <!-- Content Slot -->
       <template #content>
-        <div class="food-grid-container p-2 h-100 overflow-auto no-scroll">
-          <el-row :gutter="20" v-if="filteredItems.length">
-            <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in filteredItems" :key="item.id" class="mb-4">
-              <div 
-                class="food-card bg-white rounded-4 shadow-sm h-100 d-flex flex-column position-relative cursor-pointer" 
-              >
-                <div class="card-image-wrapper">
-                  <img :src="item.image || 'https://via.placeholder.com/150'" class="w-100 h-100 object-fit-cover" />
-                  <el-tag effect="dark" class="size-badge" type="warning" round>Size {{ item.sizeName }}</el-tag>
-                </div>
-                <div class="p-3 d-flex flex-column flex-grow-1">
-                  <div class="d-flex justify-content-between align-items-start mb-1">
-                    <h6 class="fw-bold m-0 text-dark" style="font-size: 15px;">{{ item.name }}</h6>
-                    <el-tag size="small" type="info" effect="plain" class="rounded-pill border-0 bg-light">{{ item.category }}</el-tag>
-                  </div>
-                  
-                  <p class="text-secondary small mb-3 description-text">
-                    {{ item.description || 'Chưa có mô tả cho sản phẩm này.' }}
-                  </p>
+        <BaseTable
+          v-loading="loading"
+          :data="paginatedItems"
+          :columns="tableColumns"
+          :total="filteredItems.length"
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          v-model:selection="selectedItems"
+          :hide-pagination="true"
+          @edit="openDialog"
+          @delete="handleDelete"
+          @update-status="({ row, val }) => handleDelete(row)"
+        >
+          <template #cell-stt="{ index }">
+            <span class="fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+          </template>
 
-                  <div class="mt-auto">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                      <span class="text-primary fw-bold fs-5">{{ formatCurrency(item.price) }}</span>
-                      <span class="text-secondary opacity-75 small fw-semibold">{{ item.quantityValue }} {{ item.unitName }}</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-1 small" :class="item.stock > 0 ? 'text-success' : 'text-danger'">
-                      <i class="bi" :class="item.stock > 0 ? 'bi-check-circle' : 'bi-x-circle'"></i>
-                      Tồn kho: <b>{{ item.stock }}</b>
-                    </div>
-                  </div>
-                  
-                  <div class="mt-3 pt-3 border-top d-flex justify-content-end gap-2">
-                    <el-tooltip content="Xem chi tiết" placement="top">
-                      <button class="btn-action-icon action-view" @click.stop="handleViewDetail(item)">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                    </el-tooltip>
-                    <el-tooltip content="Quản lý biến thể" placement="top">
-                      <button class="btn-action-icon action-variant" :disabled="item.trangThai === 0" @click.stop="openVariantDialog(item)">
-                        <i class="bi bi-layers-half text-primary"></i>
-                      </button>
-                    </el-tooltip>
-                    <el-tooltip content="Chỉnh sửa" placement="top">
-                      <button class="btn-action-icon action-edit" :disabled="item.trangThai === 0" @click.stop="openDialog(item)">
-                        <i class="bi bi-pencil"></i>
-                      </button>
-                    </el-tooltip>
-                    <el-tooltip content="Thay đổi trạng thái" placement="top">
-                      <button class="btn-action-icon action-refresh" :disabled="item.trangThai === 0" @click.stop="handleDelete(item)">
-                        <i class="bi bi-arrow-repeat"></i>
-                      </button>
-                    </el-tooltip>
-                  </div>
-                </div>
-              </div>
-            </el-col>
-          </el-row>
-          <el-empty v-else description="Không có sản phẩm nào" />
-        </div>
+          <template #cell-image="{ row }">
+            <div class="py-1">
+              <img :src="row.image || 'https://via.placeholder.com/150'" 
+                class="rounded-3 shadow-sm"
+                style="width:40px;height:40px;object-fit:cover;"
+                @error="e => { if (e.target.src.includes('placeholder')) e.target.style.display='none'; else e.target.src='https://via.placeholder.com/150'; }" />
+            </div>
+          </template>
+
+          <template #cell-name="{ row }">
+            <div class="fw-bold" style="color:#344767;">{{ row.name }}</div>
+            <div class="text-secondary opacity-75" style="font-size: 11px;">#{{ row.id }} · {{ row.category }}</div>
+          </template>
+
+          <template #cell-sizeName="{ row }">
+            <el-tag size="small" type="warning" effect="plain" class="rounded-pill px-2">Size {{ row.sizeName }}</el-tag>
+          </template>
+
+          <template #cell-huongVi="{ row }">
+            <span class="small text-dark fw-medium">{{ row.huongVi || '—' }}</span>
+          </template>
+
+          <template #cell-stock="{ row }">
+            <span :class="['small fw-bold', row.stock < 10 ? 'text-danger' : 'text-secondary']">{{ row.stock }}</span>
+          </template>
+
+          <template #cell-price="{ row }">
+            <span class="fw-bold text-primary">{{ formatCurrency(row.price) }}</span>
+          </template>
+
+
+          <template #cell-trangThai="{ row }">
+            <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="small" round>
+              {{ row.trangThai === 1 ? 'Đang bán' : 'Ngừng bán' }}
+            </el-tag>
+          </template>
+
+          <template #actions="{ row }">
+            <div class="d-flex gap-1 justify-content-center align-items-center">
+              <el-tooltip content="Xem chi tiết" placement="top">
+                <button class="btn-action-icon action-view" @click="handleViewDetail(row)">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Biến thể" placement="top">
+                <button class="btn-action-icon action-variant" :disabled="row.trangThai === 0" @click="openVariantDialog(row)">
+                  <i class="bi bi-layers-half text-primary"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Sửa" placement="top">
+                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="openDialog(row)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </el-tooltip>
+              <el-switch
+                :model-value="row.trangThai === 1"
+                @change="(val) => handleDelete(row)"
+                class="status-switch mx-1"
+                inactive-color="#ff4949"
+              />
+            </div>
+          </template>
+        </BaseTable>
       </template>
     </AdminTableLayout>
 
@@ -314,14 +344,14 @@ import { ref, computed, onMounted } from 'vue'
 import { Plus, Edit, Delete, Search, Check } from '@element-plus/icons-vue'
 import { sanPhamDiKemService } from '@/services/api/admin/sanPhamDiKemService'
 import AdminTableLayout from '@/components/AdminTableLayout.vue'
-
+import BaseTable from '@/components/common/BaseTable.vue'
 import notification from '@/utils/notifications'
 import confirmDialog from '@/utils/confirm'
 import BaseModal from '@/components/common/BaseModal.vue'
-import ExcelActions from '@/components/common/ExcelActions.vue'
 import debounce from 'lodash/debounce'
 
 const activeCategory = ref('All')
+const filterTrangThai = ref('')
 const searchQuery = ref('')
 const dialogVisible = ref(false)
 const variantDialogVisible = ref(false)
@@ -335,6 +365,21 @@ const categories = ref([])
 const sizes = ref([])
 const units = ref([])
 const items = ref([])
+
+const tableColumns = [
+  { label: 'STT',           key: 'stt',          width: '60px'   },
+  { label: 'Hình ảnh',      key: 'image',        width: '90px'  },
+  { label: 'Tên sản phẩm',  key: 'name',         width: '180px' },
+  { label: 'Kích cỡ',       key: 'sizeName',     width: '100px'  },
+  { label: 'Hương vị',      key: 'huongVi',      width: '120px'  },
+  { label: 'Giá bán',       key: 'price',        width: '130px'  },
+  { label: 'Tồn kho',       key: 'stock',        width: '100px'  },
+  { label: 'Trạng thái',    key: 'trangThai',    width: '140px'  },
+];
+
+const selectedItems = ref([]);
+const currentPage = ref(1);
+const pageSize = ref(5);
 
 
 const handleViewDetail = (item) => {
@@ -401,6 +446,7 @@ const fetchItems = async () => {
           price: v.giaBan,
           stock: v.soLuongTon,
           huongVi: v.huongVi, // Add huongVi here
+          trangThai: sp.trangThai,
           rawProduct: sp
         })
       })
@@ -414,16 +460,26 @@ const fetchItems = async () => {
 }
 
 const handleSearch = debounce(() => {
+  currentPage.value = 1
   fetchItems()
 }, 300)
 
 const filteredItems = computed(() => {
   let result = items.value
-  if (activeCategory.value !== 'All') {
+  if (activeCategory.value !== 'All' && activeCategory.value !== '') {
     result = result.filter(i => i.categoryId === activeCategory.value)
+  }
+  if (filterTrangThai.value !== '') {
+    result = result.filter(i => i.rawProduct.trangThai === filterTrangThai.value)
   }
   return result
 })
+
+const paginatedItems = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredItems.value.slice(start, end);
+});
 
 const openDialog = (product = null) => {
   if (product) {
@@ -567,7 +623,7 @@ const saveVariants = async () => {
 const handleDelete = item => {
   const isInactive = item.rawProduct.trangThai === 0;
   const newStatus = isInactive ? 1 : 0;
-  const label = isInactive ? 'kích hoạt' : 'ngừng kinh doanh';
+  const label = isInactive ? 'kích hoạt' : 'ngừng bán';
   
   confirmDialog.custom(
     `Thay đổi trạng thái sản phẩm <b>${item.name}</b> thành <b>${label}</b>?`,
@@ -607,18 +663,7 @@ onMounted(() => {
 .food-grid-container {
   flex: 1;
 }
-.card-image-wrapper { height: 180px; overflow: hidden; position: relative; border-radius: 12px 12px 0 0; background: #eee; }
-.size-badge { position: absolute; top: 10px; right: 10px; font-weight: bold; }
-.food-card { transition: 0.3s; border: 1px solid #eee; }
-.food-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
-.description-text {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  height: 32px;
-}
+
 
 
 /* Biến thể section styling */

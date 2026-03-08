@@ -33,6 +33,7 @@ public class AdNhanVienService {
     private final PasswordEncoder passwordEncoder;
     private final IEmailService emailService;
     private final service.cinema.be.repository.TokenRepository tokenRepository;
+    private final service.cinema.be.repository.DiaChiRepository diaChiRepository;
     private final RandomNumberGenerator randomGenerator = new RandomNumberGenerator();
 
     @Transactional(readOnly = true)
@@ -92,6 +93,9 @@ public class AdNhanVienService {
         transferData(request, nv);
         NhanVien savedNv = adNhanVienRepository.save(nv);
 
+        // 3.5 Save Address
+        saveDiaChi(request, savedNv, null);
+
         // 4. Send email asynchronously
         sendWelcomeEmail(request.getEmail(), request.getTenNhanVien(), rawPassword);
 
@@ -143,7 +147,11 @@ public class AdNhanVienService {
             }
         transferData(request, nv);
         nv.setNgayCapNhat(LocalDateTime.now());
-        return toResponse(adNhanVienRepository.save(nv));
+        NhanVien updatedNv = adNhanVienRepository.save(nv);
+        
+        saveDiaChi(request, updatedNv, null);
+        
+        return toResponse(updatedNv);
     }
 
     @Transactional
@@ -234,8 +242,47 @@ public class AdNhanVienService {
                 .anhNhanVien(nv.getAnhNhanVien())
                 .idPhanQuyen(nv.getTaiKhoan() != null && nv.getTaiKhoan().getPhanQuyen() != null ? nv.getTaiKhoan().getPhanQuyen().getId() : null)
                 .tenPhanQuyen(nv.getTaiKhoan() != null && nv.getTaiKhoan().getPhanQuyen() != null ? nv.getTaiKhoan().getPhanQuyen().getTenVaiTro() : null)
+                .thanhPhoTinh(nv.getDiaChis().isEmpty() ? null : nv.getDiaChis().get(0).getThanhPhoTinh())
+                .quanHuyen(nv.getDiaChis().isEmpty() ? null : nv.getDiaChis().get(0).getQuanHuyen())
+                .phuongXa(nv.getDiaChis().isEmpty() ? null : nv.getDiaChis().get(0).getPhuongXa())
+                .diaChiChiTiet(nv.getDiaChis().isEmpty() ? null : nv.getDiaChis().get(0).getDiaChiChiTiet())
+                .diaChi(nv.getQueQuan()) // QueQuan already contains concatenated address
                 .trangThai(nv.getTrangThai())
                 .ngayTao(nv.getNgayTao())
                 .build();
+    }
+
+    private void saveDiaChi(AdNhanVienRequest request, NhanVien nv, service.cinema.be.entity.KhachHang kh) {
+        if (request.getThanhPhoTinh() == null && request.getPhuongXa() == null) return;
+        
+        service.cinema.be.entity.DiaChi dc = null;
+        if (nv != null) {
+            dc = diaChiRepository.findByNhanVienId(nv.getId()).orElse(new service.cinema.be.entity.DiaChi());
+            dc.setNhanVien(nv);
+        } else if (kh != null) {
+            dc = diaChiRepository.findByKhachHangId(kh.getId()).orElse(new service.cinema.be.entity.DiaChi());
+            dc.setKhachHang(kh);
+        }
+
+        if (dc == null) return;
+        if (dc.getId() == null) dc.setId(UUID.randomUUID().toString());
+        
+        dc.setThanhPhoTinh(request.getThanhPhoTinh());
+        dc.setQuanHuyen(request.getQuanHuyen());
+        dc.setPhuongXa(request.getPhuongXa());
+        dc.setDiaChiChiTiet(request.getDiaChiChiTiet());
+        dc.setTrangThai(1);
+        diaChiRepository.save(dc);
+        
+        // Update queQuan as well for compatibility
+        if (nv != null) {
+            StringBuilder sb = new StringBuilder();
+            if (request.getDiaChiChiTiet() != null) sb.append(request.getDiaChiChiTiet()).append(", ");
+            if (request.getPhuongXa() != null) sb.append(request.getPhuongXa()).append(", ");
+            if (request.getQuanHuyen() != null) sb.append(request.getQuanHuyen()).append(", ");
+            if (request.getThanhPhoTinh() != null) sb.append(request.getThanhPhoTinh());
+            nv.setQueQuan(sb.toString());
+            adNhanVienRepository.save(nv);
+        }
     }
 }

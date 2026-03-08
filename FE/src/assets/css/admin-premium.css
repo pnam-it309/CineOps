@@ -17,7 +17,7 @@
 
 .premium-dialog .el-dialog__body {
     padding: 16px !important; /* Giảm padding để thu nhỏ */
-    font-size: 16px !important; 
+    font-size: 18px !important; 
 }
 
 .premium-dialog .el-dialog__footer {
@@ -75,14 +75,14 @@
 
 .header-text-modern .title {
     margin: 0;
-    font-size: 19px; 
+    font-size: 21px; 
     font-weight: 700;
     color: #1e293b;
 }
 
 .header-text-modern .subtitle {
     margin: 0;
-    font-size: 15px; 
+    font-size: 17px; 
     color: #64748b;
 }
 
@@ -116,7 +116,7 @@
     font-weight: 600 !important;
     color: #334155 !important;
     padding-bottom: 4px !important;
-    font-size: 16px !important; 
+    font-size: 18px !important; 
 }
 
 .premium-form .el-input__wrapper,
@@ -136,7 +136,7 @@
     height: 100% !important;
     color: #1e293b !important;
     font-weight: 500 !important;
-    font-size: 16px !important; 
+    font-size: 18px !important; 
 }
 
 .premium-form .el-input__wrapper.is-focus,
@@ -216,13 +216,13 @@
 
 .cine-notification .el-notification__title {
     font-weight: 700 !important;
-    font-size: 15px !important;
+    font-size: 17px !important;
     margin-bottom: 2px !important;
     color: #1e293b !important;
 }
 
 .cine-notification .el-notification__content {
-    font-size: 13px !important;
+    font-size: 15px !important;
     color: #475569 !important;
     margin: 0 !important;
 }
@@ -306,7 +306,7 @@
     padding: 0 12px !important; 
     transition: all 0.2s ease !important;
     box-shadow: none !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
     height: 28px !important;
     display: flex !important;
     align-items: center !important;

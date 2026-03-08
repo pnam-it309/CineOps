@@ -18,5 +18,15 @@ public class AdKhachHangResponse {
     private LocalDate ngaySinh;
     private String hinhAnh;
     private String ghiChu;
+    private String thanhPhoTinh;
+    private String quanHuyen;
+    private String phuongXa;
+    private String diaChiChiTiet;
+    private String diaChi; // Concatenated address
     private Integer trangThai;
+
+    // Bổ sung các trường thống kê cho bảng PGG cá nhân
+    private String buyLast;      // Ngày mua gần nhất
+    private Integer orders;       // Số lượng đơn hàng
+    private Double spent;        // Tổng chi tiêu
 }

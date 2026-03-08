@@ -29,25 +29,28 @@ const handleViewDetail = (ticket) => {
 };
 
 const ticketColumns = [
+  { label: 'STT', key: 'stt', width: '60px' },
   { label: 'Mã vé', key: 'maVe', width: '120px' },
-  { label: 'Loại khách', key: 'loaiKhach', width: '140px' },
-  { label: 'Tên phim', key: 'tenPhim', width: '180px' },
-  { label: 'Phòng', key: 'phong', width: '110px' },
-  { label: 'Ghế', key: 'ghe', width: '80px' },
-  { label: 'Kênh bán', key: 'kenhBan', width: '120px' },
-  { label: 'Thanh toán', key: 'thanhToan', width: '140px' },
+  { label: 'Tên phim', key: 'tenPhim', width: '150px' },
+  { label: 'Phòng', key: 'phong', width: '100px' },
+  { label: 'Suất chiếu', key: 'suatChieu', width: '110px' },
+  { label: 'Ngày chiếu', key: 'ngayChieu', width: '110px' },
+  { label: 'Ghế', key: 'ghe', width: '100px' },
+  { label: 'Thanh toán', key: 'giaThanhToan', width: '120px' },
   { label: 'Trạng thái', key: 'trangThai', width: '130px' },
-  { label: 'Thời gian', key: 'thoiGian', width: '180px' },
-  { label: 'Người tạo', key: 'nguoiTao', width: '150px' },
 ];
 
 // Filters
 const params = reactive({
   tuKhoa: '',
   trangThai: null,
-  page: 1, // Đổi về 1 để khớp với AdminTableLayout
-  size: 10
+  loaiVe: null,
+  idPhongChieu: null,
+  page: 1, 
+  size: 5
 });
+
+const phongChieuList = ref([]);
 
 // Load Data
 const loadData = async () => {
@@ -70,6 +73,8 @@ const onSearch = debounce(() => { params.page = 1; loadData(); }, 500);
 const resetFilter = () => {
   params.tuKhoa = '';
   params.trangThai = null;
+  params.loaiVe = null;
+  params.idPhongChieu = null;
   params.page = 1;
   loadData();
 };
@@ -187,7 +192,21 @@ const exportExcel = async () => {
 // Stats Configuration
 
 
-onMounted(() => { loadData(); });
+import { gheService } from '@/services/api/admin/gheService';
+
+const fetchPhongChieu = async () => {
+  try {
+    const res = await gheService.getPhongChieuDropdown();
+    phongChieuList.value = res.data?.data || [];
+  } catch (e) {
+    console.error('Không thể tải danh sách phòng chiếu');
+  }
+};
+
+onMounted(() => { 
+  loadData(); 
+  fetchPhongChieu();
+});
 </script>
 
 
@@ -287,17 +306,32 @@ onMounted(() => { loadData(); });
 
 
       <template #filters>
+        <div class="filter-item search-input-wrapper">
+          <el-input v-model="params.tuKhoa" placeholder="Tìm mã vé, tên phim, SĐT..." :prefix-icon="Search"
+            clearable @input="onSearch" style="width: 250px;" />
+        </div>
+
         <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="params.trangThai" @change="loadData" placeholder="Trạng thái" clearable>
-            <el-option label="Tất cả trạng thái" value="" /> <el-option label="Thành công" :value="1" />
+          <el-select v-model="params.trangThai" @change="loadData" placeholder="Chọn trạng thái" style="width: 180px;" clearable>
+            <el-option label="Tất cả trạng thái" value="" /> 
+            <el-option label="Thành công" :value="1" />
             <el-option label="Đã hủy" :value="0" />
           </el-select>
         </div>
-        <div class="filter-item search-input-wrapper">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-input v-model="params.tuKhoa" placeholder="Tìm mã vé, tên phim, SĐT khách hàng..." :prefix-icon="Search"
-            clearable @input="onSearch" />
+
+        <div class="filter-item">
+          <el-select v-model="params.loaiVe" @change="loadData" placeholder="Kênh bán" style="width: 180px;" clearable>
+            <el-option label="Tất cả kênh" value="" />
+            <el-option label="Tại quầy" :value="0" />
+            <el-option label="Online" :value="1" />
+          </el-select>
+        </div>
+
+        <div class="filter-item">
+          <el-select v-model="params.idPhongChieu" @change="loadData" placeholder="Chọn phòng chiếu" style="width: 180px;" clearable>
+            <el-option label="Tất cả phòng" value="" />
+            <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong" :value="pc.id" />
+          </el-select>
         </div>
       </template>
 
@@ -311,15 +345,12 @@ onMounted(() => { loadData(); });
           v-model:pageSize="params.size"
           :hide-pagination="true"
         >
-          <template #cell-maVe="{ row }">
-            <span class="fw-bold text-indigo-500">#{{ row.maVe }}</span>
+          <template #cell-stt="{ index }">
+            <span class="small fw-bold text-secondary">{{ (params.page - 1) * params.size + index + 1 }}</span>
           </template>
 
-          <template #cell-loaiKhach="{ row }">
-            <el-tag v-if="row.tenLoaiKhachHang" type="warning" size="small" effect="plain" round>
-              {{ row.tenLoaiKhachHang }}
-            </el-tag>
-            <span v-else class="text-muted small">—</span>
+          <template #cell-maVe="{ row }">
+            <span class="fw-bold text-indigo-500">#{{ row.maVe }}</span>
           </template>
 
           <template #cell-tenPhim="{ row }">
@@ -327,20 +358,22 @@ onMounted(() => { loadData(); });
           </template>
 
           <template #cell-phong="{ row }">
-            <div class="text-muted small text-nowrap"><i class="bi bi-display me-1"></i>{{ row.tenPhongChieu || '---' }}</div>
+            <span class="text-secondary small fw-semibold">{{ row.tenPhongChieu || '—' }}</span>
+          </template>
+
+          <template #cell-suatChieu="{ row }">
+             <el-tag size="small" type="info" effect="plain">{{ formatTime(row.ngayTao) }}</el-tag>
+          </template>
+
+          <template #cell-ngayChieu="{ row }">
+             <span class="small">{{ formatDate(row.ngayTao) }}</span>
           </template>
 
           <template #cell-ghe="{ row }">
             <div class="fw-bold text-danger text-nowrap">{{ row.viTriGhe || '—' }}</div>
           </template>
 
-          <template #cell-kenhBan="{ row }">
-            <el-tag :type="row.loaiVe === 0 ? 'info' : 'success'" size="small" effect="dark">
-              {{ row.loaiVe === 0 ? 'Tại quầy' : 'Online' }}
-            </el-tag>
-          </template>
-
-          <template #cell-thanhToan="{ row }">
+          <template #cell-giaThanhToan="{ row }">
             <span class="fw-bold text-primary">{{ formatPrice(row.giaThanhToan) }}đ</span>
           </template>
 
@@ -348,16 +381,6 @@ onMounted(() => { loadData(); });
             <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="small" round effect="light">
               {{ row.trangThai === 1 ? 'Thành công' : 'Đã hủy' }}
             </el-tag>
-          </template>
-
-          <template #cell-thoiGian="{ row }">
-            <div class="small text-secondary text-nowrap">
-              <i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }} {{ formatTime(row.ngayTao) }}
-            </div>
-          </template>
-
-          <template #cell-nguoiTao="{ row }">
-            <div class="small text-muted text-nowrap"><i class="bi bi-person me-1"></i>{{ row.nguoiTao || '—' }}</div>
           </template>
 
           <template #actions="{ row }">

@@ -12,24 +12,27 @@ import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
 import ExcelActions from '@/components/common/ExcelActions.vue';
+import { addressService } from '@/services/api/common/addressService';
 
 // --- State ---
 const customers = ref([]);
 const loading = ref(false);
 const searchQuery = ref('');
 const filterTrangThai = ref(''); 
+const filterGioiTinh = ref('');
 const totalElements = ref(0);
 const currentPage = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(5);
 
 const customerColumns = [
   { label: 'STT', key: 'stt', width: '60px' },
-  { label: 'Mã KH', key: 'maKhachHang', width: '110px' },
-  { label: 'Khách hàng', key: 'customer', width: '180px' },
-  { label: 'Email', key: 'email', width: '220px' },
-  { label: 'Số điện thoại', key: 'sdt', width: '150px' },
-  { label: 'Giới tính', key: 'gender', width: '110px' },
-  { label: 'Trạng thái', key: 'trangThai', width: '140px' },
+  { label: 'Mã KH', key: 'maKhachHang', width: '100px' },
+  { label: 'Khách hàng', key: 'customer', width: '160px' },
+  { label: 'Số điện thoại', key: 'sdt', width: '120px' },
+  { label: 'Email', key: 'email', width: '180px' },
+  { label: 'Địa chỉ', key: 'diaChi', width: '180px' },
+  { label: 'Loại khách', key: 'loaiKhach', width: '120px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '130px' },
 ];
 
 // State điều khiển Modal
@@ -47,8 +50,47 @@ const form = reactive({
   sdt: '',
   gioiTinh: 1,
   ngaySinh: '',
+  thanhPhoTinh: '',
+  quanHuyen: '',
+  phuongXa: '',
+  diaChiChiTiet: '',
   trangThai: 1
 });
+
+const provinces = ref([]);
+const districts = ref([]);
+const wards = ref([]);
+
+const fetchProvinces = async () => {
+    try {
+        const res = await addressService.getProvinces();
+        provinces.value = res.data;
+    } catch (err) { console.error(err); }
+};
+
+const handleProvinceChange = async (val) => {
+    form.quanHuyen = '';
+    form.phuongXa = '';
+    districts.value = [];
+    wards.value = [];
+    if (!val) return;
+    const p = provinces.value.find(x => x.name === val);
+    if (p) {
+        const res = await addressService.getDistricts(p.code);
+        districts.value = res.data.districts;
+    }
+};
+
+const handleDistrictChange = async (val) => {
+    form.phuongXa = '';
+    wards.value = [];
+    if (!val) return;
+    const d = districts.value.find(x => x.name === val);
+    if (d) {
+        const res = await addressService.getWards(d.code);
+        wards.value = res.data.wards;
+    }
+};
 
 // Rules validation cơ bản cho form
 const rules = {
@@ -67,6 +109,7 @@ const fetchCustomers = async () => {
     const res = await khachHangService.getAll(
       searchQuery.value || null, 
       filterTrangThai.value === '' ? null : filterTrangThai.value,
+      filterGioiTinh.value === '' ? null : filterGioiTinh.value,
       currentPage.value - 1, 
       pageSize.value
     );
@@ -92,7 +135,10 @@ const fetchCustomers = async () => {
   }
 };
 
-onMounted(fetchCustomers);
+onMounted(() => {
+    fetchCustomers();
+    fetchProvinces();
+});
 
 // --- Logic xử lý Modal (Thêm & Sửa) ---
 const handleAdd = () => {
@@ -106,6 +152,10 @@ const handleAdd = () => {
     ngaySinh: '',
     hinhAnh: '',
     ghiChu: '',
+    thanhPhoTinh: '',
+    quanHuyen: '',
+    phuongXa: '',
+    diaChiChiTiet: '',
     trangThai: 1
   });
   dialogVisible.value = true;
@@ -123,9 +173,29 @@ const handleEdit = (row) => {
     ngaySinh: row.ngaySinh,
     hinhAnh: row.hinhAnh || '',
     ghiChu: row.ghiChu || '',
+    thanhPhoTinh: row.thanhPhoTinh || '',
+    quanHuyen: row.quanHuyen || '',
+    phuongXa: row.phuongXa || '',
+    diaChiChiTiet: row.diaChiChiTiet || '',
     trangThai: row.trangThai
   });
+  
+  if (form.thanhPhoTinh) {
+      handleProvinceChange(form.thanhPhoTinh).then(() => {
+          if (form.quanHuyen) {
+              handleDistrictChange(form.quanHuyen);
+          }
+      });
+  }
+  
   dialogVisible.value = true;
+};
+
+const detailVisible = ref(false);
+const selectedItem = ref(null);
+const handleView = (row) => {
+  selectedItem.value = row;
+  detailVisible.value = true;
 };
 
 // Handle data returned from Scanner
@@ -192,6 +262,7 @@ const handleUpdateStatus = (row, status = null) => {
 const resetFilter = () => {
   searchQuery.value = '';
   filterTrangThai.value = '';
+  filterGioiTinh.value = '';
   fetchCustomers();
 };
 
@@ -228,16 +299,22 @@ watch([currentPage, pageSize], fetchCustomers);
 
       <template #filters>
         <div class="filter-item search-input-wrapper">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable @input="fetchCustomers" />
+          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable @input="fetchCustomers" style="width: 250px;" />
         </div>
+
         <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterTrangThai" placeholder="Trạng thái" clearable @change="fetchCustomers">
-            <template #prefix><el-icon><Filter /></el-icon></template>
+          <el-select v-model="filterTrangThai" placeholder="Chọn trạng thái" style="width: 180px;" clearable @change="fetchCustomers">
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
+          </el-select>
+        </div>
+
+        <div class="filter-item">
+          <el-select v-model="filterGioiTinh" placeholder="Chọn giới tính" style="width: 180px;" clearable @change="fetchCustomers">
+            <el-option label="Tất cả giới tính" value="" />
+            <el-option label="Nam" :value="1" />
+            <el-option label="Nữ" :value="0" />
           </el-select>
         </div>
       </template>
@@ -266,19 +343,24 @@ watch([currentPage, pageSize], fetchCustomers);
             <div class="fw-bold text-dark small">{{ row.tenKhachHang }}</div>
           </template>
 
-          <template #cell-email="{ row }">
-            <div class="text-dark small"><i class="bi bi-envelope me-2 text-primary"></i>{{ row.email || '—' }}</div>
-          </template>
-
           <template #cell-sdt="{ row }">
-            <div class="text-secondary small"><i class="bi bi-telephone me-2"></i>{{ row.sdt || '—' }}</div>
+            <div class="text-secondary small">{{ row.sdt || '—' }}</div>
           </template>
 
-          <template #cell-gender="{ row }">
-            <el-tag :type="row.gioiTinh === 1 ? 'primary' : 'danger'" size="small" effect="plain" class="rounded-pill">
-              {{ getGenderText(row.gioiTinh) }}
+          <template #cell-email="{ row }">
+            <div class="text-secondary small">{{ row.email || '—' }}</div>
+          </template>
+
+          <template #cell-diaChi="{ row }">
+            <div class="text-secondary small text-truncate" style="max-width: 200px;" :title="row.diaChi">{{ row.diaChi || '—' }}</div>
+          </template>
+
+          <template #cell-loaiKhach="{ row }">
+            <el-tag size="small" :type="row.tenLoaiKhachHang?.toLowerCase().includes('vip') ? 'warning' : 'info'" effect="plain" round>
+              {{ row.tenLoaiKhachHang || 'Thường' }}
             </el-tag>
           </template>
+
 
           <template #cell-trangThai="{ row }">
             <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round :class="{ 'cursor-pointer': row.trangThai === 1 }" @click="row.trangThai === 1 ? handleUpdateStatus(row, 0) : null">
@@ -287,18 +369,22 @@ watch([currentPage, pageSize], fetchCustomers);
           </template>
 
           <template #actions="{ row }">
-            <div class="d-flex gap-1 justify-content-center">
-
+            <div class="d-flex gap-1 justify-content-center align-items-center">
+              <el-tooltip content="Xem chi tiết" placement="top">
+                <button class="btn-action-icon action-view" @click="handleView(row)">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </el-tooltip>
               <el-tooltip content="Chỉnh sửa" placement="top">
                 <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
                   <i class="bi bi-pencil"></i>
                 </button>
               </el-tooltip>
-              <el-tooltip content="Thay đổi trạng thái" placement="top">
-                <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0" @click="handleUpdateStatus(row, row.trangThai === 1 ? 0 : 1)">
-                  <i class="bi bi-arrow-repeat"></i>
-                </button>
-              </el-tooltip>
+              <el-switch
+                :model-value="row.trangThai === 1"
+                @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
+                class="status-switch mx-1"
+              />
             </div>
           </template>
         </BaseTable>
@@ -338,6 +424,35 @@ watch([currentPage, pageSize], fetchCustomers);
             </el-form-item>
           </div>
         </div>
+
+        <div class="row g-2">
+          <div class="col-6">
+            <el-form-item label="Tỉnh/Thành phố">
+              <el-select v-model="form.thanhPhoTinh" placeholder="Chọn tỉnh" class="w-100" filterable @change="handleProvinceChange">
+                <el-option v-for="p in provinces" :key="p.code" :label="p.name" :value="p.name" />
+              </el-select>
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Quận/Huyện">
+              <el-select v-model="form.quanHuyen" placeholder="Chọn huyện" class="w-100" filterable @change="handleDistrictChange" :disabled="!form.thanhPhoTinh">
+                <el-option v-for="d in districts" :key="d.code" :label="d.name" :value="d.name" />
+              </el-select>
+            </el-form-item>
+          </div>
+          <div class="col-6">
+            <el-form-item label="Phường/Xã">
+              <el-select v-model="form.phuongXa" placeholder="Chọn xã" class="w-100" filterable :disabled="!form.quanHuyen">
+                <el-option v-for="w in wards" :key="w.code" :label="w.name" :value="w.name" />
+              </el-select>
+            </el-form-item>
+          </div>
+          <div class="col-6">
+             <el-form-item label="Chi tiết (Đường/Số nhà)">
+               <el-input v-model="form.diaChiChiTiet" placeholder="Nhập địa chỉ chi tiết" />
+             </el-form-item>
+          </div>
+        </div>
         
         <el-form-item label="Hình ảnh URL">
           <el-input v-model="form.hinhAnh" placeholder="https://..." :prefix-icon="View" />
@@ -359,6 +474,58 @@ watch([currentPage, pageSize], fetchCustomers);
 
         </div>
       </el-form>
+    </BaseModal>
+
+    <BaseModal v-model="detailVisible" title="Chi tiết khách hàng" icon="bi bi-person-lines-fill" width="500px">
+      <div v-if="selectedItem" class="p-3">
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
+          <div class="avatar-box bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-weight: bold; font-size: 20px;">
+            {{ selectedItem.tenKhachHang?.charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <h5 class="m-0 fw-bold">{{ selectedItem.tenKhachHang }}</h5>
+            <div class="text-secondary small">Mã: {{ selectedItem.maKhachHang }}</div>
+          </div>
+        </div>
+        <div class="detail-grid">
+           <div class="row g-3">
+             <div class="col-6">
+                <div class="lbl text-secondary small">Email</div>
+                <div class="val fw-semibold">{{ selectedItem.email || '—' }}</div>
+             </div>
+             <div class="col-6">
+                <div class="lbl text-secondary small">Số điện thoại</div>
+                <div class="val fw-semibold">{{ selectedItem.sdt || '—' }}</div>
+             </div>
+             <div class="col-6">
+                <div class="lbl text-secondary small">Giới tính</div>
+                <div class="val fw-semibold">{{ getGenderText(selectedItem.gioiTinh) }}</div>
+             </div>
+             <div class="col-6">
+                <div class="lbl text-secondary small">Ngày sinh</div>
+                <div class="val fw-semibold">{{ selectedItem.ngaySinh || '—' }}</div>
+             </div>
+             <div class="col-6">
+                <div class="lbl text-secondary small">Loại khách hàng</div>
+                <el-tag size="small" :type="selectedItem.tenLoaiKhachHang?.toLowerCase().includes('vip') ? 'warning' : 'info'" round>
+                  {{ selectedItem.tenLoaiKhachHang || 'Thường' }}
+                </el-tag>
+             </div>
+             <div class="col-12">
+                <div class="lbl text-secondary small">Địa chỉ</div>
+                <div class="val fw-semibold">{{ selectedItem.diaChi || '—' }}</div>
+             </div>
+             <div class="col-12">
+                <div class="lbl text-secondary small">Ghi chú</div>
+                <div class="val text-muted">{{ selectedItem.ghiChu || 'Không có ghi chú' }}</div>
+             </div>
+           </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">Đóng</el-button>
+        <el-button type="primary" @click="handleEdit(selectedItem); detailVisible = false">Chỉnh sửa</el-button>
+      </template>
     </BaseModal>
   </div>
 </template>

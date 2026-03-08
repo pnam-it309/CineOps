@@ -26,7 +26,7 @@ const reports = ref([
 
 
 const currentPage = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(5);
 const searchQuery = ref('');
 
 const filteredReports = computed(() => {

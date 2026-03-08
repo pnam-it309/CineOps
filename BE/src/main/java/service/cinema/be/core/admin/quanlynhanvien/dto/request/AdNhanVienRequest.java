@@ -48,6 +48,11 @@ public class AdNhanVienRequest {
     @NotBlank(message = "Vui lòng chọn vai trò cho nhân viên")
     private String idPhanQuyen;
 
+    private String thanhPhoTinh;
+    private String quanHuyen;
+    private String phuongXa;
+    private String diaChiChiTiet;
+
     @NotNull(message = "Trạng thái không được để trống")
     private Integer trangThai;
 

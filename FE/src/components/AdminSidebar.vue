@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex flex-column h-100 bg-white sidebar-inner-wrapper">
-    <div class="logo-container" :style="{ height: isCollapse ? '50px' : '80px' }">
+    <div class="logo-container" :style="{ height: isCollapse ? '60px' : '120px' }">
       <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" :class="['brand-logo', { 'is-collapsed': isCollapse }]" />
     </div>
 
@@ -38,24 +38,10 @@
         <template #title>Quản lý vé</template>
       </el-menu-item>
 
-      <el-sub-menu index="admin-seats-submenu">
-        <template #title>
-          <el-icon><Place /></el-icon>
-          <span>Quản lý ghế</span>
-        </template>
-        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LIST.name)">
-          <el-icon><Tickets /></el-icon>
-          <template #title>Danh sách ghế</template>
-        </el-menu-item>
-        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LAYOUT.name)">
-          <el-icon><Monitor /></el-icon>
-          <template #title>Sơ đồ ghế</template>
-        </el-menu-item>
-        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS.children.CONFIG.name)">
-          <el-icon><Setting /></el-icon>
-          <template #title>Cấu hình phòng</template>
-        </el-menu-item>
-      </el-sub-menu>
+      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS)">
+        <el-icon><Monitor /></el-icon>
+        <template #title>Quản lí ghế</template>
+      </el-menu-item>
 
       <!-- Quản lý phim — item trực tiếp -->
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
@@ -64,10 +50,20 @@
       </el-menu-item>
 
       <!-- Quản lý lịch chiếu — item trực tiếp, chỉ có sơ đồ -->
-      <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name)">
-        <el-icon><Grid /></el-icon>
-        <template #title>Quản lý lịch chiếu</template>
-      </el-menu-item>
+      <el-sub-menu index="admin-schedule-group">
+        <template #title>
+          <el-icon><Calendar /></el-icon>
+          <span>Quản lý lịch chiếu</span>
+        </template>
+        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name)">
+          <el-icon><Grid /></el-icon>
+          <template #title>Sơ đồ lịch chiếu</template>
+        </el-menu-item>
+        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name)">
+          <el-icon><Tickets /></el-icon>
+          <template #title>Danh sách lịch chiếu</template>
+        </el-menu-item>
+      </el-sub-menu>
 
       <!-- Quản lý suất chiếu — item trực tiếp, không dropdown -->
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">
@@ -328,20 +324,20 @@ const handleCommand = async (command) => {
 }
 
 .brand-logo {
-  width: 100%;
+  width: auto;
   height: auto;
-  max-width: 100%;
-  max-height: 120px;
+  max-width: 90%;
+  max-height: 110px;
   object-fit: contain;
   mix-blend-mode: multiply;
   filter: brightness(1.08) contrast(1.1);
   transition: all 0.3s;
-  transform: scale(0.9);
+  transform: scale(1.3);
 }
 
 .brand-logo.is-collapsed {
-  max-height: 80px;
-  width: 100%;
-  transform: scale(1.1);
+  max-height: 50px;
+  width: auto;
+  transform: scale(1.5);
 }
 </style>

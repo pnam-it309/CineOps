@@ -8,7 +8,7 @@ import BaseTable from '@/components/common/BaseTable.vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
-import ExcelActions from '@/components/common/ExcelActions.vue';
+
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const router       = useRouter();
@@ -16,7 +16,7 @@ const moviesList   = ref([]);
 const loading      = ref(false);
 const totalElements = ref(0);
 const currentPage  = ref(1);
-const pageSize     = ref(10);
+const pageSize     = ref(5);
 
 const searchQuery  = ref('');
 const statusFilter = ref(null);
@@ -24,24 +24,25 @@ const genreFilter  = ref(null);
 const genreOptions = ref([]);
 
 const selectedPhim = ref([]);
+const detailVisible = ref(false);
+const selectedItem = ref(null);
+
+const handleView = (row) => {
+  selectedItem.value = row;
+  detailVisible.value = true;
+};
 
 // ── Columns ───────────────────────────────────────────────────────────────────
 const tableColumns = [
   { label: 'STT',           key: 'stt',          width: '60px'   },
-  { label: 'Mã phim',       key: 'maPhim',        width: '100px'  },
-  { label: 'Poster',        key: 'poster',         width: '75px'   },
-  { label: 'Tên phim',      key: 'tenPhim',        minWidth: '200px' },
-  { label: 'Đánh giá',      key: 'danhGia',        width: '90px'  },
-  { label: 'Thể loại',      key: 'theLoais',       minWidth: '160px'  },
-  { label: 'Định dạng',    key: 'loaiPhim',       width: '80px'   },
-  { label: 'Độ tuổi',       key: 'doTuoi',         width: '80px'   },
-  { label: 'Nhãn ĐT',       key: 'nhanDoTuoi',     width: '80px'   },
-  { label: 'Thời lượng',    key: 'thoiLuong',      width: '120px'  },
-  { label: 'Ngày bắt đầu',  key: 'ngayKhoiChieu',  width: '140px'  },
-  { label: 'Ngày kết thúc', key: 'ngayKetThuc',    width: '140px'  },
-  { label: 'Giá phim',      key: 'giaPhim',        width: '120px'  },
-  { label: 'Ngày tạo',      key: 'ngayTao',        width: '140px'  },
-  { label: 'Trạng thái',    key: 'trangThai',      width: '130px'  },
+  { label: 'Mã phim',       key: 'maPhim',       width: '100px'  },
+  { label: 'Poster',        key: 'poster',       width: '80px'   },
+  { label: 'Tên phim',      key: 'tenPhim',      width: '180px' },
+  { label: 'Độ tuổi',       key: 'nhanDoTuoi',   width: '90px'   },
+  { label: 'Thời lượng',    key: 'thoiLuong',    width: '100px'  },
+  { label: 'Thể loại',      key: 'theLoais',     width: '160px'  },
+  { label: 'Giá gốc',       key: 'giaPhim',      width: '110px'  },
+  { label: 'Trạng thái',    key: 'trangThai',    width: '140px'  },
 ];
 
 // ── Computed ──────────────────────────────────────────────────────────────────
@@ -77,7 +78,7 @@ const fetchMovies = async () => {
   try {
     const res = await phimApi.getPhim({
       tenPhim:   searchQuery.value || null,
-      trangThai: statusFilter.value,
+      trangThai: statusFilter.value === '' ? null : statusFilter.value,
       idTheLoai: genreFilter.value || null,
       page:      currentPage.value - 1,
       size:      pageSize.value,
@@ -198,7 +199,7 @@ watch([currentPage, pageSize], fetchMovies);
     >
       <!-- Header actions -->
       <template #header-actions-left>
-        <ExcelActions module="phim" @import-success="fetchMovies" />
+
         <el-button v-if="selectedIdsCount" type="warning" :icon="Refresh"
           @click="handleBulkStatusChange">
           Đổi trạng thái {{ selectedIdsCount }} phim
@@ -212,14 +213,16 @@ watch([currentPage, pageSize], fetchMovies);
             clearable @keyup.enter="fetchMovies" />
         </div>
         <div class="filter-item">
-          <el-select v-model="statusFilter" placeholder="Tất cả trạng thái" clearable @change="fetchMovies">
+          <el-select v-model="statusFilter" placeholder="Chọn trạng thái" style="width: 200px;" clearable @change="fetchMovies">
+            <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Đang chiếu" :value="1" />
             <el-option label="Sắp chiếu"  :value="2" />
             <el-option label="Ngừng chiếu" :value="0" />
           </el-select>
         </div>
         <div class="filter-item">
-          <el-select v-model="genreFilter" placeholder="Chọn thể loại" clearable @change="fetchMovies">
+          <el-select v-model="genreFilter" placeholder="Chọn thể loại" style="width: 200px;" clearable @change="fetchMovies">
+            <el-option label="Tất cả thể loại" value="" />
             <el-option v-for="g in genreOptions" :key="g.id" :label="g.tenTheLoai" :value="g.id" />
           </el-select>
         </div>
@@ -238,119 +241,16 @@ watch([currentPage, pageSize], fetchMovies);
           :hide-pagination="true"
           @edit="handleEdit"
           @delete="handleUpdateStatus"
+          @update-status="({ row, val }) => {
+            if (row.trangThai === 2 && val) {
+              handleUpdateStatus(row, 1);
+            } else if (row.trangThai === 1 && !val) {
+              handleUpdateStatus(row, 0);
+            } else if (row.trangThai === 0) {
+              notification.warning('Phim đã ngừng chiếu không thể thay đổi trạng thái');
+            }
+          }"
         >
-          <template #cell-stt="{ index }">
-            <span class="fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
-          </template>
-
-          <template #actions="{ row }">
-            <div class="d-flex gap-1 justify-content-center align-items-center">
-              <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </el-tooltip>
-              <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0">
-                <span class="el-dropdown-link d-inline-block">
-                  <el-tooltip content="Thay đổi trạng thái" placement="top">
-                    <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0">
-                      <i class="bi bi-list-check"></i>
-                    </button>
-                  </el-tooltip>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Đang chiếu</el-dropdown-item>
-                    <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Sắp chiếu</el-dropdown-item>
-                    <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Ngừng chiếu</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
-
-          <template #cell-maPhim="{ row }">
-            <span class="text-secondary fw-bold">#{{ row.maPhim || '—' }}</span>
-          </template>
-
-          <template #cell-poster="{ row }">
-            <div class="py-1">
-              <img v-if="row.poster" :src="row.poster" class="rounded-3 shadow-sm"
-                style="width:42px;height:62px;object-fit:cover;"
-                @error="e => e.target.style.display='none'" />
-              <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center"
-                style="width:42px;height:62px;">
-                <i class="bi bi-film text-secondary" style="font-size:18px;"></i>
-              </div>
-            </div>
-          </template>
-
-          <template #cell-tenPhim="{ row }">
-            <div class="fw-bold" style="color:#344767; white-space: nowrap;">{{ row.tenPhim }}</div>
-          </template>
-
-          <template #cell-danhGia="{ row }">
-            <div class="text-center">
-              <span v-if="row.danhGia > 0" class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i>{{ row.danhGia }}</span>
-              <span v-else class="text-secondary">—</span>
-            </div>
-          </template>
-
-          <template #cell-loaiPhim="{ row }">
-            <div class="text-center">
-              <el-tag v-if="row.loaiPhim" :type="getLoaiPhimType(row.loaiPhim)" size="small">
-                {{ row.loaiPhim }}
-              </el-tag>
-              <span v-else class="text-secondary">—</span>
-            </div>
-          </template>
-
-          <template #cell-doTuoi="{ row }">
-            <div class="text-center">
-              <span v-if="row.doTuoi" class="fw-bold">{{ row.doTuoi }}+</span>
-              <span v-else class="text-secondary">—</span>
-            </div>
-          </template>
-
-          <template #cell-nhanDoTuoi="{ row }">
-            <div class="text-center">
-              <el-tag v-if="row.nhanDoTuoi" :type="getDoTuoiTagType(row.nhanDoTuoi)" size="small">
-                {{ row.nhanDoTuoi }}
-              </el-tag>
-              <span v-else class="text-secondary">—</span>
-            </div>
-          </template>
-
-          <template #cell-theLoais="{ row }">
-            <div class="d-flex flex-nowrap gap-1 justify-content-center" style="overflow: hidden;">
-              <el-tag v-for="g in (row.theLoais || [])" :key="g.id"
-                size="small" effect="plain" class="genre-tag flex-shrink-0">{{ g.tenTheLoai }}</el-tag>
-              <span v-if="!row.theLoais?.length" class="text-secondary">—</span>
-            </div>
-          </template>
-
-          <template #cell-thoiLuong="{ row }">
-            <span style="color:#606266;">{{ row.thoiLuong }} phút</span>
-          </template>
-
-          <template #cell-ngayKhoiChieu="{ row }">
-            <span style="color:#00b341;font-weight:600;">{{ row.ngayKhoiChieu || '—' }}</span>
-          </template>
-
-          <template #cell-ngayKetThuc="{ row }">
-            <span style="color:#ff4d4f;font-weight:600;">{{ row.ngayKetThuc || '—' }}</span>
-          </template>
-
-          <template #cell-giaPhim="{ row }">
-            <span class="fw-bold text-price">{{ row.giaPhim?.toLocaleString('vi-VN') }} đ</span>
-          </template>
-
-          <template #cell-ngayTao="{ row }">
-            <div class="text-secondary" style="white-space:nowrap;">
-              <i class="bi bi-calendar3 me-1"></i>{{ formatDate(row.ngayTao) }}
-            </div>
-          </template>
-
           <template #cell-trangThai="{ row }">
             <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0">
               <span class="badge rounded-pill px-2 py-1" :class="[getTrangThaiClass(row.trangThai), row.trangThai === 1 ? 'badge-pulse' : '', row.trangThai !== 0 ? 'cursor-pointer' : '']">
@@ -365,7 +265,138 @@ watch([currentPage, pageSize], fetchMovies);
               </template>
             </el-dropdown>
           </template>
+
+          <template #actions="{ row }">
+            <div class="d-flex gap-1 justify-content-center align-items-center">
+              <el-tooltip content="Xem chi tiết" placement="top">
+                <button class="btn-action-icon action-view" @click="handleView(row)">
+                  <i class="bi bi-eye fs-6"></i>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Chỉnh sửa" placement="top">
+                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
+                  <i class="bi bi-pencil fs-6"></i>
+                </button>
+              </el-tooltip>
+              <el-switch
+                :model-value="row.trangThai === 1"
+                :disabled="row.trangThai === 0"
+                @change="(val) => {
+                  if (row.trangThai === 2 && val) {
+                    handleUpdateStatus(row, 1);
+                  } else if (row.trangThai === 1 && !val) {
+                    handleUpdateStatus(row, 0);
+                  }
+                }"
+                class="status-switch mx-1"
+                inactive-color="#ff4949"
+              />
+            </div>
+          </template>
+          <template #cell-stt="{ index }">
+            <span class="fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+          </template>
+
+
+
+          <template #cell-poster="{ row }">
+            <div class="py-1">
+              <img v-if="row.poster" :src="row.poster" class="rounded-3 shadow-sm"
+                style="width:42px;height:62px;object-fit:cover;"
+                @error="e => e.target.style.display='none'" />
+              <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center"
+                style="width:42px;height:62px;">
+                <i class="bi bi-film text-secondary" style="font-size:18px;"></i>
+              </div>
+            </div>
+          </template>
+
+          <template #cell-maPhim="{ row }">
+            <span class="text-secondary small fw-bold">#{{ row.maPhim }}</span>
+          </template>
+
+          <template #cell-tenPhim="{ row }">
+            <div class="fw-bold" style="color:#344767; white-space: nowrap;">{{ row.tenPhim }}</div>
+          </template>
+
+          <template #cell-nhanDoTuoi="{ row }">
+            <el-tag :type="getDoTuoiTagType(row.nhanDoTuoi)" size="small" effect="plain" round>{{ row.nhanDoTuoi }}</el-tag>
+          </template>
+
+          <template #cell-giaPhim="{ row }">
+            <span class="fw-bold text-primary small">{{ row.giaPhim?.toLocaleString('vi-VN') }}đ</span>
+          </template>
+
+          <template #cell-theLoais="{ row }">
+            <div class="d-flex flex-nowrap gap-1 justify-content-center" style="overflow: hidden;">
+              <el-tag v-for="g in (row.theLoais || [])" :key="g.id"
+                size="small" effect="plain" class="genre-tag flex-shrink-0">{{ g.tenTheLoai }}</el-tag>
+              <span v-if="!row.theLoais?.length" class="text-secondary">—</span>
+            </div>
+          </template>
+
+          <template #cell-thoiLuong="{ row }">
+            <div class="small text-secondary fw-semibold">{{ row.thoiLuong }} phút</div>
+          </template>
+
+          <template #cell-danhGia="{ row }">
+            <div class="d-flex align-items-center justify-content-center gap-1">
+              <i class="bi bi-star-fill text-warning small"></i>
+              <span class="small fw-bold">{{ row.danhGia || '0.0' }}</span>
+            </div>
+          </template>
+
+
         </BaseTable>
+        <BaseModal v-model="detailVisible" title="Chi tiết phim" icon="bi bi-film" width="600px">
+      <div v-if="selectedItem" class="p-3">
+        <div class="row g-4">
+          <div class="col-4">
+             <img :src="selectedItem.poster" class="img-fluid rounded-4 shadow" style="width: 100%; object-fit: cover;" />
+          </div>
+          <div class="col-8">
+            <h4 class="fw-bold text-dark mb-1">{{ selectedItem.tenPhim }}</h4>
+            <div class="mb-3">
+              <el-tag v-for="g in selectedItem.theLoais" :key="g.id" size="small" effect="plain" class="me-1">{{ g.tenTheLoai }}</el-tag>
+            </div>
+            <div class="detail-grid row g-3">
+              <div class="col-6">
+                 <div class="lbl text-secondary small">Mã phim</div>
+                 <div class="val fw-bold">#{{ selectedItem.maPhim }}</div>
+              </div>
+              <div class="col-6">
+                 <div class="lbl text-secondary small">Đánh giá</div>
+                 <div class="val text-warning"><i class="bi bi-star-fill me-1"></i>{{ selectedItem.danhGia || '—' }}</div>
+              </div>
+              <div class="col-6">
+                 <div class="lbl text-secondary small">Thời lượng</div>
+                 <div class="val">{{ selectedItem.thoiLuong }} phút</div>
+              </div>
+              <div class="col-6">
+                 <div class="lbl text-secondary small">Độ tuổi</div>
+                 <el-tag :type="getDoTuoiTagType(selectedItem.nhanDoTuoi)" size="small">{{ selectedItem.nhanDoTuoi }} ({{ selectedItem.doTuoi }}+)</el-tag>
+              </div>
+              <div class="col-6">
+                 <div class="lbl text-secondary small">Ngày khởi chiếu</div>
+                 <div class="val text-success fw-bold">{{ selectedItem.ngayKhoiChieu || '—' }}</div>
+              </div>
+              <div class="col-6">
+                 <div class="lbl text-secondary small">Ngày kết thúc</div>
+                 <div class="val text-danger fw-bold">{{ selectedItem.ngayKetThuc || '—' }}</div>
+              </div>
+              <div class="col-12">
+                 <div class="lbl text-secondary small">Giá phim (Gốc)</div>
+                 <div class="val text-primary fw-bold fs-5">{{ selectedItem.giaPhim?.toLocaleString('vi-VN') }} đ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">Đóng</el-button>
+        <el-button type="primary" @click="handleEdit(selectedItem); detailVisible = false">Chỉnh sửa</el-button>
+      </template>
+    </BaseModal>
       </template>
     </AdminTableLayout>
   </div>

@@ -43,6 +43,7 @@ export const ADMIN_ROUTES = {
     INVOICES: { path: 'invoices', name: 'AdminInvoices' },
     INVOICES_DETAIL: { path: 'invoices/:id', name: 'AdminInvoiceDetail' },
     TICKETS: { path: 'tickets', name: 'AdminTickets' },
+    ROOMS: { path: 'rooms', name: 'AdminRooms' },
     SEATS: { 
       path: 'seats', 
       name: 'AdminSeats',
@@ -60,7 +61,8 @@ export const ADMIN_ROUTES = {
       path: 'schedule', 
       name: 'AdminSchedule',
       children: {
-        VISUAL: { path: 'visual', name: 'AdminScheduleVisual' }
+        VISUAL: { path: 'visual', name: 'AdminScheduleVisual' },
+        LIST: { path: 'list', name: 'AdminScheduleList' }
       }
     },
     FOOD: { path: 'food', name: 'AdminFood' },

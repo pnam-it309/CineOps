@@ -57,6 +57,13 @@ export const adminRoutes = {
             component: () => import('@/pages/admin/quanlyve/TicketList.vue'),
             meta: { title: 'Quản lý vé' }
         },
+        // ── Phòng chiếu ──────────────────────────────────────
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.ROOMS.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.ROOMS.name,
+            component: () => import('@/pages/admin/AdminRooms.vue'),
+            meta: { title: 'Danh sách phòng' }
+        },
 
         // ── Ghế ──────────────────────────────────────────────
         {
@@ -68,20 +75,8 @@ export const adminRoutes = {
                 {
                     path: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LIST.path,
                     name: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LIST.name,
-                    component: () => import('@/pages/admin/ghe/AdminSeats.vue'), // Dùng chung component, handle bằng route name
+                    component: () => import('@/pages/admin/ghe/AdminSeats.vue'),
                     meta: { title: 'Danh sách ghế' }
-                },
-                {
-                    path: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LAYOUT.path,
-                    name: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LAYOUT.name,
-                    component: () => import('@/pages/admin/ghe/AdminSeats.vue'),
-                    meta: { title: 'Sơ đồ ghế' }
-                },
-                {
-                    path: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.CONFIG.path,
-                    name: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.CONFIG.name,
-                    component: () => import('@/pages/admin/ghe/AdminSeats.vue'),
-                    meta: { title: 'Cấu hình phòng' }
                 }
             ]
         },
@@ -108,18 +103,16 @@ export const adminRoutes = {
 
         // ── Lịch chiếu ───────────────────────────────────────
         {
-            path: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.path,
-            name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.name,
-            component: () => import('@/pages/admin/lichChieu/AdminSchedule.vue'),
-            redirect: { name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name },
-            children: [
-                {
-                    path: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.path,
-                    name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name,
-                    component: () => import('@/pages/admin/lichChieu/AdminSchedule.vue'),
-                    meta: { title: 'Sơ đồ lịch chiếu' }
-                }
-            ]
+            path: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.path + '/visual',
+            name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name,
+            component: () => import('@/pages/admin/lichChieu/AdminScheduleVisual.vue'),
+            meta: { title: 'Sơ đồ lịch chiếu' }
+        },
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.path + '/list',
+            name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name,
+            component: () => import('@/pages/admin/lichChieu/AdminScheduleList.vue'),
+            meta: { title: 'Danh sách lịch chiếu' }
         },
 
         // ── Suất chiếu ───────────────────────────────────────

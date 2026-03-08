@@ -84,4 +84,9 @@ public class AdHoaDonController {
     public ResponseEntity<AdHoaDonResponse> getHoaDonById(@PathVariable String id) {
         return ResponseEntity.ok(adHoaDonService.getHoaDonById(id));
     }
+
+    @GetMapping("/{id}/lich-su-thanh-toan")
+    public ResponseEntity<List<service.cinema.be.core.admin.quanlyhoadon.dto.response.AdLichSuThanhToanResponse>> getPaymentHistory(@PathVariable String id) {
+        return ResponseEntity.ok(adHoaDonService.getPaymentHistory(id));
+    }
 }

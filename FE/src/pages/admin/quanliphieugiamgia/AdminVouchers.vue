@@ -1,44 +1,50 @@
 <template>
   <div class="admin-vouchers-page">
     <AdminTableLayout title="Quản lý phiếu giảm giá" titleIcon="bi bi-ticket-perforated-fill"
-      addButtonLabel="Thêm phiếu giảm giá" :data="vouchers" :loading="loading" :total="total" v-model:currentPage="currentPage"
-      v-model:pageSize="pageSize" @add-click="openDialog()" @reset-filter="resetFilter">
-      
+      addButtonLabel="Thêm phiếu giảm giá" :data="vouchers" :loading="loading" :total="total"
+      v-model:currentPage="currentPage" v-model:pageSize="pageSize" @add-click="openDialog()"
+      @reset-filter="resetFilter">
+
 
       <template #header-actions-left>
         <ExcelActions module="phieu-giam-gia" @import-success="fetchVouchers" />
       </template>
 
       <template #filters>
+        <div class="filter-item search-input-wrapper">
+          <el-input v-model="searchQuery" placeholder="Nhập mã hoặc tên phiếu..." :prefix-icon="Search" clearable @input="handleSearch" style="width: 250px;" />
+        </div>
+
         <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterStatus" placeholder="Tất cả" @change="fetchVouchers">
-            <el-option label="Tất cả" value="" />
+          <el-select v-model="filterStatus" placeholder="Chọn trạng thái" style="width: 180px;" @change="fetchVouchers" clearable>
+            <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Đang hoạt động" :value="1" />
             <el-option label="Tạm ngưng" :value="0" />
             <el-option label="Đã kết thúc" :value="2" />
           </el-select>
         </div>
 
-        <div class="filter-item search-input-wrapper">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-input v-model="searchQuery" placeholder="Nhập mã hoặc tên phiếu..." clearable
-            @input="handleSearch" />
+        <div class="filter-item">
+          <el-select v-model="filterLoaiPhieu" placeholder="Chọn loại phiếu" style="width: 180px;" @change="fetchVouchers" clearable>
+            <el-option label="Tất cả loại phiếu" value="" />
+            <el-option label="Giảm phần trăm" :value="1" />
+            <el-option label="Giảm số tiền" :value="2" />
+          </el-select>
+        </div>
+
+        <div class="filter-item">
+          <el-select v-model="filterDoiTuong" placeholder="Chọn đối tượng" style="width: 180px;" @change="fetchVouchers" clearable>
+            <el-option label="Tất cả đối tượng" value="" />
+            <el-option label="Công khai" :value="0" />
+            <el-option label="Cá nhân" :value="1" />
+          </el-select>
         </div>
       </template>
 
       <template #content>
-        <BaseTable
-          :data="vouchers"
-          :columns="voucherColumns"
-          :loading="loading"
-          :total="total"
-          v-model:currentPage="currentPage"
-          v-model:pageSize="pageSize"
-          :hide-pagination="true"
-          @edit="openDialog"
-          @delete="handleUpdateStatus"
-        >
+        <BaseTable :data="vouchers" :columns="voucherColumns" :loading="loading" :total="total"
+          v-model:currentPage="currentPage" v-model:pageSize="pageSize" :hide-pagination="true" @edit="openDialog"
+          @delete="handleUpdateStatus">
           <template #cell-stt="{ index }">
             <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
           </template>
@@ -49,12 +55,12 @@
             </el-tag>
           </template>
 
-          <template #cell-tenPhieu="{ row }">
-            <span class="fw-semibold text-dark" style="white-space: nowrap;">{{ row.tenPhieu }}</span>
+          <template #cell-soLuong="{ row }">
+            <span class="fw-bold text-dark">{{ row.soLuong }}</span>
           </template>
 
-          <template #cell-giaTriHoaDonToiThieu="{ row }">
-            <span class="fw-bold text-dark text-nowrap">{{ formatCurrency(row.giaTriHoaDonToiThieu) }}</span>
+          <template #cell-tenPhieu="{ row }">
+            <span class="fw-semibold text-dark" style="white-space: nowrap;">{{ row.tenPhieu }}</span>
           </template>
 
           <template #cell-loaiPhieu="{ row }">
@@ -66,37 +72,22 @@
             </div>
           </template>
 
-          <template #cell-kieuPhatHanh="{ row }">
-            <el-tag :type="row.kieuPhatHanh === 0 ? 'success' : 'info'" effect="light" round size="small">
-              <i class="bi" :class="row.kieuPhatHanh === 0 ? 'bi-globe' : 'bi-person-lock'"></i>
-              {{ row.kieuPhatHanh === 0 ? ' Công khai' : ' Cá nhân' }}
+          <template #cell-giamToiDa="{ row }">
+            <span class="small text-secondary">{{ row.loaiPhieu === 1 ? formatCurrency(row.giamToiDa) : '—' }}</span>
+          </template>
+
+          <template #cell-doiTuong="{ row }">
+            <el-tag size="small" :type="row.doiTuong === 1 ? 'warning' : 'info'" effect="plain" round>
+              {{ row.doiTuong === 1 ? 'Cá nhân' : 'Công khai' }}
             </el-tag>
           </template>
 
-          <template #cell-giamToiDa="{ row }">
-            <span v-if="row.loaiPhieu === 1" class="text-dark fw-bold">{{ formatCurrency(row.giamToiDa) }}</span>
-            <span v-else class="text-secondary small">—</span>
-          </template>
-
-          <template #cell-soLuong="{ row }">
-            <span class="text-dark fw-bold">{{ row.soLuong }}</span>
-          </template>
-
-          <template #cell-ngayBatDau="{ row }">
-            <div class="small text-secondary" style="font-size: 11px;">
-              <div class="text-nowrap"><i class="bi bi-calendar-check me-1"></i>{{ formatDate(row.ngayBatDau) }}</div>
-            </div>
-          </template>
-
-          <template #cell-ngayKetThuc="{ row }">
-            <div class="small text-secondary" style="font-size: 11px;">
-              <div class="text-nowrap"><i class="bi bi-calendar-x me-1"></i>{{ formatDate(row.ngayKetThuc) }}</div>
-            </div>
-          </template>
 
           <template #cell-trangThai="{ row }">
-            <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0 || row.trangThai === 2">
-              <el-tag :type="getStatusTag(row.trangThai)" round size="small" :class="{ 'cursor-pointer': row.trangThai !== 0 && row.trangThai !== 2 }">
+            <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)"
+              :disabled="row.trangThai === 0 || row.trangThai === 2">
+              <el-tag :type="getStatusTag(row.trangThai)" round size="small"
+                :class="{ 'cursor-pointer': row.trangThai !== 0 && row.trangThai !== 2 }">
                 {{ getStatusLabel(row.trangThai) }}
               </el-tag>
               <template #dropdown>
@@ -110,33 +101,98 @@
           </template>
 
           <template #actions="{ row }">
-            <div class="d-flex justify-content-center gap-1">
+            <div class="d-flex justify-content-center align-items-center gap-1">
+              <el-tooltip content="Xem chi tiết" placement="top">
+                <button class="btn-action-icon action-view" @click="handleView(row)">
+                  <i class="bi bi-eye fs-6"></i>
+                </button>
+              </el-tooltip>
               <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0 || row.trangThai === 2" @click="openDialog(row)">
+                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0 || row.trangThai === 2"
+                  @click="openDialog(row)">
                   <i class="bi bi-pencil fs-6"></i>
                 </button>
               </el-tooltip>
-              <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0 || row.trangThai === 2">
-                <span class="el-dropdown-link d-inline-block">
-                  <el-tooltip content="Thay đổi trạng thái" placement="top">
-                    <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0 || row.trangThai === 2">
-                      <i class="bi bi-list-check fs-6"></i>
-                    </button>
-                  </el-tooltip>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Hoạt động</el-dropdown-item>
-                    <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Tạm ngưng</el-dropdown-item>
-                    <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Kết thúc</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+              <el-switch
+                :model-value="row.trangThai === 1"
+                :disabled="row.trangThai === 2"
+                @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
+                class="status-switch mx-1"
+                inactive-color="#ff4949"
+              />
             </div>
           </template>
         </BaseTable>
       </template>
     </AdminTableLayout>
+
+    <!-- Detail Modal -->
+    <BaseModal v-model="detailVisible" title="Chi tiết phiếu giảm giá" icon="bi bi-ticket-perforated" width="500px">
+      <div v-if="selectedItem" class="p-3">
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
+          <div class="icon-box bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 50px; height: 50px;">
+            <i class="bi bi-ticket-perforated fs-4"></i>
+          </div>
+          <div>
+            <h5 class="m-0 fw-bold">{{ selectedItem.tenPhieu }}</h5>
+            <div class="text-secondary small">Mã: {{ selectedItem.maPhieuGiamGia }}</div>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="lbl text-secondary small">Loại phiếu</div>
+              <div class="val fw-semibold">{{ selectedItem.loaiPhieu === 1 ? 'Giảm phần trăm' : 'Giảm số tiền' }}</div>
+            </div>
+            <div class="col-6">
+              <div class="lbl text-secondary small">Giá trị giảm</div>
+              <div class="val fw-bold text-danger">
+                {{ selectedItem.loaiPhieu === 1 ? selectedItem.phanTramGiamGia + '%' :
+                  formatCurrency(selectedItem.soTienGiam) }}
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="lbl text-secondary small">Đơn tối thiểu</div>
+              <div class="val fw-semibold">{{ formatCurrency(selectedItem.donToiThieu) }}</div>
+            </div>
+            <div class="col-6">
+              <div class="lbl text-secondary small">Giảm tối đa</div>
+              <div class="val fw-semibold">{{ selectedItem.loaiPhieu === 1 ? formatCurrency(selectedItem.giamToiDa) :
+                '—' }}
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="lbl text-secondary small">Số lượng</div>
+              <div class="val fw-semibold">{{ selectedItem.soLuong }} / {{ selectedItem.soLuongBanDau ||
+                selectedItem.soLuong }}</div>
+            </div>
+            <div class="col-6">
+              <div class="lbl text-secondary small">Đối tượng</div>
+              <div class="val fw-semibold">{{ selectedItem.doiTuong === 1 ? 'Cá nhân' : 'Công khai' }}</div>
+            </div>
+            <div class="col-6">
+              <div class="lbl text-secondary small">Từ ngày</div>
+              <div class="val fw-semibold small">{{ formatDate(selectedItem.ngayBatDau) }}</div>
+            </div>
+            <div class="col-6">
+              <div class="lbl text-secondary small">Đến ngày</div>
+              <div class="val fw-semibold small">{{ formatDate(selectedItem.ngayKetThuc) }}</div>
+            </div>
+            <div class="col-12">
+              <div class="lbl text-secondary small">Trạng thái</div>
+              <el-tag :type="getStatusTag(selectedItem.trangThai)" round size="small">
+                {{ getStatusLabel(selectedItem.trangThai) }}
+              </el-tag>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">Đóng</el-button>
+        <el-button type="primary" @click="openDialog(selectedItem); detailVisible = false">Chỉnh sửa</el-button>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -156,15 +212,12 @@ const router = useRouter();
 
 const voucherColumns = [
   { label: 'STT', key: 'stt', width: '60px' },
-  { label: 'Mã giảm giá', key: 'maPhieuGiamGia', width: '140px' },
-  { label: 'Tên phiếu giảm giá', key: 'tenPhieu', minWidth: '180px' },
-  { label: 'Đơn tối thiểu', key: 'giaTriHoaDonToiThieu', width: '150px' },
+  { label: 'Mã giảm giá', key: 'maPhieuGiamGia', width: '130px' },
+  { label: 'Tên phiếu giảm giá', key: 'tenPhieu', width: '180px' },
+  { label: 'Số lượng', key: 'soLuong', width: '90px' },
   { label: 'Giảm giá', key: 'loaiPhieu', width: '120px' },
-  { label: 'Đối tượng', key: 'kieuPhatHanh', width: '130px' },
-  { label: 'Giảm tối đa', key: 'giamToiDa', width: '140px' },
-  { label: 'Số lượng', key: 'soLuong', width: '100px' },
-  { label: 'Từ ngày', key: 'ngayBatDau', width: '160px' },
-  { label: 'Đến ngày', key: 'ngayKetThuc', width: '160px' },
+  { label: 'Giảm tối đa', key: 'giamToiDa', width: '120px' },
+  { label: 'Đối tượng', key: 'doiTuong', width: '110px' },
   { label: 'Trạng thái', key: 'trangThai', width: '130px' },
 ];
 
@@ -173,9 +226,18 @@ const loading = ref(false);
 const vouchers = ref([]);
 const total = ref(0);
 const currentPage = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(5);
 const filterStatus = ref('');
+const filterLoaiPhieu = ref('');
+const filterDoiTuong = ref('');
 const searchQuery = ref('');
+const detailVisible = ref(false);
+const selectedItem = ref(null);
+
+const handleView = (row) => {
+  selectedItem.value = row;
+  detailVisible.value = true;
+};
 
 const fetchVouchers = async () => {
   loading.value = true;
@@ -183,6 +245,8 @@ const fetchVouchers = async () => {
     const params = {
       keyword: searchQuery.value,
       trangThai: filterStatus.value === '' ? null : filterStatus.value,
+      loaiPhieu: filterLoaiPhieu.value === '' ? null : filterLoaiPhieu.value,
+      doiTuong: filterDoiTuong.value === '' ? null : filterDoiTuong.value,
       page: currentPage.value - 1,
       size: pageSize.value
     };
@@ -204,6 +268,8 @@ const handleSearch = debounce(() => {
 const resetFilter = () => {
   searchQuery.value = '';
   filterStatus.value = '';
+  filterLoaiPhieu.value = '';
+  filterDoiTuong.value = '';
   currentPage.value = 1;
   fetchVouchers();
 };
@@ -220,7 +286,7 @@ const handleUpdateStatus = (row, status = null) => {
   const isInactive = row.trangThai === 0;
   const newStatus = status !== null ? status : (isInactive ? 1 : 0);
   const label = getStatusLabel(newStatus).toLowerCase();
-  
+
   if (newStatus === row.trangThai) return;
 
   confirmDialog.custom(
@@ -235,7 +301,7 @@ const handleUpdateStatus = (row, status = null) => {
     } catch (e) {
       notification.error('Cập nhật thất bại');
     }
-  }).catch(() => {});
+  }).catch(() => { });
 };
 
 
@@ -267,4 +333,3 @@ watch([currentPage, pageSize], fetchVouchers);
   padding: 0;
 }
 </style>
-

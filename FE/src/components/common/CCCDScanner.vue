@@ -182,10 +182,12 @@ const sendFrameToBE = async () => {
         const formData = new FormData();
         formData.append('file', blob, 'best_frame.jpg');
 
-        const response = await axios.post('/api/v1/scan/cccd', formData);
+        const response = await axios.post('/api/v1/common/scan/cccd', formData);
         handleBeResult(response.data?.data);
     } catch (err) {
-        // Silent fail (Normal for CV polling)
+        if (err.response?.status === 400) {
+            console.error('CCCD Scan Error:', err.response.data?.message || err.message);
+        }
     } finally {
         // Throttle BE calls slightly even if fast
         setTimeout(() => { isBeProcessing = false; }, 200);

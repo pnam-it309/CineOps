@@ -10,7 +10,7 @@
 .base-table-container thead th *,
 .el-table__header th.el-table__cell .cell,
 .el-table__header th.el-table__cell .cell * {
-  font-size: 16px !important; 
+  font-size: 18px !important; 
   font-weight: 700 !important; 
   color: #1e293b !important;  
   text-transform: none !important; 
@@ -23,7 +23,7 @@
 .base-table-container tbody td *,
 .el-table__body td.el-table__cell .cell,
 .el-table__body td.el-table__cell .cell * {
-  font-size: 16px !important; 
+  font-size: 18px !important; 
   font-weight: 500 !important; 
   color: #475569 !important;
   line-height: 1.6 !important;
@@ -34,28 +34,42 @@
 .el-table .el-tag, 
 .base-table-container .el-tag,
 .badge, .small, small, .extra-small {
-  font-size: 14px !important;
+  font-size: 16px !important;
   font-weight: 600 !important;
   padding: 4px 10px !important;
   height: auto !important;
 }
 
-/* 4. ĐỘ CAO HÀNG - Compact design */
+/* 4. ĐỘ CAO HÀNG - Premium and Spacious */
 .el-table__header th.el-table__cell,
 .base-table-container thead th {
-  padding: 12px 12px !important;
+  padding: 16px 12px !important;
   background-color: #f8fafc !important;
 }
 
 .el-table__body td.el-table__cell,
 .base-table-container tbody td {
-  padding: 12px 12px !important;
+  padding: 22px 12px !important;
 }
 
 /* 5. PHÂN TRANG */
 .pagination-footer .text-dark.fw-bold {
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 .el-pagination * {
-  font-size: 13px !important;
+  font-size: 15px !important;
+}
+
+/* 6. OVERFLOW CONTROL - Prevent Horizontal Scroll */
+.table-content-wrapper {
+  overflow-x: hidden !important;
+}
+
+.table-cell-sticky-stt,
+.td-sticky-actions,
+.sticky-col-stt,
+.sticky-col-actions,
+.el-tag,
+.badge {
+  white-space: nowrap !important;
 }

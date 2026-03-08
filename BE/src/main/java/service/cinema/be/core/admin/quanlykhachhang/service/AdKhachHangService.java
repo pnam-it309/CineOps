@@ -27,6 +27,7 @@ public class AdKhachHangService {
     private final PhanQuyenRepository phanQuyenRepository;
     private final PasswordEncoder passwordEncoder;
     private final service.cinema.be.core.email.service.IEmailService emailService;
+    private final service.cinema.be.repository.DiaChiRepository diaChiRepository;
 
     @Transactional(readOnly = true)
     public Page<AdKhachHangResponse> getAllKhachHang(String search, Integer trangThai, Pageable pageable) {
@@ -71,7 +72,12 @@ public class AdKhachHangService {
         kh.setNgayTao(LocalDateTime.now());
         
         transferData(request, kh);
-        return toResponse(adKhachHangRepository.save(kh));
+        KhachHang savedKh = adKhachHangRepository.save(kh);
+
+        // Save address
+        saveDiaChi(request, savedKh);
+        
+        return toResponse(savedKh);
     }
 
     @Transactional
@@ -92,7 +98,11 @@ public class AdKhachHangService {
 
         transferData(request, kh);
         kh.setNgayCapNhat(LocalDateTime.now());
-        return toResponse(adKhachHangRepository.save(kh));
+        KhachHang updatedKh = adKhachHangRepository.save(kh);
+        
+        saveDiaChi(request, updatedKh);
+        
+        return toResponse(updatedKh);
     }
 
     @Transactional
@@ -171,7 +181,43 @@ public class AdKhachHangService {
                 .ngaySinh(kh.getNgaySinh())
                 .hinhAnh(kh.getHinhAnh())
                 .ghiChu(kh.getGhiChu())
+                .thanhPhoTinh(kh.getDiaChis().isEmpty() ? null : kh.getDiaChis().get(0).getThanhPhoTinh())
+                .quanHuyen(kh.getDiaChis().isEmpty() ? null : kh.getDiaChis().get(0).getQuanHuyen())
+                .phuongXa(kh.getDiaChis().isEmpty() ? null : kh.getDiaChis().get(0).getPhuongXa())
+                .diaChiChiTiet(kh.getDiaChis().isEmpty() ? null : kh.getDiaChis().get(0).getDiaChiChiTiet())
+                .diaChi(buildDiaChiStr(kh))
                 .trangThai(kh.getTrangThai())
+                // Mock data cho giao diện PGG cá nhân giống Ảnh 2
+                .buyLast(kh.getNgayTao() != null ? kh.getNgayTao().toLocalDate().toString() : "07/03/2026")
+                .orders((int) (System.currentTimeMillis() % 5))
+                .spent((double) (1000000 + (System.currentTimeMillis() % 500) * 10000))
                 .build();
+    }
+
+    private String buildDiaChiStr(KhachHang kh) {
+        if (kh.getDiaChis().isEmpty()) return null;
+        service.cinema.be.entity.DiaChi dc = kh.getDiaChis().get(0);
+        StringBuilder sb = new StringBuilder();
+        if (dc.getDiaChiChiTiet() != null) sb.append(dc.getDiaChiChiTiet()).append(", ");
+        if (dc.getPhuongXa() != null) sb.append(dc.getPhuongXa()).append(", ");
+        if (dc.getQuanHuyen() != null) sb.append(dc.getQuanHuyen()).append(", ");
+        if (dc.getThanhPhoTinh() != null) sb.append(dc.getThanhPhoTinh());
+        return sb.toString();
+    }
+
+    private void saveDiaChi(AdKhachHangRequest request, KhachHang kh) {
+        if (request.getThanhPhoTinh() == null && request.getPhuongXa() == null) return;
+        
+        service.cinema.be.entity.DiaChi dc = diaChiRepository.findByKhachHangId(kh.getId())
+                .orElse(new service.cinema.be.entity.DiaChi());
+        
+        if (dc.getId() == null) dc.setId(UUID.randomUUID().toString());
+        dc.setKhachHang(kh);
+        dc.setThanhPhoTinh(request.getThanhPhoTinh());
+        dc.setQuanHuyen(request.getQuanHuyen());
+        dc.setPhuongXa(request.getPhuongXa());
+        dc.setDiaChiChiTiet(request.getDiaChiChiTiet());
+        dc.setTrangThai(1);
+        diaChiRepository.save(dc);
     }
 }

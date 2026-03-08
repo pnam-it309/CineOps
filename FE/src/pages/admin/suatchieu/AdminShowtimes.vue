@@ -36,19 +36,17 @@
           <el-input v-model="searchQuery" placeholder="Tìm tên phim..." :prefix-icon="Search" size="default" clearable />
         </div>
         <div class="filter-item">
-          <el-date-picker v-model="filterDate" type="date" placeholder="Ngày chiếu"
-            format="DD/MM/YYYY" value-format="YYYY-MM-DD" size="default" style="width:145px;" />
+          <el-date-picker v-model="filterDate" type="date" placeholder="Chọn ngày chiếu"
+            format="DD/MM/YYYY" value-format="YYYY-MM-DD" size="default" style="width:200px;" />
         </div>
         <div class="filter-item">
-          <el-select v-model="filterRoom" placeholder="Phòng chiếu" clearable style="width:150px;">
-            <template #prefix><el-icon><Monitor /></el-icon></template>
+          <el-select v-model="filterRoom" placeholder="Chọn phòng chiếu" clearable style="width:200px;">
             <el-option label="Tất cả phòng" value="" />
             <el-option v-for="r in phongChieuList" :key="r.id" :label="r.tenPhong" :value="r.id" />
           </el-select>
         </div>
         <div class="filter-item">
-          <el-select v-model="filterTrangThai" placeholder="Trạng thái" clearable style="width:140px;">
-            <template #prefix><el-icon><Filter /></el-icon></template>
+          <el-select v-model="filterTrangThai" placeholder="Chọn trạng thái" clearable style="width:200px;">
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Sắp chiếu" :value="1" />
             <el-option label="Đang chiếu" :value="2" />
@@ -126,31 +124,25 @@
           </template>
 
           <template #actions="{ row }">
-            <div class="d-flex justify-content-center gap-1">
-
+            <div class="d-flex justify-content-center align-items-center gap-1">
+              <el-tooltip content="Xem chi tiết" placement="top">
+                <button class="btn-action-icon action-view" @click="handleView(row)">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </el-tooltip>
               <el-tooltip content="Chỉnh sửa" placement="top">
                 <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0 || row.trangThai === 3" @click="openDialog(row)">
                   <i class="bi bi-pencil"></i>
                 </button>
               </el-tooltip>
-              <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0 || row.trangThai === 3">
-                <span class="el-dropdown-link d-inline-block">
-                  <el-tooltip content="Thay đổi trạng thái" placement="top">
-                    <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0 || row.trangThai === 3">
-                      <i class="bi bi-list-check fs-6"></i>
-                    </button>
-                  </el-tooltip>
-                </span>
-                <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Sắp chiếu</el-dropdown-item>
-                  <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Đang chiếu</el-dropdown-item>
-                  <el-dropdown-item :command="3" :disabled="row.trangThai === 3">Kết thúc</el-dropdown-item>
-                  <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Đã hủy</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
+              <el-switch
+                :model-value="row.trangThai === 1 || row.trangThai === 2"
+                :disabled="row.trangThai === 3"
+                @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
+                class="status-switch mx-1"
+                inactive-color="#ff4949"
+              />
+            </div>
           </template>
         </BaseTable>
       </template>
@@ -537,6 +529,11 @@ const batchDialogVisible = ref(false);
 const batchResult = ref(null);
 const selectedShowtime = ref(null);
 const editingId = ref(null);
+
+const handleView = (row) => {
+  selectedShowtime.value = row;
+  detailVisible.value = true;
+};
 const formRef  = ref(null);
 const batchFormRef = ref(null);
 
@@ -549,7 +546,7 @@ const filterRoom     = ref(null);
 const filterTrangThai = ref('');
 const searchQuery    = ref('');
 const currentPage    = ref(1);
-const pageSize       = ref(10);
+const pageSize       = ref(5);
 const selectedShowtimes = ref([]);
 
 const form = ref({
@@ -612,7 +609,6 @@ watch([() => form.value.idPhim, () => form.value.gioBatDau], ([newPhimId, newSta
 // ── Columns ───────────────────────────────────────────────────────────────────
 const columns = [
   { label: 'STT',         key: 'index',      width: '60px'    },
-  { label: 'Phim',        key: 'phim',       width: '220px' },
   { label: 'Phòng chiếu', key: 'phongChieu', width: '150px'   },
   { label: 'Ngày chiếu',  key: 'ngayChieu',  width: '130px'   },
   { label: 'Giờ chiếu',   key: 'gioChieu',   width: '160px'   },
@@ -676,8 +672,6 @@ const resetFilter = () => {
   currentPage.value = 1;
   fetchShowtimes();
 };
-
-const handleView = (row) => { selectedShowtime.value = row; detailVisible.value = true; };
 
 const openDialog = (row = null) => {
   editingId.value = row?.id || null;

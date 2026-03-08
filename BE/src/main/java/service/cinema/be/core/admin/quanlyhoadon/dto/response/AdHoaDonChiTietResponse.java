@@ -16,4 +16,6 @@ public class AdHoaDonChiTietResponse {
     private BigDecimal donGia;
     private BigDecimal thanhTien;
     private String tenSanPham;
+    private String maMuc; // Bổ sung mã vé hoặc mã SP
+    private BigDecimal giamGia;
 }

@@ -1,39 +1,138 @@
 <template>
   <div class="admin-schedule-page">
     <AdminTableLayout
-      title="Sơ đồ lịch chiếu"
-      titleIcon="bi bi-grid-3x3-gap-fill"
-      :data="showtimes"
+      title="Quản lý lịch chiếu"
+      titleIcon="bi bi-calendar-week-fill"
+      :data="filteredShowtimes"
       :loading="loading"
-      :total="showtimes.length"
-      :hide-pagination="true"
-      :hide-filter="true"
-      :disable-padding="true"
+      :total="filteredShowtimes.length"
+      v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize"
+      :hide-pagination="activeTab === 'visual'"
+      :hide-filter="activeTab === 'visual'"
+      :disable-padding="activeTab === 'visual'"
       @reset-filter="resetFilter"
     >
       <!-- Header Actions: room selector -->
       <template #header-actions>
-        <div class="d-flex align-items-center gap-2 border-start ps-3">
-          <span class="text-secondary small fw-bold">PHÒNG:</span>
-          <el-select v-model="visualRoomId" placeholder="Chọn phòng" style="width:160px;" size="default">
-            <template #prefix><i class="bi bi-door-open"></i></template>
-            <el-option v-for="r in phongChieuList" :key="r.id" :label="r.name || r.tenPhong" :value="r.id" />
+        <div class="d-flex align-items-center gap-3">
+          <el-radio-group v-model="activeTab" size="default" class="premium-tabs-toggle">
+            <el-radio-button label="visual">
+              <i class="bi bi-grid-3x3-gap me-1"></i> Sơ đồ
+            </el-radio-button>
+            <el-radio-button label="list">
+              <i class="bi bi-list-ul me-1"></i> Danh sách
+            </el-radio-button>
+          </el-radio-group>
+          <div v-if="activeTab === 'visual'" class="d-flex align-items-center gap-2 border-start ps-3 ms-2">
+            <span class="text-secondary small fw-bold">PHÒNG:</span>
+            <el-select v-model="visualRoomId" placeholder="Chọn phòng" style="width:160px;" size="default">
+              <template #prefix><i class="bi bi-door-open"></i></template>
+              <el-option v-for="r in phongChieuList" :key="r.id" :label="r.name || r.tenPhong" :value="r.id" />
+            </el-select>
+          </div>
+        </div>
+      </template>
+
+      <template #filters>
+        <div class="filter-item search-input-wrapper">
+          <el-input v-model="searchQuery" placeholder="Tìm tên phim (ẩn trong bảng)..." :prefix-icon="Search" clearable @input="handleSearch" style="width: 250px;" />
+        </div>
+        <div class="filter-item">
+          <el-date-picker v-model="filterDate" type="date" placeholder="Chọn ngày chiếu" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 180px;" @change="handleSearch" clearable />
+        </div>
+        <div class="filter-item">
+          <el-select v-model="filterRoomId" placeholder="Chọn phòng" style="width: 180px;" @change="handleSearch" clearable>
+            <el-option label="Tất cả phòng" value="" />
+            <el-option v-for="r in phongChieuList" :key="r.id" :label="r.tenPhong || r.name" :value="r.id" />
+          </el-select>
+        </div>
+        <div class="filter-item">
+          <el-select v-model="filterStatus" placeholder="Chọn trạng thái" style="width: 180px;" @change="handleSearch" clearable>
+            <el-option label="Tất cả trạng thái" value="" />
+            <el-option label="Sắp chiếu" :value="1" />
+            <el-option label="Đang chiếu" :value="2" />
+            <el-option label="Đã hủy" :value="0" />
+            <el-option label="Kết thúc" :value="3" />
           </el-select>
         </div>
       </template>
 
       <!-- Content -->
       <template #content>
-        <!-- 2. Sơ đồ (Visual View) -->
-        <ScheduleVisual
-          :showtimes="showtimes"
-          :phongChieuList="phongChieuList"
-          :phimList="phimList"
-          v-model:visualRoomId="visualRoomId"
-          @view="handleView"
-          @gridClick="handleGridClick"
-          @weekChange="fetchShowtimes"
-        />
+        <div v-if="activeTab === 'visual'" class="h-100">
+          <ScheduleVisual
+            :showtimes="showtimes"
+            :phongChieuList="phongChieuList"
+            :phimList="phimList"
+            v-model:visualRoomId="visualRoomId"
+            @view="handleView"
+            @gridClick="handleGridClick"
+            @weekChange="fetchShowtimes"
+          />
+        </div>
+        <div v-else class="h-100">
+          <BaseTable
+            :data="paginatedShowtimes"
+            :columns="listColumns"
+            :loading="loading"
+            :total="filteredShowtimes.length"
+            v-model:currentPage="currentPage"
+            v-model:pageSize="pageSize"
+            :hide-pagination="true"
+            @edit="openDialog"
+            @delete="handleUpdateStatus"
+          >
+            <template #cell-stt="{ index }">
+              <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+            </template>
+
+            <template #cell-phong="{ row }">
+              <div class="fw-bold text-dark small">
+                <i class="bi bi-door-open me-1 text-primary"></i>{{ row.tenPhongChieu }}
+              </div>
+            </template>
+
+            <template #cell-ngay="{ row }">
+              <span class="small fw-semibold">{{ formatDate(row.ngayChieu) }}</span>
+            </template>
+
+            <template #cell-gio="{ row }">
+              <div class="small d-flex align-items-center gap-1">
+                <el-tag type="info" effect="plain" size="small" class="fw-bold">{{ row.gioBatDau }}</el-tag>
+                <span class="text-secondary">→</span>
+                <el-tag type="info" effect="plain" size="small">{{ row.gioKetThuc }}</el-tag>
+              </div>
+            </template>
+
+            <template #cell-ghe="{ row }">
+              <el-tag :type="row.soGheTrong > 10 ? 'success' : 'warning'" size="small" round>
+                {{ row.soGheTrong }} ghế
+              </el-tag>
+            </template>
+
+            <template #cell-status="{ row }">
+              <el-tag :type="getStatusTag(row.trangThai)" size="small" round>
+                {{ getStatusLabel(row.trangThai) }}
+              </el-tag>
+            </template>
+
+            <template #actions="{ row }">
+              <div class="d-flex justify-content-center gap-1">
+                <el-tooltip content="Xem chi tiết (Bao gồm Phim)" placement="top">
+                  <button class="btn-action-icon action-view" @click="handleView(row)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="Chỉnh sửa" placement="top">
+                  <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0 || row.trangThai === 3" @click="openDialog(row)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                </el-tooltip>
+              </div>
+            </template>
+          </BaseTable>
+        </div>
       </template>
     </AdminTableLayout>
 
@@ -136,11 +235,15 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { Search, Plus, Calendar } from '@element-plus/icons-vue';
 import { suatChieuService } from '@/services/api/admin/suatChieuService';
 import notification from '@/utils/notifications';
+import confirmDialog from '@/utils/confirm';
 import dayjs from 'dayjs';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseModal from '@/components/common/BaseModal.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
+import debounce from 'lodash/debounce';
 
 // Import sub-components
 import ScheduleVisual from './components/ScheduleVisual.vue';
@@ -153,11 +256,29 @@ const detailVisible = ref(false);
 const selectedShowtime = ref(null);
 const editingId  = ref(null);
 const formRef    = ref(null);
+const activeTab  = ref('visual');
 
 const showtimes      = ref([]);
 const phongChieuList = ref([]);
 const phimList       = ref([]);
 const visualRoomId   = ref('');
+
+// List view filters & pagination
+const searchQuery = ref('');
+const filterDate = ref(null);
+const filterRoomId = ref('');
+const filterStatus = ref('');
+const currentPage = ref(1);
+const pageSize = ref(5);
+
+const listColumns = [
+  { label: 'STT', key: 'stt', width: '60px' },
+  { label: 'Phòng chiếu', key: 'phong', minWidth: '150px' },
+  { label: 'Ngày chiếu', key: 'ngay', width: '130px' },
+  { label: 'Giờ chiếu', key: 'gio', width: '200px' },
+  { label: 'Ghế trống', key: 'ghe', width: '120px' },
+  { label: 'Trạng thái', key: 'status', width: '130px' },
+];
 
 const form = ref({
   idPhim: '', idPhongChieu: '',
@@ -205,7 +326,32 @@ async function fetchShowtimes(offset = 0) {
   }
 }
 
+const filteredShowtimes = computed(() => {
+  return showtimes.value.filter(s => {
+    const matchRoomRes = !filterRoomId.value || s.idPhongChieu === filterRoomId.value;
+    const matchStatusRes = filterStatus.value === '' || s.trangThai === filterStatus.value;
+    const matchDateRes = !filterDate.value || s.ngayChieu === filterDate.value;
+    const matchSearchRes = !searchQuery.value || s.tenPhim?.toLowerCase().includes(searchQuery.value.toLowerCase());
+    return matchRoomRes && matchStatusRes && matchDateRes && matchSearchRes;
+  });
+});
+
+const paginatedShowtimes = computed(() => {
+  if (activeTab.value === 'visual') return filteredShowtimes.value;
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredShowtimes.value.slice(start, start + pageSize.value);
+});
+
+const handleSearch = debounce(() => {
+  currentPage.value = 1;
+}, 300);
+
 const resetFilter = () => {
+  searchQuery.value = '';
+  filterDate.value = null;
+  filterRoomId.value = '';
+  filterStatus.value = '';
+  currentPage.value = 1;
   fetchShowtimes();
 };
 
@@ -226,6 +372,21 @@ const handleGridClick = ({ date, hour, selectedPhimId }) => {
   form.value.idPhongChieu  = visualRoomId.value;
   form.value.ngayChieu     = date;
   form.value.gioBatDau     = `${String(hour).padStart(2,'0')}:00:00`;
+};
+
+const handleUpdateStatus = (row, status = null) => {
+  const newStatus = status !== null ? status : (row.trangThai === 0 ? 1 : 0);
+  const label = getStatusLabel(newStatus).toLowerCase();
+  
+  if (newStatus === row.trangThai) return;
+
+  confirmDialog.custom(`Đổi trạng thái lịch chiếu sang <b>${label}</b>?`, 'Xác nhận').then(async () => {
+    try {
+      await suatChieuService.updateShowtime(row.id, { ...row, trangThai: newStatus });
+      notification.success('Cập nhật trạng thái thành công');
+      fetchShowtimes();
+    } catch { notification.error('Cập nhật thất bại'); }
+  }).catch(() => {});
 };
 
 const handleSubmit = async () => {
@@ -272,4 +433,9 @@ onMounted(async () => {
 <style scoped>
 .admin-schedule-page { height: 100%; display: flex; flex-direction: column; }
 .admin-schedule-page :deep(.admin-table-layout) { flex: 1; }
+
+.premium-tabs-toggle :deep(.el-radio-button__inner) {
+  padding: 8px 16px;
+  font-weight: 600;
+}
 </style>

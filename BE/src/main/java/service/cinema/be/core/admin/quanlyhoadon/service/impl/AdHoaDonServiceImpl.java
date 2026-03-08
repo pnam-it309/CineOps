@@ -24,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Predicate;
 import service.cinema.be.core.admin.quanlyhoadon.dto.response.AdHoaDonResponse;
 import service.cinema.be.core.admin.quanlyhoadon.dto.response.AdHoaDonChiTietResponse;
+import service.cinema.be.core.admin.quanlyhoadon.dto.response.AdLichSuThanhToanResponse;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
@@ -314,11 +315,15 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
                 if(ve.getGhe() != null) {
                     dto.setViTriGhe( ve.getGhe().getSoGhe());
                 }
+                dto.setMaMuc(ve.getMaVe());
+                dto.setGiamGia(BigDecimal.ZERO);
             }
             // BỔ SUNG: Nếu là Đồ ăn/Sản phẩm (loại 1)
             else if (chiTiet.getLoai() == 1 && chiTiet.getChiTietSanPhamDiKem() != null) {
                 // Móc từ HoaDonChiTiet -> ChiTietSanPhamDiKem -> SanPham -> TenSanPham
                 dto.setTenSanPham(chiTiet.getChiTietSanPhamDiKem().getSanPham().getTenSanPham());
+                dto.setMaMuc("SP-" + chiTiet.getChiTietSanPhamDiKem().getSanPham().getId().substring(0, 8).toUpperCase());
+                dto.setGiamGia(BigDecimal.ZERO);
             }
             return dto;
         }).toList();
@@ -375,5 +380,23 @@ public class AdHoaDonServiceImpl implements AdHoaDonService {
         }
 
         return dto;
+    }
+
+    @Override
+    public List<AdLichSuThanhToanResponse> getPaymentHistory(String id) {
+        HoaDon h = adHoaDonRepository.findByIdOrMaHoaDon(id, id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+                
+        return adThanhToanRepository.findByHoaDonId(h.getId()).stream().map(tt -> {
+            AdLichSuThanhToanResponse dto = new AdLichSuThanhToanResponse();
+            dto.setId(tt.getId());
+            dto.setMaGiaoDich(tt.getMaGiaoDich());
+            dto.setPhuongThucThanhToan(tt.getPhuongThucThanhToan());
+            dto.setSoTien(tt.getSoTien());
+            dto.setNgayThanhToan(tt.getNgayThanhToan());
+            dto.setNoiDung(tt.getNoiDung());
+            dto.setTrangThai(tt.getTrangThai());
+            return dto;
+        }).toList();
     }
 }

@@ -1,19 +1,19 @@
 <script setup>
 import { ref, reactive, computed } from 'vue';
-import { Plus, Edit, Delete, Location, House, Setting, View } from '@element-plus/icons-vue';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
-
+import { Plus, Edit, Delete, Location, House, Setting, View, Search, Refresh, Monitor, PieChart } from '@element-plus/icons-vue';
 import BaseTable from '@/components/common/BaseTable.vue';
 import notification from '@/utils/notifications';
+import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
-import { House, Monitor, PieChart } from '@element-plus/icons-vue';
+import { ElMessageBox } from 'element-plus';
+import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 // Define columns
 const roomColumns = [
-  { label: 'Phòng chiếu', key: 'room', width: '250px' },
+  { label: 'STT', key: 'stt', width: '60px' },
+  { label: 'Phòng chiếu', key: 'room', minWidth: '220px' },
   { label: 'Sức chứa', key: 'capacity', width: '150px' },
   { label: 'Trạng thái', key: 'status', width: '150px' },
-  { label: 'Ghi chú', key: 'note', width: '200px' },
 ];
 
 const selectedRooms = ref([]);
@@ -27,7 +27,7 @@ const handleBulkDelete = () => {
     ).then(() => {
         rooms.value = rooms.value.map(r => {
             if (selectedIds.value.includes(r.id)) {
-                return { ...r, status: r.status === 'Sẵn sàng' ? 'Đang bảo trì' : 'Sẵn sàng' };
+                return { ...r, status: r.status === 'Hoạt động' ? 'Ngừng hoạt động' : 'Hoạt động' };
             }
             return r;
         });
@@ -43,9 +43,9 @@ const cinemas = ref([
 
 const selectedCinema = ref(cinemas.value[0]);
 const rooms = ref([
-  { id: 101, name: 'Hall 1 (IMAX)', rows: 10, cols: 15, type: 'IMAX' },
-  { id: 102, name: 'Hall 2 (Standard)', rows: 8, cols: 12, type: '2D/3D' },
-  { id: 103, name: 'Hall 3 (VIP)', rows: 5, cols: 8, type: 'Gold Class' }
+  { id: 101, name: 'Hall 1 (IMAX)', rows: 10, cols: 15, type: 'IMAX', status: 'Hoạt động' },
+  { id: 102, name: 'Hall 2 (Standard)', rows: 8, cols: 12, type: '2D/3D', status: 'Hoạt động' },
+  { id: 103, name: 'Hall 3 (VIP)', rows: 5, cols: 8, type: 'Gold Class', status: 'Ngừng hoạt động' }
 ]);
 
 const activeRoom = ref(null);
@@ -104,20 +104,28 @@ const getSeatLabel = (row, col) => {
 };
 
 const currentPage = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(5);
 
 // New variables for the updated template
 const searchQuery = ref('');
 const filterStatus = ref('all');
+const filterType = ref('all');
 const dialogVisible = ref(false);
+const detailVisible = ref(false);
+const selectedItem = ref(null);
 const editingId = ref(null);
+
+const handleView = (room) => {
+  selectedItem.value = room;
+  detailVisible.value = true;
+};
 
 const roomForm = reactive({
   name: '',
   type: '2D/3D Standard',
   rows: 8,
   cols: 12,
-  status: 'Sẵn sàng',
+  status: 'Hoạt động',
   note: ''
 });
 
@@ -131,8 +139,12 @@ const filteredRooms = computed(() => {
     );
   }
 
-  if (filterStatus.value !== 'all') {
+  if (filterStatus.value !== 'all' && filterStatus.value !== '') {
     filtered = filtered.filter(room => room.status === filterStatus.value);
+  }
+
+  if (filterType.value !== 'all' && filterType.value !== '') {
+    filtered = filtered.filter(room => room.type === filterType.value);
   }
 
   return filtered;
@@ -150,7 +162,7 @@ const openDialog = (room = null) => {
     roomForm.type = '2D/3D Standard';
     roomForm.rows = 8;
     roomForm.cols = 12;
-    roomForm.status = 'Sẵn sàng';
+    roomForm.status = 'Hoạt động';
     roomForm.note = '';
   }
   dialogVisible.value = true;
@@ -176,9 +188,9 @@ const handleSave = () => {
 };
 
 const handleDelete = (room) => {
-  const isReady = room.status === 'Sẵn sàng';
-  const newStatus = isReady ? 'Đang bảo trì' : 'Sẵn sàng';
-  const label = isReady ? 'chuyển sang Bảo trì' : 'chuyển sang Sẵn sàng';
+  const isActive = room.status === 'Hoạt động';
+  const newStatus = isActive ? 'Ngừng hoạt động' : 'Hoạt động';
+  const label = isActive ? 'ngừng hoạt động' : 'kích hoạt';
   
   confirmDialog.custom(
     `Bạn có chắc chắn muốn <b>${label}</b> phòng "${room.name}"?`,
@@ -198,40 +210,50 @@ const handleDelete = (room) => {
   <div class="admin-rooms-page">
     <AdminTableLayout
       title="Quản lý Phòng chiếu"
-      subtitle="Quản lý cấu hình phòng và sơ đồ ghế ngồi"
       titleIcon="bi bi-door-open-fill"
       addButtonLabel="Thêm phòng mới"
-      :data="filteredRooms.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :data="filteredRooms"
+      :loading="false"
       :total="filteredRooms.length"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
       @add-click="openDialog()"
-      @reset-filter="() => { searchQuery = ''; filterStatus = 'all'; }"
+      @reset-filter="() => { searchQuery = ''; filterStatus = 'all'; filterType = 'all'; }"
     >
+      <!-- Header Actions Left Slot -->
       <template #header-actions-left>
         <el-button v-if="selectedIds.length" type="warning" plain round :icon="Refresh" @click="handleBulkDelete">
           Đổi trạng thái {{ selectedIds.length }} phòng chiếu
         </el-button>
       </template>
 
-
+      <!-- Filters Slot -->
       <template #filters>
-        <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
+        <div class="filter-item search-input-wrapper">
           <el-input
             v-model="searchQuery"
-            placeholder="Tìm theo tên phòng hoặc mô tả..."
+            placeholder="Tìm tên phòng..."
             :prefix-icon="Search"
             size="default"
             clearable
+            style="width: 250px;"
           />
         </div>
+
         <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterStatus" placeholder="Trạng thái" size="default" class="w-100">
+          <el-select v-model="filterStatus" placeholder="Chọn trạng thái" style="width: 180px;" size="default" clearable>
             <el-option label="Tất cả trạng thái" value="all" />
-            <el-option label="Sẵn sàng" value="Sẵn sàng" />
-            <el-option label="Đang bảo trì" value="Đang bảo trì" />
+            <el-option label="Hoạt động" value="Hoạt động" />
+            <el-option label="Ngừng hoạt động" value="Ngừng hoạt động" />
+          </el-select>
+        </div>
+
+        <div class="filter-item">
+          <el-select v-model="filterType" placeholder="Chọn loại phòng" style="width: 180px;" size="default" clearable>
+            <el-option label="Tất cả loại" value="all" />
+            <el-option label="2D/3D Standard" value="2D/3D Standard" />
+            <el-option label="IMAX" value="IMAX" />
+            <el-option label="Gold Class" value="Gold Class" />
           </el-select>
         </div>
       </template>
@@ -247,9 +269,20 @@ const handleDelete = (room) => {
           :hide-pagination="true"
           @edit="openDialog"
           @delete="handleDelete"
+          @update-status="({ row, val }) => handleDelete(row)"
         >
+          <template #cell-status="{ row }">
+            <el-tag :type="row.status === 'Hoạt động' ? 'success' : 'info'" size="small" round>
+              {{ row.status }}
+            </el-tag>
+          </template>
+
+          <template #cell-stt="{ index }">
+            <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+          </template>
+
           <template #cell-room="{ row }">
-            <div class="d-flex align-items-center justify-content-center gap-3 w-100">
+            <div class="d-flex align-items-center gap-3">
               <div class="room-icon-box bg-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                 <i class="bi bi-display fs-5"></i>
               </div>
@@ -266,38 +299,73 @@ const handleDelete = (room) => {
             </div>
           </template>
 
-          <template #cell-status="{ row }">
-            <el-tag :type="row.status === 'Sẵn sàng' ? 'success' : 'warning'" size="small" effect="light" round>
-              {{ row.status || 'Sẵn sàng' }}
-            </el-tag>
-          </template>
-
-          <template #cell-note="{ row }">
-            <span class="text-secondary small">{{ row.note || '—' }}</span>
-          </template>
-
-          <template #cell-actions="{ row }">
-            <div class="d-flex justify-content-center gap-1">
+          <template #actions="{ row }">
+            <div class="d-flex justify-content-center align-items-center gap-1">
+              <el-tooltip content="Xem chi tiết" placement="top">
+                <button class="btn-action-icon action-view" @click="handleView(row)">
+                  <i class="bi bi-eye fs-6"></i>
+                </button>
+              </el-tooltip>
               <el-tooltip content="Chỉnh sửa sơ đồ ghế" placement="top">
-                <button class="btn-action-icon action-view" :disabled="row.status === 'Đang bảo trì'">
+                <button class="btn-action-icon action-variant" :disabled="row.status === 'Ngừng hoạt động'">
                   <i class="bi bi-grid-3x3 fs-6"></i>
                 </button>
               </el-tooltip>
               <el-tooltip content="Chỉnh sửa thông tin" placement="top">
-                <button class="btn-action-icon action-edit" :disabled="row.status === 'Đang bảo trì'" @click="openDialog(row)">
+                <button class="btn-action-icon action-edit" :disabled="row.status === 'Ngừng hoạt động'" @click="openDialog(row)">
                   <i class="bi bi-pencil fs-6"></i>
                 </button>
               </el-tooltip>
-              <el-tooltip content="Thay đổi trạng thái" placement="top">
-                <button class="btn-action-icon action-refresh" :disabled="row.status === 'Đang bảo trì'" @click="handleDelete(row)">
-                  <i class="bi bi-arrow-repeat fs-6"></i>
-                </button>
-              </el-tooltip>
+              <el-switch
+                :model-value="row.status === 'Hoạt động'"
+                @change="() => handleDelete(row)"
+                class="status-switch mx-1"
+                inactive-color="#ff4949"
+              />
             </div>
           </template>
         </BaseTable>
       </template>
     </AdminTableLayout>
+
+    <!-- Detail Modal -->
+    <BaseModal v-model="detailVisible" title="Chi tiết Phòng chiếu" icon="bi bi-door-open" width="500px">
+      <div v-if="selectedItem" class="p-3">
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
+          <div class="icon-box bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-display fs-4"></i>
+          </div>
+          <div>
+            <h5 class="m-0 fw-bold">{{ selectedItem.name }}</h5>
+            <el-tag size="small" type="info" round>{{ selectedItem.type }}</el-tag>
+          </div>
+        </div>
+        <div class="detail-grid row g-3">
+          <div class="col-6">
+            <div class="lbl text-secondary small">Sức chứa</div>
+            <div class="val fw-bold fs-5">{{ selectedItem.capacity || (selectedItem.rows * selectedItem.cols) }} ghế</div>
+          </div>
+          <div class="col-6">
+            <div class="lbl text-secondary small">Cấu trúc</div>
+            <div class="val fw-semibold">{{ selectedItem.rows }} hàng x {{ selectedItem.cols }} cột</div>
+          </div>
+          <div class="col-12">
+            <div class="lbl text-secondary small">Trạng thái</div>
+            <el-tag :type="selectedItem.status === 'Hoạt động' ? 'success' : 'info'" round>
+              {{ selectedItem.status }}
+            </el-tag>
+          </div>
+          <div class="col-12" v-if="selectedItem.note">
+            <div class="lbl text-secondary small">Ghi chú</div>
+            <div class="val text-muted">{{ selectedItem.note }}</div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">Đóng</el-button>
+        <el-button type="primary" @click="openDialog(selectedItem); detailVisible = false">Chỉnh sửa</el-button>
+      </template>
+    </BaseModal>
 
     <!-- Room Dialog -->
     <BaseModal
@@ -340,8 +408,8 @@ const handleDelete = (room) => {
             <el-form-item label="Trạng thái">
               <el-select v-model="roomForm.status" class="w-100">
                 <template #prefix><el-icon><PieChart /></el-icon></template>
-                <el-option label="Sẵn sàng" value="Sẵn sàng" />
-                <el-option label="Đang bảo trì" value="Đang bảo trì" />
+                <el-option label="Hoạt động" value="Hoạt động" />
+                <el-option label="Ngừng hoạt động" value="Ngừng hoạt động" />
               </el-select>
             </el-form-item>
           </div>

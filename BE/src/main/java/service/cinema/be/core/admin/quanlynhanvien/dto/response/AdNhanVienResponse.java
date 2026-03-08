@@ -16,11 +16,16 @@ public class AdNhanVienResponse {
     private String cccd;
     private LocalDate ngaySinh;
     private String queQuan;
+    private String diaChi; // Concatenated address
     private String tenPhanQuyen; // Lấy từ bảng PhanQuyen
     private String idPhanQuyen;
     private Integer gioiTinh;
     private String chucVu;
     private String anhNhanVien;
+    private String thanhPhoTinh;
+    private String quanHuyen;
+    private String phuongXa;
+    private String diaChiChiTiet;
     private Integer trangThai;
     private LocalDateTime ngayTao; // Ngày tham gia
 }

@@ -72,6 +72,7 @@ public class AuthController {
             return ResponseEntity.status(401)
                     .body(ApiResponse.error(401, "Email hoặc mật khẩu không đúng"));
         } catch (Exception e) {
+            log.error("Login detail error: ", e);
             return ResponseEntity.status(500)
                     .body(ApiResponse.error(500, "Đăng nhập thất bại: " + e.getMessage()));
         }

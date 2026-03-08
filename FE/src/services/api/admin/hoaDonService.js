@@ -20,5 +20,9 @@ export const hoaDonService = {
   // 3. Tạo hóa đơn mới (Thanh toán tại quầy)
   createInvoice(payload) {
     return api.post(`${API_URL}/thanh-toan`, payload)
+  },
+
+  getPaymentHistory(id) {
+    return api.get(`${API_URL}/${id}/lich-su-thanh-toan`);
   }
 }

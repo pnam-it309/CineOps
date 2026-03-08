@@ -2,6 +2,7 @@ package service.cinema.be.core.admin.quanlyhoadon.service;
 
 import service.cinema.be.core.admin.quanlyhoadon.dto.response.AdHoaDonChiTietResponse;
 import service.cinema.be.core.admin.quanlyhoadon.dto.response.AdHoaDonResponse;
+import service.cinema.be.core.admin.quanlyhoadon.dto.response.AdLichSuThanhToanResponse;
 import service.cinema.be.entity.HoaDon;
 import service.cinema.be.core.admin.quanlyhoadon.dto.request.AdHoaDonRequest;
 import org.springframework.data.domain.Page;
@@ -32,4 +33,6 @@ public interface AdHoaDonService {
     List<AdHoaDonChiTietResponse> layChiTietHoaDon(String idHoaDon);
 
     AdHoaDonResponse getHoaDonById(String id);
+
+    List<AdLichSuThanhToanResponse> getPaymentHistory(String id);
 }

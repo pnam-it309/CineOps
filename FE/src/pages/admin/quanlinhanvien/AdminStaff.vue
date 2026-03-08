@@ -16,16 +16,17 @@ import ExcelActions from '@/components/common/ExcelActions.vue';
 
 const staff = ref([]);
 const loading = ref(false);
+const searchQuery = ref('');
 
 const staffColumns = [
   { label: 'STT', key: 'stt', width: '60px' },
-  { label: 'Nhân viên', key: 'staff', width: '180px' },
-  { label: 'Email', key: 'email', width: '200px' },
-  { label: 'Tên đăng nhập', key: 'username', width: '160px' },
-  { label: 'Vai trò', key: 'role', width: '140px' },
-  { label: 'Số điện thoại', key: 'phone', width: '150px' },
-  { label: 'Ngày tham gia', key: 'joinDate', width: '150px' },
-  { label: 'Trạng thái', key: 'status', width: '150px' },
+  { label: 'Mã NV', key: 'maNhanVien', width: '100px' },
+  { label: 'Nhân viên', key: 'staff', minWidth: '180px' },
+  { label: 'Số điện thoại', key: 'soDienThoai', width: '120px' },
+  { label: 'Email', key: 'email', width: '180px' },
+  { label: 'Vai trò', key: 'role', width: '130px' },
+  { label: 'Địa chỉ', key: 'diaChi', minWidth: '200px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '140px' },
 ];
 
 const roles = ref([]);
@@ -83,11 +84,17 @@ const filterRole = ref('');
 const filterStatus = ref('');
 const totalElements = ref(0);
 const currentPage = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(5);
 const phanQuyenList = ref([]);
 const router = useRouter();
-const searchQuery = ref('');
 const roleDialogVisible = ref(false);
+const detailVisible = ref(false);
+const selectedItem = ref(null);
+
+const handleView = (row) => {
+  selectedItem.value = row;
+  detailVisible.value = true;
+};
 
 
 
@@ -228,14 +235,14 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
         </div>
         <div class="filter-item">
           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterRole" placeholder="Tất cả" size="default" class="w-100">
+          <el-select v-model="filterRole" placeholder="Chọn vai trò" style="width: 200px;" size="default">
             <el-option label="Tất cả vai trò" value="all" />
             <el-option v-for="r in roles" :key="r.id" :label="r.tenVaiTro" :value="r.id" />
           </el-select>
         </div>
         <div class="filter-item">
            <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterStatus" placeholder="Tất cả" size="default" class="w-100">
+          <el-select v-model="filterStatus" placeholder="Chọn trạng thái" style="width: 200px;" size="default">
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Đang hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
@@ -254,9 +261,15 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
           :hide-pagination="true"
           @edit="handleEdit"
           @delete="handleDelete"
+          @update-status="({ row, val }) => handleUpdateStatus(row, val ? 1 : 0)"
         >
           <template #actions="{ row }">
-            <div class="d-flex justify-content-center gap-2">
+            <div class="d-flex justify-content-center align-items-center gap-2">
+                <el-tooltip content="Xem chi tiết" placement="top">
+                  <button class="btn-action-icon action-view" @click="handleView(row)">
+                    <i class="bi bi-eye fs-6"></i>
+                  </button>
+                </el-tooltip>
                 <el-tooltip content="Chỉnh sửa" placement="top">
                   <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
                     <i class="bi bi-pencil fs-6"></i>
@@ -267,47 +280,46 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
                     <i class="bi bi-envelope fs-6"></i>
                   </button>
                 </el-tooltip>
-                <el-tooltip content="Thay đổi trạng thái" placement="top">
-                  <button class="btn-action-icon action-refresh" :disabled="row.trangThai === 0" @click="handleUpdateStatus(row, row.trangThai === 1 ? 0 : 1)">
-                    <i class="bi bi-arrow-repeat fs-6"></i>
-                  </button>
-                </el-tooltip>
+                <el-switch
+                  :model-value="row.trangThai === 1"
+                  @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
+                  class="status-switch mx-1"
+                  inactive-color="#ff4949"
+                />
             </div>
+          </template>
+
+          <template #cell-trangThai="{ row }">
+            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round>
+              {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
+            </el-tag>
           </template>
           <template #cell-stt="{ index }">
             <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+          </template>
+
+          <template #cell-maNhanVien="{ row }">
+            <span class="text-secondary small fw-bold">#{{ row.maNhanVien }}</span>
           </template>
 
           <template #cell-staff="{ row }">
             <div class="fw-bold text-dark">{{ row.tenNhanVien }}</div>
           </template>
 
-          <template #cell-email="{ row }">
-            <div class="text-secondary">{{ row.email }}</div>
+          <template #cell-soDienThoai="{ row }">
+            <div class="text-secondary small">{{ row.soDienThoai || '—' }}</div>
           </template>
 
-          <template #cell-username="{ row }">
-            <code class="fw-bold text-indigo-500">{{ row.tenDangNhap || row.maNhanVien }}</code>
+          <template #cell-email="{ row }">
+            <div class="text-secondary small">{{ row.email || '—' }}</div>
           </template>
 
           <template #cell-role="{ row }">
             <el-tag :type="getRoleType(row.tenPhanQuyen)" size="small" effect="light" round>{{ row.tenPhanQuyen || 'Chưa gán' }}</el-tag>
           </template>
 
-          <template #cell-phone="{ row }">
-            <span>{{ row.soDienThoai }}</span>
-          </template>
-          
-          <template #cell-joinDate="{ row }">
-            <span class="small text-secondary">
-              {{ row.ngayTao ? new Date(row.ngayTao).toLocaleDateString('vi-VN') : '—' }}
-            </span>
-          </template>
-
-          <template #cell-status="{ row }">
-            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round :class="{ 'cursor-pointer': row.trangThai === 1, 'badge-pulse': row.trangThai === 1 }" :title="row.trangThai === 1 ? 'Bấm để đổi trạng thái' : ''" @click="row.trangThai === 1 ? handleUpdateStatus(row, 0) : null">
-              {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
-            </el-tag>
+          <template #cell-diaChi="{ row }">
+            <div class="text-secondary small text-truncate" style="max-width: 250px;" :title="row.diaChi">{{ row.diaChi || '—' }}</div>
           </template>
 
         </BaseTable>
@@ -317,6 +329,53 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
 
 
 
+
+    <!-- Staff Detail Modal -->
+    <BaseModal v-model="detailVisible" title="Chi tiết nhân viên" icon="bi bi-person-badge" width="500px">
+      <div v-if="selectedItem" class="p-3">
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
+          <div class="avatar-circle" :style="{ backgroundColor: getAvatarColor(selectedItem.tenPhanQuyen) }">
+            {{ selectedItem.tenNhanVien?.charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <h5 class="m-0 fw-bold">{{ selectedItem.tenNhanVien }}</h5>
+            <el-tag :type="getRoleType(selectedItem.tenPhanQuyen)" size="small" round>{{ selectedItem.tenPhanQuyen }}</el-tag>
+          </div>
+        </div>
+        <div class="detail-list">
+          <div class="detail-item mb-3">
+            <div class="lbl text-secondary small">Email</div>
+            <div class="val fw-semibold">{{ selectedItem.email }}</div>
+          </div>
+          <div class="detail-item mb-3">
+            <div class="lbl text-secondary small">Tên đăng nhập</div>
+            <div class="val fw-semibold"><code>{{ selectedItem.tenDangNhap || selectedItem.maNhanVien }}</code></div>
+          </div>
+          <div class="detail-item mb-3">
+            <div class="lbl text-secondary small">Số điện thoại</div>
+            <div class="val fw-semibold">{{ selectedItem.soDienThoai || '—' }}</div>
+          </div>
+          <div class="detail-item mb-3">
+            <div class="lbl text-secondary small">Ngày tham gia</div>
+            <div class="val fw-semibold">{{ selectedItem.ngayTao ? new Date(selectedItem.ngayTao).toLocaleDateString('vi-VN') : '—' }}</div>
+          </div>
+          <div class="detail-item mb-3">
+            <div class="lbl text-secondary small">Địa chỉ</div>
+            <div class="val fw-semibold">{{ selectedItem.diaChi || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="lbl text-secondary small">Trạng thái</div>
+            <el-tag :type="selectedItem.trangThai === 1 ? 'success' : 'info'" size="small" round>
+              {{ selectedItem.trangThai === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động' }}
+            </el-tag>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">Đóng</el-button>
+        <el-button type="primary" @click="handleEdit(selectedItem)">Chỉnh sửa</el-button>
+      </template>
+    </BaseModal>
 
     <!-- Roles Dialog -->
     <el-dialog v-model="roleDialogVisible" width="600px" class="premium-dialog">
@@ -354,41 +413,24 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
   </div>
 </template>
 <style scoped>
-.bg-indigo-500 {
-  background-color: #6366f1;
-}
-
-.shadow-success-lite {
-  box-shadow: 0 0 8px rgba(103, 194, 58, 0.4);
-}
-
-.extra-small {
-  font-size: 11px;
-}
-
-.cursor-pointer {
-  cursor: pointer;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
+.avatar-circle {
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  display: inline-block;
-}
-
-.text-indigo-500 {
-  color: #4f46e5;
-}
-
-.action-email {
-  background-color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: white;
+  font-weight: bold;
+  font-size: 20px;
 }
 
-.action-email:hover {
-  background-color: #d97706;
-  color: white;
+.detail-item {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
 }
 </style>
-

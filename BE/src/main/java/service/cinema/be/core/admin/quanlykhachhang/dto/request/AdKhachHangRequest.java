@@ -33,6 +33,11 @@ public class AdKhachHangRequest {
 
     private String ghiChu;
 
+    private String thanhPhoTinh;
+    private String quanHuyen;
+    private String phuongXa;
+    private String diaChiChiTiet;
+
     @NotNull(message = "Trạng thái không được để trống")
     private Integer trangThai;
 }
