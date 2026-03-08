@@ -1,478 +1,504 @@
+-- =================================================================
+-- NHÓM 1: CÁC BẢNG CƠ SỞ (KHÔNG CHỨA KHÓA NGOẠI)
+-- =================================================================
+
 -- 1. BẢNG PHÂN QUYỀN
 CREATE TABLE phan_quyen (
-    id VARCHAR(36) PRIMARY KEY,
-    ma_phan_quyen VARCHAR(50),
-    ten_vai_tro VARCHAR(100) ,
-    quyen_han TEXT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                            id VARCHAR(36) PRIMARY KEY,
+                            ma_phan_quyen VARCHAR(50),
+                            ten_vai_tro VARCHAR(100),
+                            quyen_han TEXT,
+                            trang_thai INT DEFAULT 1,
+                            ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            nguoi_tao VARCHAR(100),
+                            ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                            nguoi_cap_nhat VARCHAR(100)
 );
 
--- 2. BẢNG TÀI KHOẢN (ACCOUNT)
-CREATE TABLE tai_khoan (
-    id VARCHAR(36) PRIMARY KEY,
-    id_phan_quyen VARCHAR(36),
-    email VARCHAR(100) UNIQUE NOT NULL,
-    mat_khau VARCHAR(255) NOT NULL,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_phan_quyen) REFERENCES phan_quyen(id)
-);
-
--- 3. BẢNG LOẠI KHÁCH HÀNG
+-- 2. BẢNG LOẠI KHÁCH HÀNG
 CREATE TABLE loai_khach_hang (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_loai VARCHAR(100),
-    he_so_giam_gia DOUBLE,
-    mo_ta TEXT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                                 id VARCHAR(36) PRIMARY KEY,
+                                 ten_loai VARCHAR(100),
+                                 he_so_giam_gia DOUBLE,
+                                 mo_ta TEXT,
+                                 trang_thai INT DEFAULT 1,
+                                 ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                 nguoi_tao VARCHAR(100),
+                                 ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                 nguoi_cap_nhat VARCHAR(100)
 );
 
--- 4. BẢNG KHÁCH HÀNG
-CREATE TABLE khach_hang (
-    id VARCHAR(36) PRIMARY KEY,
-    id_tai_khoan VARCHAR(36) UNIQUE,
-    id_loai_khach_hang VARCHAR(36),
-    ma_khach_hang VARCHAR(50) UNIQUE,
-    ten_khach_hang VARCHAR(100) NOT NULL,
-    gioi_tinh INT,
-    sdt VARCHAR(20),
-    ngay_sinh DATE,
-    hinh_anh VARCHAR(255),
-    ghi_chu TEXT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
-    FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
-);
-
--- 5. BẢNG NHÂN VIÊN
-CREATE TABLE nhan_vien (
-    id VARCHAR(36) PRIMARY KEY,
-    id_tai_khoan VARCHAR(36) UNIQUE,
-    ma_nhan_vien VARCHAR(50) UNIQUE,
-    ten_nhan_vien VARCHAR(100) NOT NULL,
-    cccd VARCHAR(20),
-    ngay_sinh DATE,
-    que_quan VARCHAR(255),
-    gioi_tinh INT,
-    chuc_vu VARCHAR(100),
-    anh_nhan_vien VARCHAR(255),
-    so_dien_thoai VARCHAR(20),
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
-);
-
--- 6. BẢNG TOKEN
-CREATE TABLE token (
-    id VARCHAR(36) PRIMARY KEY,
-    id_tai_khoan VARCHAR(36),
-    ma_token TEXT,
-    ngay_het_han DATETIME,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
-);
-
-
--- 6. BẢNG ĐỊA CHỈ
-CREATE TABLE dia_chi (
-    id VARCHAR(36) PRIMARY KEY,
-    id_khach_hang VARCHAR(36),
-    id_nhan_vien VARCHAR(36),
-    ma_dia_chi VARCHAR(50),
-    thanh_pho_tinh VARCHAR(100),
-    quan_huyen VARCHAR(100),
-    phuong_xa VARCHAR(100),
-    dia_chi_chi_tiet TEXT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id),
-    FOREIGN KEY (id_nhan_vien) REFERENCES nhan_vien(id)
-);
-
--- 7. BẢNG PHÒNG CHIẾU
+-- 3. BẢNG PHÒNG CHIẾU
 CREATE TABLE phong_chieu (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_phong VARCHAR(50),
-    loai_man_hinh VARCHAR(50),
-    tong_ghe INT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                             id VARCHAR(36) PRIMARY KEY,
+                             ten_phong VARCHAR(50),
+                             loai_man_hinh VARCHAR(50),
+                             tong_ghe INT,
+                             trang_thai INT DEFAULT 1,
+                             ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                             nguoi_tao VARCHAR(100),
+                             ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                             nguoi_cap_nhat VARCHAR(100)
 );
 
--- 8. BẢNG LOẠI GHẾ
+-- 4. BẢNG LOẠI GHẾ
 CREATE TABLE loai_ghe (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_loai VARCHAR(50),
-    phu_phi DOUBLE,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                          id VARCHAR(36) PRIMARY KEY,
+                          ten_loai VARCHAR(50),
+                          phu_phi DOUBLE,
+                          ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                          nguoi_tao VARCHAR(100),
+                          ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                          nguoi_cap_nhat VARCHAR(100)
 );
 
--- 9. BẢNG GHẾ
-CREATE TABLE ghe (
-    id VARCHAR(36) PRIMARY KEY,
-    id_loai_ghe VARCHAR(36),
-    id_phong_chieu VARCHAR(36),
-    so_ghe VARCHAR(10),
-    so_hang VARCHAR(5),
-    so_cot INT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_loai_ghe) REFERENCES loai_ghe(id),
-    FOREIGN KEY (id_phong_chieu) REFERENCES phong_chieu(id)
-);
-
--- 10. BẢNG KHUNG GIỜ
+-- 5. BẢNG KHUNG GIỜ
 CREATE TABLE khung_gio (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_khung_gio VARCHAR(100),
-    thu_trong_tuan INT, -- 1=Thứ 2, 7=Chủ nhật
-    gio_bat_dau TIME,
-    gio_ket_thuc TIME,
-    he_so_gia DOUBLE DEFAULT 1.0, -- Hệ số nhân giá vé (1.2 = tăng 20%)
-    la_khung_gio_vang BOOLEAN DEFAULT FALSE, -- Đánh dấu khung giờ vàng
-    mo_ta TEXT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                           id VARCHAR(36) PRIMARY KEY,
+                           ten_khung_gio VARCHAR(100),
+                           thu_trong_tuan INT,
+                           gio_bat_dau TIME,
+                           gio_ket_thuc TIME,
+                           he_so_gia DOUBLE DEFAULT 1.0,
+                           la_khung_gio_vang BOOLEAN DEFAULT FALSE,
+                           mo_ta TEXT,
+                           trang_thai INT DEFAULT 1,
+                           ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                           nguoi_tao VARCHAR(100),
+                           ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                           nguoi_cap_nhat VARCHAR(100)
 );
 
--- 11. BẢNG PHIM
+-- 6. BẢNG PHIM
 CREATE TABLE phim (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_phim VARCHAR(255) NOT NULL,
-    ma_phim VARCHAR(50),
-    thoi_luong INT,
-    ngay_khoi_chieu DATE,
-    ngay_ket_thuc DATE,
-    lich_chieu VARCHAR(50),
-    mo_ta TEXT,
-    trailer VARCHAR(255),
-    poster VARCHAR(255),
-    ngon_ngu VARCHAR(100),
-    do_tuoi INT,
-    nhan_do_tuoi VARCHAR(10), -- Gắn nhãn độ tuổi theo chuẩn: P (Tất cả), T13, T16, T18
-    hien_thi_canh_bao_do_tuoi BOOLEAN DEFAULT TRUE, -- Cờ hiển thị cảnh báo độ tuổi trên giao diện khách hàng
-    danh_gia DOUBLE,
-    gia_phim DOUBLE,
-    loai_phim VARCHAR(20) DEFAULT '2D',
-    phu_phi_loai_phim DOUBLE DEFAULT 0,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                      id VARCHAR(36) PRIMARY KEY,
+                      ten_phim VARCHAR(255) NOT NULL,
+                      ma_phim VARCHAR(50),
+                      thoi_luong INT,
+                      ngay_khoi_chieu DATE,
+                      ngay_ket_thuc DATE,
+                      lich_chieu VARCHAR(50),
+                      mo_ta TEXT,
+                      trailer VARCHAR(255),
+                      poster VARCHAR(255),
+                      ngon_ngu VARCHAR(100),
+                      do_tuoi INT,
+                      nhan_do_tuoi VARCHAR(10),
+                      hien_thi_canh_bao_do_tuoi BOOLEAN DEFAULT TRUE,
+                      danh_gia DOUBLE,
+                      gia_phim DOUBLE,
+                      loai_phim VARCHAR(20) DEFAULT '2D',
+                      phu_phi_loai_phim DOUBLE DEFAULT 0,
+                      trang_thai INT DEFAULT 1,
+                      ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      nguoi_tao VARCHAR(100),
+                      ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                      nguoi_cap_nhat VARCHAR(100)
 );
 
--- 12. BẢNG THỂ LOẠI
+-- 7. BẢNG THỂ LOẠI
 CREATE TABLE the_loai (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_the_loai VARCHAR(100),
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                          id VARCHAR(36) PRIMARY KEY,
+                          ten_the_loai VARCHAR(100),
+                          ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                          nguoi_tao VARCHAR(100),
+                          ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                          nguoi_cap_nhat VARCHAR(100)
 );
 
-CREATE TABLE phim_the_loai (
-    id VARCHAR(36) PRIMARY KEY,
-    id_phim VARCHAR(36),
-    id_the_loai VARCHAR(36),
-    FOREIGN KEY (id_phim) REFERENCES phim(id),
-    FOREIGN KEY (id_the_loai) REFERENCES the_loai(id)
-);
-
--- 13. BẢNG SUẤT CHIẾU
-CREATE TABLE suat_chieu (
-    id VARCHAR(36) PRIMARY KEY,
-    id_khung_gio VARCHAR(36),
-    id_phong_chieu VARCHAR(36),
-    id_phim VARCHAR(36),
-    ngay_chieu DATE,
-    gio_bat_dau TIME,
-    gio_ket_thuc TIME,
-    thoi_gian_don_ve_sinh INT DEFAULT 15, -- Thời gian dọn vệ sinh phòng chiếu (phút)
-    so_ghe_trong INT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_khung_gio) REFERENCES khung_gio(id),
-    FOREIGN KEY (id_phong_chieu) REFERENCES phong_chieu(id),
-    FOREIGN KEY (id_phim) REFERENCES phim(id)
-);
-
--- 14. BẢNG VÉ
-CREATE TABLE ve (
-    id VARCHAR(36) PRIMARY KEY,
-    id_loai_khach_hang VARCHAR(36),
-    id_ghe VARCHAR(36),
-    id_suat_chieu VARCHAR(36),
-    ma_ve VARCHAR(50),
-    gia_thanh_toan DOUBLE,
-    loai_ve INT,
-    trang_thai INT DEFAULT 1,
-    version INT DEFAULT 0,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
-    FOREIGN KEY (id_ghe) REFERENCES ghe(id),
-    FOREIGN KEY (id_suat_chieu) REFERENCES suat_chieu(id),
-    UNIQUE KEY uk_ve_ghe_suat (id_ghe, id_suat_chieu)
-);
-
--- 15. BẢNG LOẠI NGÀY
+-- 8. BẢNG LOẠI NGÀY
 CREATE TABLE loai_ngay (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_loai_ngay VARCHAR(100),
-    he_so_ngay DOUBLE,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                           id VARCHAR(36) PRIMARY KEY,
+                           ten_loai_ngay VARCHAR(100),
+                           he_so_ngay DOUBLE,
+                           ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                           nguoi_tao VARCHAR(100),
+                           ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                           nguoi_cap_nhat VARCHAR(100)
 );
 
--- 16. GIÁ VÉ CHI TIẾT
-CREATE TABLE gia_ve_chi_tiet (
-    id VARCHAR(36) PRIMARY KEY,
-    id_loai_ngay VARCHAR(36),
-    id_loai_khach_hang VARCHAR(36),
-    id_loai_ghe VARCHAR(36),
-    id_khung_gio VARCHAR(36),
-    gia_tien DOUBLE,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
-    FOREIGN KEY (id_loai_ngay) REFERENCES loai_ngay(id),
-    FOREIGN KEY (id_loai_ghe) REFERENCES loai_ghe(id),
-    FOREIGN KEY (id_khung_gio) REFERENCES khung_gio(id)
-);
-
--- 16. BẢNG PHIẾU GIẢM GIÁ
+-- 9. BẢNG PHIẾU GIẢM GIÁ
 CREATE TABLE phieu_giam_gia (
-    id VARCHAR(36) PRIMARY KEY,
-    ma_phieu_giam_gia VARCHAR(50) UNIQUE,
-    ten_phieu VARCHAR(100),
-    kieu_phat_hanh INT DEFAULT 0,
-    loai_phieu INT,
-    phan_tram_giam_gia DOUBLE,
-    so_tien_giam DOUBLE,
-    gia_tri_hoa_don_toi_thieu DOUBLE,
-    co_cho_cong_don INT,
-    giam_toi_da DOUBLE,
-    ngay_bat_dau DATETIME,
-    ngay_ket_thuc DATETIME,
-    trang_thai INT DEFAULT 1,
-    so_luong INT,
-    dieu_kien_ap_dung TEXT,
-    ghi_chu TEXT,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                                id VARCHAR(36) PRIMARY KEY,
+                                ma_phieu_giam_gia VARCHAR(50) UNIQUE,
+                                ten_phieu VARCHAR(100),
+                                kieu_phat_hanh INT DEFAULT 0,
+                                loai_phieu INT,
+                                phan_tram_giam_gia DOUBLE,
+                                so_tien_giam DOUBLE,
+                                gia_tri_hoa_don_toi_thieu DOUBLE,
+                                co_cho_cong_don INT,
+                                giam_toi_da DOUBLE,
+                                ngay_bat_dau DATETIME,
+                                ngay_ket_thuc DATETIME,
+                                trang_thai INT DEFAULT 1,
+                                so_luong INT,
+                                dieu_kien_ap_dung TEXT,
+                                ghi_chu TEXT,
+                                ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                nguoi_tao VARCHAR(100),
+                                ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                nguoi_cap_nhat VARCHAR(100)
 );
 
-CREATE TABLE phieu_giam_gia_chi_tiet (
-    id VARCHAR(36) PRIMARY KEY,
-    id_phieu_giam_gia VARCHAR(36),
-    id_khach_hang VARCHAR(36),
-    ma_phieu_giam_gia_chi_tiet VARCHAR(50),
-    so_luong_dung INT DEFAULT 0,
-    ghi_chu TEXT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_phieu_giam_gia) REFERENCES phieu_giam_gia(id),
-    FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id)
-);
-
--- 17. BẢNG HÓA ĐƠN
-CREATE TABLE hoa_don (
-    id VARCHAR(36) PRIMARY KEY,
-    id_nhan_vien VARCHAR(36),
-    id_phieu_giam_gia VARCHAR(36),
-    id_khach_hang VARCHAR(36),
-    ma_hoa_don VARCHAR(50),
-    tong_tien DOUBLE,
-    so_tien_giam DOUBLE,
-    tong_tien_thanh_toan DOUBLE,
-    phuong_thuc_thanh_toan INT,
-    kenh_ban_hang INT DEFAULT 0,
-    trang_thai INT DEFAULT 1,
-    ghi_chu TEXT,
-    thoi_gian_het_han DATETIME NULL,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_nhan_vien) REFERENCES nhan_vien(id),
-    FOREIGN KEY (id_phieu_giam_gia) REFERENCES phieu_giam_gia(id),
-    FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id)
-);
-
--- 18. BẢNG LỊCH SỬ HÓA ĐƠN
-CREATE TABLE lich_su_hoa_don (
-    id VARCHAR(36) PRIMARY KEY,
-    hoa_don_id VARCHAR(36),
-    hanh_dong VARCHAR(255),
-    thoi_gian_hanh_dong DATETIME DEFAULT CURRENT_TIMESTAMP,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (hoa_don_id) REFERENCES hoa_don(id)
-);
-
--- 19. BẢNG THANH TOÁN
-CREATE TABLE thanh_toan (
-    id VARCHAR(36) PRIMARY KEY,
-    id_hoa_don VARCHAR(36),
-    ma_giao_dich VARCHAR(100),
-    phuong_thuc_thanh_toan INT,
-    so_tien DOUBLE,
-    ngay_thanh_toan DATETIME DEFAULT CURRENT_TIMESTAMP,
-    noi_dung TEXT,
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_hoa_don) REFERENCES hoa_don(id)
-);
-
--- 20. BẢNG LỊCH SỬ THANH TOÁN
-CREATE TABLE lich_su_thanh_toan (
-    id VARCHAR(36) PRIMARY KEY,
-    id_thanh_toan VARCHAR(36),
-    trang_thai INT DEFAULT 1,
-    thoi_gian DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ma_phan_hoi VARCHAR(255),
-    loai_thao_tac VARCHAR(255),
-    noi_dung TEXT,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_thanh_toan) REFERENCES thanh_toan(id)
-);
-
--- 21. BẢNG LOẠI SẢN PHẨM ĐI KÈM
+-- 10. BẢNG SẢN PHẨM & KÍCH CỠ ĐI KÈM
 CREATE TABLE loai_san_pham_di_kem (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_loai VARCHAR(100),
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100)
+                                      id VARCHAR(36) PRIMARY KEY,
+                                      ten_loai VARCHAR(100),
+                                      ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                      nguoi_tao VARCHAR(100),
+                                      ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                      nguoi_cap_nhat VARCHAR(100)
 );
 
--- 22. BẢNG SẢN PHẨM ĐI KÈM
-CREATE TABLE san_pham_di_kem (
-    id VARCHAR(36) PRIMARY KEY,
-    id_loai_san_pham VARCHAR(36),
-    ten_san_pham VARCHAR(150),
-    mo_ta TEXT,
-    hinh_anh VARCHAR(255),
-    trang_thai INT DEFAULT 1,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_loai_san_pham) REFERENCES loai_san_pham_di_kem(id)
-);
-
--- 23. BẢNG KÍCH CỠ
 CREATE TABLE kich_co (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_kich_co VARCHAR(100),
-    mo_ta TEXT
+                         id VARCHAR(36) PRIMARY KEY,
+                         ten_kich_co VARCHAR(100),
+                         mo_ta TEXT
 );
 
--- 24. BẢNG ĐƠN VỊ TÍNH
 CREATE TABLE don_vi_tinh (
-    id VARCHAR(36) PRIMARY KEY,
-    ten_don_vi_tinh VARCHAR(100),
-    mo_ta TEXT
+                             id VARCHAR(36) PRIMARY KEY,
+                             ten_don_vi_tinh VARCHAR(100),
+                             mo_ta TEXT
 );
 
--- 25. BẢNG CHI TIẾT SẢN PHẨM ĐI KÈM
+
+-- =================================================================
+-- NHÓM 2: CÁC BẢNG PHỤ THUỘC LEVEL 1 (THAM CHIẾU NHÓM 1)
+-- =================================================================
+
+-- 11. BẢNG TÀI KHOẢN
+CREATE TABLE tai_khoan (
+                           id VARCHAR(36) PRIMARY KEY,
+                           id_phan_quyen VARCHAR(36),
+                           email VARCHAR(100) UNIQUE NOT NULL,
+                           mat_khau VARCHAR(255) NOT NULL,
+                           trang_thai INT DEFAULT 1,
+                           ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                           nguoi_tao VARCHAR(100),
+                           ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                           nguoi_cap_nhat VARCHAR(100),
+                           FOREIGN KEY (id_phan_quyen) REFERENCES phan_quyen(id)
+);
+
+-- 12. BẢNG GHẾ
+CREATE TABLE ghe (
+                     id VARCHAR(36) PRIMARY KEY,
+                     id_loai_ghe VARCHAR(36),
+                     id_phong_chieu VARCHAR(36),
+                     so_ghe VARCHAR(10),
+                     so_hang VARCHAR(5),
+                     so_cot INT,
+                     trang_thai INT DEFAULT 1,
+                     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                     nguoi_tao VARCHAR(100),
+                     ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                     nguoi_cap_nhat VARCHAR(100),
+                     FOREIGN KEY (id_loai_ghe) REFERENCES loai_ghe(id),
+                     FOREIGN KEY (id_phong_chieu) REFERENCES phong_chieu(id)
+);
+
+-- 13. BẢNG PHIM_THỂ LOẠI
+CREATE TABLE phim_the_loai (
+                               id VARCHAR(36) PRIMARY KEY,
+                               id_phim VARCHAR(36),
+                               id_the_loai VARCHAR(36),
+                               FOREIGN KEY (id_phim) REFERENCES phim(id),
+                               FOREIGN KEY (id_the_loai) REFERENCES the_loai(id)
+);
+
+-- 14. BẢNG SUẤT CHIẾU
+CREATE TABLE suat_chieu (
+                            id VARCHAR(36) PRIMARY KEY,
+                            id_khung_gio VARCHAR(36),
+                            id_phong_chieu VARCHAR(36),
+                            id_phim VARCHAR(36),
+                            ngay_chieu DATE,
+                            gio_bat_dau TIME,
+                            gio_ket_thuc TIME,
+                            thoi_gian_don_ve_sinh INT DEFAULT 15,
+                            so_ghe_trong INT,
+                            trang_thai INT DEFAULT 1,
+                            ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            nguoi_tao VARCHAR(100),
+                            ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                            nguoi_cap_nhat VARCHAR(100),
+                            FOREIGN KEY (id_khung_gio) REFERENCES khung_gio(id),
+                            FOREIGN KEY (id_phong_chieu) REFERENCES phong_chieu(id),
+                            FOREIGN KEY (id_phim) REFERENCES phim(id)
+);
+
+-- 15. BẢNG GIÁ VÉ CHI TIẾT
+CREATE TABLE gia_ve_chi_tiet (
+                                 id VARCHAR(36) PRIMARY KEY,
+                                 id_loai_ngay VARCHAR(36),
+                                 id_loai_khach_hang VARCHAR(36),
+                                 id_loai_ghe VARCHAR(36),
+                                 id_khung_gio VARCHAR(36),
+                                 gia_tien DOUBLE,
+                                 trang_thai INT DEFAULT 1,
+                                 ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                 nguoi_tao VARCHAR(100),
+                                 ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                 nguoi_cap_nhat VARCHAR(100),
+                                 FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
+                                 FOREIGN KEY (id_loai_ngay) REFERENCES loai_ngay(id),
+                                 FOREIGN KEY (id_loai_ghe) REFERENCES loai_ghe(id),
+                                 FOREIGN KEY (id_khung_gio) REFERENCES khung_gio(id)
+);
+
+-- 16. BẢNG SẢN PHẨM ĐI KÈM
+CREATE TABLE san_pham_di_kem (
+                                 id VARCHAR(36) PRIMARY KEY,
+                                 id_loai_san_pham VARCHAR(36),
+                                 ten_san_pham VARCHAR(150),
+                                 mo_ta TEXT,
+                                 hinh_anh VARCHAR(255),
+                                 trang_thai INT DEFAULT 1,
+                                 ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                 nguoi_tao VARCHAR(100),
+                                 ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                 nguoi_cap_nhat VARCHAR(100),
+                                 FOREIGN KEY (id_loai_san_pham) REFERENCES loai_san_pham_di_kem(id)
+);
+
+
+-- =================================================================
+-- NHÓM 3: CÁC BẢNG LIÊN QUAN ĐẾN USER & SẢN PHẨM CHI TIẾT
+-- =================================================================
+
+-- 17. BẢNG KHÁCH HÀNG
+CREATE TABLE khach_hang (
+                            id VARCHAR(36) PRIMARY KEY,
+                            id_tai_khoan VARCHAR(36) UNIQUE,
+                            id_loai_khach_hang VARCHAR(36),
+                            ma_khach_hang VARCHAR(50) UNIQUE,
+                            ten_khach_hang VARCHAR(100) NOT NULL,
+                            gioi_tinh INT,
+                            sdt VARCHAR(20),
+                            ngay_sinh DATE,
+                            hinh_anh VARCHAR(255),
+                            ghi_chu TEXT,
+                            trang_thai INT DEFAULT 1,
+                            ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            nguoi_tao VARCHAR(100),
+                            ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                            nguoi_cap_nhat VARCHAR(100),
+                            FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
+                            FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
+);
+
+-- 18. BẢNG NHÂN VIÊN
+CREATE TABLE nhan_vien (
+                           id VARCHAR(36) PRIMARY KEY,
+                           id_tai_khoan VARCHAR(36) UNIQUE,
+                           ma_nhan_vien VARCHAR(50) UNIQUE,
+                           ten_nhan_vien VARCHAR(100) NOT NULL,
+                           cccd VARCHAR(20),
+                           ngay_sinh DATE,
+                           que_quan VARCHAR(255),
+                           gioi_tinh INT,
+                           chuc_vu VARCHAR(100),
+                           anh_nhan_vien VARCHAR(255),
+                           so_dien_thoai VARCHAR(20),
+                           trang_thai INT DEFAULT 1,
+                           ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                           nguoi_tao VARCHAR(100),
+                           ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                           nguoi_cap_nhat VARCHAR(100),
+                           FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
+);
+
+-- 19. BẢNG TOKEN
+CREATE TABLE token (
+                       id VARCHAR(36) PRIMARY KEY,
+                       id_tai_khoan VARCHAR(36),
+                       ma_token TEXT,
+                       ngay_het_han DATETIME,
+                       trang_thai INT DEFAULT 1,
+                       ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                       nguoi_tao VARCHAR(100),
+                       ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                       nguoi_cap_nhat VARCHAR(100),
+                       FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
+);
+
+-- 20. BẢNG CHI TIẾT SẢN PHẨM ĐI KÈM
 CREATE TABLE chi_tiet_san_pham_di_kem (
-    id VARCHAR(36) PRIMARY KEY,
-    id_san_pham VARCHAR(36),
-    id_kich_co VARCHAR(36),
-    id_don_vi_tinh VARCHAR(36),
-    gia_tri_dinh_luong DOUBLE,
-    huong_vi VARCHAR(100),
-    gia_ban DOUBLE,
-    so_luong_ton INT DEFAULT 0,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_san_pham) REFERENCES san_pham_di_kem(id),
-    FOREIGN KEY (id_kich_co) REFERENCES kich_co(id),
-    FOREIGN KEY (id_don_vi_tinh) REFERENCES don_vi_tinh(id)
+                                          id VARCHAR(36) PRIMARY KEY,
+                                          id_san_pham VARCHAR(36),
+                                          id_kich_co VARCHAR(36),
+                                          id_don_vi_tinh VARCHAR(36),
+                                          gia_tri_dinh_luong DOUBLE,
+                                          huong_vi VARCHAR(100),
+                                          gia_ban DOUBLE,
+                                          so_luong_ton INT DEFAULT 0,
+                                          ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                          nguoi_tao VARCHAR(100),
+                                          ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                          nguoi_cap_nhat VARCHAR(100),
+                                          FOREIGN KEY (id_san_pham) REFERENCES san_pham_di_kem(id),
+                                          FOREIGN KEY (id_kich_co) REFERENCES kich_co(id),
+                                          FOREIGN KEY (id_don_vi_tinh) REFERENCES don_vi_tinh(id)
 );
 
--- 26. BẢNG HÓA ĐƠN CHI TIẾT
+
+-- =================================================================
+-- NHÓM 4: CÁC BẢNG NGHIỆP VỤ CAO (ĐỊA CHỈ, VOUCHER)
+-- =================================================================
+
+-- 21. BẢNG ĐỊA CHỈ
+CREATE TABLE dia_chi (
+                         id VARCHAR(36) PRIMARY KEY,
+                         id_khach_hang VARCHAR(36),
+                         id_nhan_vien VARCHAR(36),
+                         ma_dia_chi VARCHAR(50),
+                         thanh_pho_tinh VARCHAR(100),
+                         quan_huyen VARCHAR(100),
+                         phuong_xa VARCHAR(100),
+                         dia_chi_chi_tiet TEXT,
+                         trang_thai INT DEFAULT 1,
+                         ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                         nguoi_tao VARCHAR(100),
+                         ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                         nguoi_cap_nhat VARCHAR(100),
+                         FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id),
+                         FOREIGN KEY (id_nhan_vien) REFERENCES nhan_vien(id)
+);
+
+-- 22. BẢNG PHIẾU GIẢM GIÁ CHI TIẾT
+CREATE TABLE phieu_giam_gia_chi_tiet (
+                                         id VARCHAR(36) PRIMARY KEY,
+                                         id_phieu_giam_gia VARCHAR(36),
+                                         id_khach_hang VARCHAR(36),
+                                         ma_phieu_giam_gia_chi_tiet VARCHAR(50),
+                                         so_luong_dung INT DEFAULT 0,
+                                         ghi_chu TEXT,
+                                         trang_thai INT DEFAULT 1,
+                                         ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                         nguoi_tao VARCHAR(100),
+                                         ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                         nguoi_cap_nhat VARCHAR(100),
+                                         FOREIGN KEY (id_phieu_giam_gia) REFERENCES phieu_giam_gia(id),
+                                         FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id)
+);
+
+
+-- =================================================================
+-- NHÓM 5: GIAO DỊCH LÕI (HÓA ĐƠN -> VÉ -> CHI TIẾT HÓA ĐƠN)
+-- CHÚ Ý: Bảng Hóa đơn phải tạo trước bảng Vé!
+-- =================================================================
+
+-- 23. BẢNG HÓA ĐƠN (Tạo trước bảng Vé)
+CREATE TABLE hoa_don (
+                         id VARCHAR(36) PRIMARY KEY,
+                         id_nhan_vien VARCHAR(36),
+                         id_phieu_giam_gia VARCHAR(36),
+                         id_khach_hang VARCHAR(36),
+                         ma_hoa_don VARCHAR(50),
+                         tong_tien DOUBLE,
+                         so_tien_giam DOUBLE,
+                         tong_tien_thanh_toan DOUBLE,
+                         phuong_thuc_thanh_toan INT,
+                         kenh_ban_hang INT DEFAULT 0,
+                         trang_thai INT DEFAULT 1,
+                         ghi_chu TEXT,
+                         thoi_gian_het_han DATETIME NULL,
+                         ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                         nguoi_tao VARCHAR(100),
+                         ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                         nguoi_cap_nhat VARCHAR(100),
+                         FOREIGN KEY (id_nhan_vien) REFERENCES nhan_vien(id),
+                         FOREIGN KEY (id_phieu_giam_gia) REFERENCES phieu_giam_gia(id),
+                         FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id)
+);
+
+-- 24. BẢNG VÉ (Phụ thuộc Hóa đơn nên tạo sau)
+CREATE TABLE ve (
+                    id VARCHAR(36) PRIMARY KEY,
+                    id_loai_khach_hang VARCHAR(36),
+                    id_ghe VARCHAR(36),
+                    id_suat_chieu VARCHAR(36),
+                    id_hoa_don VARCHAR(36),
+                    ma_ve VARCHAR(50),
+                    gia_thanh_toan DOUBLE,
+                    loai_ve INT,
+                    trang_thai INT DEFAULT 1,
+                    version INT DEFAULT 0,
+                    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    nguoi_tao VARCHAR(100),
+                    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                    nguoi_cap_nhat VARCHAR(100),
+                    FOREIGN KEY (id_loai_khach_hang) REFERENCES loai_khach_hang(id),
+                    FOREIGN KEY (id_ghe) REFERENCES ghe(id),
+                    FOREIGN KEY (id_suat_chieu) REFERENCES suat_chieu(id),
+                    UNIQUE KEY uk_ve_ghe_suat (id_ghe, id_suat_chieu),
+                    FOREIGN KEY (id_hoa_don) REFERENCES hoa_don(id)
+);
+
+-- 25. BẢNG LỊCH SỬ HÓA ĐƠN
+CREATE TABLE lich_su_hoa_don (
+                                 id VARCHAR(36) PRIMARY KEY,
+                                 hoa_don_id VARCHAR(36),
+                                 hanh_dong VARCHAR(255),
+                                 thoi_gian_hanh_dong DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                 trang_thai INT DEFAULT 1,
+                                 ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                 nguoi_tao VARCHAR(100),
+                                 ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                 nguoi_cap_nhat VARCHAR(100),
+                                 FOREIGN KEY (hoa_don_id) REFERENCES hoa_don(id)
+);
+
+-- 26. BẢNG THANH TOÁN
+CREATE TABLE thanh_toan (
+                            id VARCHAR(36) PRIMARY KEY,
+                            id_hoa_don VARCHAR(36),
+                            ma_giao_dich VARCHAR(100),
+                            phuong_thuc_thanh_toan INT,
+                            so_tien DOUBLE,
+                            ngay_thanh_toan DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            noi_dung TEXT,
+                            trang_thai INT DEFAULT 1,
+                            ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            nguoi_tao VARCHAR(100),
+                            ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                            nguoi_cap_nhat VARCHAR(100),
+                            FOREIGN KEY (id_hoa_don) REFERENCES hoa_don(id)
+);
+
+-- 27. BẢNG LỊCH SỬ THANH TOÁN
+CREATE TABLE lich_su_thanh_toan (
+                                    id VARCHAR(36) PRIMARY KEY,
+                                    id_thanh_toan VARCHAR(36),
+                                    trang_thai INT DEFAULT 1,
+                                    thoi_gian DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                    ma_phan_hoi VARCHAR(255),
+                                    loai_thao_tac VARCHAR(255),
+                                    noi_dung TEXT,
+                                    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                    nguoi_tao VARCHAR(100),
+                                    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                    nguoi_cap_nhat VARCHAR(100),
+                                    FOREIGN KEY (id_thanh_toan) REFERENCES thanh_toan(id)
+);
+
+-- 28. BẢNG HÓA ĐƠN CHI TIẾT (Phụ thuộc cả Hóa đơn và Vé, đặt cuối cùng)
 CREATE TABLE hoa_don_chi_tiet (
-    id VARCHAR(36) PRIMARY KEY,
-    id_hoa_don VARCHAR(36),
-    id_ve VARCHAR(36),
-    id_chi_tiet_san_pham_di_kem VARCHAR(36),
-    loai INT, -- 1: Vé, 2: Sản phẩm
-    so_luong INT,
-    don_gia DOUBLE,
-    thanh_tien DOUBLE,
-    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    nguoi_tao VARCHAR(100),
-    ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    nguoi_cap_nhat VARCHAR(100),
-    FOREIGN KEY (id_hoa_don) REFERENCES hoa_don(id),
-    FOREIGN KEY (id_ve) REFERENCES ve(id),
-    FOREIGN KEY (id_chi_tiet_san_pham_di_kem) REFERENCES chi_tiet_san_pham_di_kem(id)
+                                  id VARCHAR(36) PRIMARY KEY,
+                                  id_hoa_don VARCHAR(36),
+                                  id_ve VARCHAR(36),
+                                  id_chi_tiet_san_pham_di_kem VARCHAR(36),
+                                  loai INT, -- 1: Vé, 2: Sản phẩm
+                                  so_luong INT,
+                                  don_gia DOUBLE,
+                                  thanh_tien DOUBLE,
+                                  ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                  nguoi_tao VARCHAR(100),
+                                  ngay_cap_nhat DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                                  nguoi_cap_nhat VARCHAR(100),
+                                  FOREIGN KEY (id_hoa_don) REFERENCES hoa_don(id),
+                                  FOREIGN KEY (id_ve) REFERENCES ve(id),
+                                  FOREIGN KEY (id_chi_tiet_san_pham_di_kem) REFERENCES chi_tiet_san_pham_di_kem(id)
 );

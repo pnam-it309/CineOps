@@ -22,6 +22,7 @@ const totalElements = ref(0);
 const loading = ref(false);
 const detailVisible = ref(false);
 const selectedTicket = ref(null);
+const customDateRange = ref([]);
 
 const handleViewDetail = (ticket) => {
   selectedTicket.value = ticket;
@@ -306,32 +307,90 @@ onMounted(() => {
 
 
       <template #filters>
-        <div class="filter-item search-input-wrapper">
-          <el-input v-model="params.tuKhoa" placeholder="Tìm mã vé, tên phim, SĐT..." :prefix-icon="Search"
-            clearable @input="onSearch" style="width: 250px;" />
-        </div>
+        <div class="card border-0 bg-transparent w-100 p-0">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <el-input 
+                v-model="params.tuKhoa" 
+                placeholder="Mã vé, tên phim, SĐT khách..." 
+                :prefix-icon="Search" 
+                clearable 
+                class="w-100"
+                @input="onSearch" 
+              />
+            </div>
+            <div class="col-md-4">
+              <el-date-picker
+                v-model="customDateRange"
+                type="daterange"
+                range-separator="đến"
+                start-placeholder="Từ ngày"
+                end-placeholder="Đến ngày"
+                format="DD/MM/YYYY"
+                value-format="YYYY-MM-DD"
+                @change="handleDateChange"
+                class="w-100"
+              />
+            </div>
+            <div class="col-md-2">
+              <el-select v-model="params.kyThoiGian" placeholder="Kỳ thời gian" clearable @change="handlePeriodChange" class="w-100">
+                <el-option label="Tất cả thời gian" value=""/>
+                <el-option label="Hôm nay" value="TODAY"/>
+                <el-option label="Tuần này" value="THIS_WEEK"/>
+                <el-option label="Tháng này" value="THIS_MONTH"/>
+              </el-select>
+            </div>
+            <div class="col-md-2">
+              <el-select v-model="params.trangThai" placeholder="Trạng thái" clearable @change="loadData" class="w-100">
+                <el-option label="Thành công" :value="1" />
+                <el-option label="Đã hủy" :value="0" />
+              </el-select>
+            </div>
+          </div>
 
-        <div class="filter-item">
-          <el-select v-model="params.trangThai" @change="loadData" placeholder="Chọn trạng thái" style="width: 180px;" clearable>
-            <el-option label="Tất cả trạng thái" value="" /> 
-            <el-option label="Thành công" :value="1" />
-            <el-option label="Đã hủy" :value="0" />
-          </el-select>
-        </div>
+          <div class="row g-3">
+            <div class="col-md-2">
+              <el-select v-model="params.loaiVe" @change="loadData" placeholder="Kênh bán" class="w-100" clearable>
+                <el-option label="Tại quầy" :value="0" />
+                <el-option label="Online" :value="1" />
+              </el-select>
+            </div>
+            <div class="col-md-2">
+              <el-select v-model="params.idPhongChieu" @change="loadData" placeholder="Phòng chiếu" class="w-100" clearable>
+                <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong" :value="pc.id" />
+              </el-select>
+            </div>
+            <div class="col-md-5">
+              <div class="input-group shadow-sm rounded">
+                <span class="input-group-text bg-white text-secondary border-end-0">
+                  <i class="bi bi-cash-stack"></i>
+                </span>
+                <el-input-number 
+                  v-model="params.minPrice" 
+                  :controls="false" 
+                  placeholder="Giá từ" 
+                  class="flex-grow-1"
+                  @change="loadData"
+                />
+                <span class="input-group-text bg-white border-start-0 border-end-0">-</span>
+                <el-input-number 
+                  v-model="params.maxPrice" 
+                  :controls="false" 
+                  placeholder="Đến" 
+                  class="flex-grow-1"
+                  @change="loadData"
+                />
+              </div>
+            </div>
 
-        <div class="filter-item">
-          <el-select v-model="params.loaiVe" @change="loadData" placeholder="Kênh bán" style="width: 180px;" clearable>
-            <el-option label="Tất cả kênh" value="" />
-            <el-option label="Tại quầy" :value="0" />
-            <el-option label="Online" :value="1" />
-          </el-select>
-        </div>
-
-        <div class="filter-item">
-          <el-select v-model="params.idPhongChieu" @change="loadData" placeholder="Chọn phòng chiếu" style="width: 180px;" clearable>
-            <el-option label="Tất cả phòng" value="" />
-            <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong" :value="pc.id" />
-          </el-select>
+            <div class="col-md-3">
+              <el-select v-model="params.sortDir" placeholder="Sắp xếp" @change="loadData" class="w-100">
+                <template #prefix><i class="bi bi-sort-numeric-down"></i></template>
+                <el-option label="Mới nhất trước" value="DESC"/>
+                <el-option label="Cũ nhất trước" value="ASC"/>
+              </el-select>
+            </div>
+          </div>
         </div>
       </template>
 

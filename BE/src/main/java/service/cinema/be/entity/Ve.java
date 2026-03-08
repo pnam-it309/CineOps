@@ -48,5 +48,8 @@ public class Ve extends PrimaryEntity {
 
     @Column(name = "trang_thai")
     private Integer trangThai;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_hoa_don")
+    private HoaDon hoaDon;
 
 }

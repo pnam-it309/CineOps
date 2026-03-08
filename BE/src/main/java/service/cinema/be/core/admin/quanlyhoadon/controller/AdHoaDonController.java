@@ -63,12 +63,13 @@ public class AdHoaDonController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate denNgay,
             @RequestParam(required = false) String kyThoiGian, // Vd: THIS_WEEK, THIS_MONTH
             @RequestParam(required = false) Integer phuongThucThanhToan, // 0: Tiền mặt, 1: CK
+            @RequestParam(defaultValue = "DESC") String sortDir,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(adHoaDonService.timKiemHoaDon(
                 tuKhoa, trangThai, minPrice, maxPrice, tuNgay, denNgay,
-                kyThoiGian, phuongThucThanhToan, page, size
+                kyThoiGian, phuongThucThanhToan, sortDir ,page, size
         ));
     }
 

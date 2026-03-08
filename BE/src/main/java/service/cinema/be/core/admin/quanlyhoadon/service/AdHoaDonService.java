@@ -25,7 +25,7 @@ public interface AdHoaDonService {
             LocalDate denNgay,
             String kyThoiGian,
             Integer phuongThucThanhToan,
-            int page,
+            String sortDir, int page,
             int size
     );
 
