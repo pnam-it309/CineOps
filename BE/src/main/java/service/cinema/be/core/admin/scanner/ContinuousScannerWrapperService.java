@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import service.cinema.be.core.common.response.ApiResponse;
+import service.cinema.be.core.common.service.CccdScanService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -22,12 +23,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 @RequiredArgsConstructor
 public class ContinuousScannerWrapperService {
-    
+
+    private final CccdScanService cccdScanService; // Inject service thực tế
     private final Map<String, ScanSession> activeSessions = new ConcurrentHashMap<>();
     private final AtomicInteger totalScanAttempts = new AtomicInteger(0);
     private final AtomicInteger successfulScans = new AtomicInteger(0);
     private final AtomicInteger failedScans = new AtomicInteger(0);
-    
+
     /**
      * Wrapper method cho API quét CCCD hiện tại
      * Thêm logging, monitoring và tracking
@@ -35,78 +37,66 @@ public class ContinuousScannerWrapperService {
     public ResponseEntity<?> scanWithTracking(String sessionId, MultipartFile file) {
         String scanId = generateScanId(sessionId);
         LocalDateTime startTime = LocalDateTime.now();
-        
+
         try {
             // Log attempt
             totalScanAttempts.incrementAndGet();
             logScanAttempt(scanId, sessionId, file);
-            
+
             // Track session
-            ScanSession session = activeSessions.computeIfAbsent(sessionId, 
-                k -> new ScanSession(sessionId, startTime));
+            ScanSession session = activeSessions.computeIfAbsent(sessionId,
+                    k -> new ScanSession(sessionId, startTime));
             session.incrementAttempts();
-            
+
             // Validate file trước khi gửi đến API hiện tại
             validateImageFile(file);
-            
-            // Gọi đến API hiện tại (đã có sẵn)
-            ResponseEntity<?> response = callExistingScanAPI(file);
-            
-            if (response.getStatusCode().is2xxSuccessful()) {
+
+            // Gọi đến API hiện tại thông qua service
+            try {
+                service.cinema.be.core.common.response.CccdDataResponse result = cccdScanService.scanCccdQr(file);
+
                 // Success case
                 successfulScans.incrementAndGet();
                 session.markSuccess();
-                logScanSuccess(scanId, sessionId, response);
-                
-                // Enrich response với metadata
-                return enrichResponse(response, scanId, session);
-            } else {
-                // Error case
-                failedScans.incrementAndGet();
-                session.markFailure();
-                logScanFailure(scanId, sessionId, response);
-                
-                return response;
+                logScanSuccess(scanId, sessionId, ResponseEntity.ok(result));
+
+                return enrichResponse(ResponseEntity.ok(result), scanId, session);
+            } catch (Exception e) {
+                // Nếu lỗi là không thấy QR (404 nội bộ), ta trả về status 200 kèm error message 
+                // để frontend tiếp tục quét frame tiếp theo mà không hiện đỏ console
+                if (e.getMessage().contains("Không phát hiện mã QR")) {
+                    failedScans.incrementAndGet();
+                    session.markFailure();
+                    return ResponseEntity.ok(ApiResponse.error(404, e.getMessage()));
+                }
+                throw e; // Lỗi khác thì ném ra ngoài
             }
-            
+
         } catch (Exception e) {
             failedScans.incrementAndGet();
             logScanError(scanId, sessionId, e);
-            
+
             ScanSession session = activeSessions.get(sessionId);
             if (session != null) {
                 session.markFailure();
             }
-            
+
             return ResponseEntity.badRequest().body(
-                ApiResponse.error(400, "Lỗi xử lý quét: " + e.getMessage())
+                    ApiResponse.error(400, "Lỗi xử lý quét: " + e.getMessage())
             );
         } finally {
             logScanCompletion(scanId, startTime);
         }
     }
-    
+
     /**
-     * Gọi đến API scan hiện tại (không sửa đổi)
-     * INTEGRATION POINT - CHỈ SỬA ĐOẠN NÀY
+     * Phương thức này không còn cần thiết vì đã gộp vào scanWithTracking
+     * để xử lý Response Type an toàn hơn
      */
     private ResponseEntity<?> callExistingScanAPI(MultipartFile file) {
-        try {
-            // TODO: Inject và gọi service hiện tại của bạn
-            // Ví dụ: return existingCccdScanService.scanCccd(file);
-            
-            // Placeholder implementation - cần tích hợp với API hiện tại
-            throw new UnsupportedOperationException(
-                "Cần tích hợp với API hiện tại tại đây. " +
-                "Ví dụ: @Autowired private CccdScanService existingService;"
-            );
-            
-        } catch (Exception e) {
-            log.error("Error calling existing scan API: {}", e.getMessage(), e);
-            throw e; // Re-throw để xử lý ở tầng trên
-        }
+        throw new UnsupportedOperationException("Sử dụng trực tiếp cccdScanService trong scanWithTracking");
     }
-    
+
     /**
      * Validate file ảnh trước khi xử lý
      */
@@ -114,17 +104,17 @@ public class ContinuousScannerWrapperService {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File không được để trống");
         }
-        
+
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("File phải là định dạng ảnh");
         }
-        
+
         // Kiểm tra kích thước file (max 10MB)
         if (file.getSize() > 10 * 1024 * 1024) {
             throw new IllegalArgumentException("File quá lớn (tối đa 10MB)");
         }
-        
+
         // Kiểm tra định dạng cho phép
         String[] allowedTypes = {"image/jpeg", "image/jpg", "image/png"};
         boolean isAllowed = false;
@@ -134,34 +124,34 @@ public class ContinuousScannerWrapperService {
                 break;
             }
         }
-        
+
         if (!isAllowed) {
             throw new IllegalArgumentException("Chỉ hỗ trợ định dạng JPG, JPEG, PNG");
         }
     }
-    
+
     /**
      * Enrich response với metadata về session
      */
-    private ResponseEntity<?> enrichResponse(ResponseEntity<?> originalResponse, 
-                                           String scanId, ScanSession session) {
-        
+    private ResponseEntity<?> enrichResponse(ResponseEntity<?> originalResponse,
+                                             String scanId, ScanSession session) {
+
         Map<String, Object> enrichedData = new HashMap<>();
         enrichedData.put("scanData", originalResponse.getBody());
         enrichedData.put("scanMetadata", Map.of(
-            "scanId", scanId,
-            "sessionId", session.getSessionId(),
-            "attemptCount", session.getAttemptCount(),
-            "sessionDuration", session.getSessionDuration(),
-            "totalAttempts", totalScanAttempts.get(),
-            "successRate", calculateSuccessRate()
+                "scanId", scanId,
+                "sessionId", session.getSessionId(),
+                "attemptCount", session.getAttemptCount(),
+                "sessionDuration", session.getSessionDuration(),
+                "totalAttempts", totalScanAttempts.get(),
+                "successRate", calculateSuccessRate()
         ));
-        
+
         return ResponseEntity.ok()
-            .headers(originalResponse.getHeaders())
-            .body(ApiResponse.success(enrichedData, "Quét thành công"));
+                .headers(originalResponse.getHeaders())
+                .body(ApiResponse.success(enrichedData, "Quét thành công"));
     }
-    
+
     /**
      * Lấy thống kê quét
      */
@@ -173,27 +163,27 @@ public class ContinuousScannerWrapperService {
         stats.put("successRate", calculateSuccessRate());
         stats.put("activeSessions", activeSessions.size());
         stats.put("timestamp", LocalDateTime.now());
-        
+
         return stats;
     }
-    
+
     /**
      * Kết thúc session
      */
     public void endSession(String sessionId) {
         ScanSession session = activeSessions.remove(sessionId);
         if (session != null) {
-            log.info("Session {} kết thúc sau {} với {} lần thử", 
-                sessionId, session.getSessionDuration(), session.getAttemptCount());
+            log.info("Session {} kết thúc sau {} với {} lần thử",
+                    sessionId, session.getSessionDuration(), session.getAttemptCount());
         }
     }
-    
+
     /**
      * Dọn dẹp các session hết hạn
      */
     public void cleanupExpiredSessions() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(30);
-        
+
         activeSessions.entrySet().removeIf(entry -> {
             ScanSession session = entry.getValue();
             if (session.getStartTime().isBefore(cutoff)) {
@@ -203,43 +193,43 @@ public class ContinuousScannerWrapperService {
             return false;
         });
     }
-    
+
     // Helper methods
     private String generateScanId(String sessionId) {
         return sessionId + "-" + System.currentTimeMillis();
     }
-    
+
     private double calculateSuccessRate() {
         int total = totalScanAttempts.get();
         if (total == 0) return 0.0;
         return (double) successfulScans.get() / total * 100;
     }
-    
+
     private void logScanAttempt(String scanId, String sessionId, MultipartFile file) {
-        log.info("Scan attempt - ID: {}, Session: {}, File: {} ({} bytes)", 
-            scanId, sessionId, file.getOriginalFilename(), file.getSize());
+        log.info("Scan attempt - ID: {}, Session: {}, File: {} ({} bytes)",
+                scanId, sessionId, file.getOriginalFilename(), file.getSize());
     }
-    
+
     private void logScanSuccess(String scanId, String sessionId, ResponseEntity<?> response) {
-        log.info("Scan success - ID: {}, Session: {}, Status: {}", 
-            scanId, sessionId, response.getStatusCode());
+        log.info("Scan success - ID: {}, Session: {}, Status: {}",
+                scanId, sessionId, response.getStatusCode());
     }
-    
+
     private void logScanFailure(String scanId, String sessionId, ResponseEntity<?> response) {
-        log.warn("Scan failed - ID: {}, Session: {}, Status: {}", 
-            scanId, sessionId, response.getStatusCode());
+        log.warn("Scan failed - ID: {}, Session: {}, Status: {}",
+                scanId, sessionId, response.getStatusCode());
     }
-    
+
     private void logScanError(String scanId, String sessionId, Exception e) {
-        log.error("Scan error - ID: {}, Session: {}, Error: {}", 
-            scanId, sessionId, e.getMessage(), e);
+        log.error("Scan error - ID: {}, Session: {}, Error: {}",
+                scanId, sessionId, e.getMessage(), e);
     }
-    
+
     private void logScanCompletion(String scanId, LocalDateTime startTime) {
         long duration = java.time.Duration.between(startTime, LocalDateTime.now()).toMillis();
         log.debug("Scan {} completed in {}ms", scanId, duration);
     }
-    
+
     /**
      * Inner class để tracking session
      */
@@ -249,37 +239,51 @@ public class ContinuousScannerWrapperService {
         private final AtomicInteger attempts = new AtomicInteger(0);
         private LocalDateTime lastSuccessTime;
         private LocalDateTime lastFailureTime;
-        
+
         public ScanSession(String sessionId, LocalDateTime startTime) {
             this.sessionId = sessionId;
             this.startTime = startTime;
         }
-        
+
         public void incrementAttempts() {
             attempts.incrementAndGet();
         }
-        
+
         public void markSuccess() {
             this.lastSuccessTime = LocalDateTime.now();
         }
-        
+
         public void markFailure() {
             this.lastFailureTime = LocalDateTime.now();
         }
-        
-        public String getSessionId() { return sessionId; }
-        public LocalDateTime getStartTime() { return startTime; }
-        public int getAttemptCount() { return attempts.get(); }
-        public LocalDateTime getLastSuccessTime() { return lastSuccessTime; }
-        public LocalDateTime getLastFailureTime() { return lastFailureTime; }
-        
+
+        public String getSessionId() {
+            return sessionId;
+        }
+
+        public LocalDateTime getStartTime() {
+            return startTime;
+        }
+
+        public int getAttemptCount() {
+            return attempts.get();
+        }
+
+        public LocalDateTime getLastSuccessTime() {
+            return lastSuccessTime;
+        }
+
+        public LocalDateTime getLastFailureTime() {
+            return lastFailureTime;
+        }
+
         public long getSessionDuration() {
             return java.time.Duration.between(startTime, LocalDateTime.now()).toSeconds();
         }
-        
+
         public boolean isSuccess() {
-            return lastSuccessTime != null && 
-                (lastFailureTime == null || lastSuccessTime.isAfter(lastFailureTime));
+            return lastSuccessTime != null &&
+                    (lastFailureTime == null || lastSuccessTime.isAfter(lastFailureTime));
         }
     }
 }

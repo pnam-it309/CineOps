@@ -50,6 +50,14 @@ const getRoleColor = (code) => {
   return colors[code] || 'info';
 };
 
+const getRoleType = (roleName) => {
+  if (!roleName) return 'info';
+  const name = roleName.toLowerCase();
+  if (name.includes('admin') || name.includes('quản trị')) return 'danger';
+  if (name.includes('nhân viên') || name.includes('staff')) return 'warning';
+  return 'primary';
+};
+
 const fetchRoles = async () => {
   try {
     const res = await phanQuyenService.getAllRoles();
@@ -132,10 +140,11 @@ const fetchStaff = async () => {
 
 const filteredStaff = computed(() => staff.value);
 
-const getRoleType = (role) => {
-  if (!role) return 'info';
-  if (role.toLowerCase().includes('admin') || role.includes('Quản trị')) return 'danger';
-  if (role.toLowerCase().includes('manager') || role.includes('Quản lý')) return 'warning';
+const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v);
+const getChucVuTagType = (ten) => {
+  if (!ten) return 'info';
+  if (ten.toLowerCase().includes('admin') || ten.includes('Quản trị')) return 'danger';
+  if (ten.toLowerCase().includes('manager') || ten.includes('Quản lý')) return 'warning';
   return 'primary';
 };
 
@@ -218,7 +227,9 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
       <template #header-actions-left>
         <div class="d-flex align-items-center gap-2">
           <ExcelActions module="nhan-vien" @import-success="fetchStaff" />
-          <el-button class="btn-cine-secondary" :icon="Setting" @click="roleDialogVisible = true" round>Vai trò & Quyền</el-button>
+          <el-tooltip content="Cấu hình Vai trò & Quyền hạn" placement="top">
+            <el-button class="btn-cine-secondary square" :icon="Setting" @click="roleDialogVisible = true" plain></el-button>
+          </el-tooltip>
         </div>
       </template>
 
@@ -284,6 +295,7 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
                   :model-value="row.trangThai === 1"
                   @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
                   class="status-switch mx-1"
+                  active-color="#ff4949"
                   inactive-color="#ff4949"
                 />
             </div>
@@ -330,51 +342,88 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
 
 
 
-    <!-- Staff Detail Modal -->
-    <BaseModal v-model="detailVisible" title="Chi tiết nhân viên" icon="bi bi-person-badge" width="500px">
-      <div v-if="selectedItem" class="p-3">
-        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
-          <div class="avatar-circle" :style="{ backgroundColor: getAvatarColor(selectedItem.tenPhanQuyen) }">
+    <BaseModal v-model="detailVisible" title="Hồ sơ nhân viên" icon="bi bi-person-workspace" width="600px" isDetail onlyCancel>
+      <div v-if="selectedItem" class="p-0">
+        <!-- Profile Header (Colorless) -->
+        <div class="p-4 border-bottom bg-white d-flex align-items-center gap-4">
+          <div class="shadow-sm border d-flex align-items-center justify-content-center bg-light text-secondary" 
+               style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
             {{ selectedItem.tenNhanVien?.charAt(0).toUpperCase() }}
           </div>
-          <div>
-            <h5 class="m-0 fw-bold">{{ selectedItem.tenNhanVien }}</h5>
-            <el-tag :type="getRoleType(selectedItem.tenPhanQuyen)" size="small" round>{{ selectedItem.tenPhanQuyen }}</el-tag>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <h3 class="fw-bold m-0 text-dark">{{ selectedItem.tenNhanVien }}</h3>
+              <span class="text-secondary small fw-bold">#{{ selectedItem.maNhanVien }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <el-tag type="info" effect="plain" round size="small">{{ selectedItem.tenPhanQuyen }}</el-tag>
+              <el-tag :type="selectedItem.trangThai === 1 ? 'info' : 'plain'" effect="plain" round size="small">
+                {{ selectedItem.trangThai === 1 ? 'HOẠT ĐỘNG' : 'TẠM KHÓA' }}
+              </el-tag>
+            </div>
           </div>
         </div>
-        <div class="detail-list">
-          <div class="detail-item mb-3">
-            <div class="lbl text-secondary small">Email</div>
-            <div class="val fw-semibold">{{ selectedItem.email }}</div>
-          </div>
-          <div class="detail-item mb-3">
-            <div class="lbl text-secondary small">Tên đăng nhập</div>
-            <div class="val fw-semibold"><code>{{ selectedItem.tenDangNhap || selectedItem.maNhanVien }}</code></div>
-          </div>
-          <div class="detail-item mb-3">
-            <div class="lbl text-secondary small">Số điện thoại</div>
-            <div class="val fw-semibold">{{ selectedItem.soDienThoai || '—' }}</div>
-          </div>
-          <div class="detail-item mb-3">
-            <div class="lbl text-secondary small">Ngày tham gia</div>
-            <div class="val fw-semibold">{{ selectedItem.ngayTao ? new Date(selectedItem.ngayTao).toLocaleDateString('vi-VN') : '—' }}</div>
-          </div>
-          <div class="detail-item mb-3">
-            <div class="lbl text-secondary small">Địa chỉ</div>
-            <div class="val fw-semibold">{{ selectedItem.diaChi || '—' }}</div>
-          </div>
-          <div class="detail-item">
-            <div class="lbl text-secondary small">Trạng thái</div>
-            <el-tag :type="selectedItem.trangThai === 1 ? 'success' : 'info'" size="small" round>
-              {{ selectedItem.trangThai === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động' }}
-            </el-tag>
+
+        <!-- Details Body (Colorless) -->
+        <div class="p-4 bg-white">
+          <div class="row g-4">
+            <div class="col-12">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Thông tin tài khoản</h6>
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="p-3 border bg-white">
+                    <div class="text-secondary small mb-1">TÊN ĐĂNG NHẬP</div>
+                    <div class="fw-bold text-dark">{{ selectedItem.tenDangNhap || '—' }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 border bg-white">
+                    <div class="text-secondary small mb-1">EMAIL CÔNG VIỆC</div>
+                    <div class="fw-bold text-dark text-truncate">{{ selectedItem.email || '—' }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 border bg-white">
+                    <div class="text-secondary small mb-1">SỐ ĐIỆN THOẠI</div>
+                    <div class="fw-bold text-dark">{{ selectedItem.soDienThoai || '—' }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 border bg-white">
+                    <div class="text-secondary small mb-1">CHỨC VỤ</div>
+                    <div class="fw-bold text-dark">{{ selectedItem.tenChucVu || 'Nhân viên' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Hiệu suất làm việc</h6>
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="p-3 border bg-white text-center">
+                    <div class="text-secondary small mb-1">VÉ ĐÃ BÁN</div>
+                    <div class="fw-bold fs-4 text-dark">{{ selectedItem.tongVeBan || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 border bg-white text-center">
+                    <div class="text-secondary small mb-1">TỔNG DOANH THU</div>
+                    <div class="fw-bold fs-4 text-dark">{{ formatCurrency(selectedItem.doanhSoCuaHang || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+               <div class="p-3 border bg-light">
+                 <h6 class="text-uppercase small fw-bold text-secondary mb-1">ĐỊA CHỈ</h6>
+                 <p class="text-dark mb-0 small">{{ selectedItem.diaChi || 'Chưa cập nhật địa chỉ' }}</p>
+               </div>
+            </div>
           </div>
         </div>
       </div>
-      <template #footer>
-        <el-button @click="detailVisible = false">Đóng</el-button>
-        <el-button type="primary" @click="handleEdit(selectedItem)">Chỉnh sửa</el-button>
-      </template>
     </BaseModal>
 
     <!-- Roles Dialog -->
@@ -413,6 +462,26 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
   </div>
 </template>
 <style scoped>
+
+.staff-profile-container { margin: -20px; }
+.profile-header { border-radius: 0 0 30px 30px; }
+.header-decoration { position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+.profile-avatar { width: 80px; height: 80px; border-radius: 20px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; }
+.tiny-id { font-size: 11px; letter-spacing: 0.5px; }
+.section-divider { display: flex; align-items: center; margin: 15px 0; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.section-divider::after { content: ''; flex-grow: 1; height: 1px; background: #e2e8f0; margin-left: 10px; }
+.tiny-text { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 3px; display: block; }
+.icon-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.icon-square { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.info-card-minimal { transition: all 0.2s; }
+.info-card-minimal:hover { border-color: #3b82f6 !important; background: #f8fafc; }
+.bg-success-light { background: #f0fdf4; }
+.bg-danger-light { background: #fef2f2; }
+.pulse-indicator { width: 8px; height: 8px; border-radius: 50%; position: relative; }
+.pulse-indicator::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: inherit; animation: pulse 1.5s infinite; opacity: 0.6; }
+@keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(3); opacity: 0; } }
+.letter-spacing-tight { letter-spacing: -1px; }
+
 .avatar-circle {
   width: 50px;
   height: 50px;

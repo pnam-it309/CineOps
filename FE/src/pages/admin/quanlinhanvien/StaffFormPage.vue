@@ -61,19 +61,22 @@ const handleProvinceChange = async (val) => {
     const p = provinces.value.find(x => x.name === val);
     if (p) {
         const res = await addressService.getDistricts(p.code);
-        districts.value = res.data.districts;
+        const provinceDetail = res.data;
+        if (provinceDetail && provinceDetail.districts) {
+            let allWards = [];
+            for (const d of provinceDetail.districts) {
+                const wRes = await addressService.getWards(d.code);
+                if (wRes.data && wRes.data.wards) {
+                    allWards = [...allWards, ...wRes.data.wards.map(w => ({ ...w, districtName: d.name }))];
+                }
+            }
+            wards.value = allWards;
+        }
     }
 };
 
 const handleDistrictChange = async (val) => {
-    staffForm.phuongXa = '';
-    wards.value = [];
-    if (!val) return;
-    const d = districts.value.find(x => x.name === val);
-    if (d) {
-        const res = await addressService.getWards(d.code);
-        wards.value = res.data.wards;
-    }
+    // Không dùng nữa
 };
 
 const fetchRoles = async () => {
@@ -124,6 +127,28 @@ const handleCCCDScanned = (data) => {
   if (data.cccd) staffForm.cccd = data.cccd;
   if (data.name) staffForm.tenNhanVien = data.name;
   if (data.dob) staffForm.ngaySinh = data.dob;
+  
+  // Tự động khớp Tỉnh / Xã (BỎ QUA HUYỆN)
+  if (data.province) {
+    const provinceMatch = provinces.value.find(p => 
+      p.name.toLowerCase().includes(data.province.toLowerCase()) || 
+      data.province.toLowerCase().includes(p.name.toLowerCase())
+    );
+    
+    if (provinceMatch) {
+      staffForm.thanhPhoTinh = provinceMatch.name;
+      handleProvinceChange(provinceMatch.name).then(() => {
+        if (data.ward) {
+          const wardMatch = wards.value.find(w => 
+            w.name.toLowerCase().includes(data.ward.toLowerCase()) || 
+            data.ward.toLowerCase().includes(w.name.toLowerCase())
+          );
+          if (wardMatch) staffForm.phuongXa = wardMatch.name;
+        }
+      });
+    }
+  }
+  staffForm.quanHuyen = '';
 };
 
 const handleSave = async () => {
@@ -259,20 +284,24 @@ onMounted(() => {
                   </el-select>
                 </el-form-item>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-6">
+                <el-form-item label="Phường/Xã">
+                  <el-select v-model="staffForm.phuongXa" placeholder="Chọn xã" class="w-100" size="large" filterable :disabled="!staffForm.thanhPhoTinh">
+                    <el-option v-for="w in wards" :key="w.code" :label="w.name" :value="w.name">
+                       <span style="float: left">{{ w.name }}</span>
+                       <span style="float: right; color: #8492a6; font-size: 13px" v-if="w.districtName">({{ w.districtName }})</span>
+                    </el-option>
+                  </el-select>
+                </el-form-item>
+              </div>
+              <!-- Ẩn Quận/Huyện theo yêu cầu: KHÔNG CÒN HUYỆN -->
+              <!-- <div class="col-md-4">
                 <el-form-item label="Quận/Huyện">
                   <el-select v-model="staffForm.quanHuyen" placeholder="Chọn huyện" class="w-100" size="large" filterable @change="handleDistrictChange" :disabled="!staffForm.thanhPhoTinh">
                     <el-option v-for="d in districts" :key="d.code" :label="d.name" :value="d.name" />
                   </el-select>
                 </el-form-item>
-              </div>
-              <div class="col-md-4">
-                <el-form-item label="Phường/Xã">
-                  <el-select v-model="staffForm.phuongXa" placeholder="Chọn xã" class="w-100" size="large" filterable :disabled="!staffForm.quanHuyen">
-                    <el-option v-for="w in wards" :key="w.code" :label="w.name" :value="w.name" />
-                  </el-select>
-                </el-form-item>
-              </div>
+              </div> -->
               <div class="col-12">
                 <el-form-item label="Số nhà, tên đường">
                   <el-input v-model="staffForm.diaChiChiTiet" placeholder="VD: 123 Đường ABC..." :prefix-icon="MapLocation" size="large" />

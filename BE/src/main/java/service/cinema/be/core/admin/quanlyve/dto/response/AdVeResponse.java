@@ -36,4 +36,8 @@ public class AdVeResponse {
     private String tenLoaiVe;     // Vé Thường, Vé VIP, Vé Couple
     private String tenKhachHang;
     private String sdtKhachHang;
+    
+    // BỔ SUNG CHO IN VÉ CHUYÊN NGHIỆP
+    private Integer thoiLuong;
+    private String nhanDoTuoi;
 }

@@ -420,10 +420,9 @@ onMounted(() => {
       title="Xem trước hiển thị Voucher"
       width="500px"
       icon="bi bi-lightbulb"
+      isDetail
     >
-      <template #footer>
-        <el-button type="primary" @click="previewVisible = false" class="w-100" style="height: 45px;">Đóng</el-button>
-      </template>
+
 
       <div class="modern-voucher-preview p-4 rounded-4">
         <div class="d-flex justify-content-between align-items-center mb-3">

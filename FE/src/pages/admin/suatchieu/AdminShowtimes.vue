@@ -19,14 +19,17 @@
       <!-- Extra action button slot: Auto Generate -->
       <template #header-actions>
         <div class="filter-item border-start ps-3 ms-2">
-          <el-button
-            id="btn-auto-generate-showtime"
-            type="warning"
-            :icon="MagicStick"
-            @click="openBatchDialog"
-          >
-            Tạo tự động
-          </el-button>
+          <el-tooltip content="Tạo suất chiếu tự động" placement="top">
+            <el-button
+              id="btn-auto-generate-showtime"
+              type="warning"
+              :icon="MagicStick"
+              @click="openBatchDialog"
+              class="square"
+              plain
+            >
+            </el-button>
+          </el-tooltip>
         </div>
       </template>
 
@@ -140,6 +143,7 @@
                 :disabled="row.trangThai === 3"
                 @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
                 class="status-switch mx-1"
+                active-color="#ff4949"
                 inactive-color="#ff4949"
               />
             </div>
@@ -149,55 +153,87 @@
     </AdminTableLayout>
 
     <!-- Detail Modal -->
-    <BaseModal v-model="detailVisible" title="Chi tiết suất chiếu" icon="bi bi-calendar-event" width="550px">
-      <div v-if="selectedShowtime" class="p-2">
-        <div class="d-flex gap-4 mb-4 pb-4 border-bottom">
-          <img v-if="selectedShowtime.poster" :src="selectedShowtime.poster" class="rounded-3 shadow-sm"
-            style="width:100px;height:140px;object-fit:cover;" />
-          <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center border"
-            style="width:100px;height:140px;">
-            <i class="bi bi-film text-secondary fs-1"></i>
-          </div>
-          <div class="flex-grow-1">
-            <h4 class="fw-bold text-dark mb-1">{{ selectedShowtime.tenPhim }}</h4>
-            <div class="d-flex align-items-center gap-2 mb-3">
-              <el-tag :type="getStatusTag(selectedShowtime.trangThai)" round size="small">
-                {{ getStatusLabel(selectedShowtime.trangThai) }}
-              </el-tag>
-              <el-tag type="danger" effect="dark" round size="small" v-if="selectedShowtime.loaiPhim">
-                {{ selectedShowtime.loaiPhim }}
-              </el-tag>
-              <span class="text-secondary small">
-                <i class="bi bi-clock me-1"></i>{{ selectedShowtime.thoiLuong }} phút
-              </span>
+    <BaseModal v-model="detailVisible" title="Chi tiết suất chiếu" icon="bi bi-clock-history" width="580px" isDetail>
+      <div v-if="selectedShowtime" class="p-0">
+        <!-- Hero Movie Header (Colorless) -->
+        <div class="p-4 border-bottom bg-white">
+          <div class="d-flex gap-4">
+            <div class="poster-card shadow-sm border" style="width: 100px; height: 150px; flex-shrink: 0;">
+              <img v-if="selectedShowtime.poster" :src="selectedShowtime.poster" class="rounded-3 h-100 w-100 object-fit-cover" />
+              <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center h-100 w-100"><i class="bi bi-film fs-1"></i></div>
             </div>
-          </div>
-        </div>
-        <div class="bg-light p-3 rounded-4 mb-4">
-          <div class="small text-secondary mb-1">Phòng chiếu</div>
-          <div class="fw-bold text-dark">
-            <i class="bi bi-door-open me-2 text-primary"></i>
-            {{ selectedShowtime.tenPhongChieu }} ({{ selectedShowtime.loaiManHinh }})
-          </div>
-        </div>
-        <div class="row g-4">
-          <div class="col-6">
-            <div class="p-3 bg-light rounded-3">
-              <div class="small text-secondary mb-1"><i class="bi bi-calendar3 me-2 text-primary"></i>Ngày chiếu</div>
-              <div class="fw-bold">{{ formatDate(selectedShowtime.ngayChieu) }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="p-3 bg-light rounded-3">
-              <div class="small text-secondary mb-1"><i class="bi bi-alarm me-2 text-primary"></i>Thời gian</div>
-              <div class="fw-bold text-primary">
-                {{ selectedShowtime.gioBatDau }} → {{ selectedShowtime.gioKetThuc }}
+            <div class="hero-info flex-grow-1 d-flex flex-column justify-content-center">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <el-tag type="info" effect="plain" round size="small">{{ selectedShowtime.loaiPhim || '2D' }}</el-tag>
+                <el-tag type="info" effect="plain" round size="small">
+                  {{ getStatusLabel(selectedShowtime.trangThai) }}
+                </el-tag>
               </div>
+              <h3 class="fw-bold m-0 lh-sm text-dark">{{ selectedShowtime.tenPhim }}</h3>
+              <div class="small text-secondary mt-1"><i class="bi bi-stopwatch me-1"></i>Thời lượng: {{ selectedShowtime.thoiLuong }} phút</div>
             </div>
           </div>
+        </div>
+
+        <!-- Dashboard (Colorless) -->
+        <div class="p-4 bg-white">
+           <h6 class="text-uppercase small fw-bold text-secondary mb-3">Hiệu suất vận hành</h6>
+           <div class="row g-3 mb-4">
+             <div class="col-6">
+                <div class="p-3 border bg-white">
+                   <div class="tiny-label text-secondary small mb-1">DOANH THU ƯỚC TÍNH</div>
+                   <div class="fw-bold fs-4 text-dark">{{ formatCurrency((selectedShowtime.tongGhe - selectedShowtime.soGheTrong) * (selectedShowtime.giaVe || 75000)) }}</div>
+                </div>
+             </div>
+             <div class="col-6">
+                <div class="p-3 border bg-white">
+                   <div class="tiny-label text-secondary small mb-1">TỶ LỆ LẤP ĐẦY</div>
+                   <div class="fw-bold fs-4 text-dark">{{ Math.round(((selectedShowtime.tongGhe - selectedShowtime.soGheTrong) / selectedShowtime.tongGhe) * 100) || 0 }}%</div>
+                </div>
+             </div>
+           </div>
+
+           <h6 class="text-uppercase small fw-bold text-secondary mb-3">Lịch trình & Địa điểm</h6>
+           <div class="row g-3">
+             <div class="col-12">
+                <div class="p-3 bg-white border d-flex align-items-center justify-content-between">
+                   <div class="text-center flex-grow-1">
+                      <div class="small text-secondary">BẮT ĐẦU</div>
+                      <div class="fs-5 text-dark fw-bold">{{ selectedShowtime.gioBatDau }}</div>
+                   </div>
+                   <div class="text-secondary px-3"><i class="bi bi-arrow-right"></i></div>
+                   <div class="text-center flex-grow-1">
+                      <div class="small text-secondary">KẾT THÚC</div>
+                      <div class="fs-5 text-dark fw-bold">{{ selectedShowtime.gioKetThuc }}</div>
+                   </div>
+                </div>
+             </div>
+             <div class="col-6">
+                <div class="p-3 border bg-white h-100">
+                   <label class="text-secondary small d-block mb-1">Ngày chiếu</label>
+                   <div class="fw-bold text-dark">{{ formatDate(selectedShowtime.ngayChieu) }}</div>
+                </div>
+             </div>
+             <div class="col-6">
+                <div class="p-3 border bg-white h-100">
+                   <label class="text-secondary small d-block mb-1">Phòng chiếu</label>
+                   <div class="fw-bold text-dark">{{ selectedShowtime.tenPhongChieu }}</div>
+                </div>
+             </div>
+             <div class="col-12">
+                <div class="p-3 bg-white border">
+                   <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="fw-bold small text-secondary">TRẠNG THÁI GHẾ</span>
+                      <span class="text-dark fw-bold">{{ selectedShowtime.soGheTrong }} / {{ selectedShowtime.tongGhe }} ghế trống</span>
+                   </div>
+                   <div class="bg-light" style="height: 6px;">
+                      <div class="bg-dark h-100" :style="{ width: ((selectedShowtime.soGheTrong / selectedShowtime.tongGhe) * 100) + '%' }"></div>
+                   </div>
+                </div>
+             </div>
+           </div>
         </div>
       </div>
-      <template #footer></template>
     </BaseModal>
 
     <!-- Add/Edit Modal -->
@@ -803,6 +839,7 @@ const handleBatchSubmit = async () => {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const getStatusTag   = (s) => ({ 0: 'danger', 1: 'primary', 2: 'success', 3: 'info' }[s] || 'info');
 const getStatusLabel = (s) => ({ 0: 'Đã hủy', 1: 'Sắp chiếu', 2: 'Đang chiếu', 3: 'Kết thúc' }[s] || '—');
+const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v);
 const formatDate     = (d) => d ? dayjs(d).format('DD/MM/YYYY') : '—';
 const formatTime     = (t) => t ? String(t).substring(0, 5) : '—';
 
@@ -1029,5 +1066,11 @@ onMounted(async () => {
 .skip-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
 .skip-item { display: flex; align-items: center; padding: 6px 10px; background: #fff5f5; border-radius: 6px; font-size: 13px; }
 .skip-date { font-weight: 600; color: #555; }
-</style>
+@keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(3); opacity: 0; } }
 
+.section-divider-sm { display: flex; align-items: center; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.section-divider-sm::after { content: ''; flex-grow: 1; height: 1px; background: #f1f5f9; margin-left: 10px; }
+.stat-card { transition: all 0.2s; }
+.stat-card:hover { border-color: var(--el-color-primary) !important; transform: translateY(-2px); }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+</style>

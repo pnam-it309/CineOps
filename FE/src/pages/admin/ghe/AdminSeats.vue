@@ -59,7 +59,6 @@
         v-model:selectedSeats="selectedSeats"
         @open-dialog="openDialog"
         @update-status="handleUpdateStatus"
-        @view="handleView"
       />
     </template>
 
@@ -77,45 +76,6 @@
       :saving="saving"
       @submit="handleSubmit"
     />
-
-    <!-- Detail Modal -->
-    <BaseModal v-model="detailVisible" title="Chi tiết ghế" icon="bi bi-grid-3x3-gap" width="450px">
-      <div v-if="selectedItem" class="p-4 text-center">
-        <div class="seat-display-large mb-4">
-           <div class="seat-icon-box mx-auto bg-light rounded-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border: 2px solid #e2e8f0;">
-              <span class="fs-3 fw-bold text-dark">{{ selectedItem.soGhe }}</span>
-           </div>
-        </div>
-        <div class="detail-list text-start">
-           <div class="d-flex justify-content-between py-2 border-bottom">
-              <span class="text-secondary">Loại ghế:</span>
-              <el-tag :type="getSeatTypeTag(selectedItem.tenLoaiGhe)" round size="small">{{ selectedItem.tenLoaiGhe }}</el-tag>
-           </div>
-           <div class="d-flex justify-content-between py-2 border-bottom">
-              <span class="text-secondary">Vị trí:</span>
-              <span class="fw-bold">Hàng {{ selectedItem.soHang }}, Cột {{ selectedItem.soCot }}</span>
-           </div>
-           <div class="d-flex justify-content-between py-2 border-bottom">
-              <span class="text-secondary">Phòng chiếu:</span>
-              <span class="fw-bold">{{ phongChieuList.find(pc => pc.id === selectedItem.idPhongChieu)?.tenPhong || '—' }}</span>
-           </div>
-           <div class="d-flex justify-content-between py-2 border-bottom">
-              <span class="text-secondary">Phụ phí:</span>
-              <span class="text-primary fw-bold">{{ formatCurrency(selectedItem.phuPhi) }}</span>
-           </div>
-           <div class="d-flex justify-content-between py-2">
-              <span class="text-secondary">Trạng thái:</span>
-              <el-tag :type="selectedItem.trangThai === 1 ? 'success' : 'warning'" round size="small">
-                {{ selectedItem.trangThai === 1 ? 'Hoạt động' : 'Bảo trì' }}
-              </el-tag>
-           </div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="detailVisible = false">Đóng</el-button>
-        <el-button type="primary" @click="openDialog(selectedItem); detailVisible = false">Chỉnh sửa</el-button>
-      </template>
-    </BaseModal>
   </div>
 </template>
 
@@ -124,7 +84,6 @@ import { ref, onMounted, computed } from 'vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import SeatListTab from './SeatListTab.vue';
 import SeatDialog from './SeatDialog.vue';
-import BaseModal from '@/components/common/BaseModal.vue';
 import { gheService } from '@/services/api/admin/gheService';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
@@ -156,11 +115,6 @@ const selectedShowtime = ref(null);
 const selectedItem = ref(null);
 const editingId = ref(null);
 const isBulkMode = ref(false);
-
-const handleView = (row) => {
-  selectedItem.value = row;
-  detailVisible.value = true;
-};
 
 const seats = ref([]);
 const loaiGheList = ref([]);

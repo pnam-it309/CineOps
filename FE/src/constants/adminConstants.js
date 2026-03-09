@@ -56,6 +56,7 @@ export const ADMIN_ROUTES = {
     MOVIES_SCHEDULE: { path: 'movies', name: 'AdminMovies' },
     MOVIES_ADD: { path: 'movies/add', name: 'AdminMoviesAdd' },
     MOVIES_EDIT: { path: 'movies/edit/:id', name: 'AdminMoviesEdit' },
+    MOVIES_DETAIL: { path: 'movies/detail/:id', name: 'AdminMoviesDetail' },
     SHOWTIMES: { path: 'showtimes', name: 'AdminShowtimes' },
     SCHEDULE: { 
       path: 'schedule', 

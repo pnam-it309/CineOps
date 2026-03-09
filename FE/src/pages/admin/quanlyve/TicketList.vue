@@ -9,6 +9,7 @@ import { ElMessage } from 'element-plus';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseModal from '@/components/common/BaseModal.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
+import MovieTicketTemplate from './MovieTicketTemplate.vue';
 
 import confirmDialog from '@/utils/confirm';
 import debounce from 'lodash/debounce';
@@ -47,7 +48,13 @@ const params = reactive({
   trangThai: null,
   loaiVe: null,
   idPhongChieu: null,
-  page: 1, 
+  startDate: null,
+  endDate: null,
+  kyThoiGian: '',
+  minPrice: null,
+  maxPrice: null,
+  sortDir: 'DESC',
+  page: 1,
   size: 5
 });
 
@@ -57,14 +64,36 @@ const phongChieuList = ref([]);
 const loadData = async () => {
   loading.value = true;
   try {
-    // Chuyển đổi page về index 0 cho Backend
-    const apiParams = { ...params, page: params.page - 1 };
+    // Chuẩn bị params gửi lên API
+    const apiParams = {
+      tuKhoa: params.tuKhoa,
+      trangThai: params.trangThai,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice,
+      tuNgay: params.startDate,
+      denNgay: params.endDate,
+      kyThoiGian: params.kyThoiGian,
+      sortDir: params.sortDir,
+      page: params.page - 1, // Backend dùng index 0
+      size: params.size
+    };
+
+    // Loại bỏ các param null hoặc undefined hoặc chuỗi rỗng (trừ tuKhoa)
+    Object.keys(apiParams).forEach(key => {
+      if (apiParams[key] === null || apiParams[key] === undefined || (apiParams[key] === '' && key !== 'tuKhoa')) {
+        delete apiParams[key];
+      }
+    });
+
     const res = await adVeService.timKiemVe(apiParams);
     tickets.value = res.data?.content || [];
     totalElements.value = res.data?.totalElements || 0;
   } catch (e) {
-    ElMessage.error('Không thể kết nối Backend.');
-  } finally { loading.value = false; }
+    console.error('API Error:', e);
+    ElMessage.error('Không thể tải danh sách vé.');
+  } finally {
+    loading.value = false;
+  }
 };
 
 
@@ -76,6 +105,36 @@ const resetFilter = () => {
   params.trangThai = null;
   params.loaiVe = null;
   params.idPhongChieu = null;
+  params.startDate = null;
+  params.endDate = null;
+  params.kyThoiGian = '';
+  params.minPrice = null;
+  params.maxPrice = null;
+  params.sortDir = 'DESC';
+  params.page = 1;
+  customDateRange.value = [];
+  loadData();
+};
+
+const handleDateChange = (val) => {
+  if (val && val.length === 2) {
+    params.startDate = val[0];
+    params.endDate = val[1];
+    params.kyThoiGian = ''; // Xóa kỳ thời gian nếu chọn ngày cụ thể
+  } else {
+    params.startDate = null;
+    params.endDate = null;
+  }
+  params.page = 1;
+  loadData();
+};
+
+const handlePeriodChange = (val) => {
+  if (val) {
+    customDateRange.value = [];
+    params.startDate = null;
+    params.endDate = null;
+  }
   params.page = 1;
   loadData();
 };
@@ -101,46 +160,11 @@ const formatTime = (d) => d ? format(new Date(d), 'HH:mm', { locale: vi }) : '--
 
 // Features (Print & Excel)
 const printTicket = (ticket) => {
-  const printContent = `
-    <div style="font-family: Arial, sans-serif; width: 300px; padding: 20px; border: 1px solid #ccc; background: white; margin: 0 auto;">
-      <h2 style="text-align: center; margin-bottom: 5px;">CINEOPS</h2>
-      <p style="text-align: center; margin: 0; font-size: 13px; color: #666;">Hóa đơn bán vé</p>
-      <hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
-      <p style="margin: 8px 0;"><strong>Mã vé:</strong> #${ticket.maVe}</p>
-      <p style="margin: 8px 0;"><strong>Phim:</strong> ${ticket.tenPhim || '---'}</p>
-      <p style="margin: 8px 0;"><strong>Phòng chiếu:</strong> ${ticket.tenPhongChieu || '---'}</p>
-      <p style="margin: 8px 0;"><strong>Ghế:</strong> ${ticket.viTriGhe || '---'}</p>
-      <p style="margin: 8px 0;"><strong>Khách hàng:</strong> ${ticket.tenLoaiKhachHang || 'Vãng lai'}</p>
-      <p style="margin: 8px 0;"><strong>Thời gian:</strong> ${formatDate(ticket.ngayTao)} ${formatTime(ticket.ngayTao)}</p>
-      <hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
-      <h3 style="text-align: left; display: flex; justify-content: space-between; margin: 10px 0;">
-        <span>Tổng tiền:</span> 
-        <span>${formatPrice(ticket.giaThanhToan)} đ</span>
-      </h3>
-      <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">Cảm ơn quý khách đã sử dụng dịch vụ!</p>
-    </div>
-  `;
-
-  const printWindow = window.open('', '_blank', 'width=450,height=650');
-  if (printWindow) {
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>In vé - ${ticket.maVe}</title>
-          <style>@page { size: auto; margin: 0mm; } body { margin: 20px; }</style>
-        </head>
-        <body>
-          ${printContent}
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 500);
-  }
+  selectedTicket.value = ticket;
+  // Đợi một chút để template cập nhật data của selectedTicket
+  setTimeout(() => {
+    window.print();
+  }, 150);
 };
 
 const exportExcel = async () => {
@@ -465,70 +489,128 @@ onMounted(() => {
       </template>
     </AdminTableLayout>
 
-    <!-- ===== DIGITAL TICKET DETAIL ===== -->
-    <BaseModal v-model="detailVisible" title="Chi tiết Vé Xem Phim" icon="bi bi-ticket-perforated" width="450px">
-      <div v-if="selectedTicket" class="ticket-stub-container">
-        <div class="ticket-stub">
-          <!-- Phim Section -->
-          <div class="stub-header p-4 text-center border-bottom border-dashed">
-            <div class="stub-cinema-brand mb-2">CINEOPS PREMIUM</div>
-            <h4 class="fw-bold text-dark m-0">{{ selectedTicket.tenPhim }}</h4>
-            <div class="text-secondary small mt-1">Định dạng: 2D Normal</div>
-          </div>
-
-          <!-- Details Section -->
-          <div class="stub-body p-4 border-bottom border-dashed position-relative">
-            <!-- Cutout circles side -->
-            <div class="cutout-left"></div>
-            <div class="cutout-right"></div>
-
-            <div class="row g-3">
-              <div class="col-6">
-                <div class="lbl">Ngày chiếu</div>
-                <div class="val">{{ formatDate(selectedTicket.ngayTao) }}</div>
+    <!-- ===== DIGITAL TICKET DETAIL (PREMIUM) ===== -->
+    <BaseModal v-model="detailVisible" title="Thông tin vé điện tử" icon="bi bi-ticket-perforated-fill" width="600px" isDetail onlyCancel>
+      <div v-if="selectedTicket" class="premium-ticket-detail">
+        <!-- Premium Hero Section -->
+        <div class="profile-hero-banner p-4 text-white position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+          <div class="row align-items-center position-relative" style="z-index: 2;">
+            <div class="col-md-3 text-center">
+              <div class="mini-poster shadow-lg border-4 border-white border rounded-0 d-inline-block overflow-hidden" style="width: 120px; height: 180px;">
+                <img :src="selectedTicket.poster || 'https://placehold.co/150x220?text=Movie'" class="w-100 h-100 object-fit-cover" />
               </div>
-              <div class="col-6">
-                <div class="lbl">Suất chiếu</div>
-                <div class="val text-primary fw-bold">{{ formatTime(selectedTicket.ngayTao) }}</div>
+            </div>
+            <div class="col-md-6 border-start border-white border-opacity-10 ps-4">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <el-tag :type="selectedTicket.trangThai === 1 ? 'success' : 'danger'" effect="dark" round size="small" class="fw-bold">
+                  {{ selectedTicket.trangThai === 1 ? 'HỢP LỆ' : 'ĐÃ HỦY' }}
+                </el-tag>
+                <span class="badge bg-white bg-opacity-20 font-monospace">#{{ selectedTicket.maVe }}</span>
               </div>
-              <div class="col-6">
-                <div class="lbl">Phòng</div>
-                <div class="val">{{ selectedTicket.tenPhongChieu }}</div>
+              <h1 class="fw-bold m-0 text-truncate display-6" :title="selectedTicket.tenPhim">{{ selectedTicket.tenPhim }}</h1>
+              <div class="mt-3 d-flex gap-3">
+                 <div class="text-center">
+                    <div class="small opacity-75 uppercase-label tiny-text">PHÒNG</div>
+                    <div class="fw-bold fs-4">{{ selectedTicket.tenPhongChieu }}</div>
+                 </div>
+                 <div class="text-center border-start border-white border-opacity-20 ps-3">
+                    <div class="small opacity-75 uppercase-label tiny-text">GHẾ</div>
+                    <div class="fw-bold fs-4 text-warning">{{ selectedTicket.viTriGhe }}</div>
+                 </div>
               </div>
-              <div class="col-6">
-                <div class="lbl">Ghế</div>
-                <div class="val text-danger fw-bold fs-5">{{ selectedTicket.viTriGhe }}</div>
-              </div>
+            </div>
+            <div class="col-md-3 text-end">
+               <div class="qr-code-box bg-white p-2 d-inline-block shadow-lg">
+                 <i class="bi bi-qr-code fs-1 text-dark" style="font-size: 4rem !important;"></i>
+               </div>
             </div>
           </div>
+          <!-- Decoration -->
+          <div class="decoration-circle position-absolute" style="width: 300px; height: 300px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; top: -100px; right: -50px;"></div>
+        </div>
 
-          <!-- Pricing & Code Section -->
-          <div class="stub-footer p-4 bg-light bg-opacity-50 text-center">
-            <div class="barcode-wrapper mb-3 p-3 bg-white rounded-3 shadow-sm border">
-              <div class="qr-placeholder d-flex flex-column align-items-center">
-                <i class="bi bi-qr-code fs-1 text-dark"></i>
-                <div class="fw-bold mt-2">#{{ selectedTicket.maVe }}</div>
+        <!-- Detail Body -->
+        <div class="profile-details-body p-4 bg-white">
+          <div class="row g-4">
+            <!-- Screening Info -->
+            <div class="col-md-6">
+              <h6 class="text-secondary fw-bold small text-uppercase mb-3 letter-spacing-1">Suất chiếu & Lịch trình</h6>
+              <div class="info-card p-3 border bg-light h-100">
+                <div class="info-row mb-3 pb-3 border-bottom">
+                  <label class="text-secondary tiny-text d-block">NGÀY CHIẾU</label>
+                  <div class="fw-bold fs-5">{{ formatDate(selectedTicket.ngayTao) }}</div>
+                </div>
+                <div class="info-row">
+                  <label class="text-secondary tiny-text d-block">THỜI GIAN</label>
+                  <div class="fw-bold fs-5 text-primary">{{ formatTime(selectedTicket.ngayTao) }}</div>
+                </div>
               </div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center px-2">
-              <span class="text-secondary small">Thanh toán</span>
-              <span class="fw-bold text-dark fs-5">{{ formatPrice(selectedTicket.giaThanhToan) }} đ</span>
+            <!-- Transaction Info -->
+            <div class="col-md-6">
+              <h6 class="text-secondary fw-bold small text-uppercase mb-3 letter-spacing-1">Chi tiết thanh toán</h6>
+              <div class="info-card p-3 border bg-light h-100">
+                <div class="info-row mb-3 pb-3 border-bottom">
+                  <label class="text-secondary tiny-text d-block">GIÁ THANH TOÁN</label>
+                  <div class="fw-bold fs-5 text-danger">{{ formatPrice(selectedTicket.giaThanhToan) }}đ</div>
+                </div>
+                <div class="info-row">
+                  <label class="text-secondary tiny-text d-block">KÊNH BÁN</label>
+                  <div class="fw-bold">{{ selectedTicket.loaiVe === 0 ? 'TẠI QUẦY' : 'TRỰC TUYẾN' }}</div>
+                </div>
+              </div>
             </div>
 
-            <div class="mt-3 pt-3 border-top small text-secondary">
-              <div>Người tạo: <b>{{ selectedTicket.nguoiTao || '—' }}</b></div>
-              <div class="mt-1">Kênh: {{ selectedTicket.loaiVe === 0 ? 'Tại quầy' : 'Online' }}</div>
+            <!-- Audit Trail -->
+            <div class="col-12">
+               <div class="p-3 border rounded-0 bg-white d-flex justify-content-between align-items-center">
+                 <div class="d-flex align-items-center gap-3">
+                   <div class="icon-box bg-secondary bg-opacity-10 text-secondary p-3"><i class="bi bi-shield-lock fs-4"></i></div>
+                   <div>
+                     <div class="small fw-bold text-dark">THÔNG TIN ĐỐI SOÁT</div>
+                     <div class="text-secondary small">ID Giao dịch: INV-{{ selectedTicket.idHoaDon || 'N/A' }}</div>
+                   </div>
+                 </div>
+                 <div class="text-end">
+                    <div class="tiny-text text-secondary">NHÂN VIÊN LẬP</div>
+                    <div class="fw-bold text-dark">{{ selectedTicket.nguoiTao || 'System' }}</div>
+                 </div>
+               </div>
             </div>
           </div>
         </div>
+
+
       </div>
-      <template #footer></template>
     </BaseModal>
+
+    <!-- Professional Print Ticket Template -->
+    <MovieTicketTemplate :ticket="selectedTicket" />
   </div>
 </template>
 
 <style scoped>
+
+.premium-ticket-detail { margin: -20px; background: #fff; }
+.ticket-visual-header { height: 180px; position: relative; }
+.poster-blur-bg { position: absolute; inset: -20px; background-size: cover; background-position: center; filter: blur(15px) brightness(0.4); z-index: 0; }
+.mini-poster { width: 80px; height: 120px; flex-shrink: 0; z-index: 1; }
+.header-overlay { z-index: 1; height: 100%; }
+.ticket-perforation { position: absolute; top: -12px; left: 0; right: 0; height: 24px; z-index: 5; }
+.dot-cutout { width: 24px; height: 24px; background: #fff; border-radius: 50%; border: 1px solid #eee; }
+.dot-cutout.left { margin-left: -12px; }
+.dot-cutout.right { margin-right: -12px; }
+.tiny-label { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #94a3b8; margin-bottom: 2px; }
+.spec-block { transition: all 0.2s; }
+.spec-block:hover { transform: translateY(-3px); border-color: var(--el-color-primary-light-7); }
+.shadow-inner { box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); }
+
+.section-divider-sm { display: flex; align-items: center; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.section-divider-sm::after { content: ''; flex-grow: 1; height: 1px; background: #f1f5f9; margin-left: 10px; }
+.transaction-audit label { display: block; }
+
 .text-indigo-500 {
   color: #4f46e5;
 }
@@ -573,5 +655,36 @@ onMounted(() => {
 .action-delete:hover {
   color: #b91c1c;
   background-color: #fef2f2 !important;
+}
+
+@media print {
+  /* Ẩn các thành phần giao diện chính và overlay */
+  .admin-staff-layout,
+  .el-overlay,
+  .el-overlay-dialog,
+  .base-modal-overlay,
+  .admin-ticket-page > *:not(.movie-ticket-wrapper) {
+    display: none !important;
+  }
+
+  /* Đưa template in vé lên đầu trang */
+  .movie-ticket-wrapper {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 99999 !important;
+    background: white !important;
+  }
+
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
 }
 </style>

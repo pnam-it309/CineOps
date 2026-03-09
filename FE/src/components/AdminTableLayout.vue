@@ -13,7 +13,7 @@
     </div>
 
     <!-- 2. Refined Filter Card (Collapsible content only) -->
-    <div v-if="!hideFilter" class="filter-wrapper-card mb-3 flex-shrink-0 border rounded-4 bg-white shadow-sm overflow-hidden">
+    <div v-if="!hideFilter" class="filter-wrapper-card mb-3 flex-shrink-0 border rounded-0 bg-white shadow-sm overflow-hidden">
       <!-- Header always visible -->
       <div class="filter-card-header d-flex justify-content-between align-items-center px-4 py-2 bg-light-subtle border-bottom" 
            @click="showFilter = !showFilter" style="cursor: pointer;">
@@ -30,10 +30,13 @@
       <el-collapse-transition>
         <div v-show="showFilter" class="filter-card-body-wrapper border-top">
           <div class="filter-card-body p-4">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3 flex-wrap justify-content-center">
               <slot name="filters"></slot>
               <div class="ms-auto d-flex gap-2">
-                <el-button @click="$emit('reset-filter')" :icon="Refresh" plain class="rounded-3">Đặt lại</el-button>
+                <el-tooltip content="Đặt lại bộ lọc" placement="top">
+                  <el-button @click="$emit('reset-filter')" :icon="Refresh" plain class="square-btn">
+                  </el-button>
+                </el-tooltip>
                 <slot name="filter-right"></slot>
               </div>
             </div>
@@ -43,7 +46,7 @@
     </div>
 
     <!-- 3. Main Data Card (Actions + Table + Pagination) -->
-    <div class="main-data-card bg-white border rounded-4 shadow-sm d-flex flex-column h-100 overflow-hidden" 
+    <div class="main-data-card bg-white border rounded-0 shadow-sm d-flex flex-column h-100 overflow-hidden" 
          style="flex: 1 1 0; min-height: 0;">
       
       <!-- Action Buttons Bar -->
@@ -54,10 +57,11 @@
         <div class="d-flex gap-2 align-items-center">
           <slot name="header-actions"></slot>
           <div class="v-separator mx-2" v-if="addButtonLabel && ($slots.header_actions || $slots.header_actions_left)"></div>
-          <el-button v-if="addButtonLabel" @click="$emit('add-click')" type="primary" class="add-main-btn px-4 shadow-sm" rounded>
-            <template #icon><el-icon><Plus /></el-icon></template>
-            {{ addButtonLabel }}
-          </el-button>
+          <el-tooltip :content="addButtonLabel" placement="top" v-if="addButtonLabel">
+            <el-button @click="$emit('add-click')" type="primary" class="square-btn main-add-btn">
+              <template #icon><el-icon><Plus /></el-icon></template>
+            </el-button>
+          </el-tooltip>
         </div>
       </div>
 
@@ -67,7 +71,15 @@
           <slot name="content"></slot>
         </div>
         <div v-else class="h-100">
-          <el-table :data="data" v-loading="loading" stripe height="100%" class="modern-grid-table" style="width: 100%;">
+          <el-table 
+            :data="data" 
+            v-loading="loading" 
+            stripe 
+            height="100%" 
+            border
+            class="square-grid-table" 
+            style="width: 100%;"
+          >
             <slot name="columns"></slot>
             <template #empty>
               <div class="py-5 text-secondary opacity-50 text-center">
@@ -88,47 +100,48 @@
               <el-select 
                 :model-value="pageSize || 5" 
                 size="default" 
-                style="width: 175px"
-                class="pagination-select" 
+                style="width: 150px"
+                class="square-select" 
                 @update:model-value="handlePageSizeChange"
               >
-                <el-option label="5 dòng / trang" :value="5" />
-                <el-option label="10 dòng / trang" :value="10" />
-                <el-option label="20 dòng / trang" :value="20" />
-                <el-option label="50 dòng / trang" :value="50" />
+                <el-option label="5 / trang" :value="5" />
+                <el-option label="10 / trang" :value="10" />
+                <el-option label="20 / trang" :value="20" />
+                <el-option label="50 / trang" :value="50" />
               </el-select>
+              <span class="text-secondary small">Tổng: <strong>{{ total }}</strong></span>
             </div>
           </div>
 
           <div class="footer-center">
             <nav v-if="totalPages > 0">
-              <ul class="pagination-list-clean mb-0 list-unstyled d-flex align-items-center gap-2 justify-content-center">
+              <ul class="pagination-list-square mb-0 list-unstyled d-flex align-items-center gap-0">
                 <li>
-                  <el-button class="nav-btn-circle" @click="handlePageChange(currentPage - 1)" :disabled="currentPage <= 1" circle>
+                  <button class="page-nav-btn first" @click="handlePageChange(currentPage - 1)" :disabled="currentPage <= 1">
                     <el-icon><ArrowLeft /></el-icon>
-                  </el-button>
+                  </button>
                 </li>
                 <li v-for="page in pagesToShow" :key="page">
-                  <el-button 
-                    class="nav-btn-page" 
-                    :class="{ 'is-active': currentPage === page }" 
+                  <button 
+                    class="page-nav-btn" 
+                    :class="{ active: currentPage === page }" 
                     @click="handlePageChange(page)"
                   >
                     {{ page }}
-                  </el-button>
+                  </button>
                 </li>
                 <li>
-                  <el-button class="nav-btn-circle" @click="handlePageChange(currentPage + 1)" :disabled="currentPage >= totalPages" circle>
+                  <button class="page-nav-btn last" @click="handlePageChange(currentPage + 1)" :disabled="currentPage >= totalPages">
                     <el-icon><ArrowRight /></el-icon>
-                  </el-button>
+                  </button>
                 </li>
               </ul>
             </nav>
           </div>
 
           <div class="footer-right">
-            <span class="text-secondary" style="font-size: 18px;">
-              Trang <strong class="text-dark">{{ currentPage || 1 }}</strong> / <strong class="text-dark">{{ totalPages || 1 }}</strong>
+            <span class="text-secondary">
+              Trang <strong>{{ currentPage || 1 }}</strong> / {{ totalPages || 1 }}
             </span>
           </div>
         </div>
@@ -139,7 +152,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Plus, Refresh, Filter, Fold, CaretBottom, ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
+import { Plus, Refresh, Filter, ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
 
 const props = defineProps({
   title: String,
@@ -208,166 +221,116 @@ const pagesToShow = computed(() => {
 
 <style scoped>
 .admin-table-layout {
-  background-color: transparent;
-  overflow: hidden;
+  background-color: #f1f5f9;
 }
 
 /* Page Header */
 .page-header-outside h2 {
   color: #1e293b;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
-/* Filter Card */
-.filter-wrapper-card {
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  border-color: #e2e8f0;
+/* Grid Design */
+.filter-wrapper-card, .main-data-card {
+  border-radius: 0 !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 .filter-card-header {
   background-color: #f8fafc !important;
-  user-select: none;
   transition: background-color 0.2s;
 }
 
-.filter-card-header:hover {
-  background-color: #f1f5f9 !important;
-}
-
 .filter-icon-animate {
-  transition: transform 0.3s ease !important;
+  transition: transform 0.3s ease;
 }
 
-.rotate-180 {
-  transform: rotate(180deg);
-}
+.rotate-180 { transform: rotate(180deg); }
 
-/* Table Card styling */
-.main-data-card {
-  border-color: #e2e8f0;
-}
-
-.actions-header-bar {
-  background-color: #ffffff;
-}
-
-.add-main-btn {
-  font-weight: 500;
-  letter-spacing: 0.3px;
-}
-
-/* Professional Table Look - Clean & White */
-:deep(.modern-grid-table) {
+/* Square Grid Table */
+:deep(.square-grid-table) {
   --el-table-header-bg-color: #f8fafc;
+  border-radius: 0 !important;
 }
 
-:deep(.modern-grid-table th) {
+:deep(.square-grid-table th) {
   background-color: #f8fafc !important;
-  color: #475569 !important;
+  color: #334155 !important;
   font-weight: 700 !important;
   height: 50px !important;
   font-size: 13px !important;
   text-transform: uppercase;
-  border-bottom: 2px solid #e2e8f0 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  text-align: center !important;
 }
 
-:deep(.modern-grid-table td) {
-  padding: 10px 0 !important;
-  font-size: 14px;
-  color: #334155;
+:deep(.square-grid-table td) {
+  text-align: center !important;
+  padding: 12px 0 !important;
+  color: #1e293b;
 }
 
-/* Pagination Clean */
-.table-footer-pagination {
-  background-color: #ffffff;
+/* Square Buttons */
+.square-btn {
+  border-radius: 0 !important;
+  height: 40px;
+  width: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.main-add-btn {
+  box-shadow: none !important;
+}
+
+/* Square Pagination */
 .pagination-footer-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  width: 100%;
-}
-
-.footer-left {
   display: flex;
-  justify-content: flex-start;
-}
-
-.footer-center {
-  display: flex;
-  justify-content: center;
-}
-
-.footer-right {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.nav-btn-circle {
-  border: 1px solid #e2e8f0 !important;
-  background: white !important;
-  color: #64748b !important;
-  width: 36px !important;
-  height: 36px !important;
-  display: flex !important;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
 }
 
-.nav-btn-circle:hover:not(:disabled) {
-  color: #ff0000 !important;
-  border-color: #ff0000 !important;
-}
-
-.nav-btn-page {
-  font-weight: 600 !important;
-  color: #64748b !important;
-  min-width: 38px !important;
-  height: 38px !important;
-  font-size: 19px !important;
-  border: 1px solid #e2e8f0 !important;
-  background-color: white !important;
-  border-radius: 8px !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  padding: 0 !important;
+.page-nav-btn {
+  min-width: 38px;
+  height: 38px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-weight: 600;
+  margin-left: -1px;
   transition: all 0.2s;
+  cursor: pointer;
 }
 
-.nav-btn-page:hover {
-  border-color: #ff0000 !important;
-  color: #ff0000 !important;
+.page-nav-btn:hover:not(:disabled):not(.active) {
+  background-color: #f1f5f9;
 }
 
-.nav-btn-page.is-active {
-  background-color: white !important;
-  color: #ff0000 !important;
-  border: 1.5px solid #ff0000 !important;
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.2) !important;
-  border-radius: 10px !important;
-  font-weight: 700 !important;
+.page-nav-btn.active {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  z-index: 1;
 }
 
-:deep(.pagination-select .el-input__inner) {
-  font-size: 19px !important;
-  font-weight: 500 !important;
+.page-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f8fafc;
 }
 
-:deep(.pagination-select .el-select__wrapper) {
-  font-size: 19px !important;
-  font-weight: 500 !important;
-  min-height: 40px !important;
+/* Square Select */
+:deep(.square-select .el-input__wrapper) {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 .v-separator {
   width: 1px;
-  height: 20px;
-  background-color: #e2e8f0;
-}
-
-.rounded-3 {
-  border-radius: 8px !important;
+  height: 24px;
+  background-color: #cbd5e1;
 }
 </style>

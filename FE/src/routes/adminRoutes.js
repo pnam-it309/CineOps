@@ -43,12 +43,6 @@ export const adminRoutes = {
             component: () => import('@/pages/admin/quanlyhoadon/AdminInvoices.vue'),
             meta: { title: 'Quản lý hóa đơn' }
         },
-        {
-            path: ROUTES_CONSTANTS.ADMIN.children.INVOICES_DETAIL.path,
-            name: ROUTES_CONSTANTS.ADMIN.children.INVOICES_DETAIL.name,
-            component: () => import('@/pages/admin/quanlyhoadon/AdminInvoiceDetail.vue'),
-            meta: { title: 'Chi tiết hóa đơn' }
-        },
 
         // ── Vé ───────────────────────────────────────────────
         {
@@ -99,6 +93,12 @@ export const adminRoutes = {
             name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.name,
             component: () => import('@/pages/admin/quanliphim/MovieFormPage.vue'),
             meta: { title: 'Chỉnh sửa phim' }
+        },
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_DETAIL.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_DETAIL.name,
+            component: () => import('@/pages/admin/quanliphim/MovieDetailPage.vue'),
+            meta: { title: 'Chi tiết phim' }
         },
 
         // ── Lịch chiếu ───────────────────────────────────────

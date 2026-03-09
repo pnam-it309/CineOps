@@ -102,51 +102,106 @@
     </AdminTableLayout>
 
     <!-- Modals -->
-    <BaseModal v-model="detailVisible" title="Chi tiết lịch chiếu" icon="bi bi-calendar-event" width="550px">
-      <div v-if="selectedShowtime" class="p-2">
-        <div class="d-flex gap-4 mb-4 pb-4 border-bottom">
-          <img v-if="selectedShowtime.poster" :src="selectedShowtime.poster" class="rounded-3 shadow-sm"
-            style="width:100px;height:140px;object-fit:cover;" />
-          <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center border"
-            style="width:100px;height:140px;">
-            <i class="bi bi-film text-secondary fs-1"></i>
-          </div>
-          <div class="flex-grow-1">
-            <h4 class="fw-bold text-dark mb-1">{{ selectedShowtime.tenPhim }}</h4>
-            <div class="d-flex align-items-center gap-2">
-              <el-tag :type="getStatusTag(selectedShowtime.trangThai)" round size="small">
-                {{ getStatusLabel(selectedShowtime.trangThai) }}
-              </el-tag>
-              <el-tag type="danger" effect="dark" round size="small" v-if="selectedShowtime.loaiPhim">
-                {{ selectedShowtime.loaiPhim }}
-              </el-tag>
-              <span class="text-secondary small"><i class="bi bi-clock me-1"></i>{{ selectedShowtime.thoiLuong }} phút</span>
+    <BaseModal v-model="detailVisible" title="Chi tiết lịch chiếu" icon="bi bi-calendar-event" width="650px" isDetail onlyCancel>
+      <div v-if="selectedShowtime" class="schedule-profile-container">
+        <!-- Premium Hero Section -->
+        <div class="profile-hero-banner p-4 text-white position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+          <div class="row align-items-center position-relative" style="z-index: 2;">
+            <div class="col-md-3 text-center">
+              <div class="mini-poster shadow-lg border-4 border-white border rounded-0 d-inline-block overflow-hidden" style="width: 120px; height: 180px;">
+                <img :src="selectedShowtime.poster || 'https://placehold.co/150x220?text=Movie'" class="w-100 h-100 object-fit-cover" />
+              </div>
+            </div>
+            <div class="col-md-6 border-start border-white border-opacity-10 ps-4">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <el-tag :type="getStatusTag(selectedShowtime.trangThai)" effect="dark" round size="small" class="fw-bold">
+                  {{ getStatusLabel(selectedShowtime.trangThai).toUpperCase() }}
+                </el-tag>
+                <el-tag type="danger" effect="dark" round size="small" v-if="selectedShowtime.loaiPhim">{{ selectedShowtime.loaiPhim }}</el-tag>
+              </div>
+              <h1 class="fw-bold m-0 text-truncate display-6" :title="selectedShowtime.tenPhim">{{ selectedShowtime.tenPhim }}</h1>
+              <div class="mt-3 d-flex gap-4">
+                 <div class="text-start">
+                    <div class="small opacity-75 uppercase-label tiny-text">PHÒNG CHIẾU</div>
+                    <div class="fw-bold fs-4">{{ selectedShowtime.tenPhongChieu }}</div>
+                 </div>
+                 <div class="text-start border-start border-white border-opacity-20 ps-4">
+                    <div class="small opacity-75 uppercase-label tiny-text">LOẠI MÀN HÌNH</div>
+                    <div class="fw-bold fs-4 text-warning">{{ selectedShowtime.loaiManHinh || 'Standard' }}</div>
+                 </div>
+              </div>
+            </div>
+            <div class="col-md-3 text-end">
+               <div class="time-hero-box p-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-0">
+                  <div class="small opacity-75 mb-1 text-uppercase letter-spacing-1">GIỜ CHIẾU</div>
+                  <div class="display-6 fw-bold">{{ selectedShowtime.gioBatDau }}</div>
+               </div>
             </div>
           </div>
+          <!-- Decoration -->
+          <div class="decoration-circle position-absolute" style="width: 300px; height: 300px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; top: -100px; right: -50px;"></div>
         </div>
-        <div class="bg-light p-3 rounded-4 mb-4">
-          <div class="small text-secondary mb-1">Phòng chiếu</div>
-          <div class="fw-bold text-dark">
-            <i class="bi bi-door-open me-2 text-primary"></i>
-            {{ selectedShowtime.tenPhongChieu }} ({{ selectedShowtime.loaiManHinh }})
-          </div>
-        </div>
-        <div class="row g-4">
-          <div class="col-6">
-            <div class="p-3 bg-light rounded-3">
-              <div class="small text-secondary mb-1"><i class="bi bi-calendar3 me-2 text-primary"></i>Ngày chiếu</div>
-              <div class="fw-bold">{{ formatDate(selectedShowtime.ngayChieu) }}</div>
+
+        <!-- Detail Body -->
+        <div class="profile-details-body p-4 bg-white">
+          <div class="row g-4">
+            <!-- Time Info -->
+            <div class="col-md-7">
+               <h6 class="text-secondary fw-bold small text-uppercase mb-3 letter-spacing-1">Lịch trình chi tiết</h6>
+               <div class="info-card p-3 border h-100 bg-light-subtle">
+                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <div>
+                      <div class="text-secondary small">NGÀY CHIẾU</div>
+                      <div class="fw-bold fs-5">{{ formatDate(selectedShowtime.ngayChieu) }}</div>
+                    </div>
+                    <div class="text-end">
+                      <div class="text-secondary small">THỜI LƯỢNG</div>
+                      <div class="fw-bold fs-5 text-primary">{{ selectedShowtime.thoiLuong }} PHÚT</div>
+                    </div>
+                 </div>
+                 <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="text-secondary small">BẮT ĐẦU</div>
+                      <div class="fw-bold fs-4">{{ selectedShowtime.gioBatDau }}</div>
+                    </div>
+                    <div class="text-center px-3 opacity-50"><i class="bi bi-arrow-right fs-4"></i></div>
+                    <div class="text-end">
+                      <div class="text-secondary small">KẾT THÚC (DỰ KIẾN)</div>
+                      <div class="fw-bold fs-4">{{ selectedShowtime.gioKetThuc }}</div>
+                    </div>
+                 </div>
+               </div>
             </div>
-          </div>
-          <div class="col-6">
-            <div class="p-3 bg-light rounded-3">
-              <div class="small text-secondary mb-1"><i class="bi bi-alarm me-2 text-primary"></i>Thời gian</div>
-              <div class="fw-bold text-primary">{{ selectedShowtime.gioBatDau }} → {{ selectedShowtime.gioKetThuc }}</div>
+
+            <!-- Seat Stats -->
+            <div class="col-md-5">
+              <h6 class="text-secondary fw-bold small text-uppercase mb-3 letter-spacing-1">Tình trạng phòng</h6>
+              <div class="info-card p-3 border h-100">
+                <label class="text-secondary tiny-text d-block">GHẾ CÒN TRỐNG</label>
+                <div class="display-4 fw-bold text-center my-2 text-success">{{ selectedShowtime.soGheTrong }}</div>
+                <div class="progress-bar-container bg-light rounded-pill mb-2" style="height: 10px;">
+                   <div class="progress-fill bg-success rounded-pill" :style="{ width: '70%' }"></div>
+                </div>
+                <div class="text-center small text-secondary">Hệ thống ghi nhận: Theo thời gian thực</div>
+              </div>
+            </div>
+
+            <!-- System Info -->
+            <div class="col-12">
+               <div class="p-3 border rounded-0 bg-light d-flex justify-content-between align-items-center">
+                  <div class="small text-secondary">
+                    <i class="bi bi-info-circle me-1"></i> 
+                    Lưu ý: 15 phút dọn dẹp đã được bao gồm trong thời gian kết thúc dự kiến.
+                  </div>
+                  <el-button type="primary" link @click="openDialog(selectedShowtime)">
+                    <i class="bi bi-pencil-square me-1"></i> Hiệu chỉnh
+                  </el-button>
+               </div>
             </div>
           </div>
         </div>
       </div>
-      <template #footer></template>
     </BaseModal>
 
     <BaseModal

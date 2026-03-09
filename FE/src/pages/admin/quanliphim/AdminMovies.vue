@@ -24,12 +24,12 @@ const genreFilter  = ref(null);
 const genreOptions = ref([]);
 
 const selectedPhim = ref([]);
-const detailVisible = ref(false);
-const selectedItem = ref(null);
 
 const handleView = (row) => {
-  selectedItem.value = row;
-  detailVisible.value = true;
+  router.push({ 
+    name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_DETAIL.name, 
+    params: { id: row.id } 
+  });
 };
 
 // ── Columns ───────────────────────────────────────────────────────────────────
@@ -289,6 +289,7 @@ watch([currentPage, pageSize], fetchMovies);
                   }
                 }"
                 class="status-switch mx-1"
+                active-color="#ff4949"
                 inactive-color="#ff4949"
               />
             </div>
@@ -348,55 +349,6 @@ watch([currentPage, pageSize], fetchMovies);
 
 
         </BaseTable>
-        <BaseModal v-model="detailVisible" title="Chi tiết phim" icon="bi bi-film" width="600px">
-      <div v-if="selectedItem" class="p-3">
-        <div class="row g-4">
-          <div class="col-4">
-             <img :src="selectedItem.poster" class="img-fluid rounded-4 shadow" style="width: 100%; object-fit: cover;" />
-          </div>
-          <div class="col-8">
-            <h4 class="fw-bold text-dark mb-1">{{ selectedItem.tenPhim }}</h4>
-            <div class="mb-3">
-              <el-tag v-for="g in selectedItem.theLoais" :key="g.id" size="small" effect="plain" class="me-1">{{ g.tenTheLoai }}</el-tag>
-            </div>
-            <div class="detail-grid row g-3">
-              <div class="col-6">
-                 <div class="lbl text-secondary small">Mã phim</div>
-                 <div class="val fw-bold">#{{ selectedItem.maPhim }}</div>
-              </div>
-              <div class="col-6">
-                 <div class="lbl text-secondary small">Đánh giá</div>
-                 <div class="val text-warning"><i class="bi bi-star-fill me-1"></i>{{ selectedItem.danhGia || '—' }}</div>
-              </div>
-              <div class="col-6">
-                 <div class="lbl text-secondary small">Thời lượng</div>
-                 <div class="val">{{ selectedItem.thoiLuong }} phút</div>
-              </div>
-              <div class="col-6">
-                 <div class="lbl text-secondary small">Độ tuổi</div>
-                 <el-tag :type="getDoTuoiTagType(selectedItem.nhanDoTuoi)" size="small">{{ selectedItem.nhanDoTuoi }} ({{ selectedItem.doTuoi }}+)</el-tag>
-              </div>
-              <div class="col-6">
-                 <div class="lbl text-secondary small">Ngày khởi chiếu</div>
-                 <div class="val text-success fw-bold">{{ selectedItem.ngayKhoiChieu || '—' }}</div>
-              </div>
-              <div class="col-6">
-                 <div class="lbl text-secondary small">Ngày kết thúc</div>
-                 <div class="val text-danger fw-bold">{{ selectedItem.ngayKetThuc || '—' }}</div>
-              </div>
-              <div class="col-12">
-                 <div class="lbl text-secondary small">Giá phim (Gốc)</div>
-                 <div class="val text-primary fw-bold fs-5">{{ selectedItem.giaPhim?.toLocaleString('vi-VN') }} đ</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="detailVisible = false">Đóng</el-button>
-        <el-button type="primary" @click="handleEdit(selectedItem); detailVisible = false">Chỉnh sửa</el-button>
-      </template>
-    </BaseModal>
       </template>
     </AdminTableLayout>
   </div>

@@ -320,6 +320,7 @@ const handleDelete = (room) => {
                 :model-value="row.status === 'Hoạt động'"
                 @change="() => handleDelete(row)"
                 class="status-switch mx-1"
+                active-color="#ff4949"
                 inactive-color="#ff4949"
               />
             </div>
@@ -328,43 +329,73 @@ const handleDelete = (room) => {
       </template>
     </AdminTableLayout>
 
-    <!-- Detail Modal -->
-    <BaseModal v-model="detailVisible" title="Chi tiết Phòng chiếu" icon="bi bi-door-open" width="500px">
-      <div v-if="selectedItem" class="p-3">
-        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
-          <div class="icon-box bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-            <i class="bi bi-display fs-4"></i>
+    <!-- Detail Modal (Premium Hall Profile) -->
+    <BaseModal v-model="detailVisible" title="Hồ sơ chi tiết phòng chiếu" icon="bi bi-display-fill" width="550px" isDetail>
+      <div v-if="selectedItem" class="p-0">
+        <!-- Hall Header (Colorless) -->
+        <div class="p-4 border-bottom bg-white d-flex align-items-center gap-4">
+          <div class="shadow-sm border d-flex align-items-center justify-content-center bg-light text-secondary" 
+               style="width: 80px; height: 80px;">
+            <i class="bi bi-door-open fs-1"></i>
           </div>
-          <div>
-            <h5 class="m-0 fw-bold">{{ selectedItem.name }}</h5>
-            <el-tag size="small" type="info" round>{{ selectedItem.type }}</el-tag>
-          </div>
-        </div>
-        <div class="detail-grid row g-3">
-          <div class="col-6">
-            <div class="lbl text-secondary small">Sức chứa</div>
-            <div class="val fw-bold fs-5">{{ selectedItem.capacity || (selectedItem.rows * selectedItem.cols) }} ghế</div>
-          </div>
-          <div class="col-6">
-            <div class="lbl text-secondary small">Cấu trúc</div>
-            <div class="val fw-semibold">{{ selectedItem.rows }} hàng x {{ selectedItem.cols }} cột</div>
-          </div>
-          <div class="col-12">
-            <div class="lbl text-secondary small">Trạng thái</div>
-            <el-tag :type="selectedItem.status === 'Hoạt động' ? 'success' : 'info'" round>
-              {{ selectedItem.status }}
-            </el-tag>
-          </div>
-          <div class="col-12" v-if="selectedItem.note">
-            <div class="lbl text-secondary small">Ghi chú</div>
-            <div class="val text-muted">{{ selectedItem.note }}</div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <h3 class="fw-bold m-0 text-dark">{{ selectedItem.name }}</h3>
+              <el-tag type="info" effect="plain" round size="small">{{ selectedItem.type }}</el-tag>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <el-tag :type="selectedItem.status === 'Hoạt động' ? 'info' : 'plain'" effect="plain" round size="small">
+                {{ selectedItem.status.toUpperCase() }}
+              </el-tag>
+              <div class="small text-secondary"><i class="bi bi-geo-alt me-1"></i>CineOps Central</div>
+            </div>
           </div>
         </div>
+
+        <div class="p-4 bg-white">
+           <div class="row g-3">
+             <!-- Major Stats -->
+             <div class="col-12">
+               <div class="p-4 border bg-white d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-3">
+                     <div>
+                        <div class="text-secondary small mb-1">SỨC CHỨA TỔNG KẾT</div>
+                        <div class="fw-bold fs-2 text-dark">{{ selectedItem.capacity || (selectedItem.rows * selectedItem.cols) }} ghế</div>
+                     </div>
+                  </div>
+               </div>
+             </div>
+
+             <!-- Grid Layout Info -->
+             <div class="col-md-6">
+                <div class="p-3 border bg-white text-center">
+                   <div class="text-secondary tiny-text mb-1">CẤU TRÚC HÀNG</div>
+                   <div class="fw-bold fs-5 text-dark">{{ selectedItem.rows }} Hàng ghế</div>
+                   <div class="small text-secondary mt-1">A → {{ String.fromCharCode(64 + selectedItem.rows) }}</div>
+                </div>
+             </div>
+
+             <div class="col-md-6">
+                <div class="p-3 border bg-white text-center">
+                   <div class="text-secondary tiny-text mb-1">CẤU TRÚC CỘT</div>
+                   <div class="fw-bold fs-5 text-dark">{{ selectedItem.cols }} Ghế/Hàng</div>
+                   <div class="small text-secondary mt-1">1 → {{ selectedItem.cols }}</div>
+                </div>
+             </div>
+
+             <!-- Feature Flags -->
+             <div class="col-12" v-if="selectedItem.note">
+               <div class="p-3 border bg-light">
+                  <div class="fw-bold small text-secondary mb-1">GHI CHÚ VẬN HÀNH</div>
+                  <p class="mb-0 text-dark small lh-base">{{ selectedItem.note }}</p>
+               </div>
+             </div>
+           </div>
+        </div>
+
+
       </div>
-      <template #footer>
-        <el-button @click="detailVisible = false">Đóng</el-button>
-        <el-button type="primary" @click="openDialog(selectedItem); detailVisible = false">Chỉnh sửa</el-button>
-      </template>
+
     </BaseModal>
 
     <!-- Room Dialog -->
@@ -425,6 +456,13 @@ const handleDelete = (room) => {
 </template>
 
 <style scoped>
+
+.hall-detail-container { margin: -20px; background: #fdfdfd; }
+.icon-circle { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.tiny-text { font-size: 10px; font-weight: 800; letter-spacing: 0.5px; }
+.spec-tile { transition: all 0.2s; border: 1px solid #e2e8f0; }
+.spec-tile:hover { transform: translateY(-3px); border-color: var(--el-color-primary-light-7); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
 .designer-preview {
   background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
   display: flex !important;

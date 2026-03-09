@@ -1,8 +1,7 @@
 <template>
   <div class="excel-actions d-inline-flex gap-2">
     <el-tooltip content="Tải tệp mẫu Excel" placement="top">
-      <el-button @click="handleDownloadTemplate" :icon="Download" class="btn-cine-excel-template" round>
-        Mẫu Excel
+      <el-button @click="handleDownloadTemplate" :icon="Download" class="btn-cine-excel-template square" plain>
       </el-button>
     </el-tooltip>
 
@@ -13,8 +12,7 @@
       accept=".xlsx"
     >
       <el-tooltip content="Nhập dữ liệu từ Excel" placement="top">
-        <el-button :icon="Upload" class="btn-cine-excel-import" type="success" round>
-          Nhập Excel
+        <el-button :icon="Upload" class="btn-cine-excel-import square" type="success">
         </el-button>
       </el-tooltip>
     </el-upload>

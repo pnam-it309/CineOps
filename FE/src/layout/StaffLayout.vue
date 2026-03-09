@@ -24,16 +24,7 @@
           </div>
           
           <div class="d-flex align-items-center gap-2">
-            <!-- View Switchers -->
-            <el-button v-if="authStore.isAdmin" type="primary" size="small" plain @click="$router.push({ name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name })">
-              <el-icon><Setting /></el-icon>
-              <span class="ms-1 d-none d-md-inline">Quản trị Hệ thống</span>
-            </el-button>
 
-            <el-button type="info" size="small" plain @click="$router.push({ name: ROUTES_CONSTANTS.HOME.name })">
-              <el-icon><House /></el-icon>
-              <span class="ms-1 d-none d-md-inline">Trang Chủ Khách</span>
-            </el-button>
             
             <!-- User Dropdown (visible on small screens) -->
             <el-dropdown trigger="click" @command="handleCommand" class="d-block d-md-none">

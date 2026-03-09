@@ -66,6 +66,14 @@
             {{ errorMsg || statusMsg }}
           </div>
           <div class="d-flex gap-2">
+            <el-button 
+              v-if="hasTorch"
+              :type="torchActive ? 'warning' : 'info'" 
+              circle
+              @click="toggleTorch"
+            >
+              <i class="bi" :class="torchActive ? 'bi-lightbulb-fill' : 'bi-lightbulb'"></i>
+            </el-button>
             <el-button @click="closeScanner" class="btn-cine-secondary">Hủy</el-button>
           </div>
         </div>
@@ -92,6 +100,8 @@ const statusMsg = ref('');
 const errorMsg = ref('');
 const isSuccess = ref(false);
 const stats = ref({ fps: 0, sharpScore: 0 });
+const hasTorch = ref(false);
+const torchActive = ref(false);
 
 let stream = null;
 let animationId = null;
@@ -99,6 +109,40 @@ let scanWorker = null;
 let isBeProcessing = false;
 let frameCount = 0;
 let lastFpsTime = Date.now();
+let globalFrameCounter = 0;
+
+// Persistent Canvases for re-use (Performance optimization)
+let analysisCanvas = null;
+let sendCanvas = null;
+
+// ── Web Worker Initialization ───────────────────────────────────────────────
+const initWorker = () => {
+    try {
+        // Sử dụng đường dẫn tương đối chuẩn cho Vite/Webpack
+        scanWorker = new Worker(new URL('../../services/workers/scanWorker.js', import.meta.url));
+        scanWorker.onmessage = (e) => {
+            stats.value.sharpScore = Math.floor(e.data.score);
+            if (e.data.isSharp && !isBeProcessing) {
+                sendFrameToBE();
+            }
+        };
+    } catch (err) {
+        console.error("Worker Load Failed, falling back to Inline logic");
+    }
+};
+
+// ── Torch Support ────────────────────────────────────────────────────────────
+const toggleTorch = async () => {
+    if (!stream) return;
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities();
+    if (capabilities.torch) {
+        torchActive.value = !torchActive.value;
+        await track.applyConstraints({
+            advanced: [{ torch: torchActive.value }]
+        });
+    }
+};
 
 // Consensus Logic (3 identical results required)
 let resultHistory = [];
@@ -107,12 +151,6 @@ const CONSENSUS_REQUIRED = 2; // Need 2 identical matches for 100% accuracy
 // ── Image Processing Loop (30 FPS) ───────────────────────────────────────────
 const startProcessLoop = () => {
     if (animationId) cancelAnimationFrame(animationId);
-    
-    // Initialize Worker
-    if (!scanWorker) {
-        scanWorker = new Worker(new URL('@/workers/scanWorker.js', import.meta.url), { type: 'module' });
-        scanWorker.onmessage = handleWorkerMessage;
-    }
     
     const loop = () => {
         if (!cameraActive.value || !videoElement.value) return;
@@ -124,73 +162,131 @@ const startProcessLoop = () => {
             lastFpsTime = Date.now();
         }
 
-        // 1. Capture Frame to hidden Canvas
-        captureFrameToDetectBlur();
+        // Thực hiện phân tích chất lượng ảnh và quét
+        captureAndAnalyzeFrame();
         
         animationId = requestAnimationFrame(loop);
     };
     animationId = requestAnimationFrame(loop);
 };
 
-const captureFrameToDetectBlur = () => {
+const captureAndAnalyzeFrame = () => {
     const video = videoElement.value;
     if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
-    const canvas = canvasElement.value;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!analysisCanvas) analysisCanvas = document.createElement('canvas');
+    const ctx = analysisCanvas.getContext('2d', { alpha: false });
     
-    // Resize for efficient CV processing (Scan-ROI only)
-    const ROI_SIZE = 400; 
-    canvas.width = ROI_SIZE;
-    canvas.height = ROI_SIZE;
+    const analysisSize = 120; // Tăng độ phân giải phân tích một chút
+    analysisCanvas.width = analysisSize;
+    analysisCanvas.height = analysisSize;
 
-    // Center Crop (Focus on the QR area in the frame)
+    const minDim = Math.min(video.videoWidth, video.videoHeight);
+    const ROI_SIZE = minDim * 0.5;
     const sx = (video.videoWidth - ROI_SIZE) / 2;
     const sy = (video.videoHeight - ROI_SIZE) / 2;
     
-    ctx.drawImage(video, sx, sy, ROI_SIZE, ROI_SIZE, 0, 0, ROI_SIZE, ROI_SIZE);
-    
-    // Send to Worker for LAPLACIAN Blur Detection
-    const imageData = ctx.getImageData(0, 0, ROI_SIZE, ROI_SIZE);
-    scanWorker.postMessage({ imageData, width: ROI_SIZE, height: ROI_SIZE, threshold: 30 });
+    ctx.drawImage(video, sx, sy, ROI_SIZE, ROI_SIZE, 0, 0, analysisSize, analysisSize);
+    const imageData = ctx.getImageData(0, 0, analysisSize, analysisSize);
+
+    if (scanWorker) {
+        // Gửi sang Worker để xử lý song song (0% Lag Main Thread)
+        scanWorker.postMessage({ 
+            imageData, 
+            width: analysisSize, 
+            height: analysisSize,
+            threshold: 25 
+        });
+    } else {
+        // Fallback sang Inline nếu Worker lỗi
+        const score = calculateInlineBlurScore(imageData.data, analysisSize, analysisSize);
+        stats.value.sharpScore = Math.floor(score);
+        if (score > 25 && !isBeProcessing) sendFrameToBE();
+    }
 };
 
-// ── Worker Response (Producer/Consumer Result) ────────────────────────────────
-const handleWorkerMessage = (e) => {
-    const { isSharp, score } = e.data;
-    stats.value.sharpScore = Math.floor(score);
-    
-    // 2. Only send to Backend if frame is sharp AND BE is not busy
-    if (isSharp && !isBeProcessing) {
-        sendFrameToBE();
+const calculateInlineBlurScore = (data, width, height) => {
+    let laplacianSum = 0;
+    let pixelCount = 0;
+    for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+            const idx = (y * width + x) * 4;
+            const center = (data[idx] + data[idx+1] + data[idx+2]) / 3;
+            const top = (data[((y-1)*width+x)*4] + data[((y-1)*width+x)*4+1] + data[((y-1)*width+x)*4+2]) / 3;
+            const bottom = (data[((y+1)*width+x)*4] + data[((y+1)*width+x)*4+1] + data[((y+1)*width+x)*4+2]) / 3;
+            const left = (data[(y*width+(x-1))*4] + data[(y*width+(x-1))*4+1] + data[(y*width+(x-1))*4+2]) / 3;
+            const right = (data[(y*width+(x+1))*4] + data[(y*width+(x+1))*4+1] + data[(y*width+(x+1))*4+2]) / 3;
+            const laplacian = -4 * center + top + bottom + left + right;
+            laplacianSum += laplacian * laplacian;
+            pixelCount++;
+        }
     }
+    return pixelCount > 0 ? (laplacianSum / pixelCount) : 0;
 };
 
 const sendFrameToBE = async () => {
     isBeProcessing = true;
     try {
         const video = videoElement.value;
-        const canvas = document.createElement('canvas'); // Temp high-res canvas
-        const ctx = canvas.getContext('2d');
-        
-        // Dynamic Resizing: Upscale small modules for better detection
-        canvas.width = 1000;
-        canvas.height = (video.videoHeight / video.videoWidth) * 1000;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (!video) return;
 
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+        // Quản lý Session cho bộ quét liên tục
+        if (!window._scanSessionId) {
+            window._scanSessionId = 'vue-scan-' + Date.now();
+        }
+
+        if (!sendCanvas) sendCanvas = document.createElement('canvas');
+        const ctx = sendCanvas.getContext('2d');
+        
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        const minDim = Math.min(videoWidth, videoHeight);
+        
+        globalFrameCounter++;
+        let scanMode = "";
+
+        if (globalFrameCounter % 2 === 0) {
+            scanMode = "Toàn cảnh";
+            sendCanvas.width = 800; // Giảm từ 1000 xuống 800 (Siêu nhẹ)
+            sendCanvas.height = (videoHeight / videoWidth) * 800;
+            ctx.drawImage(video, 0, 0, sendCanvas.width, sendCanvas.height);
+        } else {
+            scanMode = "Soi cận";
+            const cropSize = minDim * 0.60; 
+            const sx = (videoWidth - cropSize) / 2;
+            const sy = (videoHeight - cropSize) / 2;
+            sendCanvas.width = 640; // Giảm từ 800 xuống 640
+            sendCanvas.height = 640;
+            ctx.drawImage(video, sx, sy, cropSize, cropSize, 0, 0, 640, 640);
+        }
+
+        // CHIẾN THUẬT NÉN: Giảm chất lượng xuống 0.6 để tốc độ gửi đạt mức Real-time
+        let mimeType = 'image/jpeg';
+        let quality = 0.6; 
+        
+        if (globalFrameCounter % 5 === 0) {
+            mimeType = 'image/png';
+            scanMode += " [PNG]";
+        }
+
+        statusMsg.value = `Máy quét: [${scanMode}] ...`;
+
+        const blob = await new Promise(resolve => sendCanvas.toBlob(resolve, mimeType, quality));
         const formData = new FormData();
         formData.append('file', blob, 'best_frame.jpg');
+        formData.append('sessionId', window._scanSessionId);
 
-        const response = await axios.post('/api/v1/common/scan/cccd', formData);
-        handleBeResult(response.data?.data);
+        // Đổi sang endpoint quản lý liên tục
+        const response = await axios.post('/api/v1/scanner/scan-continuous', formData);
+        
+        // Cấu trúc response của scan-continuous bọc trong data.scanData
+        const resultData = response.data?.data?.scanData || response.data?.data;
+        handleBeResult(resultData);
     } catch (err) {
-        if (err.response?.status === 400) {
-            console.error('CCCD Scan Error:', err.response.data?.message || err.message);
-        }
+        // console.error('Scan Error:', err);
     } finally {
-        // Throttle BE calls slightly even if fast
-        setTimeout(() => { isBeProcessing = false; }, 200);
+        // Giảm thời gian nghỉ xuống mức tối đa để máy quét liên tục
+        setTimeout(() => { isBeProcessing = false; }, 30);
     }
 };
 
@@ -240,11 +336,16 @@ const initCamera = async () => {
             }
         });
         
+        const track = stream.getVideoTracks()[0];
+        const capabilities = track.getCapabilities();
+        hasTorch.value = !!capabilities.torch;
+        
         if (videoElement.value) {
             videoElement.value.srcObject = stream;
             cameraActive.value = true;
             processing.value = false;
             statusMsg.value = 'Đang phát hiện mã QR...';
+            initWorker();
             startProcessLoop();
         }
     } catch (err) {

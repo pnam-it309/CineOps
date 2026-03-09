@@ -161,7 +161,7 @@ const pageSizeLocal = computed({
 <template>
   <div class="base-table-container h-100 d-flex flex-column overflow-hidden p-3 bg-light">
     <!-- Card 1: Header, Filters, and Pagination Consolidated -->
-    <div class="filter-card bg-white border rounded-4 shadow-sm mb-3">
+    <div class="filter-card bg-white border rounded-0 shadow-sm mb-3">
       <!-- Card Header with Title and Main Actions -->
       <div class="card-header-section p-3 border-bottom" v-if="title || addButtonLabel">
         <div class="d-flex align-items-center justify-content-between">
@@ -173,40 +173,42 @@ const pageSizeLocal = computed({
           </div>
           <div class="d-flex align-items-center gap-2">
             <slot name="header-actions-left"></slot>
-            <el-button v-if="addButtonLabel" @click="$emit('add-click')" type="primary">
-              <template #icon>
-                <el-icon><Plus /></el-icon>
-              </template>
-              {{ addButtonLabel }}
-            </el-button>
+            <el-tooltip :content="addButtonLabel" placement="top" v-if="addButtonLabel">
+              <el-button @click="$emit('add-click')" type="primary" class="square-btn">
+                <template #icon>
+                  <el-icon><Plus /></el-icon>
+                </template>
+              </el-button>
+            </el-tooltip>
           </div>
         </div>
       </div>
 
       <!-- Filters Area (Top) -->
-      <div class="p-3" v-if="showFilters && $slots.filters">
+      <div class="p-3 border-top" v-if="showFilters && $slots.filters">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
           <!-- Left side: Filters and Reset -->
           <div class="d-flex align-items-center gap-3 flex-wrap">
             <slot name="filters"></slot>
-            <el-button v-if="showFilters && $slots.filters" @click="$emit('reset-filter')" size="small" type="info" plain>
-              <el-icon><Refresh /></el-icon>
-              Làm mới
-            </el-button>
+            <el-tooltip content="Làm mới bộ lọc" placement="top">
+              <el-button v-if="showFilters && $slots.filters" @click="$emit('reset-filter')" size="default" type="info" plain class="square-btn">
+                <el-icon><Refresh /></el-icon>
+              </el-button>
+            </el-tooltip>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Card 2: Table Content and Pagination -->
-    <div class="table-card bg-white border rounded-4 d-flex flex-column h-100 overflow-hidden shadow-sm" style="min-height: 0;">
+    <div class="table-card bg-white border rounded-0 d-flex flex-column h-100 overflow-hidden shadow-sm" style="min-height: 0;">
       <!-- Table content wrapper -->
       <div
         class="table-content-wrapper"
         style="flex: 1 1 0; min-height: 0; overflow: auto"
       >
         <table
-          class="table table-hover align-middle mb-0 text-center"
+          class="table table-bordered align-middle mb-0 text-center"
           style="
             border-collapse: separate;
             border-spacing: 0;
@@ -216,11 +218,11 @@ const pageSizeLocal = computed({
         >
           <!-- Sticky Header -->
           <thead class="sticky-top shadow-sm" style="z-index: 20">
-            <tr class="border-bottom">
+            <tr>
               <th
                 v-for="(col, colIdx) in columns"
                 :key="col.key || colIdx"
-                class="py-2 px-3 fw-bold text-nowrap text-center table-header-bg"
+                class="py-3 px-3 fw-bold text-nowrap text-center table-header-bg border-start border-end"
                 :class="{
                   'sticky-col-stt': colIdx === 0,
                 }"
@@ -245,7 +247,7 @@ const pageSizeLocal = computed({
               </th>
               <th
                 v-if="showActions"
-                class="py-2 px-3 fw-bold text-center table-header-bg sticky-col-actions"
+                class="py-3 px-3 fw-bold text-center table-header-bg sticky-col-actions border-start"
                 style="width: 160px; min-width: 160px"
               >
                 Thao tác
@@ -256,12 +258,12 @@ const pageSizeLocal = computed({
             <tr
               v-for="(item, index) in data"
               :key="item.id || index"
-              class="border-bottom border-light-subtle"
+              class="border-bottom"
             >
               <td
                 v-for="(col, colIdx) in columns"
                 :key="col.key || colIdx"
-                class="py-2 px-3 text-dark"
+                class="py-3 px-3 text-dark border-start border-end"
                 :class="{
                   'table-cell-sticky-stt': colIdx === 0,
                 }"
@@ -271,6 +273,7 @@ const pageSizeLocal = computed({
                   whiteSpace: 'normal',
                   overflow: 'hidden',
                   maxWidth: col.maxWidth || 'none',
+                  textAlign: 'center'
                 }"
               >
                 <template v-if="col.type === 'selection'">
@@ -291,14 +294,14 @@ const pageSizeLocal = computed({
               </td>
               <td
                 v-if="showActions"
-                class="py-2 px-3 td-sticky-actions"
-                style="width: 140px; min-width: 140px"
+                class="py-3 px-3 td-sticky-actions border-start"
+                style="width: 160px; min-width: 160px"
               >
                 <div class="d-flex justify-content-center align-items-center gap-2">
                   <slot name="actions" :row="item">
                     <el-tooltip content="Chi tiết" placement="top">
                       <button
-                        class="btn-action-icon action-view"
+                        class="btn-action-icon action-view square-action"
                         @click="$emit('view', item)"
                       >
                         <i class="bi bi-eye fs-6"></i>
@@ -306,22 +309,24 @@ const pageSizeLocal = computed({
                     </el-tooltip>
                     <el-tooltip content="Chỉnh sửa" placement="top">
                       <button
-                        class="btn-action-icon action-edit"
+                        class="btn-action-icon action-edit square-action"
                         :disabled="item.trangThai === 0 || item.status === 'Ngừng hoạt động' || item.status === 'Đang bảo trì'"
                         @click="$emit('edit', item)"
                       >
                         <i class="bi bi-pencil fs-6"></i>
                       </button>
                     </el-tooltip>
-                    <el-switch
-                      :model-value="item.trangThai === 1 || item.status === 'Đang hoạt động' || item.status === 'Hoạt động' || item.status === 'Sẵn sàng'"
-                      @change="(val) => $emit('update-status', { row: item, val })"
-                      class="status-switch mx-1"
-                      inactive-color="#ff4949"
-                    />
+                    <el-tooltip :content="item.trangThai === 1 || item.status === 'Đang hoạt động' ? 'Ngừng hoạt động' : 'Kích hoạt'" placement="top">
+                      <el-switch
+                        :model-value="item.trangThai === 1 || item.status === 'Đang hoạt động' || item.status === 'Hoạt động' || item.status === 'Sẵn sàng'"
+                        @change="(val) => $emit('update-status', { row: item, val })"
+                        class="status-switch mx-1"
+                        inactive-color="#ff4949"
+                      />
+                    </el-tooltip>
                     <el-tooltip content="Xóa" placement="top">
                       <button
-                        class="btn-action-icon action-delete"
+                        class="btn-action-icon action-delete square-action"
                         @click="$emit('delete', item)"
                       >
                         <i class="bi bi-trash fs-6"></i>
@@ -362,7 +367,7 @@ const pageSizeLocal = computed({
       </div>
 
       <!-- Pagination Section (At the bottom of Table Card) -->
-      <div v-if="!hidePagination && total > 0" class="pagination-section border-top px-3 py-3">
+      <div v-if="!hidePagination && total > 0" class="pagination-section border-top px-3 py-3 bg-white">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
           <!-- Left side: Total results and Page Size Selector -->
           <div class="d-flex align-items-center gap-3">
@@ -371,8 +376,8 @@ const pageSizeLocal = computed({
               <el-select
                 v-model="pageSizeLocal"
                 size="small"
-                class="compact-select-simple"
-                style="width: 100px"
+                class="square-select"
+                style="width: 120px"
               >
                 <el-option :value="5" label="5 / trang" />
                 <el-option :value="10" label="10 / trang" />
@@ -385,7 +390,7 @@ const pageSizeLocal = computed({
           <!-- Right side: Page Navigation -->
           <div class="d-flex align-items-center gap-1">
             <button
-              class="simple-page-btn arrow"
+              class="square-page-btn"
               :class="{ disabled: currentPage <= 1 }"
               @click="handlePageChange(currentPage - 1)"
             >
@@ -395,7 +400,7 @@ const pageSizeLocal = computed({
             <button
               v-for="page in pagesToShow"
               :key="page"
-              class="simple-page-btn"
+              class="square-page-btn"
               :class="{ active: page === currentPage }"
               @click="handlePageChange(page)"
             >
@@ -403,7 +408,7 @@ const pageSizeLocal = computed({
             </button>
 
             <button
-              class="simple-page-btn arrow"
+              class="square-page-btn"
               :class="{ disabled: currentPage >= totalPages }"
               @click="handlePageChange(currentPage + 1)"
             >
@@ -420,257 +425,142 @@ const pageSizeLocal = computed({
 /* Main wrapper styles */
 .base-table-container {
   min-height: 0;
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
 }
 
-/* Consolidated Card at Top */
-.filter-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-}
-
-/* Table Card at Bottom */
-.table-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.table-content-wrapper {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+/* Square Corners for Cards */
+.filter-card, .table-card {
+  border-radius: 0 !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 .table-header-bg {
-  background-color: #ffffff !important;
-  color: #1e293b !important;
+  background-color: #f8fafc !important;
+  color: #334155 !important;
   font-weight: 700 !important;
-  font-size: 16px !important;
-  letter-spacing: normal;
-  text-transform: none;
-  border-bottom: 2px solid #e2e8f0 !important;
+  font-size: 14px !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.cursor-pointer {
-  cursor: pointer;
+/* Grid Lines */
+.table-bordered td, .table-bordered th {
+  border: 1px solid #e2e8f0 !important;
 }
 
-/* Pagination buttons */
+/* Center Content */
+th, td {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
 
-.simple-page-btn {
-  min-width: 32px;
-  height: 32px;
+/* Square Buttons & Actions */
+.square-btn {
+  border-radius: 0 !important;
+  height: 40px;
+  width: 40px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 8px;
-  border: none;
-  background: transparent;
+}
+
+.square-action {
+  border-radius: 0 !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #fff;
+  width: 34px;
+  height: 34px;
+}
+
+.square-action:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.action-view { color: #3b82f6; }
+.action-edit { color: #10b981; }
+.action-delete { color: #ef4444; }
+
+/* Square Page Buttons */
+.square-page-btn {
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background: #fff;
   color: #475569;
   font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
+  font-weight: 600;
+  margin: 0 -1px; /* Overlap borders */
   cursor: pointer;
+  transition: all 0.2s;
 }
 
-.simple-page-btn:hover:not(.active):not(.arrow) {
-  color: #4f46e5;
-  background: #f8fafc;
-  border-radius: 6px;
+.square-page-btn:hover:not(.disabled):not(.active) {
+  background: #f1f5f9;
+  z-index: 1;
 }
 
-.simple-page-btn.active {
-  color: #4f46e5;
-  font-weight: 700;
-  position: relative;
+.square-page-btn.active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+  z-index: 2;
 }
 
-.simple-page-btn.arrow {
-  color: #94a3b8;
-}
-
-.simple-page-btn.arrow:hover {
-  color: #475569;
-}
-
-.page-item.disabled .simple-page-btn {
-  opacity: 0.3;
+.square-page-btn.disabled {
+  opacity: 0.5;
   cursor: not-allowed;
+  background: #f8fafc;
 }
 
-.highlight-total {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+/* Select Styling */
+:deep(.square-select .el-input__wrapper) {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
-.btn-action-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  transition: all 0.2s;
-  padding: 0;
-  cursor: pointer;
+:deep(.square-select .el-input__wrapper:hover) {
+  border-color: #cbd5e1 !important;
 }
 
-.btn-action-icon:hover {
-  background-color: #f1f5f9;
+/* Scrollbar */
+.table-content-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Sticky styles with grid consistency */
+.sticky-col-stt, .table-cell-sticky-stt {
+  position: sticky !important;
+  left: 0;
+  z-index: 10;
+  background-color: #fff !important;
+  border-right: 2px solid #cbd5e1 !important;
+}
+
+.sticky-col-actions, .td-sticky-actions {
+  position: sticky !important;
+  right: 0;
+  z-index: 10;
+  background-color: #fff !important;
+  border-left: 2px solid #cbd5e1 !important;
 }
 
 .spinner-premium {
   width: 32px;
   height: 32px;
   border: 3px solid #f1f5f9;
-  border-top: 3px solid #4f46e5;
+  border-top: 3px solid #3b82f6;
   border-radius: 50%;
   margin: 0 auto;
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-:deep(.compact-select-simple .el-input__wrapper) {
-  border-radius: 6px !important;
-  background-color: #ffffff !important;
-  box-shadow: none !important;
-  border: 1px solid #e2e8f0 !important;
-  height: 30px !important;
-}
-
-:deep(.compact-select-simple .el-input__wrapper.is-focus) {
-  border-color: #4f46e5 !important;
-}
-
-/* Sticky Column Styles */
-.sticky-col-check,
-.sticky-col-stt,
-.sticky-col-stt-with-check,
-.sticky-col-actions,
-.table-cell-sticky-stt,
-.table-cell-sticky-stt-with-check {
-  position: sticky !important;
-  background-color: #fff !important;
-}
-
-/* Individual Positions */
-.sticky-col-check {
-  left: 0;
-  z-index: 12;
-}
-.td-sticky-check {
-  position: sticky;
-  left: 0;
-  z-index: 10;
-  background-color: #fff !important;
-}
-
-.sticky-col-stt {
-  left: 0;
-  z-index: 12;
-  border-right: 1px solid #f1f5f9 !important;
-}
-.table-cell-sticky-stt {
-  left: 0;
-  z-index: 10;
-  border-right: 1px solid #f1f5f9 !important;
-}
-
-.sticky-col-stt-with-check {
-  left: 50px;
-  z-index: 12;
-  border-right: 1px solid #f1f5f9 !important;
-}
-.table-cell-sticky-stt-with-check {
-  left: 50px;
-  z-index: 10;
-  border-right: 1px solid #f1f5f9 !important;
-}
-
-.sticky-col-actions {
-  right: 0;
-  z-index: 12;
-  border-left: 1px solid #f1f5f9 !important;
-}
-.td-sticky-actions {
-  position: sticky;
-  right: 0;
-  z-index: 10;
-  background-color: #fff !important;
-  border-left: 1px solid #f1f5f9 !important;
-}
-
-/* Group Boundary Indicators (Shadows) */
-.sticky-col-stt::after,
-.sticky-col-stt-with-check::after,
-.table-cell-sticky-stt::after,
-.table-cell-sticky-stt-with-check::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: -10px;
-  bottom: 0;
-  width: 10px;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.05), transparent);
-  pointer-events: none;
-}
-
-.sticky-col-actions::before,
-.td-sticky-actions::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -10px;
-  bottom: 0;
-  width: 10px;
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.05), transparent);
-  pointer-events: none;
-}
-
-:deep(.form-check-input) {
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid #dcdfe6;
-  border-radius: 5px;
-  background-color: #ffffff;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: none !important;
-}
-
-:deep(.form-check-input:checked) {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
-}
-
-/* Custom styles for status switch */
-.status-switch {
-  --el-switch-on-color: #13ce66;
-  --el-switch-off-color: #ff4949;
-}
-.status-switch :deep(.el-switch__label) {
-  display: none !important;
-}
+@keyframes spin { 100% { transform: rotate(360deg); } }
 </style>

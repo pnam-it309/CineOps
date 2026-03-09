@@ -112,3 +112,62 @@ export function formatFileSize(bytes) {
   
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
+/**
+ * Convert number to Vietnamese words
+ * @param {number} number - The number to convert
+ * @returns {string} The number in Vietnamese words
+ */
+export function numberToWordsVietnamese(number) {
+    if (number === 0) return 'không';
+    if (!number) return '';
+
+    const units = ['', 'nghìn', 'triệu', 'tỉ', 'nghìn tỉ', 'triệu tỉ'];
+    const digits = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+
+    function readThreeDigits(n, isFirstGroup) {
+        let res = '';
+        const hundreds = Math.floor(n / 100);
+        const tens = Math.floor((n % 100) / 10);
+        const ones = n % 10;
+
+        if (hundreds > 0 || !isFirstGroup) {
+            res += digits[hundreds] + ' trăm ';
+        }
+
+        if (tens > 0) {
+            res += digits[tens] + ' mươi ';
+        } else if (hundreds > 0 && ones > 0) {
+            res += 'lẻ ';
+        }
+
+        if (tens === 1) res = res.replace('một mươi', 'mười');
+
+        if (ones > 0) {
+            if (ones === 1 && tens > 1) res += 'mốt';
+            else if (ones === 5 && tens >= 1) res += 'lăm';
+            else res += digits[ones];
+        }
+
+        return res.trim();
+    }
+
+    let res = '';
+    let unitIdx = 0;
+    let tempNum = Math.abs(number);
+
+    while (tempNum > 0) {
+        const group = tempNum % 1000;
+        if (group > 0) {
+            const groupStr = readThreeDigits(group, tempNum < 1000);
+            res = groupStr + ' ' + units[unitIdx] + ' ' + res;
+        }
+        tempNum = Math.floor(tempNum / 1000);
+        unitIdx++;
+    }
+
+    res = res.trim();
+    if (number < 0) res = 'âm ' + res;
+    
+    // Capitalize first letter
+    return res.charAt(0).toUpperCase() + res.slice(1);
+}

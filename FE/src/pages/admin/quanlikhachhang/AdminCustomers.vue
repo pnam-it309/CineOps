@@ -74,22 +74,29 @@ const handleProvinceChange = async (val) => {
     districts.value = [];
     wards.value = [];
     if (!val) return;
+    
     const p = provinces.value.find(x => x.name === val);
     if (p) {
-        const res = await addressService.getDistricts(p.code);
-        districts.value = res.data.districts;
+        // Lấy toàn bộ quận huyện và phường xã của tỉnh đó (depth=3)
+        // Lưu ý: Người dùng yêu cầu không còn Huyện, nên ta gộp hết Xã vào 1 danh sách
+        const res = await addressService.getDistricts(p.code); // districts.value will be populated
+        const provinceDetail = res.data;
+        if (provinceDetail && provinceDetail.districts) {
+            let allWards = [];
+            for (const d of provinceDetail.districts) {
+                // Fetch wards for each district
+                const wRes = await addressService.getWards(d.code);
+                if (wRes.data && wRes.data.wards) {
+                    allWards = [...allWards, ...wRes.data.wards.map(w => ({ ...w, districtName: d.name }))];
+                }
+            }
+            wards.value = allWards;
+        }
     }
 };
 
 const handleDistrictChange = async (val) => {
-    form.phuongXa = '';
-    wards.value = [];
-    if (!val) return;
-    const d = districts.value.find(x => x.name === val);
-    if (d) {
-        const res = await addressService.getWards(d.code);
-        wards.value = res.data.wards;
-    }
+    // Không dùng nữa vì bỏ Huyện
 };
 
 // Rules validation cơ bản cho form
@@ -202,6 +209,31 @@ const handleView = (row) => {
 const handleCCCDScanned = (data) => {
   if (data.name) form.tenKhachHang = data.name;
   if (data.dob) form.ngaySinh = data.dob;
+  
+  // Mapping địa chỉ Tỉnh / Xã (BỎ QUA HUYỆN)
+  if (data.province) {
+    const provinceMatch = provinces.value.find(p => 
+      p.name.toLowerCase().includes(data.province.toLowerCase()) || 
+      data.province.toLowerCase().includes(p.name.toLowerCase())
+    );
+    
+    if (provinceMatch) {
+      form.thanhPhoTinh = provinceMatch.name;
+      handleProvinceChange(provinceMatch.name).then(() => {
+        if (data.ward) {
+          const wardMatch = wards.value.find(w => 
+            w.name.toLowerCase().includes(data.ward.toLowerCase()) || 
+            data.ward.toLowerCase().includes(w.name.toLowerCase())
+          );
+          if (wardMatch) form.phuongXa = wardMatch.name;
+        }
+      });
+    }
+  }
+  
+  // Theo yêu cầu khách hàng: Không cần địa chỉ chi tiết và Huyện
+  form.quanHuyen = '';
+  form.diaChiChiTiet = ''; 
 };
 
 // --- Logic Lưu Dữ Liệu ---
@@ -270,7 +302,18 @@ const resetFilter = () => {
 
 const paginatedCustomers = computed(() => customers.value);
 
-const getGenderText = (gender) => gender === 1 ? 'Nam' : (gender === 0 ? 'Nữ' : 'Khác');
+const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v);
+const calculateAge = (dob) => {
+  if (!dob) return '—';
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+  return age;
+};
+
+const getGenderText = (g) => g === 1 ? 'Nam' : 'Nữ';
 const getStatusLabel = (status) => status === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
 
 watch([currentPage, pageSize], fetchCustomers);
@@ -384,6 +427,8 @@ watch([currentPage, pageSize], fetchCustomers);
                 :model-value="row.trangThai === 1"
                 @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
                 class="status-switch mx-1"
+                active-color="#ff4949"
+                inactive-color="#ff4949"
               />
             </div>
           </template>
@@ -434,24 +479,28 @@ watch([currentPage, pageSize], fetchCustomers);
             </el-form-item>
           </div>
           <div class="col-6">
+            <el-form-item label="Phường/Xã">
+              <el-select v-model="form.phuongXa" placeholder="Chọn xã" class="w-100" filterable :disabled="!form.thanhPhoTinh">
+                <el-option v-for="w in wards" :key="w.code" :label="w.name" :value="w.name">
+                   <span>{{ w.name }}</span>
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </div>
+          <!-- Ẩn Quận/Huyện theo yêu cầu "không còn huyện" -->
+          <!-- <div class="col-6">
             <el-form-item label="Quận/Huyện">
               <el-select v-model="form.quanHuyen" placeholder="Chọn huyện" class="w-100" filterable @change="handleDistrictChange" :disabled="!form.thanhPhoTinh">
                 <el-option v-for="d in districts" :key="d.code" :label="d.name" :value="d.name" />
               </el-select>
             </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="Phường/Xã">
-              <el-select v-model="form.phuongXa" placeholder="Chọn xã" class="w-100" filterable :disabled="!form.quanHuyen">
-                <el-option v-for="w in wards" :key="w.code" :label="w.name" :value="w.name" />
-              </el-select>
-            </el-form-item>
-          </div>
-          <div class="col-6">
+          </div> -->
+          <!-- Ẩn địa chỉ chi tiết theo yêu cầu (Chỉ cần Tỉnh / Huyện / Xã) -->
+          <!-- <div class="col-6">
              <el-form-item label="Chi tiết (Đường/Số nhà)">
                <el-input v-model="form.diaChiChiTiet" placeholder="Nhập địa chỉ chi tiết" />
              </el-form-item>
-          </div>
+          </div> -->
         </div>
         
         <el-form-item label="Hình ảnh URL">
@@ -476,56 +525,124 @@ watch([currentPage, pageSize], fetchCustomers);
       </el-form>
     </BaseModal>
 
-    <BaseModal v-model="detailVisible" title="Chi tiết khách hàng" icon="bi bi-person-lines-fill" width="500px">
-      <div v-if="selectedItem" class="p-3">
-        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
-          <div class="avatar-box bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-weight: bold; font-size: 20px;">
+    <BaseModal v-model="detailVisible" title="Hồ sơ khách hàng" icon="bi bi-person-badge-fill" width="600px" isDetail onlyCancel>
+      <div v-if="selectedItem" class="p-0">
+        <!-- Profile Header (Colorless) -->
+        <div class="p-4 border-bottom bg-white d-flex align-items-center gap-4">
+          <div class="shadow-sm border d-flex align-items-center justify-content-center bg-light text-secondary" 
+               style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
             {{ selectedItem.tenKhachHang?.charAt(0).toUpperCase() }}
           </div>
-          <div>
-            <h5 class="m-0 fw-bold">{{ selectedItem.tenKhachHang }}</h5>
-            <div class="text-secondary small">Mã: {{ selectedItem.maKhachHang }}</div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <h3 class="fw-bold m-0 text-dark">{{ selectedItem.tenKhachHang }}</h3>
+              <span class="text-secondary small fw-bold">#{{ selectedItem.maKhachHang }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <el-tag :type="selectedItem.tenLoaiKhachHang?.toLowerCase().includes('vip') ? 'info' : 'plain'" effect="plain" round size="small">
+                {{ selectedItem.tenLoaiKhachHang?.toUpperCase() || 'THÀNH VIÊN' }}
+              </el-tag>
+              <div class="small text-secondary"><i class="bi bi-envelope me-1"></i>{{ selectedItem.email || '—' }}</div>
+            </div>
           </div>
         </div>
-        <div class="detail-grid">
-           <div class="row g-3">
-             <div class="col-6">
-                <div class="lbl text-secondary small">Email</div>
-                <div class="val fw-semibold">{{ selectedItem.email || '—' }}</div>
-             </div>
-             <div class="col-6">
-                <div class="lbl text-secondary small">Số điện thoại</div>
-                <div class="val fw-semibold">{{ selectedItem.sdt || '—' }}</div>
-             </div>
-             <div class="col-6">
-                <div class="lbl text-secondary small">Giới tính</div>
-                <div class="val fw-semibold">{{ getGenderText(selectedItem.gioiTinh) }}</div>
-             </div>
-             <div class="col-6">
-                <div class="lbl text-secondary small">Ngày sinh</div>
-                <div class="val fw-semibold">{{ selectedItem.ngaySinh || '—' }}</div>
-             </div>
-             <div class="col-6">
-                <div class="lbl text-secondary small">Loại khách hàng</div>
-                <el-tag size="small" :type="selectedItem.tenLoaiKhachHang?.toLowerCase().includes('vip') ? 'warning' : 'info'" round>
-                  {{ selectedItem.tenLoaiKhachHang || 'Thường' }}
-                </el-tag>
-             </div>
-             <div class="col-12">
-                <div class="lbl text-secondary small">Địa chỉ</div>
-                <div class="val fw-semibold">{{ selectedItem.diaChi || '—' }}</div>
-             </div>
-             <div class="col-12">
-                <div class="lbl text-secondary small">Ghi chú</div>
-                <div class="val text-muted">{{ selectedItem.ghiChu || 'Không có ghi chú' }}</div>
-             </div>
-           </div>
+
+        <!-- Details Body (Colorless) -->
+        <div class="p-4 bg-white">
+          <div class="row g-4">
+            <div class="col-12">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Thông số tài chính</h6>
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="p-3 border bg-white">
+                    <div class="text-secondary small mb-1">TỔNG CHI TIÊU</div>
+                    <div class="fw-bold fs-4 text-dark">{{ formatCurrency(selectedItem.tongChiTieu || 0) }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 border bg-white">
+                    <div class="text-secondary small mb-1">ĐIỂM TÍCH LŨY</div>
+                    <div class="fw-bold fs-4 text-dark">{{ selectedItem.diemTichLuy || 0 }} PTS</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Liên hệ</h6>
+              <div class="p-3 border bg-white h-100">
+                <div class="mb-3">
+                  <label class="text-secondary small d-block">SỐ ĐIỆN THOẠI</label>
+                  <div class="fw-bold text-dark">{{ selectedItem.sdt || '—' }}</div>
+                </div>
+                <div>
+                  <label class="text-secondary small d-block">ĐỊA CHỈ</label>
+                  <div class="text-dark small lh-sm">{{ selectedItem.diaChi || 'Chưa cập nhật' }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Thông tin cá nhân</h6>
+              <div class="p-3 border bg-white h-100">
+                <div class="row g-3">
+                  <div class="col-6">
+                    <label class="text-secondary small d-block">GIỚI TÍNH</label>
+                    <div class="fw-bold text-dark">{{ getGenderText(selectedItem.gioiTinh) }}</div>
+                  </div>
+                  <div class="col-6">
+                    <label class="text-secondary small d-block">ĐỘ TUỔI</label>
+                    <div class="fw-bold text-dark">{{ calculateAge(selectedItem.ngaySinh) }} tuổi</div>
+                  </div>
+                  <div class="col-12">
+                    <label class="text-secondary small d-block">VÉ ĐÃ MUA</label>
+                    <div class="fw-bold text-dark">{{ selectedItem.tongVe || 0 }} vé</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="selectedItem.ghiChu" class="col-12">
+               <div class="p-3 border bg-light">
+                 <h6 class="text-uppercase small fw-bold text-secondary mb-1">GHI CHÚ QUẢN TRỊ</h6>
+                 <p class="text-dark mb-0 small italic">"{{ selectedItem.ghiChu }}"</p>
+               </div>
+            </div>
+            
+            <div class="col-12">
+              <div class="system-stats p-3 border d-flex justify-content-between text-secondary small bg-light">
+                 <div> Ngày gia nhập: {{ selectedItem.ngayTao || '—' }}</div>
+                 <div> Lần cuối cập nhật: {{ selectedItem.ngayCapNhat || '—' }}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <template #footer>
-        <el-button @click="detailVisible = false">Đóng</el-button>
-        <el-button type="primary" @click="handleEdit(selectedItem); detailVisible = false">Chỉnh sửa</el-button>
-      </template>
     </BaseModal>
   </div>
 </template>
+
+<style scoped>
+.customer-profile-container { margin: -20px; }
+.profile-header { position: relative; }
+.header-banner { position: absolute; top: 0; left: 0; right: 0; height: 100px; z-index: 0; }
+.avatar-wrapper { width: 90px; height: 90px; border-radius: 25px; border: 4px solid #fff; position: relative; z-index: 1; overflow: visible; background: #fff; }
+.avatar-circle { width: 100%; height: 100%; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+.vip-badge { position: absolute; width: 28px; height: 28px; background: #ffc107; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 3px solid #fff; }
+.customer-name { letter-spacing: -0.5px; }
+.section-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 15px; }
+.tiny-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
+.info-card-premium { transition: all 0.2s ease; }
+.info-card-premium:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; border-color: var(--el-color-primary-light-7) !important; }
+.border-end-v { border-right: 1px solid #f1f5f9; }
+.note-box { background: #f8fafc; border-left: 4px solid #cbd5e1; }
+.pulse-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 rgba(25, 135, 84, 0.4); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(25, 135, 84, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); } 100% { box-shadow: 0 0 0 0px rgba(25, 135, 84, 0); } }
+
+.metric-card-minimal { transition: all 0.2s; }
+.metric-card-minimal:hover { border-color: var(--el-color-primary) !important; transform: translateY(-2px); }
+.bg-gradient-tier { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+.tier-decoration { position: absolute; right: -20px; bottom: -20px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.1); z-index: 0; }
+.progress-fill { transition: width 1s ease-out; }
+.shadow-inner { box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+</style>

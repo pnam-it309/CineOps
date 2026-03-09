@@ -9,5 +9,8 @@ public class CccdDataResponse {
     private String dob;
     private String gender;
     private String address;
+    private String province;
+    private String district;
+    private String ward;
     private String rawData;
 }

@@ -243,6 +243,8 @@ public class AdVeServiceImpl implements AdVeService {
 
             if (ve.getSuatChieu().getPhim() != null) {
                 dto.setTenPhim(ve.getSuatChieu().getPhim().getTenPhim());
+                dto.setThoiLuong(ve.getSuatChieu().getPhim().getThoiLuong());
+                dto.setNhanDoTuoi(ve.getSuatChieu().getPhim().getNhanDoTuoi());
             }
             if (ve.getSuatChieu().getPhongChieu() != null) {
                 dto.setTenPhongChieu(ve.getSuatChieu().getPhongChieu().getTenPhong());

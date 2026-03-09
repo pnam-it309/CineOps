@@ -127,8 +127,8 @@
               </el-tag>
             </template>
 
-            <template #cell-tongTienGiamGia="{ row }">
-              <span class="text-danger small fw-bold">{{ formatCurrency(row.tongTienGiamGia) }}</span>
+            <template #cell-soTienGiam="{ row }">
+              <span class="text-danger small fw-bold">{{ formatCurrency(row.soTienGiam) }}</span>
             </template>
 
 
@@ -160,149 +160,115 @@
       </template>
     </AdminTableLayout>
 
-    <!-- Modal Chi Tiết Hóa Đơn (Theo khuôn mẫu) -->
-    <BaseModal
-      v-model="modalVisible"
-      :title="'Chi tiết hóa đơn: #' + (detailInvoice?.maHoaDon || '')"
-      width="1350px"
-      icon="bi bi-receipt"
-    >
-      <template #footer><span></span></template>
-      
-      <div class="custom-invoice-modal">
-        <div class="tabs-container mb-4">
-          <div class="d-flex gap-4 border-bottom">
-            <div 
-              class="tab-item py-2 fw-bold cursor-pointer" 
-              :class="{ active: activeTab === 'info' }"
-              @click="activeTab = 'info'"
-            >Thông tin</div>
-            <div 
-              class="tab-item py-2 fw-bold cursor-pointer" 
-              :class="{ active: activeTab === 'history' }"
-              @click="activeTab = 'history'"
-            >Lịch sử thanh toán</div>
+    <!-- Modal Chi Tiết Hóa Đơn (Premium Dashboard) -->
+    <BaseModal v-model="modalVisible" :title="'Hồ sơ hóa đơn'" width="1100px" icon="bi bi-receipt-cutoff" isDetail onlyCancel>
+      <div v-if="detailInvoice" class="p-0">
+        <!-- Profile Header (Colorless) -->
+        <div class="p-4 border-bottom bg-white d-flex align-items-center gap-4">
+          <div class="shadow-sm border d-flex align-items-center justify-content-center bg-light text-secondary" 
+               style="width: 100px; height: 100px;">
+            <i class="bi bi-receipt fs-1"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <h3 class="fw-bold m-0 text-dark">Hóa đơn #{{ detailInvoice.maHoaDon }}</h3>
+              <el-tag :type="detailInvoice.trangThai === 1 ? 'info' : 'plain'" effect="plain" round size="small">
+                {{ detailInvoice.trangThai === 1 ? 'ĐẠ THANH TOÁN' : 'ĐÃ HỦY' }}
+              </el-tag>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+              <div class="small text-secondary"><i class="bi bi-calendar3 me-1"></i>Ngày lập: {{ formatDate(detailInvoice.ngayTao) }}</div>
+              <div class="small text-secondary"><i class="bi bi-wallet2 me-1"></i>{{ detailInvoice.phuongThucThanhToan === 0 ? 'Tiền mặt' : 'Chuyển khoản' }}</div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="text-secondary small mb-1">TỔNG THANH TOÁN</div>
+            <div class="fw-bold fs-2 text-dark">{{ formatCurrency(detailInvoice.tongTienThanhToan) }}</div>
           </div>
         </div>
 
-        <div v-if="activeTab === 'info'" class="tab-content animate__animated animate__fadeIn">
-          <div class="row g-0 align-items-start">
-            <!-- Cột trái: Thông tin -->
-            <div class="col-md-2 border-end pe-3 pt-1">
-              <div class="info-group mb-3">
-                <div class="label text-secondary small mb-1">Mã hóa đơn:</div>
-                <div class="value fw-bold">{{ detailInvoice?.maHoaDon }}</div>
-              </div>
-              <div class="info-group mb-4">
-                <div class="label text-secondary small mb-1">Thời gian:</div>
-                <div class="value fw-bold">{{ formatDate(detailInvoice?.ngayTao) }}</div>
-              </div>
-              <div class="info-group mb-4">
-                <div class="label text-secondary small mb-1">Khách hàng:</div>
-                <div class="value fw-bold">{{ detailInvoice?.tenKhachHang || 'Khách lẻ' }}</div>
-              </div>
-              <div class="info-group mb-4">
-                <div class="label text-secondary small mb-1">Nhân viên:</div>
-                <div class="value fw-bold">{{ detailInvoice?.tenNhanVien || 'Hệ thống' }}</div>
-              </div>
-              <div class="info-group mb-4">
-                <div class="label text-secondary small mb-1">Kênh bán:</div>
-                <div class="value fw-bold">{{ detailInvoice?.loaiHoaDon === 1 ? 'Online' : 'Tại quầy' }}</div>
-              </div>
-            </div>
-
-            <!-- Cột giữa: Bảng chi tiết -->
-            <div class="col-md-7 px-3 pt-1">
-              <div class="detail-table-wrapper border rounded-2">
-                <table class="table table-hover mb-0" style="table-layout: fixed; width: 100%;">
+        <!-- Detail Layout -->
+        <div class="profile-details-body p-4 bg-white">
+          <div class="row g-4">
+            <div class="col-lg-8">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Chi tiết giao dịch</h6>
+              <div class="border overflow-hidden">
+                <table class="table table-hover m-0 w-100">
                   <thead class="bg-light">
                     <tr>
-                      <th style="width: 50px;" class="small fw-bold py-3 text-secondary border-0 ps-3">STT</th>
-                      <th style="width: 100px;" class="small fw-bold py-3 text-secondary border-0">Mã mục</th>
-                      <th style="min-width: 180px;" class="small fw-bold py-3 text-secondary border-0">Tên mục / SP</th>
-                      <th style="width: 60px;" class="small fw-bold py-3 text-secondary border-0 text-center">SL</th>
-                      <th style="width: 110px;" class="small fw-bold py-3 text-secondary border-0 text-end">Đơn giá</th>
-                      <th style="width: 100px;" class="small fw-bold py-3 text-secondary border-0 text-end">Giảm giá</th>
-                      <th style="width: 110px;" class="small fw-bold py-3 text-secondary border-0 text-end">Giá bán</th>
-                      <th style="width: 120px;" class="small fw-bold py-3 text-secondary border-0 text-end">Thành tiền</th>
-                      <th style="width: 80px;" class="small fw-bold py-3 text-secondary border-0 text-center">Thao tác</th>
+                      <th class="small py-3 ps-4 border-0 text-secondary">Mô tả mặt hàng</th>
+                      <th class="small py-3 text-center border-0 text-secondary">SL</th>
+                      <th class="small py-3 text-end pe-4 border-0 text-secondary">Thành tiền</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="(item, idx) in invoiceDetails" :key="idx">
-                      <td class="small ps-3">{{ idx + 1 }}</td>
-                      <td class="small text-secondary">{{ item.maMuc || '—' }}</td>
-                      <td class="small fw-bold">
-                        {{ item.loai === 0 ? item.tenPhim : item.tenSanPham }}
-                        <div v-if="item.loai === 0" class="tiny text-muted fw-normal">Ghế: {{ item.viTriGhe }}</div>
+                      <td class="ps-4 py-3 border-bottom">
+                         <div class="fw-bold text-dark">{{ item.loai === 0 ? item.tenPhim : item.tenSanPham }}</div>
+                         <div class="text-secondary small">{{ item.loai === 0 ? 'Vé · Ghế ' + item.viTriGhe : 'Snack & Drink' }}</div>
                       </td>
-                      <td class="small text-center">{{ item.soLuong }}</td>
-                      <td class="small text-end">{{ formatCurrency(item.donGia) }}</td>
-                      <td class="small text-end text-danger">{{ formatCurrency(item.giamGia || 0) }}</td>
-                      <td class="small text-end">{{ formatCurrency(item.donGia - (item.giamGia || 0)) }}</td>
-                      <td class="small text-end fw-bold">{{ formatCurrency(item.thanhTien) }}</td>
-                      <td class="small text-center">
-                        <button class="btn btn-sm btn-light border p-1 rounded-2"><i class="bi bi-eye"></i></button>
-                      </td>
+                      <td class="text-center py-3 border-bottom text-dark fw-bold">{{ item.soLuong }}</td>
+                      <td class="text-end pe-4 py-3 border-bottom text-dark fw-bold">{{ formatCurrency(item.thanhTien) }}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-            </div>
 
-            <!-- Cột phải: Tổng kết & Nút bấm -->
-            <div class="col-md-3 ps-3 pt-1">
-              <div class="summary-box mb-4">
-                <div class="d-flex justify-content-between mb-2">
-                  <span class="text-secondary small">Tổng tiền:</span>
-                  <span class="fw-bold">{{ formatCurrency(detailInvoice?.tongTien) }}</span>
-                </div>
-                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
-                  <span class="text-secondary small">Khách đã trả:</span>
-                  <span class="fw-bold">{{ formatCurrency(detailInvoice?.trangThai === 1 ? detailInvoice?.tongTienThanhToan : 0) }}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                  <span class="small fw-bold">Trạng thái:</span>
-                  <span class="fw-bold" :class="detailInvoice?.trangThai === 1 ? 'text-success' : 'text-danger'">
-                    {{ detailInvoice?.trangThai === 1 ? 'Thành công' : 'Đã hủy' }}
-                  </span>
-                </div>
-                <div class="total-big text-end mt-4">
-                   <div class="text-secondary tiny">TỔNG CỘNG</div>
-                   <h4 class="fw-bold text-danger mb-0">{{ formatCurrency(detailInvoice?.tongTienThanhToan) }}</h4>
-                </div>
-              </div>
-
-              <div class="actions-stack d-flex flex-column gap-2 mt-4">
-                <el-button type="danger" class="premium-btn w-100" @click="handleUpdateInvoice">Cập nhật</el-button>
-                <el-button class="print-btn w-100" @click="handlePrint">In hóa đơn</el-button>
-                <el-button type="danger" plain class="w-100 close-btn" @click="modalVisible = false">Đóng</el-button>
+              <!-- Billing Summary (Colorless) -->
+              <div class="mt-4 p-4 border bg-light d-flex justify-content-end gap-5">
+                 <div class="text-end">
+                    <div class="text-secondary small mb-1">TỔNG TRƯỚC GIẢM</div>
+                    <div class="fw-bold text-dark fs-5">{{ formatCurrency(invoiceDetails.reduce((acc, i) => acc + i.thanhTien, 0)) }}</div>
+                 </div>
+                 <div class="text-end border-start ps-5">
+                    <div class="text-secondary small mb-1">KHUYẾN MÃI</div>
+                    <div class="fw-bold text-dark fs-5">-{{ formatCurrency(detailInvoice.soTienGiam || 0) }}</div>
+                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Tab Lịch sử thanh toán -->
-        <div v-if="activeTab === 'history'" class="tab-content animate__animated animate__fadeIn">
-          <div class="payment-history-list">
-             <div v-for="h in paymentHistory" :key="h.id" class="history-item d-flex gap-3 p-3 mb-2 rounded bg-light border">
-                <div class="icon-box text-success">
-                   <i class="bi bi-check-circle-fill fs-4"></i>
-                </div>
-                <div class="flex-grow-1">
-                   <div class="d-flex justify-content-between">
-                      <span class="fw-bold">Thanh toán hoàn tất</span>
-                      <span class="fw-bold text-primary">{{ formatCurrency(h.soTien) }}</span>
+            <!-- Right Column: Customer & Staff Info (Colorless) -->
+            <div class="col-lg-4">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Thông tin liên quan</h6>
+              <div class="p-3 border mb-3 bg-white">
+                 <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                   <div class="p-2 border bg-light text-secondary"><i class="bi bi-person fs-4"></i></div>
+                   <div>
+                     <label class="text-secondary tiny-text">KHÁCH HÀNG</label>
+                     <div class="fw-bold text-dark">{{ detailInvoice.tenKhachHang || 'Khách vãng lai' }}</div>
+                     <div class="small text-secondary">{{ detailInvoice.sdtKhachHang || '—' }}</div>
                    </div>
-                   <div class="text-secondary small">Mã GD: #{{ h.maGiaoDich || h.id.substring(0,8).toUpperCase() }} • Phương thức: {{ h.phuongThucThanhToan === 0 ? 'Tiền mặt' : 'Chuyển khoản' }}</div>
-                   <div class="text-muted tiny mt-1">{{ formatDate(h.ngayThanhToan) }}</div>
-                </div>
-             </div>
-             <div v-if="paymentHistory.length === 0" class="text-center py-5 text-muted">Không có lịch sử thanh toán nào.</div>
+                 </div>
+                 <div class="d-flex align-items-center gap-3">
+                   <div class="p-2 border bg-light text-secondary"><i class="bi bi-person-workspace fs-4"></i></div>
+                   <div>
+                     <label class="text-secondary tiny-text">NHÂN VIÊN LẬP</label>
+                     <div class="fw-bold text-dark">{{ detailInvoice.nguoiTao || 'Admin System' }}</div>
+                     <div class="small text-secondary">{{ detailInvoice.maNhanVien || 'SYSTEM' }}</div>
+                   </div>
+                 </div>
+              </div>
+
+              <!-- VAT Info (Colorless) -->
+              <div class="p-3 border bg-light mt-3">
+                 <h6 class="fw-bold small text-secondary mb-3 text-uppercase">Thông tin VAT</h6>
+                 <div class="d-flex justify-content-between mb-2">
+                   <span class="text-secondary small">Thuế suất (VAT)</span>
+                   <span class="text-dark fw-bold">8.0%</span>
+                 </div>
+                 <div class="d-flex justify-content-between">
+                   <span class="text-secondary small">Tiền thuế</span>
+                   <span class="text-dark fw-bold">{{ formatCurrency((detailInvoice.tongTienThanhToan || 0) * 0.08) }}</span>
+                 </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </BaseModal>
+
+    <!-- Professional Print Template -->
+    <VatInvoiceTemplate :invoice="detailInvoice" :details="invoiceDetails" />
   </div>
 </template>
 
@@ -312,8 +278,9 @@ import { useRouter } from 'vue-router';
 import { Search } from '@element-plus/icons-vue';
 import { hoaDonService } from '@/services/api/admin/hoaDonService';
 import { ElMessage } from 'element-plus';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
+import VatInvoiceTemplate from './VatInvoiceTemplate.vue';
+import BaseModal from '@/components/common/BaseModal.vue';
 
 // --- STATE QUẢN LÝ DỮ LIỆU ---
 const router = useRouter();
@@ -335,7 +302,7 @@ const tableColumns = [
   { label: 'Ngày tạo', key: 'ngayTao', width: '180px' },
   { label: 'Kênh bán', key: 'kenhBan', width: '110px' },
   { label: 'Hình thức', key: 'phuongThucThanhToan', width: '140px' },
-  { label: 'Giảm giá', key: 'tongTienGiamGia', width: '110px' },
+  { label: 'Giảm giá', key: 'soTienGiam', width: '110px' },
   { label: 'Thanh toán', key: 'tongTienThanhToan', width: '140px' },
   { label: 'Trạng thái', key: 'trangThai', width: '130px' }
 ];
@@ -416,7 +383,10 @@ const viewDetails = async (row) => {
 };
 
 const handlePrint = () => {
-  window.print();
+  // Đợi một chút để template render xong (nếu cần) và gọi in
+  setTimeout(() => {
+    window.print();
+  }, 100);
 };
 
 const handleUpdateInvoice = () => {
@@ -462,6 +432,16 @@ onMounted(fetchInvoices);
 </script>
 
 <style scoped>
+
+.custom-invoice-modal-v2 { background: #fdfdfd; margin: -20px; color: #1e293b; }
+.border-bottom-light { border-bottom: 1px solid #f1f5f9; }
+.section-divider { display: flex; align-items: center; margin: 20px 0; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.section-divider::after { content: ''; flex-grow: 1; height: 1px; background: #e2e8f0; margin-left: 15px; }
+.tiny-text { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+:deep(.premium-tabs .el-tabs__item) { font-weight: 700; font-size: 15px; padding: 10px 20px !important; }
+:deep(.premium-tabs .el-tabs__active-bar) { height: 3px; border-radius: 3px; }
+.payment-timeline { max-height: 500px; overflow-y: auto; }
+
 .filter-item { margin-bottom: 10px; }
 .btn-action-icon {
   width: 32px; height: 32px; border-radius: 8px; border: 1px solid #eee;
@@ -582,38 +562,36 @@ onMounted(fetchInvoices);
   font-size: 15px;
 }
 
-/* Print Styles */
+/* Print Styles: Xóa bỏ hoàn toàn khoảng trắng và các thành phần thừa */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .custom-invoice-modal, .custom-invoice-modal * {
-    visibility: visible;
-  }
-  .custom-invoice-modal {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-  }
-  .actions-stack, .btn-close, .tabs-container {
+  /* Ẩn toàn bộ khung ứng dụng, modal và các lớp phủ overlay */
+  #app > *:not(.vat-invoice-wrapper),
+  .el-overlay,
+  .el-overlay-dialog,
+  .admin-staff-layout,
+  .base-modal-overlay {
     display: none !important;
   }
-  .detail-table-wrapper {
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  .col-md-2, .col-md-7, .col-md-3 {
-    width: auto !important;
-    flex: none !important;
-    float: none !important;
-    padding: 10px 0 !important;
-    border: none !important;
-  }
-  .row {
+
+  /* Đưa hóa đơn lên vị trí đầu trang tuyệt đối */
+  .vat-invoice-wrapper {
     display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    z-index: 99999 !important;
+  }
+
+  /* Reset body để không bị cuộn hay cách lề */
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 }
 </style>

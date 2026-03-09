@@ -50,11 +50,6 @@
 
       <template #actions="{ row }">
         <div class="d-flex justify-content-center align-items-center gap-1">
-          <el-tooltip content="Xem chi tiết" placement="top">
-            <button class="btn-action-icon action-view" @click.stop="$emit('view', row)">
-              <i class="bi bi-eye"></i>
-            </button>
-          </el-tooltip>
           <el-tooltip content="Chỉnh sửa ghế" placement="top">
             <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click.stop="$emit('open-dialog', row)">
               <i class="bi bi-pencil"></i>
@@ -108,7 +103,7 @@ const seatColumns = [
   { label: 'Trạng thái', key: 'trangThai', width: '140px' },
 ];
 
-const emit = defineEmits(['update:selectedSeats', 'open-dialog', 'update-status', 'view']);
+const emit = defineEmits(['update:selectedSeats', 'open-dialog', 'update-status']);
 
 const filteredSeats = computed(() => {
   return props.seats.filter(s => {

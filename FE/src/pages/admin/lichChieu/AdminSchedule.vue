@@ -137,7 +137,7 @@
     </AdminTableLayout>
 
     <!-- Modals (Shared) -->
-    <BaseModal v-model="detailVisible" title="Chi tiết lịch chiếu" icon="bi bi-calendar-event" width="550px">
+    <BaseModal v-model="detailVisible" title="Chi tiết lịch chiếu" icon="bi bi-calendar-event" width="550px" isDetail>
       <div v-if="selectedShowtime" class="p-2">
         <div class="d-flex gap-4 mb-4 pb-4 border-bottom">
           <img v-if="selectedShowtime.poster" :src="selectedShowtime.poster" class="rounded-3 shadow-sm"
@@ -181,7 +181,7 @@
           </div>
         </div>
       </div>
-      <template #footer></template>
+
     </BaseModal>
 
     <BaseModal

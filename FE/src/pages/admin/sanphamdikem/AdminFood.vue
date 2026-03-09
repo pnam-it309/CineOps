@@ -67,10 +67,10 @@
 
           <template #cell-image="{ row }">
             <div class="py-1">
-              <img :src="row.image || 'https://via.placeholder.com/150'" 
-                class="rounded-3 shadow-sm"
+              <img :src="row.image || 'https://placehold.co/150'" 
+                class="rounded-3 shadow-sm border"
                 style="width:40px;height:40px;object-fit:cover;"
-                @error="e => { if (e.target.src.includes('placeholder')) e.target.style.display='none'; else e.target.src='https://via.placeholder.com/150'; }" />
+                @error="e => { e.target.src='https://placehold.co/150?text=No+Image'; }" />
             </div>
           </template>
 
@@ -123,6 +123,7 @@
                 :model-value="row.trangThai === 1"
                 @change="(val) => handleDelete(row)"
                 class="status-switch mx-1"
+                active-color="#ff4949"
                 inactive-color="#ff4949"
               />
             </div>
@@ -273,68 +274,84 @@
     </BaseModal>
 
     <!-- Detail Modal -->
-    <BaseModal
-      v-model="detailVisible"
-      title="Chi tiết sản phẩm"
-      icon="bi bi-info-circle"
-      width="600px"
-    >
-      <div v-if="selectedItemDetail" class="p-2">
-        <div class="d-flex gap-4 mb-4 pb-4 border-bottom">
-          <div class="detail-img-wrapper">
-            <img :src="selectedItemDetail.image || 'https://via.placeholder.com/150'" class="rounded-4 shadow-sm" style="width: 140px; height: 140px; object-fit: cover;" />
+    <BaseModal v-model="detailVisible" title="Hồ sơ sản phẩm" icon="bi bi-box2-heart-fill" width="600px" isDetail onlyCancel>
+      <div v-if="selectedItemDetail" class="p-0">
+        <!-- Profile Header (Colorless) -->
+        <div class="p-4 border-bottom bg-white d-flex align-items-center gap-4">
+          <div class="shadow-sm border d-flex align-items-center justify-content-center bg-light" 
+               style="width: 120px; height: 120px; overflow: hidden;">
+            <img :src="selectedItemDetail.image || 'https://placehold.co/300'" class="w-100 h-100 object-fit-cover" @error="e => { e.target.src='https://placehold.co/300?text=No+Image'; }" />
           </div>
           <div class="flex-grow-1">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <h4 class="fw-bold text-dark m-0">{{ selectedItemDetail.name }}</h4>
-              <el-tag type="warning" effect="dark" round>Size {{ selectedItemDetail.sizeName }}</el-tag>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <h3 class="fw-bold m-0 text-dark">{{ selectedItemDetail.name }}</h3>
+              <el-tag type="info" effect="plain" round size="small">SIZE {{ selectedItemDetail.sizeName?.toUpperCase() }}</el-tag>
             </div>
-            <p class="text-secondary mb-3">{{ selectedItemDetail.description || 'Sản phẩm chưa có mô tả chi tiết.' }}</p>
             <div class="d-flex align-items-center gap-2">
-              <el-tag size="small" type="info" round>{{ selectedItemDetail.category }}</el-tag>
-              <el-tag size="small" :type="selectedItemDetail.stock > 0 ? 'success' : 'danger'" round>
-                {{ selectedItemDetail.stock > 0 ? 'Đang kinh doanh' : 'Tạm hết hàng' }}
+              <el-tag :type="selectedItemDetail.trangThai === 1 ? 'info' : 'plain'" effect="plain" round size="small">
+                {{ selectedItemDetail.trangThai === 1 ? 'ĐANG KINH DOANH' : 'NGỪNG BÁN' }}
               </el-tag>
+              <div class="small text-secondary"><i class="bi bi-tag me-1"></i>{{ selectedItemDetail.category }}</div>
             </div>
           </div>
         </div>
 
-        <div class="row g-4">
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small">Giá bán lẻ</div>
-              <div class="val fw-bold text-dark fs-5">{{ formatCurrency(selectedItemDetail.price) }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item p-3 rounded-4 bg-light shadow-sm">
-              <div class="lbl mb-1 text-secondary small"><i class="bi bi-palette me-2 text-primary"></i>Hương vị</div>
-              <div class="val fw-bold text-dark">{{ selectedItemDetail.huongVi || 'Mặc định' }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small">Định lượng</div>
-              <div class="val fw-semibold">{{ selectedItemDetail.quantityValue }} {{ selectedItemDetail.unitName }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small">Tồn kho hiện tại</div>
-              <div class="val fw-bold" :class="selectedItemDetail.stock < 10 ? 'text-warning' : 'text-dark'">
-                {{ selectedItemDetail.stock }} sản phẩm
+        <!-- Details Body -->
+        <div class="p-4 bg-white">
+          <div class="row g-4">
+            <div class="col-12">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Thông số thương mại</h6>
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="p-3 border bg-white">
+                    <div class="text-secondary small mb-1">GIÁ NIÊM YẾT</div>
+                    <div class="fw-bold fs-4 text-dark">{{ formatCurrency(selectedItemDetail.price) }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 border bg-white">
+                    <div class="text-secondary small mb-1">TỒN KHO HIỆN TẠI</div>
+                    <div class="fw-bold fs-4 text-dark">{{ selectedItemDetail.stock }} SP</div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="col-6">
-            <div class="detail-info-item">
-              <div class="lbl mb-1 text-secondary small">Mã biến thể</div>
-              <div class="val text-secondary font-monospace">#{{ selectedItemDetail.id }}</div>
+
+            <div class="col-12">
+              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Hiệu suất & Thành phần</h6>
+              <div class="row g-3">
+                <div class="col-4">
+                  <div class="p-2 border bg-white text-center">
+                    <div class="text-secondary tiny-text">ĐỊNH LƯỢNG</div>
+                    <div class="fw-bold text-dark">{{ selectedItemDetail.quantityValue }} {{ selectedItemDetail.unitName }}</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 border bg-white text-center">
+                    <div class="text-secondary tiny-text">HƯƠNG VỊ</div>
+                    <div class="fw-bold text-dark">{{ selectedItemDetail.huongVi || 'Tự nhiên' }}</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 border bg-white text-center">
+                    <div class="text-secondary tiny-text">DOANH THU</div>
+                    <div class="fw-bold text-dark">{{ formatCurrency(selectedItemDetail.doanhThu || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="p-3 border bg-light">
+                <h6 class="text-uppercase small fw-bold text-secondary mb-1">MÔ TẢ SẢN PHẨM</h6>
+                <p class="text-dark mb-0 small lh-base">
+                  {{ selectedItemDetail.description || 'Không có mô tả chi tiết.' }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <template #footer></template>
     </BaseModal>
   </div>
 </template>
@@ -447,7 +464,9 @@ const fetchItems = async () => {
           stock: v.soLuongTon,
           huongVi: v.huongVi, // Add huongVi here
           trangThai: sp.trangThai,
-          rawProduct: sp
+          rawProduct: sp,
+          tongBan: v.tongSoLuongBan, // Assuming this comes from backend
+          doanhThu: v.tongDoanhThu // Assuming this comes from backend
         })
       })
     })
@@ -484,7 +503,7 @@ const paginatedItems = computed(() => {
 const openDialog = (product = null) => {
   if (product) {
     isEditMode.value = true
-    const sp = product.rawProduct
+    const sp = product.rawProduct || product // Handle both flattened item and raw product
     itemForm.value = {
       id: sp.id,
       tenSanPham: sp.tenSanPham,
@@ -657,6 +676,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+.hero-image-box { height: 200px; position: relative; }
+.image-overlay-category { position: absolute; bottom: 0; left: 0; right: 0; text-align: center; }
+.product-main-name { font-size: 24px; letter-spacing: -0.5px; }
+.uppercase-label { text-transform: uppercase; letter-spacing: 1px; font-size: 11px; }
+.section-title-sm { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 15px; }
+.tiny-text { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; display: block; }
+.spec-card { transition: all 0.2s; }
+.spec-card:hover { transform: translateY(-3px); border-color: var(--el-color-primary-light-5) !important; }
+.dot-indicator { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; vertical-align: middle; box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
+
+.section-divider-sm { display: flex; align-items: center; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.section-divider-sm::after { content: ''; flex-grow: 1; height: 1px; background: #f1f5f9; margin-left: 10px; }
+.stat-card { transition: all 0.2s; }
+.stat-card:hover { border-color: var(--el-color-primary) !important; transform: translateY(-2px); }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.spec-plate { transition: all 0.2s; border: 1px solid #f1f5f9; }
+.spec-plate:hover { border-color: var(--el-color-primary) !important; background: #fff !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
 .admin-food-container { 
   overflow: hidden;
 }

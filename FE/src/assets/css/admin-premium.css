@@ -144,7 +144,7 @@
 .premium-form .el-textarea__inner:focus {
     border-color: #E31E24 !important;
     background-color: #fff !important;
-    box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1) !important;
+    box-shadow: 0 0 0 1px #E31E24 inset, 0 0 0 4px rgba(227, 30, 36, 0.1) !important;
 }
 
 /* 3. Filter Bar Styling */
@@ -174,7 +174,7 @@
 .filter-card .el-select__wrapper.is-focused {
     border-color: #E31E24 !important;
     background-color: #fff !important;
-    box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1) !important;
+    box-shadow: 0 0 0 1px #E31E24 inset, 0 0 0 4px rgba(227, 30, 36, 0.1) !important;
 }
 
 /* Unified Action Colors (Context only, styles in buttons.scss) */
@@ -320,19 +320,24 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* 8. Premium Input Hover & Focus */
-.el-input__wrapper {
+/* 8. Premium Input & Select Hover & Focus */
+.el-input__wrapper,
+.el-select__wrapper {
     transition: all 0.3s !important;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
     height: 32px !important;
+    border-radius: 8px !important;
 }
 
-.el-input__wrapper:hover {
+.el-input__wrapper:hover,
+.el-select__wrapper:hover {
     box-shadow: 0 0 0 1px #E31E24 inset !important;
 }
 
-.el-input__wrapper.is-focus {
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused {
     box-shadow: 0 0 0 1px #E31E24 inset, 0 0 0 3px rgba(227, 30, 36, 0.1) !important;
+    border-color: #E31E24 !important;
 }
 
 /* Perfect alignment for filter bar */
