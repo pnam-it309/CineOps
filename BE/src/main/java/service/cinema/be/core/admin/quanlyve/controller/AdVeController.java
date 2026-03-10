@@ -34,6 +34,7 @@ public class AdVeController {
     @GetMapping("/tim-kiem")
     public ResponseEntity<Page<AdVeResponse>> timKiemVe(
             @RequestParam(defaultValue = "") String tuKhoa, // Mã vé, Tên phim, SĐT khách
+            @RequestParam(required = false) String maHoaDon,
             @RequestParam(required = false) Integer trangThai,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,

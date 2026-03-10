@@ -76,3 +76,4 @@ export const ADMIN_ROUTES = {
     STAFF_EDIT: { path: 'staff/edit/:id', name: 'AdminStaffEdit' }
   }
 };
+

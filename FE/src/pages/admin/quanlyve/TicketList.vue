@@ -336,7 +336,7 @@ onMounted(() => {
             <div class="col-md-4">
               <el-input 
                 v-model="params.tuKhoa" 
-                placeholder="Mã vé, tên phim, SĐT khách..." 
+                placeholder="Mã vé, mã hóa đơn, tên phim, SĐT..."
                 :prefix-icon="Search" 
                 clearable 
                 class="w-100"
@@ -435,7 +435,9 @@ onMounted(() => {
           <template #cell-maVe="{ row }">
             <span class="fw-bold text-indigo-500">#{{ row.maVe }}</span>
           </template>
-
+          <template #cell-maHoaDon="{ row }">
+            <span class="fw-bold text-indigo-500">#{{ row.maHoaDon }}</span>
+          </template>
           <template #cell-tenPhim="{ row }">
             <div class="fw-bold text-dark">{{ row.tenPhim || '—' }}</div>
           </template>

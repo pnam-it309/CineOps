@@ -20,6 +20,10 @@ public class AdVeResponse {
     private String tenPhim;
     private String tenPhongChieu;
     private String viTriGhe;
+    // --- BỔ SUNG 2 DÒNG NÀY ĐỂ HẾT LỖI Ở SERVICE ---
+    private String tenNhanVien;   // Tên nhân viên lập hóa đơn (bán vé)
+    private String maNhanVien;    // Mã nhân viên
+    // ----------------------------------------------
 
     // THỜI GIAN CHIẾU THỰC TẾ (Lấy từ SuatChieu) [cite: 2026-02-04]
     private LocalDate ngayChieu;

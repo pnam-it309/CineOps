@@ -8,14 +8,14 @@
       text-color="#475569" active-text-color="#E31E24" class="border-0 overflow-auto py-2 h-100"
       style="--el-menu-bg-color: #ffffff; --el-menu-text-color: #475569; --el-menu-active-color: #E31E24;" router
       menu-trigger="hover">
+      
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- KHỐI 1: ROOT MENU (1-Click - High Frequency Operations) -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.DASHBOARD)">
         <el-icon><DataAnalysis /></el-icon>
         <template #title>Tổng quan</template>
-      </el-menu-item>
-
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.STATISTICS)">
-        <el-icon><Histogram /></el-icon>
-        <template #title>Thống kê</template>
       </el-menu-item>
 
       <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.POS)">
@@ -28,68 +28,89 @@
         <template #title>Check-in vé</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.INVOICES)">
-        <el-icon><Document /></el-icon>
-        <template #title>Quản lý hoá đơn</template>
-      </el-menu-item>
-
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.TICKETS)">
-        <el-icon><Ticket /></el-icon>
-        <template #title>Quản lý vé</template>
-      </el-menu-item>
-
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS)">
-        <el-icon><Monitor /></el-icon>
-        <template #title>Quản lí ghế</template>
-      </el-menu-item>
-
-      <!-- Quản lý phim — item trực tiếp -->
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
-        <el-icon><Film /></el-icon>
-        <template #title>Quản lý phim</template>
-      </el-menu-item>
-
-      <!-- Quản lý lịch chiếu — item trực tiếp, chỉ có sơ đồ -->
-      <el-sub-menu index="admin-schedule-group">
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- KHỐI 2: SUB-MENUS (2-Click - CRUD/Management)          -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      
+      <!-- 📁 Quản lý Giao dịch -->
+      <el-sub-menu index="admin-transaction">
         <template #title>
-          <el-icon><Calendar /></el-icon>
-          <span>Quản lý lịch chiếu</span>
+          <el-icon><Wallet /></el-icon>
+          <span>Quản lý Giao dịch</span>
         </template>
-        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name)">
-          <el-icon><Grid /></el-icon>
-          <template #title>Sơ đồ lịch chiếu</template>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.INVOICES)">
+          <el-icon><Document /></el-icon>
+          <template #title>Quản lý hóa đơn</template>
         </el-menu-item>
-        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name)">
-          <el-icon><Tickets /></el-icon>
-          <template #title>Danh sách lịch chiếu</template>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.TICKETS)">
+          <el-icon><Ticket /></el-icon>
+          <template #title>Quản lý vé</template>
         </el-menu-item>
       </el-sub-menu>
 
-      <!-- Quản lý suất chiếu — item trực tiếp, không dropdown -->
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">
-        <el-icon><AlarmClock /></el-icon>
-        <template #title>Quản lý suất chiếu</template>
-      </el-menu-item>
+      <!-- 📁 Quản lý Phim & Rạp -->
+      <el-sub-menu index="admin-movie-cinema">
+        <template #title>
+          <el-icon><Film /></el-icon>
+          <span>Quản lý Phim & Rạp</span>
+        </template>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
+          <el-icon><VideoCamera /></el-icon>
+          <template #title>Quản lý phim</template>
+        </el-menu-item>
+        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name)">
+          <el-icon><List /></el-icon>
+          <template #title>Lịch chiếu</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">
+          <el-icon><AlarmClock /></el-icon>
+          <template #title>Suất chiếu</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.ROOMS)">
+          <el-icon><OfficeBuilding /></el-icon>
+          <template #title>Phòng chiếu</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS)">
+          <el-icon><Monitor /></el-icon>
+          <template #title>Ghế</template>
+        </el-menu-item>
+      </el-sub-menu>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.FOOD)">
-        <el-icon><Coffee /></el-icon>
-        <template #title>Quản lý sản phẩm đi kèm</template>
-      </el-menu-item>
+      <!-- 📁 Dịch vụ & Marketing -->
+      <el-sub-menu index="admin-service-marketing">
+        <template #title>
+          <el-icon><ShoppingBag /></el-icon>
+          <span>Dịch vụ & Marketing</span>
+        </template>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.FOOD)">
+          <el-icon><Coffee /></el-icon>
+          <template #title>Sản phẩm đi kèm</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.VOUCHERS)">
+          <el-icon><PriceTag /></el-icon>
+          <template #title>Phiếu giảm giá</template>
+        </el-menu-item>
+      </el-sub-menu>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.VOUCHERS)">
-        <el-icon><PriceTag /></el-icon>
-        <template #title>Quản lý phiếu giảm giá</template>
-      </el-menu-item>
-
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS)">
-        <el-icon><Avatar /></el-icon>
-        <template #title>Quản lý khách hàng</template>
-      </el-menu-item>
-
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.STAFF)">
-        <el-icon><User /></el-icon>
-        <template #title>Quản lý nhân viên</template>
-      </el-menu-item>
+      <!-- 📁 Hệ thống & Thống kê -->
+      <el-sub-menu index="admin-system-stats">
+        <template #title>
+          <el-icon><Setting /></el-icon>
+          <span>Hệ thống & Thống kê</span>
+        </template>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.STATISTICS)">
+          <el-icon><Histogram /></el-icon>
+          <template #title>Báo cáo thống kê</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS)">
+          <el-icon><User /></el-icon>
+          <template #title>Quản lý khách hàng</template>
+        </el-menu-item>
+        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.STAFF)">
+          <el-icon><Avatar /></el-icon>
+          <template #title>Quản lý nhân viên</template>
+        </el-menu-item>
+      </el-sub-menu>
     </el-menu>
 
     <!-- User Profile at Bottom -->
@@ -134,7 +155,11 @@ import {
   Monitor,
   Setting,
   VideoPlay,
-  Grid
+  Wallet,
+  VideoCamera,
+  List,
+  OfficeBuilding,
+  ShoppingBag
 } from '@element-plus/icons-vue';
 
 const props = defineProps({

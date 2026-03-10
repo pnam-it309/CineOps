@@ -104,7 +104,7 @@ public class AdVeServiceImpl implements AdVeService {
             String kyThoiGian, String sortDir,
             int page, int size) {
 
-        // 1. XỬ LÝ LOGIC "KỲ THỜI GIAN" (Nội suy ra ngày bắt đầu/kết thúc) [cite: 2026-03-04]
+        // 1. XỬ LÝ KỲ THỜI GIAN (Giữ nguyên logic của bạn)
         if (kyThoiGian != null && !kyThoiGian.trim().isEmpty()) {
             LocalDate now = LocalDate.now();
             switch (kyThoiGian.toUpperCase()) {
@@ -118,60 +118,49 @@ public class AdVeServiceImpl implements AdVeService {
             }
         }
 
-        // Biến final dùng cho Lambda Specification
         final LocalDate finalTuNgay = tuNgay;
         final LocalDate finalDenNgay = denNgay;
 
-        // 2. THIẾT LẬP PHÂN TRANG & SẮP XẾP ĐỘNG
         Sort.Direction direction = (sortDir != null && sortDir.equalsIgnoreCase("ASC"))
                 ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "ngayTao"));
 
-        // 3. XÂY DỰNG CÂU TRUY VẤN ĐỘNG (SPECIFICATION)
+        // 2. XÂY DỰNG SPECIFICATION
         Specification<Ve> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // A. TÌM KIẾM ĐA NĂNG: Mã vé | Tên phim | Tên khách | SĐT khách
+            // A. TÌM KIẾM ĐA NĂNG: Mã vé | Mã hóa đơn | Tên phim | Tên/SĐT khách
             if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
                 String keyword = "%" + tuKhoa.trim().toLowerCase() + "%";
 
-                // Join các bảng liên quan để tìm kiếm
+                // Thực hiện Join (Sử dụng LEFT JOIN để tránh mất dữ liệu nếu một số trường bị null)
+                jakarta.persistence.criteria.Join<Ve, HoaDon> hoaDonJoin = root.join("hoaDon", jakarta.persistence.criteria.JoinType.LEFT);
                 jakarta.persistence.criteria.Join<Ve, SuatChieu> suatChieuJoin = root.join("suatChieu", jakarta.persistence.criteria.JoinType.LEFT);
                 jakarta.persistence.criteria.Join<SuatChieu, Phim> phimJoin = suatChieuJoin.join("phim", jakarta.persistence.criteria.JoinType.LEFT);
-                jakarta.persistence.criteria.Join<Ve, HoaDon> hoaDonJoin = root.join("hoaDon", jakarta.persistence.criteria.JoinType.LEFT);
                 jakarta.persistence.criteria.Join<HoaDon, KhachHang> khachHangJoin = hoaDonJoin.join("khachHang", jakarta.persistence.criteria.JoinType.LEFT);
 
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("maVe")), keyword),
+                        cb.like(cb.lower(hoaDonJoin.get("maHoaDon")), keyword), // TÌM THEO MÃ HÓA ĐƠN
                         cb.like(cb.lower(phimJoin.get("tenPhim")), keyword),
                         cb.like(cb.lower(khachHangJoin.get("tenKhachHang")), keyword),
                         cb.like(khachHangJoin.get("sdt"), keyword)
                 ));
             }
 
-            // B. LỌC TRẠNG THÁI
-            if (trangThai != null) {
-                predicates.add(cb.equal(root.get("trangThai"), trangThai));
-            }
-
-            // C. LỌC KHOẢNG GIÁ (Giá thanh toán thực tế của vé)
+            // B. LỌC TRẠNG THÁI & GIÁ (Giữ nguyên)
+            if (trangThai != null) predicates.add(cb.equal(root.get("trangThai"), trangThai));
             if (minPrice != null) predicates.add(cb.greaterThanOrEqualTo(root.get("giaThanhToan"), minPrice));
             if (maxPrice != null) predicates.add(cb.lessThanOrEqualTo(root.get("giaThanhToan"), maxPrice));
 
-            // D. LỌC KHOẢNG THỜI GIAN (Ngày tạo vé) [cite: 2026-03-04]
-            if (finalTuNgay != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("ngayTao"), finalTuNgay.atStartOfDay()));
-            }
-            if (finalDenNgay != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("ngayTao"), finalDenNgay.atTime(23, 59, 59)));
-            }
+            // C. LỌC THỜI GIAN
+            if (finalTuNgay != null) predicates.add(cb.greaterThanOrEqualTo(root.get("ngayTao"), finalTuNgay.atStartOfDay()));
+            if (finalDenNgay != null) predicates.add(cb.lessThanOrEqualTo(root.get("ngayTao"), finalDenNgay.atTime(23, 59, 59)));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        // 4. THỰC THI VÀ MAPPING SANG DTO
-        return adVeRepository.findAll(specification, pageable)
-                .map(this::mapToResponse);
+        return adVeRepository.findAll(specification, pageable).map(this::mapToResponse);
     }
 
     /**
@@ -227,47 +216,56 @@ public class AdVeServiceImpl implements AdVeService {
     private AdVeResponse mapToResponse(Ve ve) {
         AdVeResponse dto = new AdVeResponse();
 
-        // 1. Thông tin định danh & trạng thái [cite: 2026-03-08]
+        // 1. Thông tin cơ bản
         dto.setId(ve.getId());
         dto.setMaVe(ve.getMaVe());
         dto.setGiaThanhToan(ve.getGiaThanhToan());
         dto.setTrangThai(ve.getTrangThai());
         dto.setNgayTao(ve.getNgayTao());
         dto.setLoaiVe(ve.getLoaiVe()); // 0: Tại quầy, 1: Online
-        dto.setNguoiTao(ve.getNguoiTao() != null ? ve.getNguoiTao() : "Hệ thống");
 
-        // 2. Thông tin Suất chiếu & Thời gian chiếu thực tế [cite: 2026-02-04]
+        // 2. Thông tin Suất chiếu & Phim
         if (ve.getSuatChieu() != null) {
-            dto.setNgayChieu(ve.getSuatChieu().getNgayChieu());
-            dto.setGioBatDau(ve.getSuatChieu().getGioBatDau());
+            SuatChieu sc = ve.getSuatChieu();
+            dto.setNgayChieu(sc.getNgayChieu());
+            dto.setGioBatDau(sc.getGioBatDau());
 
-            if (ve.getSuatChieu().getPhim() != null) {
-                dto.setTenPhim(ve.getSuatChieu().getPhim().getTenPhim());
-                dto.setThoiLuong(ve.getSuatChieu().getPhim().getThoiLuong());
-                dto.setNhanDoTuoi(ve.getSuatChieu().getPhim().getNhanDoTuoi());
+            if (sc.getPhim() != null) {
+                dto.setTenPhim(sc.getPhim().getTenPhim());
+                dto.setNhanDoTuoi(sc.getPhim().getNhanDoTuoi());
             }
-            if (ve.getSuatChieu().getPhongChieu() != null) {
-                dto.setTenPhongChieu(ve.getSuatChieu().getPhongChieu().getTenPhong());
+            if (sc.getPhongChieu() != null) {
+                dto.setTenPhongChieu(sc.getPhongChieu().getTenPhong());
             }
         }
 
-        // 3. Thông tin Ghế & Loại vé (Join Ghe -> LoaiGhe)
+        // 3. Thông tin Ghế & Loại vé thực tế (VIP/Thường/Couple)
         if (ve.getGhe() != null) {
             dto.setViTriGhe(ve.getGhe().getSoGhe());
             if (ve.getGhe().getLoaiGhe() != null) {
-                // Hiển thị chuyên nghiệp: "Vé VIP", "Vé Thường", "Vé Couple" [cite: 2026-03-04]
                 dto.setTenLoaiVe("Vé " + ve.getGhe().getLoaiGhe().getTenLoai());
             }
         }
 
-        // 4. Thông tin Khách hàng & Hóa đơn (Đã fix lỗi getHoaDon)
+        // 4. Thông tin Hóa đơn & Nhân viên & Khách hàng
         if (ve.getHoaDon() != null) {
-            dto.setMaHoaDon(ve.getHoaDon().getMaHoaDon());
-            if (ve.getHoaDon().getKhachHang() != null) {
-                dto.setTenKhachHang(ve.getHoaDon().getKhachHang().getTenKhachHang());
-                dto.setSdtKhachHang(ve.getHoaDon().getKhachHang().getSdt());
+            HoaDon hd = ve.getHoaDon();
+            dto.setMaHoaDon(hd.getMaHoaDon());
+
+            // Map thông tin nhân viên lập hóa đơn này
+            if (hd.getNhanVien() != null) {
+                dto.setTenNhanVien(hd.getNhanVien().getTenNhanVien());
+                dto.setMaNhanVien(hd.getNhanVien().getMaNhanVien());
             } else {
-                dto.setTenKhachHang("Khách lẻ / vãng lai");
+                dto.setTenNhanVien(hd.getNguoiTao() != null ? hd.getNguoiTao() : "Hệ thống");
+            }
+
+            // Map thông tin khách hàng
+            if (hd.getKhachHang() != null) {
+                dto.setTenKhachHang(hd.getKhachHang().getTenKhachHang());
+                dto.setSdtKhachHang(hd.getKhachHang().getSdt());
+            } else {
+                dto.setTenKhachHang("Khách lẻ");
             }
         }
 

@@ -11,17 +11,13 @@ export const adminRoutes = {
             path: '',
             redirect: { name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name }
         },
+        
+        // ── Root Menu (1-Click) ─────────────────────────────────
         {
             path: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.path,
             name: ROUTES_CONSTANTS.ADMIN.children.DASHBOARD.name,
             component: () => import('@/pages/admin/tongquan/AdminDashboard.vue'),
             meta: { title: 'Tổng quan' }
-        },
-        {
-            path: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.path,
-            name: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.name,
-            component: () => import('@/pages/admin/thongke/AdminReports.vue'),
-            meta: { title: 'Thống kê' }
         },
         {
             path: ROUTES_CONSTANTS.ADMIN.children.POS.path,
@@ -36,86 +32,38 @@ export const adminRoutes = {
             meta: { title: 'Check-in vé' }
         },
 
-        // ── Hóa đơn ──────────────────────────────────────────
+        // ── Sub-Menu: Quản lý Giao dịch ────────────────────────
         {
             path: ROUTES_CONSTANTS.ADMIN.children.INVOICES.path,
             name: ROUTES_CONSTANTS.ADMIN.children.INVOICES.name,
             component: () => import('@/pages/admin/quanlyhoadon/AdminInvoices.vue'),
             meta: { title: 'Quản lý hóa đơn' }
         },
-
-        // ── Vé ───────────────────────────────────────────────
         {
             path: ROUTES_CONSTANTS.ADMIN.children.TICKETS.path,
             name: ROUTES_CONSTANTS.ADMIN.children.TICKETS.name,
             component: () => import('@/pages/admin/quanlyve/TicketList.vue'),
             meta: { title: 'Quản lý vé' }
         },
-        // ── Phòng chiếu ──────────────────────────────────────
-        {
-            path: ROUTES_CONSTANTS.ADMIN.children.ROOMS.path,
-            name: ROUTES_CONSTANTS.ADMIN.children.ROOMS.name,
-            component: () => import('@/pages/admin/AdminRooms.vue'),
-            meta: { title: 'Danh sách phòng' }
-        },
 
-        // ── Ghế ──────────────────────────────────────────────
-        {
-            path: ROUTES_CONSTANTS.ADMIN.children.SEATS.path,
-            name: ROUTES_CONSTANTS.ADMIN.children.SEATS.name,
-            component: () => import('@/pages/admin/ghe/AdminSeats.vue'),
-            redirect: { name: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LIST.name },
-            children: [
-                {
-                    path: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LIST.path,
-                    name: ROUTES_CONSTANTS.ADMIN.children.SEATS.children.LIST.name,
-                    component: () => import('@/pages/admin/ghe/AdminSeats.vue'),
-                    meta: { title: 'Danh sách ghế' }
-                }
-            ]
-        },
-
-        // ── Phim ─────────────────────────────────────────────
+        // ── Sub-Menu: Quản lý Phim & Rạp ────────────────────────
+        // Quản lý phim
         {
             path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.path,
             name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.name,
             component: () => import('@/pages/admin/quanliphim/AdminMovies.vue'),
             meta: { title: 'Quản lý phim' }
         },
-        {
-            path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.path,
-            name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.name,
-            component: () => import('@/pages/admin/quanliphim/MovieFormPage.vue'),
-            meta: { title: 'Thêm phim mới' }
-        },
-        {
-            path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.path,
-            name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.name,
-            component: () => import('@/pages/admin/quanliphim/MovieFormPage.vue'),
-            meta: { title: 'Chỉnh sửa phim' }
-        },
-        {
-            path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_DETAIL.path,
-            name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_DETAIL.name,
-            component: () => import('@/pages/admin/quanliphim/MovieDetailPage.vue'),
-            meta: { title: 'Chi tiết phim' }
-        },
-
-        // ── Lịch chiếu ───────────────────────────────────────
-        {
-            path: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.path + '/visual',
-            name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name,
-            component: () => import('@/pages/admin/lichChieu/AdminScheduleVisual.vue'),
-            meta: { title: 'Sơ đồ lịch chiếu' }
-        },
+        
+        // Lịch chiếu (Danh sách - Sơ đồ chuyển trong table)
         {
             path: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.path + '/list',
             name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name,
-            component: () => import('@/pages/admin/lichChieu/AdminScheduleList.vue'),
-            meta: { title: 'Danh sách lịch chiếu' }
+            component: () => import('@/pages/admin/lichChieu/AdminSchedule.vue'),
+            meta: { title: 'Lịch chiếu' }
         },
 
-        // ── Suất chiếu ───────────────────────────────────────
+        // Suất chiếu (tách riêng)
         {
             path: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.path,
             name: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.name,
@@ -123,15 +71,29 @@ export const adminRoutes = {
             meta: { title: 'Suất chiếu' }
         },
 
-        // ── Sản phẩm đi kèm ──────────────────────────────────
+        // Phòng chiếu
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.ROOMS.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.ROOMS.name,
+            component: () => import('@/pages/admin/AdminRooms.vue'),
+            meta: { title: 'Phòng chiếu' }
+        },
+
+        // Ghế
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.SEATS.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.SEATS.name,
+            component: () => import('@/pages/admin/ghe/AdminSeats.vue'),
+            meta: { title: 'Ghế' }
+        },
+
+        // ── Sub-Menu: Dịch vụ & Marketing ───────────────────────
         {
             path: ROUTES_CONSTANTS.ADMIN.children.FOOD.path,
             name: ROUTES_CONSTANTS.ADMIN.children.FOOD.name,
             component: () => import('@/pages/admin/sanphamdikem/AdminFood.vue'),
             meta: { title: 'Sản phẩm & Combo' }
         },
-
-        // ── Voucher ───────────────────────────────────────────
         {
             path: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.path,
             name: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.name,
@@ -151,15 +113,19 @@ export const adminRoutes = {
             meta: { title: 'Chỉnh sửa phiếu giảm giá' }
         },
 
-        // ── Khách hàng ───────────────────────────────────────
+        // ── Sub-Menu: Hệ thống & Thống kê ──────────────────────
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.STATISTICS.name,
+            component: () => import('@/pages/admin/thongke/AdminReports.vue'),
+            meta: { title: 'Thống kê' }
+        },
         {
             path: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.path,
             name: ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS.name,
             component: () => import('@/pages/admin/quanlikhachhang/AdminCustomers.vue'),
             meta: { title: 'Khách hàng' }
         },
-
-        // ── Nhân viên ────────────────────────────────────────
         {
             path: ROUTES_CONSTANTS.ADMIN.children.STAFF.path,
             name: ROUTES_CONSTANTS.ADMIN.children.STAFF.name,
@@ -180,3 +146,4 @@ export const adminRoutes = {
         },
     ]
 };
+

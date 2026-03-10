@@ -91,12 +91,15 @@
           <tr v-for="(item, index) in details" :key="index" style="height: 40px;">
             <td class="text-center">{{ index + 1 }}</td>
             <td class="ps-2 align-middle">
-              <div class="fw-bold">{{ item.loai === 0 ? 'Vé xem phim: ' + (item.tenPhim || 'N/A') : (item.tenSanPham || 'Sản phẩm') }}</div>
+              <div class="fw-bold">{{ item.loai === 0 ? 'Vé xem phim: ' + (item.tenPhim || 'Phim') : (item.tenSanPham || 'Sản phẩm') }}</div>
               <div v-if="item.loai === 0" class="tiny fst-italic ms-3">
-                • {{ item.tenPhongChieu }} - Ghế: {{ item.viTriGhe }}
+                • {{ item.tenPhongChieu || 'Phòng' }} - Ghế: {{ item.viTriGhe || 'N/A' }}
+              </div>
+              <div v-else class="tiny fst-italic ms-3">
+                • {{ item.maMuc || 'Mã SP' }}
               </div>
             </td>
-            <td class="text-center align-middle">{{ item.loai === 0 ? 'Vé' : (item.donViTinh || 'Phần') }}</td>
+            <td class="text-center align-middle">{{ item.loai === 0 ? 'Vé' : 'Phần' }}</td>
             <td class="text-center align-middle">{{ item.soLuong || 1 }}</td>
             <td class="text-end pe-2 align-middle">{{ formatPrice(item.donGia) }}</td>
             <td class="text-end pe-2 fw-bold align-middle">{{ formatPrice(item.thanhTien) || formatPrice(item.donGia * (item.soLuong || 1)) }}</td>

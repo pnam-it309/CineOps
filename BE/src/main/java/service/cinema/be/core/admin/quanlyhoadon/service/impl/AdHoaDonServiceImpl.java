@@ -30,9 +30,7 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -398,43 +396,129 @@ public Page<AdHoaDonResponse> timKiemHoaDon(
     /**
      * LẤY CHI TIẾT 1 HÓA ĐƠN (KHI BẤM NÚT XEM CHI TIẾT)
      */
+    /**
+     * LẤY CHI TIẾT 1 HÓA ĐƠN (KHI BẤM NÚT XEM CHI TIẾT)
+     */
+//    @Override
+//    @Transactional(readOnly = true)
+//    public List<AdHoaDonChiTietResponse> layChiTietHoaDon(String idHoaDon) {
+//        List<HoaDonChiTiet> listChiTiet = adHoaDonChiTietRepository.findByHoaDonId(idHoaDon);
+//
+//        return listChiTiet.stream().map(chiTiet -> {
+//            AdHoaDonChiTietResponse dto = new AdHoaDonChiTietResponse();
+//            dto.setId(chiTiet.getId());
+//            dto.setLoai(chiTiet.getLoai());
+//            dto.setSoLuong(chiTiet.getSoLuong());
+//            dto.setDonGia(chiTiet.getDonGia());
+//            dto.setThanhTien(chiTiet.getThanhTien());
+//
+//            // Kiểm tra an toàn: Đảm bảo 'loai' không bị null trước khi so sánh
+//            if (chiTiet.getLoai() != null) {
+//
+//                // TRƯỜNG HỢP 1: Nếu là Vé (loại 1 theo Database)
+//                if (chiTiet.getLoai() == 1 && chiTiet.getVe() != null) {
+//                    Ve ve = chiTiet.getVe();
+//
+//                    // Móc data từ bảng Ve -> SuatChieu -> Phim (Kèm check null cẩn thận)
+//                    if (ve.getSuatChieu() != null) {
+//                        if (ve.getSuatChieu().getPhim() != null) {
+//                            dto.setTenPhim(ve.getSuatChieu().getPhim().getTenPhim());
+//                        }
+//                        if (ve.getSuatChieu().getPhongChieu() != null) {
+//                            dto.setTenPhongChieu(ve.getSuatChieu().getPhongChieu().getTenPhong());
+//                        }
+//                    }
+//
+//                    if (ve.getGhe() != null) {
+//                        dto.setViTriGhe(ve.getGhe().getSoGhe());
+//                    }
+//
+//                    dto.setMaMuc(ve.getMaVe());
+//                    dto.setGiamGia(BigDecimal.ZERO);
+//                }
+//
+//                // TRƯỜNG HỢP 2: Nếu là Đồ ăn/Sản phẩm (loại 2 theo Database)
+//                else if (chiTiet.getLoai() == 2 && chiTiet.getChiTietSanPhamDiKem() != null) {
+//                    var chiTietSP = chiTiet.getChiTietSanPhamDiKem();
+//
+//                    if (chiTietSP.getSanPham() != null) {
+//                        dto.setTenSanPham(chiTietSP.getSanPham().getTenSanPham());
+//
+//                        // Xử lý cắt chuỗi ID an toàn để tạo mã hiển thị
+//                        String sanPhamId = chiTietSP.getSanPham().getId();
+//                        if (sanPhamId != null) {
+//                            // Tránh lỗi StringIndexOutOfBoundsException nếu ID ngắn hơn 8 ký tự
+//                            String shortId = sanPhamId.length() >= 8 ? sanPhamId.substring(0, 8) : sanPhamId;
+//                            dto.setMaMuc("SP-" + shortId.toUpperCase());
+//                        }
+//                    }
+//                    dto.setGiamGia(BigDecimal.ZERO);
+//                }
+//            }
+//
+//            return dto;
+//        }).toList();
+//    }
     @Override
     @Transactional(readOnly = true)
     public List<AdHoaDonChiTietResponse> layChiTietHoaDon(String idHoaDon) {
         List<HoaDonChiTiet> listChiTiet = adHoaDonChiTietRepository.findByHoaDonId(idHoaDon);
 
-        return listChiTiet.stream().map(chiTiet -> {
-            AdHoaDonChiTietResponse dto = new AdHoaDonChiTietResponse();
-            dto.setId(chiTiet.getId());
-            dto.setLoai(chiTiet.getLoai());
-            dto.setSoLuong(chiTiet.getSoLuong());
-            dto.setDonGia(chiTiet.getDonGia());
-            dto.setThanhTien(chiTiet.getThanhTien());
+        // Dùng Map để gom nhóm. Key sẽ là ID Suất chiếu (cho Vé) hoặc ID Sản phẩm (cho Đồ ăn)
+        Map<String, AdHoaDonChiTietResponse> groupedMap = new LinkedHashMap<>();
 
-            // Nếu là Vé (loại 0), ta móc data từ bảng Ve -> SuatChieu -> Phim
-            if (chiTiet.getLoai() == 0 && chiTiet.getVe() != null) {
-                Ve ve = chiTiet.getVe();
-                if(ve.getSuatChieu() != null) {
+        for (HoaDonChiTiet chiTiet : listChiTiet) {
+            if (chiTiet.getLoai() == null) continue;
+
+            String key;
+            boolean isTicket = (chiTiet.getLoai() == 1); // Theo code của bạn: 1 là Vé
+
+            // Tạo khóa định danh (Key) để gom nhóm
+            if (isTicket && chiTiet.getVe() != null && chiTiet.getVe().getSuatChieu() != null) {
+                key = "VE_" + chiTiet.getVe().getSuatChieu().getId();
+            } else if (!isTicket && chiTiet.getChiTietSanPhamDiKem() != null) {
+                key = "SP_" + chiTiet.getChiTietSanPhamDiKem().getId();
+            } else {
+                continue; // Dữ liệu lỗi hoặc không xác định
+            }
+
+            if (groupedMap.containsKey(key)) {
+                // Đã tồn tại trong nhóm -> Cộng dồn số lượng và tiền
+                AdHoaDonChiTietResponse existing = groupedMap.get(key);
+                existing.setSoLuong(existing.getSoLuong() + (chiTiet.getSoLuong() != null ? chiTiet.getSoLuong() : 1));
+                existing.setThanhTien(existing.getThanhTien().add(chiTiet.getThanhTien()));
+
+                // Nếu là vé, nối thêm vị trí ghế vào chuỗi
+                if (isTicket && chiTiet.getVe().getGhe() != null) {
+                    existing.setViTriGhe(existing.getViTriGhe() + ", " + chiTiet.getVe().getGhe().getSoGhe());
+                }
+            } else {
+                // Chưa tồn tại -> Tạo mới bản ghi đầu tiên của nhóm
+                AdHoaDonChiTietResponse dto = new AdHoaDonChiTietResponse();
+                dto.setLoai(chiTiet.getLoai());
+                dto.setSoLuong(chiTiet.getSoLuong() != null ? chiTiet.getSoLuong() : 1);
+                dto.setDonGia(chiTiet.getDonGia());
+                dto.setThanhTien(chiTiet.getThanhTien());
+                dto.setGiamGia(BigDecimal.ZERO);
+
+                if (isTicket) {
+                    Ve ve = chiTiet.getVe();
                     dto.setTenPhim(ve.getSuatChieu().getPhim().getTenPhim());
                     dto.setTenPhongChieu(ve.getSuatChieu().getPhongChieu().getTenPhong());
+                    dto.setViTriGhe(ve.getGhe() != null ? ve.getGhe().getSoGhe() : "");
+                    dto.setMaMuc(ve.getMaVe()); // Có thể để mã của vé đầu tiên làm đại diện
+                } else {
+                    var chiTietSP = chiTiet.getChiTietSanPhamDiKem();
+                    dto.setTenSanPham(chiTietSP.getSanPham().getTenSanPham());
+                    String spId = chiTietSP.getSanPham().getId();
+                    dto.setMaMuc("SP-" + (spId.length() >= 8 ? spId.substring(0, 8) : spId).toUpperCase());
                 }
-                if(ve.getGhe() != null) {
-                    dto.setViTriGhe( ve.getGhe().getSoGhe());
-                }
-                dto.setMaMuc(ve.getMaVe());
-                dto.setGiamGia(BigDecimal.ZERO);
+                groupedMap.put(key, dto);
             }
-            // BỔ SUNG: Nếu là Đồ ăn/Sản phẩm (loại 1)
-            else if (chiTiet.getLoai() == 1 && chiTiet.getChiTietSanPhamDiKem() != null) {
-                // Móc từ HoaDonChiTiet -> ChiTietSanPhamDiKem -> SanPham -> TenSanPham
-                dto.setTenSanPham(chiTiet.getChiTietSanPhamDiKem().getSanPham().getTenSanPham());
-                dto.setMaMuc("SP-" + chiTiet.getChiTietSanPhamDiKem().getSanPham().getId().substring(0, 8).toUpperCase());
-                dto.setGiamGia(BigDecimal.ZERO);
-            }
-            return dto;
-        }).toList();
-    }
+        }
 
+        return new ArrayList<>(groupedMap.values());
+    }
     @Override
     @Transactional(readOnly = true)
     public AdHoaDonResponse getHoaDonById(String id) {

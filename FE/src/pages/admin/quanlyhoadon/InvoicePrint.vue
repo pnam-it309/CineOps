@@ -17,15 +17,16 @@
         </tr>
       </thead>
 
-      <tbody>
-        <tr v-for="(item,index) in invoiceDetails" :key="index">
-          <td>{{ index+1 }}</td>
-          <td>{{ item.loai === 0 ? item.tenPhim : item.tenSanPham }}</td>
-          <td>{{ item.soLuong || 1 }}</td>
-          <td>{{ formatCurrency(item.donGia) }}</td>
-          <td>{{ formatCurrency(item.donGia*(item.soLuong||1)) }}</td>
-        </tr>
-      </tbody>
+     <tbody>
+                    <tr v-for="(item, idx) in invoiceDetails" :key="idx">
+                      <td class="ps-4 py-3 border-bottom">
+                         <div class="fw-bold text-dark">{{ item.loai === 0 ? item.tenPhim : item.tenSanPham }}</div>
+                         <div class="text-secondary small">{{ item.loai === 0 ? 'Vé · Ghế ' + item.viTriGhe : 'Snack & Drink' }}</div>
+                      </td>
+                      <td class="text-center py-3 border-bottom text-dark fw-bold">{{ item.soLuong }}</td>
+                      <td class="text-end pe-4 py-3 border-bottom text-dark fw-bold">{{ formatCurrency(item.thanhTien) }}</td>
+                    </tr>
+                  </tbody>
     </table>
 
     <h3>Tổng: {{ formatCurrency(invoice?.tongTienThanhToan) }}</h3>

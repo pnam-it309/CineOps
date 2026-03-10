@@ -1,4 +1,4 @@
-<template>
+f <template>
   <div class="admin-schedule-page">
     <AdminTableLayout
       title="Quản lý lịch chiếu"
@@ -17,11 +17,11 @@
       <template #header-actions>
         <div class="d-flex align-items-center gap-3">
           <el-radio-group v-model="activeTab" size="default" class="premium-tabs-toggle">
-            <el-radio-button label="visual">
-              <i class="bi bi-grid-3x3-gap me-1"></i> Sơ đồ
-            </el-radio-button>
             <el-radio-button label="list">
               <i class="bi bi-list-ul me-1"></i> Danh sách
+            </el-radio-button>
+            <el-radio-button label="visual">
+              <i class="bi bi-grid-3x3-gap me-1"></i> Sơ đồ
             </el-radio-button>
           </el-radio-group>
           <div v-if="activeTab === 'visual'" class="d-flex align-items-center gap-2 border-start ps-3 ms-2">
@@ -60,18 +60,7 @@
 
       <!-- Content -->
       <template #content>
-        <div v-if="activeTab === 'visual'" class="h-100">
-          <ScheduleVisual
-            :showtimes="showtimes"
-            :phongChieuList="phongChieuList"
-            :phimList="phimList"
-            v-model:visualRoomId="visualRoomId"
-            @view="handleView"
-            @gridClick="handleGridClick"
-            @weekChange="fetchShowtimes"
-          />
-        </div>
-        <div v-else class="h-100">
+        <div v-if="activeTab === 'list'" class="h-100">
           <BaseTable
             :data="paginatedShowtimes"
             :columns="listColumns"
@@ -132,6 +121,17 @@
               </div>
             </template>
           </BaseTable>
+        </div>
+        <div v-else class="h-100">
+          <ScheduleVisual
+            :showtimes="showtimes"
+            :phongChieuList="phongChieuList"
+            :phimList="phimList"
+            v-model:visualRoomId="visualRoomId"
+            @view="handleView"
+            @gridClick="handleGridClick"
+            @weekChange="fetchShowtimes"
+          />
         </div>
       </template>
     </AdminTableLayout>
@@ -256,7 +256,7 @@ const detailVisible = ref(false);
 const selectedShowtime = ref(null);
 const editingId  = ref(null);
 const formRef    = ref(null);
-const activeTab  = ref('visual');
+const activeTab  = ref('list');
 
 const showtimes      = ref([]);
 const phongChieuList = ref([]);
