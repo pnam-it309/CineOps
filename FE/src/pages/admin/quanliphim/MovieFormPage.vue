@@ -1,19 +1,46 @@
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 import { phimApi } from '@/services/api/admin/phimService';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
+import { ElIcon } from 'element-plus';
 import { 
   Tickets, Files, Calendar, Opportunity, Monitor, 
-  Link, VideoPlay, ArrowLeft, Check
+  Link, VideoPlay, ArrowLeft, Check, Plus
 } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
 const genreOptions = ref([]);
+
+// Quick add genre
+const showAddGenreDialog = ref(false);
+const newGenreName = ref('');
+const listTheLoai = computed(() => genreOptions.value);
+
+const handleQuickAddGenre = async () => {
+  if (!newGenreName.value.trim()) {
+    notification.warning('Vui lòng nhập tên thể loại!');
+    return;
+  }
+  try {
+    const res = await phimApi.createTheLoai(newGenreName.value.trim());
+    notification.success('Thêm thể loại thành công!');
+    // Reload genre list
+    await fetchGenres();
+    // Auto select the new genre
+    if (res.data.data && res.data.data.id) {
+      movieForm.value.idTheLoais.push(res.data.data.id);
+    }
+    showAddGenreDialog.value = false;
+    newGenreName.value = '';
+  } catch (e) {
+    notification.error('Lỗi khi thêm thể loại');
+  }
+};
 
 const generateMovieCode = () => {
   const chars = '0123456789';
@@ -206,9 +233,25 @@ onMounted(() => {
                 </el-form-item>
               </div>
               <div class="col-md-6">
-                <el-form-item label="Thể loại">
-                  <el-select v-model="movieForm.idTheLoais" multiple placeholder="Chọn thể loại" class="w-100" size="large">
-                    <el-option v-for="g in genreOptions" :key="g.id" :label="g.tenTheLoai" :value="g.id"/>
+                <el-form-item label="Thể loại" prop="idTheLoais">
+                  <el-select 
+                    v-model="movieForm.idTheLoais" 
+                    multiple 
+                    filterable 
+                    placeholder="Chọn thể loại" 
+                    class="w-100"
+                  >
+                    <template #suffix>
+                      <el-icon @click.stop="showAddGenreDialog = true" class="cursor-pointer mr-2">
+                        <Plus />
+                      </el-icon>
+                    </template>
+                    <el-option 
+                      v-for="item in listTheLoai" 
+                      :key="item.id" 
+                      :label="item.tenTheLoai" 
+                      :value="item.id" 
+                    />
                   </el-select>
                 </el-form-item>
               </div>
@@ -324,6 +367,15 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+  <!-- Dialog thêm thể loại nhanh -->
+  <el-dialog v-model="showAddGenreDialog" title="Thêm thể loại mới" width="30%">
+    <el-input v-model="newGenreName" placeholder="Nhập tên thể loại..." />
+    <template #footer>
+      <el-button @click="showAddGenreDialog = false">Hủy</el-button>
+      <el-button type="primary" @click="handleQuickAddGenre">Xác nhận</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>

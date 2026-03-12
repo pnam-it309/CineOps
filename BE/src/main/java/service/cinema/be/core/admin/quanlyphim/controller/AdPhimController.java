@@ -65,5 +65,9 @@ public class AdPhimController {
         adPhimService.deletePhim(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+    @PostMapping("/quick-add-the-loai")
+    public ResponseEntity<?> quickAddTheLoai(@RequestParam String tenTheLoai) {
+        return ResponseEntity.ok(adPhimService.quickCreateTheLoai(tenTheLoai));
+    }
 }
 

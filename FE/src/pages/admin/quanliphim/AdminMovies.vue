@@ -2,28 +2,31 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
-import { Search, Refresh } from '@element-plus/icons-vue';
+import { Search, Refresh, Plus } from '@element-plus/icons-vue';
 import { phimApi } from '@/services/api/admin/phimService';
 import BaseTable from '@/components/common/BaseTable.vue';
 import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
 
-
-// ── State ─────────────────────────────────────────────────────────────────────
-const router       = useRouter();
-const moviesList   = ref([]);
-const loading      = ref(false);
+const router = useRouter();
+const moviesList = ref([]);
+const loading = ref(false);
 const totalElements = ref(0);
-const currentPage  = ref(1);
-const pageSize     = ref(5);
+const currentPage = ref(1);
+const pageSize = ref(5);
 
-const searchQuery  = ref('');
+const searchQuery = ref('');
 const statusFilter = ref(null);
-const genreFilter  = ref(null);
+const genreFilter = ref(null);
 const genreOptions = ref([]);
 
 const selectedPhim = ref([]);
+
+// Quick add genre
+const showAddGenreDialog = ref(false);
+const newGenreName = ref('');
+const addingGenre = ref(false);
 
 const handleView = (row) => {
   router.push({ 
@@ -32,58 +35,58 @@ const handleView = (row) => {
   });
 };
 
-// ── Columns ───────────────────────────────────────────────────────────────────
+const handleQuickAddGenre = async () => {
+  if (!newGenreName.value.trim()) {
+    notification.warning('Vui lòng nhập tên thể loại!');
+    return;
+  }
+  addingGenre.value = true;
+  try {
+    await phimApi.createTheLoai(newGenreName.value.trim());
+    notification.success('Thêm thể loại thành công!');
+    await fetchGenres();
+    showAddGenreDialog.value = false;
+    newGenreName.value = '';
+  } catch (e) {
+    notification.error('Lỗi khi thêm thể loại');
+  } finally {
+    addingGenre.value = false;
+  }
+};
+
 const tableColumns = [
-  { label: 'STT',           key: 'stt',          width: '60px'   },
-  { label: 'Mã phim',       key: 'maPhim',       width: '100px'  },
-  { label: 'Poster',        key: 'poster',       width: '80px'   },
-  { label: 'Tên phim',      key: 'tenPhim',      width: '180px' },
-  { label: 'Độ tuổi',       key: 'nhanDoTuoi',   width: '90px'   },
-  { label: 'Thời lượng',    key: 'thoiLuong',    width: '100px'  },
-  { label: 'Thể loại',      key: 'theLoais',     width: '160px'  },
-  { label: 'Giá gốc',       key: 'giaPhim',      width: '110px'  },
-  { label: 'Trạng thái',    key: 'trangThai',    width: '140px'  },
+  { label: 'STT', key: 'stt', width: '60px' },
+  { label: 'Mã phim', key: 'maPhim', width: '100px' },
+  { label: 'Poster', key: 'poster', width: '80px' },
+  { label: 'Tên phim', key: 'tenPhim', width: '180px' },
+  { label: 'Độ tuổi', key: 'nhanDoTuoi', width: '90px' },
+  { label: 'Thời lượng', key: 'thoiLuong', width: '100px' },
+  { label: 'Thể loại', key: 'theLoais', width: '160px' },
+  { label: 'Giá gốc', key: 'giaPhim', width: '110px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '140px' },
 ];
 
-// ── Computed ──────────────────────────────────────────────────────────────────
 const selectedIdsCount = computed(() => selectedPhim.value.length);
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const getTrangThaiLabel = (tt) => ({ 1: 'Đang chiếu', 2: 'Sắp chiếu', 0: 'Ngừng chiếu' }[tt] ?? '—');
 const getTrangThaiClass = (tt) => ({ 1: 'status-now', 2: 'status-soon', 0: 'status-stop' }[tt] ?? '');
-
-const getLoaiPhimType = (loaiPhim) => {
-  const types = { '2D': 'info', '3D': 'primary', 'IMAX': 'danger', '4DX': 'warning' };
-  return types[loaiPhim] || 'info';
-};
 
 const getDoTuoiTagType = (nhanDoTuoi) => {
   const types = { 'P': 'success', 'T13': 'warning', 'T16': 'danger', 'T18': 'info' };
   return types[nhanDoTuoi] || 'info';
 };
 
-const formatDate = (d) => {
-  if (!d) return '—';
-  try {
-    return new Date(d).toLocaleString('vi-VN', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-  } catch { return '—'; }
-};
-
-// ── API ───────────────────────────────────────────────────────────────────────
 const fetchMovies = async () => {
   loading.value = true;
   try {
     const res = await phimApi.getPhim({
-      tenPhim:   searchQuery.value || null,
+      tenPhim: searchQuery.value || null,
       trangThai: statusFilter.value === '' ? null : statusFilter.value,
       idTheLoai: genreFilter.value || null,
-      page:      currentPage.value - 1,
-      size:      pageSize.value,
+      page: currentPage.value - 1,
+      size: pageSize.value,
     });
-    moviesList.value    = res.data.data.content;
+    moviesList.value = res.data.data.content;
     totalElements.value = res.data.data.totalElements;
   } catch {
     notification.error('Lỗi tải dữ liệu phim');
@@ -99,8 +102,7 @@ const fetchGenres = async () => {
   } catch { console.error('Lỗi tải thể loại'); }
 };
 
-// ── CRUD ──────────────────────────────────────────────────────────────────────
-const handleAdd  = () => router.push({ name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.name });
+const handleAdd = () => router.push({ name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.name });
 const handleEdit = (row) => router.push({ name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.name, params: { id: row.id } });
 
 const handleUpdateStatus = (row, status = null) => {
@@ -125,13 +127,13 @@ const handleUpdateStatus = (row, status = null) => {
       const payload = { ...row };
       payload.trangThai = newStatus;
 
-      if (newStatus === 1) { // Đang chiếu
+      if (newStatus === 1) {
         payload.ngayKhoiChieu = todayStr;
-      } else if (newStatus === 2) { // Sắp chiếu
+      } else if (newStatus === 2) {
         if (!payload.ngayKhoiChieu || payload.ngayKhoiChieu <= todayStr) {
           payload.ngayKhoiChieu = tomorrowStr;
         }
-      } else if (newStatus === 0) { // Ngừng chiếu
+      } else if (newStatus === 0) {
         payload.ngayKetThuc = todayStr;
       }
 
@@ -178,7 +180,6 @@ const handleReset = () => {
   fetchMovies();
 };
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────────
 onMounted(() => { fetchGenres(); fetchMovies(); });
 watch([currentPage, pageSize], fetchMovies);
 </script>
@@ -197,16 +198,13 @@ watch([currentPage, pageSize], fetchMovies);
       @add-click="handleAdd"
       @reset-filter="handleReset"
     >
-      <!-- Header actions -->
       <template #header-actions-left>
-
         <el-button v-if="selectedIdsCount" type="warning" :icon="Refresh"
           @click="handleBulkStatusChange">
           Đổi trạng thái {{ selectedIdsCount }} phim
         </el-button>
       </template>
 
-      <!-- Filters -->
       <template #filters>
         <div class="filter-item">
           <el-input v-model="searchQuery" placeholder="Nhập tên phim..." :prefix-icon="Search"
@@ -216,19 +214,30 @@ watch([currentPage, pageSize], fetchMovies);
           <el-select v-model="statusFilter" placeholder="Chọn trạng thái" style="width: 200px;" clearable @change="fetchMovies">
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Đang chiếu" :value="1" />
-            <el-option label="Sắp chiếu"  :value="2" />
+            <el-option label="Sắp chiếu" :value="2" />
             <el-option label="Ngừng chiếu" :value="0" />
           </el-select>
         </div>
         <div class="filter-item">
-          <el-select v-model="genreFilter" placeholder="Chọn thể loại" style="width: 200px;" clearable @change="fetchMovies">
+          <el-select 
+            v-model="genreFilter" 
+            placeholder="Chọn thể loại" 
+            style="width: 200px;" 
+            clearable 
+            @change="fetchMovies"
+            filterable
+          >
+            <template #suffix>
+              <el-icon @click.stop="showAddGenreDialog = true" class="cursor-pointer mr-1">
+                <Plus />
+              </el-icon>
+            </template>
             <el-option label="Tất cả thể loại" value="" />
             <el-option v-for="g in genreOptions" :key="g.id" :label="g.tenTheLoai" :value="g.id" />
           </el-select>
         </div>
       </template>
 
-      <!-- Content -->
       <template #content>
         <BaseTable
           v-loading="loading"
@@ -241,15 +250,6 @@ watch([currentPage, pageSize], fetchMovies);
           :hide-pagination="true"
           @edit="handleEdit"
           @delete="handleUpdateStatus"
-          @update-status="({ row, val }) => {
-            if (row.trangThai === 2 && val) {
-              handleUpdateStatus(row, 1);
-            } else if (row.trangThai === 1 && !val) {
-              handleUpdateStatus(row, 0);
-            } else if (row.trangThai === 0) {
-              notification.warning('Phim đã ngừng chiếu không thể thay đổi trạng thái');
-            }
-          }"
         >
           <template #cell-trangThai="{ row }">
             <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0">
@@ -294,11 +294,10 @@ watch([currentPage, pageSize], fetchMovies);
               />
             </div>
           </template>
+
           <template #cell-stt="{ index }">
             <span class="fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
           </template>
-
-
 
           <template #cell-poster="{ row }">
             <div class="py-1">
@@ -347,13 +346,20 @@ watch([currentPage, pageSize], fetchMovies);
             </div>
           </template>
 
-
         </BaseTable>
       </template>
     </AdminTableLayout>
   </div>
+
+  <el-dialog v-model="showAddGenreDialog" title="Thêm thể loại mới" width="30%">
+    <el-input v-model="newGenreName" placeholder="Nhập tên thể loại..." @keyup.enter="handleQuickAddGenre" />
+    <template #footer>
+      <el-button @click="showAddGenreDialog = false">Hủy</el-button>
+      <el-button type="primary" @click="handleQuickAddGenre" :loading="addingGenre">Xác nhận</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>
-.genre-tag   { border: 1px solid #dcdfe6 !important; color: #909399 !important; background: #fff; border-radius: 6px; }
+.genre-tag { border: 1px solid #dcdfe6 !important; color: #909399 !important; background: #fff; border-radius: 6px; }
 </style>

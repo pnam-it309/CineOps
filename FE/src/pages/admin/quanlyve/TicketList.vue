@@ -309,7 +309,7 @@ onMounted(() => {
 <!-- TicketList.vue — uses BaseTable in #content slot, consistent with other admin pages -->
   <div class="admin-ticket-page">
     <AdminTableLayout
-      title="Quản Lý Giao Dịch Vé"
+      title="Quản Lý Vé"
       titleIcon="bi bi-ticket-perforated-fill"
       :data="tickets"
       :loading="loading"
@@ -470,11 +470,6 @@ onMounted(() => {
 
           <template #actions="{ row }">
             <div class="d-flex justify-content-center gap-1">
-              <el-tooltip content="Chi tiết vé" placement="top">
-                <button class="btn-action-icon action-view" @click="handleViewDetail(row)">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </el-tooltip>
               <el-tooltip content="In vé" placement="top">
                 <button class="btn-action-icon btn-action-print" @click="printTicket(row)">
                   <i class="bi bi-printer"></i>

@@ -468,50 +468,65 @@ public Page<AdHoaDonResponse> timKiemHoaDon(
         Map<String, AdHoaDonChiTietResponse> groupedMap = new LinkedHashMap<>();
 
         for (HoaDonChiTiet chiTiet : listChiTiet) {
-            if (chiTiet.getLoai() == null) continue;
-
             String key;
-            boolean isTicket = (chiTiet.getLoai() == 1); // Theo code của bạn: 1 là Vé
+            boolean isTicket = false;
 
-            // Tạo khóa định danh (Key) để gom nhóm
-            if (isTicket && chiTiet.getVe() != null && chiTiet.getVe().getSuatChieu() != null) {
-                key = "VE_" + chiTiet.getVe().getSuatChieu().getId();
-            } else if (!isTicket && chiTiet.getChiTietSanPhamDiKem() != null) {
+            // KIỂM TRA OBJECT THAY VÌ SỐ BỊ LỘN XỘN (0, 1, 2)
+            if (chiTiet.getVe() != null) {
+                isTicket = true;
+                if (chiTiet.getVe().getSuatChieu() != null) {
+                    key = "VE_" + chiTiet.getVe().getSuatChieu().getId();
+                } else {
+                    key = "VE_UNKNOWN_" + UUID.randomUUID(); // Tránh lỗi null key
+                }
+            } else if (chiTiet.getChiTietSanPhamDiKem() != null) {
+                isTicket = false;
                 key = "SP_" + chiTiet.getChiTietSanPhamDiKem().getId();
             } else {
-                continue; // Dữ liệu lỗi hoặc không xác định
+                continue; // Bỏ qua dữ liệu lỗi
             }
 
             if (groupedMap.containsKey(key)) {
-                // Đã tồn tại trong nhóm -> Cộng dồn số lượng và tiền
+                // ĐÃ TỒN TẠI -> CỘNG DỒN SỐ LƯỢNG VÀ TIỀN
                 AdHoaDonChiTietResponse existing = groupedMap.get(key);
                 existing.setSoLuong(existing.getSoLuong() + (chiTiet.getSoLuong() != null ? chiTiet.getSoLuong() : 1));
-                existing.setThanhTien(existing.getThanhTien().add(chiTiet.getThanhTien()));
+                existing.setThanhTien(existing.getThanhTien().add(chiTiet.getThanhTien() != null ? chiTiet.getThanhTien() : BigDecimal.ZERO));
 
-                // Nếu là vé, nối thêm vị trí ghế vào chuỗi
+                // Nối chuỗi vị trí ghế
                 if (isTicket && chiTiet.getVe().getGhe() != null) {
                     existing.setViTriGhe(existing.getViTriGhe() + ", " + chiTiet.getVe().getGhe().getSoGhe());
                 }
             } else {
-                // Chưa tồn tại -> Tạo mới bản ghi đầu tiên của nhóm
+                // CHƯA TỒN TẠI -> TẠO MỚI (An toàn tuyệt đối với Null)
                 AdHoaDonChiTietResponse dto = new AdHoaDonChiTietResponse();
-                dto.setLoai(chiTiet.getLoai());
+                dto.setId(chiTiet.getId()); // Gán ID của record đầu tiên
+
+                // ÉP KIỂU CHUẨN CHO VUE 3: Vé luôn là 0, Sản phẩm luôn là 1
+                dto.setLoai(isTicket ? 0 : 1);
+
                 dto.setSoLuong(chiTiet.getSoLuong() != null ? chiTiet.getSoLuong() : 1);
-                dto.setDonGia(chiTiet.getDonGia());
-                dto.setThanhTien(chiTiet.getThanhTien());
+                dto.setDonGia(chiTiet.getDonGia() != null ? chiTiet.getDonGia() : BigDecimal.ZERO);
+                dto.setThanhTien(chiTiet.getThanhTien() != null ? chiTiet.getThanhTien() : BigDecimal.ZERO);
                 dto.setGiamGia(BigDecimal.ZERO);
 
                 if (isTicket) {
                     Ve ve = chiTiet.getVe();
-                    dto.setTenPhim(ve.getSuatChieu().getPhim().getTenPhim());
-                    dto.setTenPhongChieu(ve.getSuatChieu().getPhongChieu().getTenPhong());
+                    // Check phòng thủ null cẩn thận
+                    if (ve.getSuatChieu() != null && ve.getSuatChieu().getPhim() != null) {
+                        dto.setTenPhim(ve.getSuatChieu().getPhim().getTenPhim());
+                        if (ve.getSuatChieu().getPhongChieu() != null) {
+                            dto.setTenPhongChieu(ve.getSuatChieu().getPhongChieu().getTenPhong());
+                        }
+                    }
                     dto.setViTriGhe(ve.getGhe() != null ? ve.getGhe().getSoGhe() : "");
-                    dto.setMaMuc(ve.getMaVe()); // Có thể để mã của vé đầu tiên làm đại diện
+                    dto.setMaMuc(ve.getMaVe() != null ? ve.getMaVe() : "N/A");
                 } else {
                     var chiTietSP = chiTiet.getChiTietSanPhamDiKem();
-                    dto.setTenSanPham(chiTietSP.getSanPham().getTenSanPham());
-                    String spId = chiTietSP.getSanPham().getId();
-                    dto.setMaMuc("SP-" + (spId.length() >= 8 ? spId.substring(0, 8) : spId).toUpperCase());
+                    if (chiTietSP.getSanPham() != null) {
+                        dto.setTenSanPham(chiTietSP.getSanPham().getTenSanPham());
+                        String spId = chiTietSP.getSanPham().getId();
+                        dto.setMaMuc("SP-" + (spId != null && spId.length() >= 8 ? spId.substring(0, 8).toUpperCase() : spId));
+                    }
                 }
                 groupedMap.put(key, dto);
             }

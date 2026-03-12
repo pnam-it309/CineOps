@@ -6,6 +6,7 @@ export const phimApi = {
     getPhim: (params) => instance.get(BASE, { params }),
     getById: (id) => instance.get(`${BASE}/${id}`),
     getTheLoai: () => instance.get(`${BASE}/the-loai`),
+    createTheLoai: (tenTheLoai) => instance.post(`${BASE}/quick-add-the-loai?tenTheLoai=${tenTheLoai}`),
     create: (data) => instance.post(BASE, data),
     update: (id, data) => instance.put(`${BASE}/${id}`, data),
     updateTrangThai: (id, trangThai) =>

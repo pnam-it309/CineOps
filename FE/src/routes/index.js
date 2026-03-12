@@ -3,8 +3,9 @@ import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 import { useAuthStore } from '@/stores/auth';
 
 import { customerRoutes } from './customerRoutes';
-import { adminRoutes }    from './adminRoutes';
+import { adminRoutes,printRoutes }    from './adminRoutes';
 import { staffRoutes }    from './staffRoutes';
+import { sharedStandaloneRoutes } from './sharedStandaloneRoutes';
 
 // OAuth2 callback — nằm ngoài layout, không cần auth
 const OAuthCallback = () => import('@/pages/auth/OAuthCallbackPage.vue');
@@ -12,7 +13,9 @@ const OAuthCallback = () => import('@/pages/auth/OAuthCallbackPage.vue');
 const routes = [
     customerRoutes,
     adminRoutes,
+    printRoutes,
     staffRoutes,
+    sharedStandaloneRoutes,
 
     // OAuth2 Callback
     {

@@ -17,6 +17,9 @@ import java.util.List;
 @Entity
 @Table(name = "the_loai")
 public class TheLoai extends PrimaryEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @Column(name = "ten_the_loai", length = 100, nullable = false)
     private String tenTheLoai;

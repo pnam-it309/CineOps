@@ -49,32 +49,26 @@
       </el-sub-menu>
 
       <!-- 📁 Quản lý Phim & Rạp -->
-      <el-sub-menu index="admin-movie-cinema">
-        <template #title>
-          <el-icon><Film /></el-icon>
-          <span>Quản lý Phim & Rạp</span>
-        </template>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
-          <el-icon><VideoCamera /></el-icon>
-          <template #title>Quản lý phim</template>
-        </el-menu-item>
-        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name)">
-          <el-icon><List /></el-icon>
-          <template #title>Lịch chiếu</template>
-        </el-menu-item>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">
-          <el-icon><AlarmClock /></el-icon>
-          <template #title>Suất chiếu</template>
-        </el-menu-item>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.ROOMS)">
-          <el-icon><OfficeBuilding /></el-icon>
-          <template #title>Phòng chiếu</template>
-        </el-menu-item>
-        <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS)">
-          <el-icon><Monitor /></el-icon>
-          <template #title>Ghế</template>
-        </el-menu-item>
-      </el-sub-menu>
+      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
+        <el-icon><VideoCamera /></el-icon>
+        <template #title>Quản lý phim</template>
+      </el-menu-item>
+      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.ROOMS)">
+        <el-icon><OfficeBuilding /></el-icon>
+        <template #title>Phòng chiếu</template>
+      </el-menu-item>
+      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS)">
+        <el-icon><Monitor /></el-icon>
+        <template #title>Ghế</template>
+      </el-menu-item>
+      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">
+        <el-icon><AlarmClock /></el-icon>
+        <template #title>Suất chiếu</template>
+      </el-menu-item>
+      <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name)">
+        <el-icon><List /></el-icon>
+        <template #title>Lịch chiếu</template>
+      </el-menu-item>
 
       <!-- 📁 Dịch vụ & Marketing -->
       <el-sub-menu index="admin-service-marketing">

@@ -1,6 +1,12 @@
 import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 
 const AdminLayout = () => import('@/layout/AdminLayout.vue');
+export const printRoutes = {
+    path: '/print/invoice',
+    name: 'InvoicePrintStandalone', 
+    component: () => import('@/pages/admin/quanlyhoadon/InvoicePrint.vue'),
+    meta: { title: 'In hóa đơn' }
+};
 
 export const adminRoutes = {
     path: ROUTES_CONSTANTS.ADMIN.path, // /admin
@@ -53,6 +59,24 @@ export const adminRoutes = {
             name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE.name,
             component: () => import('@/pages/admin/quanliphim/AdminMovies.vue'),
             meta: { title: 'Quản lý phim' }
+        },
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_ADD.name,
+            component: () => import('@/pages/admin/quanliphim/MovieFormPage.vue'),
+            meta: { title: 'Thêm phim mới' }
+        },
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_EDIT.name,
+            component: () => import('@/pages/admin/quanliphim/MovieFormPage.vue'),
+            meta: { title: 'Chỉnh sửa phim' }
+        },
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.MOVIES_DETAIL.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.MOVIES_DETAIL.name,
+            component: () => import('@/pages/admin/quanliphim/MovieDetailPage.vue'),
+            meta: { title: 'Chi tiết phim' }
         },
         
         // Lịch chiếu (Danh sách - Sơ đồ chuyển trong table)
