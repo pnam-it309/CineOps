@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.request.AdSuatChieuRequest;
+import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdKhungGioResponse;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdPhimResponse;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdSuatChieuResponse;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdPhongChieuResponse;
@@ -276,8 +277,8 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
                         .thoiLuong(p.getThoiLuong())
                         .poster(p.getPoster())
                         .loaiPhim(p.getLoaiPhim())
-                        .phuPhiLoaiPhim(p.getPhuPhiLoaiPhim() != null ? 
-                            java.math.BigDecimal.valueOf(p.getPhuPhiLoaiPhim()) : null)
+                        .phuPhiLoaiPhim(p.getPhuPhiLoaiPhim() != null ? java.math.BigDecimal.valueOf(p.getPhuPhiLoaiPhim()) : null)
+                        .lichChieu(p.getLichChieu())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -334,5 +335,25 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
         }
         
         return res;
+    }
+    @Override
+    public List<AdKhungGioResponse> getKhungGioDropdown() {
+
+        List<KhungGio> list = khungGioRepository.findAll();
+
+        List<AdKhungGioResponse> responseList = new ArrayList<>();
+
+        for (KhungGio k : list) {
+            AdKhungGioResponse res = new AdKhungGioResponse();
+
+            res.setId(k.getId());
+            res.setTenKhungGio(k.getTenKhungGio());
+            res.setGioBatDau(k.getGioBatDau());
+            res.setGioKetThuc(k.getGioKetThuc());
+
+            responseList.add(res);
+        }
+
+        return responseList;
     }
 }

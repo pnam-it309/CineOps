@@ -1,19 +1,42 @@
 <template>
   <div class="d-flex flex-column h-100 bg-white sidebar-inner-wrapper">
-    <div class="logo-container" :style="{ height: isCollapse ? '60px' : '120px' }">
-      <img src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg" alt="CineOps Logo" :class="['brand-logo', { 'is-collapsed': isCollapse }]" />
+    <div
+      class="logo-container"
+      :style="{ height: isCollapse ? '60px' : '120px' }"
+    >
+      <img
+        src="@/assets/picture/z7530699725399_311ba639a6b3d2fba5fe416d4f69b3ec.jpg"
+        alt="CineOps Logo"
+        :class="['brand-logo', { 'is-collapsed': isCollapse }]"
+      />
     </div>
 
-    <el-menu :default-active="activeMenu" :collapse="isCollapse" :collapse-transition="false" background-color="#ffffff"
-      text-color="#475569" active-text-color="#E31E24" class="border-0 overflow-auto py-2 h-100"
-      style="--el-menu-bg-color: #ffffff; --el-menu-text-color: #475569; --el-menu-active-color: #E31E24;" router
-      menu-trigger="hover">
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.DASHBOARD)">
+    <el-menu
+      :default-active="activeMenu"
+      :collapse="isCollapse"
+      :collapse-transition="false"
+      background-color="#ffffff"
+      text-color="#475569"
+      active-text-color="#E31E24"
+      class="border-0 overflow-auto py-2 h-100"
+      style="
+        --el-menu-bg-color: #ffffff;
+        --el-menu-text-color: #475569;
+        --el-menu-active-color: #e31e24;
+      "
+      router
+      menu-trigger="hover"
+    >
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.DASHBOARD)"
+      >
         <el-icon><DataAnalysis /></el-icon>
         <template #title>Tổng quan</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.STATISTICS)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.STATISTICS)"
+      >
         <el-icon><Histogram /></el-icon>
         <template #title>Thống kê</template>
       </el-menu-item>
@@ -23,50 +46,54 @@
         <template #title>Đặt vé tại quầy</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.CHECKIN)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.CHECKIN)"
+      >
         <el-icon><CircleCheck /></el-icon>
         <template #title>Check-in vé</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.INVOICES)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.INVOICES)"
+      >
         <el-icon><Document /></el-icon>
         <template #title>Quản lý hoá đơn</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.TICKETS)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.TICKETS)"
+      >
         <el-icon><Ticket /></el-icon>
         <template #title>Quản lý vé</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SEATS)"
+      >
         <el-icon><Monitor /></el-icon>
         <template #title>Quản lí ghế</template>
       </el-menu-item>
 
       <!-- Quản lý phim — item trực tiếp -->
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.MOVIES_SCHEDULE)"
+      >
         <el-icon><Film /></el-icon>
         <template #title>Quản lý phim</template>
       </el-menu-item>
 
       <!-- Quản lý lịch chiếu — item trực tiếp, chỉ có sơ đồ -->
-      <el-sub-menu index="admin-schedule-group">
-        <template #title>
-          <el-icon><Calendar /></el-icon>
-          <span>Quản lý lịch chiếu</span>
-        </template>
-        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.VISUAL.name)">
-          <el-icon><Grid /></el-icon>
-          <template #title>Sơ đồ lịch chiếu</template>
-        </el-menu-item>
-        <el-menu-item :index="getNamedRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name)">
-          <el-icon><Tickets /></el-icon>
-          <template #title>Danh sách lịch chiếu</template>
-        </el-menu-item>
-      </el-sub-menu>
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SCHEDULE)"
+      >
+        <el-icon><Calendar /></el-icon>
+        <template #title>Quản lý lịch chiếu</template>
+      </el-menu-item>
 
       <!-- Quản lý suất chiếu — item trực tiếp, không dropdown -->
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES)"
+      >
         <el-icon><AlarmClock /></el-icon>
         <template #title>Quản lý suất chiếu</template>
       </el-menu-item>
@@ -76,17 +103,23 @@
         <template #title>Quản lý sản phẩm đi kèm</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.VOUCHERS)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.VOUCHERS)"
+      >
         <el-icon><PriceTag /></el-icon>
         <template #title>Quản lý phiếu giảm giá</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.CUSTOMERS)"
+      >
         <el-icon><Avatar /></el-icon>
         <template #title>Quản lý khách hàng</template>
       </el-menu-item>
 
-      <el-menu-item :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.STAFF)">
+      <el-menu-item
+        :index="getRoutePath(ROUTES_CONSTANTS.ADMIN.children.STAFF)"
+      >
         <el-icon><User /></el-icon>
         <template #title>Quản lý nhân viên</template>
       </el-menu-item>
@@ -95,14 +128,23 @@
     <!-- User Profile at Bottom -->
     <div class="p-3 border-top" v-if="!isCollapse">
       <el-dropdown trigger="click" @command="handleCommand" class="w-100">
-        <div class="d-flex align-items-center gap-2 cursor-pointer text-dark text-decoration-none">
-          <el-avatar :size="32" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
-          <span class="text-truncate small fw-medium">{{ authStore.user?.username || 'Admin' }}</span>
+        <div
+          class="d-flex align-items-center gap-2 cursor-pointer text-dark text-decoration-none"
+        >
+          <el-avatar
+            :size="32"
+            src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
+          />
+          <span class="text-truncate small fw-medium">{{
+            authStore.user?.username || "Admin"
+          }}</span>
         </div>
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item command="profile">Hồ Sơ</el-dropdown-item>
-            <el-dropdown-item divided command="logout">Đăng Xuất</el-dropdown-item>
+            <el-dropdown-item divided command="logout"
+              >Đăng Xuất</el-dropdown-item
+            >
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -111,10 +153,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import { ROUTES_CONSTANTS } from "@/constants/routeConstants";
 import {
   DataAnalysis,
   Histogram,
@@ -134,14 +176,14 @@ import {
   Monitor,
   Setting,
   VideoPlay,
-  Grid
-} from '@element-plus/icons-vue';
+  Grid,
+} from "@element-plus/icons-vue";
 
 const props = defineProps({
   isCollapse: {
     type: Boolean,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const authStore = useAuthStore();
@@ -156,7 +198,7 @@ const activeMenu = computed(() => {
 // Helper to construct path from named route
 const getNamedRoutePath = (routeName) => {
   const r = router.resolve({ name: routeName });
-  return r ? r.path : '';
+  return r ? r.path : "";
 };
 
 // Helper to construct full path for navigation
@@ -165,11 +207,11 @@ const getRoutePath = (childRoute) => {
 };
 
 const handleCommand = async (command) => {
-  if (command === 'logout') {
+  if (command === "logout") {
     await authStore.logout();
     router.push(ROUTES_CONSTANTS.LOGIN.path);
-  } else if (command === 'profile') {
-    console.log('Navigate to profile');
+  } else if (command === "profile") {
+    console.log("Navigate to profile");
   }
 };
 </script>
@@ -233,7 +275,7 @@ const handleCommand = async (command) => {
 
 :deep(.el-menu-item:hover .el-icon),
 :deep(.el-sub-menu__title:hover .el-icon) {
-  color: #E31E24 !important;
+  color: #e31e24 !important;
   transform: scale(1.2) rotate(5deg);
 }
 
@@ -253,11 +295,13 @@ const handleCommand = async (command) => {
 }
 
 :deep(.el-sub-menu__title:hover .el-sub-menu__icon-arrow) {
-  transform: rotateZ(-90deg) !important; /* Standard EL arrow rotation on hover/open */
+  transform: rotateZ(
+    -90deg
+  ) !important; /* Standard EL arrow rotation on hover/open */
 }
 
 :deep(.el-sub-menu.is-opened > .el-sub-menu__title .el-sub-menu__icon-arrow) {
-  transform: rotateZ(0deg) !important; 
+  transform: rotateZ(0deg) !important;
 }
 /* Note: Element Plus handles rotation internally, 
    but since we forced position static and font-size, 
@@ -266,9 +310,9 @@ const handleCommand = async (command) => {
 
 /* Active State indicator like Sample 2 (usually side border or just color) */
 :deep(.el-menu-item.is-active) {
-  color: #E31E24 !important;
+  color: #e31e24 !important;
   background-color: #fff1f1 !important;
-  border-right: 3px solid #E31E24;
+  border-right: 3px solid #e31e24;
   font-weight: 600 !important;
 }
 
