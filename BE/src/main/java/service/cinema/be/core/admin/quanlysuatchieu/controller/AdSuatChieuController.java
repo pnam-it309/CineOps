@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.request.AdBatchSuatChieuRequest;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.request.AdSuatChieuRequest;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdBatchSuatChieuResult;
+import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdKhungGioResponse;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdPhimResponse;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdSuatChieuResponse;
 import service.cinema.be.core.admin.quanlyghe.dto.response.AdPhongChieuResponse;
@@ -45,6 +46,14 @@ public class AdSuatChieuController {
     @GetMapping("/phong-chieu-dropdown")
     public ResponseEntity<ApiResponse<List<AdPhongChieuResponse>>> getPhongChieuDropdown() {
         return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.getPhongChieuDropdown()));
+    }
+
+    @GetMapping("/khung-gio-dropdown")
+    public ResponseEntity<ApiResponse<List<AdKhungGioResponse>>> getKhungGioDropdown() {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(adSuatChieuService.getKhungGioDropdown())
+        );
     }
 
     @PostMapping

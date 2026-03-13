@@ -1,11 +1,22 @@
 <template>
-  <div class="admin-table-layout d-flex flex-column h-100" :class="{ 'p-3': !disablePadding }">
+  <div
+    class="admin-table-layout d-flex flex-column h-100"
+    :class="{ 'pb-3': !disablePadding }"
+  >
     <!-- 1. Page Header (Totally Outside) -->
-    <div class="page-header-outside mb-3 flex-shrink-0 d-flex justify-content-between align-items-center">
+    <div
+      class="page-header-outside mb-3 flex-shrink-0 d-flex justify-content-between align-items-center"
+    >
       <div class="d-flex align-items-center gap-2">
         <i :class="[titleIcon, 'fs-4 text-primary mt-1']" v-if="titleIcon"></i>
-        <h2 class="fw-bold text-dark mb-0" style="font-size: 20px;">{{ title }}</h2>
-        <span v-if="subtitle" class="text-secondary small ms-2 opacity-75 border-start ps-2">{{ subtitle }}</span>
+        <h2 class="fw-bold text-dark mb-0" style="font-size: 20px">
+          {{ title }}
+        </h2>
+        <span
+          v-if="subtitle"
+          class="text-secondary small ms-2 opacity-75 border-start ps-2"
+          >{{ subtitle }}</span
+        >
       </div>
       <div class="d-flex align-items-center gap-2">
         <slot name="page-header-right"></slot>
@@ -15,17 +26,24 @@
     <!-- 2. Refined Filter Card (Collapsible content only) -->
     <div v-if="!hideFilter" class="filter-wrapper-card mb-3 flex-shrink-0 border rounded-0 bg-white shadow-sm overflow-hidden">
       <!-- Header always visible -->
-      <div class="filter-card-header d-flex justify-content-between align-items-center px-4 py-2 bg-light-subtle border-bottom" 
-           @click="showFilter = !showFilter" style="cursor: pointer;">
+      <div
+        class="filter-card-header d-flex justify-content-between align-items-center px-4 py-2 bg-light-subtle border-bottom"
+        @click="showFilter = !showFilter"
+        style="cursor: pointer"
+      >
         <div class="d-flex align-items-center gap-2">
-          <el-icon class="text-primary fw-bold filter-icon-animate" :class="{ 'rotate-180': !showFilter }"><Filter /></el-icon>
-          <span class="fw-bold text-dark" style="font-size: 15px; letter-spacing: 0.5px;">BỘ LỌC TÌM KIẾM</span>
+          <el-icon
+            class="text-primary fw-bold filter-icon-animate"
+            :class="{ 'rotate-180': !showFilter }"
+            ><Filter
+          /></el-icon>
+          <span class="fw-bold filter-title">BỘ LỌC TÌM KIẾM</span>
         </div>
-        <div class="d-flex align-items-center gap-2 text-secondary" style="font-size: 13px;">
-          <span>{{ showFilter ? 'Nhấn để thu gọn' : 'Nhấn để mở rộng' }}</span>
+        <div class="d-flex align-items-center gap-2 filter-hint">
+          <span>{{ showFilter ? "Nhấn để thu gọn" : "Nhấn để mở rộng" }}</span>
         </div>
       </div>
-      
+
       <!-- Body collapses -->
       <el-collapse-transition>
         <div v-show="showFilter" class="filter-card-body-wrapper border-top">
@@ -50,7 +68,9 @@
          style="flex: 1 1 0; min-height: 0;">
       
       <!-- Action Buttons Bar -->
-      <div class="actions-header-bar p-3 d-flex justify-content-between align-items-center flex-shrink-0 border-bottom">
+      <div
+        class="actions-header-bar px-3 py-2 d-flex justify-content-between align-items-center flex-shrink-0 border-bottom"
+      >
         <div class="d-flex align-items-center gap-2">
           <slot name="header-actions-left"></slot>
         </div>
@@ -66,7 +86,7 @@
       </div>
 
       <!-- Main Table Content -->
-      <div class="table-viewport flex-grow-1" style="min-height: 0;">
+      <div class="table-viewport flex-grow-1" style="min-height: 0">
         <div v-if="$slots.content" class="h-100">
           <slot name="content"></slot>
         </div>
@@ -84,7 +104,9 @@
             <template #empty>
               <div class="py-5 text-secondary opacity-50 text-center">
                 <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-                <div class="fw-medium">Không có dữ liệu hiển thị</div>
+                <div class="fw-medium table-empty-text">
+                  Không có dữ liệu hiển thị
+                </div>
               </div>
             </template>
           </el-table>
@@ -92,15 +114,20 @@
       </div>
 
       <!-- Integrated Pagination Footer -->
-      <div v-if="!hidePagination && (total > 0 || totalPages > 0)" 
-           class="table-footer-pagination border-top p-3 bg-white flex-shrink-0">
+      <div
+        v-if="!hidePagination && (total > 0 || totalPages > 0)"
+        class="table-footer-pagination border-top px-4 py-2 bg-white flex-shrink-0"
+      >
         <div class="pagination-footer-row">
           <div class="footer-left">
             <div class="d-flex align-items-center gap-3">
+              <span class="pagination-info-text small text-secondary">
+                Hiển thị {{ startRecord }}–{{ endRecord }} / {{ total }} bản ghi
+              </span>
               <el-select 
                 :model-value="pageSize || 5" 
                 size="default" 
-                style="width: 150px"
+                style="width: 120px"
                 class="square-select" 
                 @update:model-value="handlePageSizeChange"
               >
@@ -140,7 +167,7 @@
           </div>
 
           <div class="footer-right">
-            <span class="text-secondary">
+            <span class="text-secondary small">
               Trang <strong>{{ currentPage || 1 }}</strong> / {{ totalPages || 1 }}
             </span>
           </div>
@@ -166,21 +193,27 @@ const props = defineProps({
   pageSize: Number,
   hidePagination: {
     type: Boolean,
-    default: false
+    default: false,
   },
   hideFilter: {
     type: Boolean,
-    default: false
+    default: false,
   },
   disablePadding: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
 const showFilter = ref(!props.hideFilter);
 
-const emit = defineEmits(['add-click', 'reset-filter', 'update:currentPage', 'update:pageSize', 'selection-change']);
+const emit = defineEmits([
+  "add-click",
+  "reset-filter",
+  "update:currentPage",
+  "update:pageSize",
+  "selection-change",
+]);
 
 const totalPages = computed(() => {
   if (!props.pageSize || props.pageSize <= 0) return 0;
@@ -189,13 +222,13 @@ const totalPages = computed(() => {
 
 const handlePageChange = (page) => {
   if (page >= 1 && page <= totalPages.value) {
-    emit('update:currentPage', page);
+    emit("update:currentPage", page);
   }
 };
 
 const handlePageSizeChange = (size) => {
-  emit('update:pageSize', size);
-  emit('update:currentPage', 1);
+  emit("update:pageSize", size);
+  emit("update:currentPage", 1);
 };
 
 const pagesToShow = computed(() => {
@@ -216,6 +249,15 @@ const pagesToShow = computed(() => {
     pages.push(i);
   }
   return pages;
+});
+
+const startRecord = computed(() => {
+  if (!props.total) return 0;
+  return (props.currentPage - 1) * props.pageSize + 1;
+});
+
+const endRecord = computed(() => {
+  return Math.min(props.currentPage * props.pageSize, props.total);
 });
 </script>
 
@@ -302,6 +344,9 @@ const pagesToShow = computed(() => {
   margin-left: -1px;
   transition: all 0.2s;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .page-nav-btn:hover:not(:disabled):not(.active) {

@@ -15,6 +15,10 @@ export const suatChieuService = {
   getPhongChieuDropdown() {
     return axios.get(`${API_ADMIN_SUAT_CHIEU}/phong-chieu-dropdown`);
   },
+// THÊM MỚI: Lấy tất cả khung giờ
+  getKhungGioDropdown() {
+    return axios.get(`${API_ADMIN_SUAT_CHIEU}/khung-gio-dropdown`);
+  },
 
   // Lấy danh sách suất chiếu (có lọc theo ngày/phòng)
   getShowtimes(params = {}) {

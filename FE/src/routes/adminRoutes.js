@@ -1,4 +1,4 @@
-import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
+import { ROUTES_CONSTANTS } from "@/constants/routeConstants";
 
 const AdminLayout = () => import('@/layout/AdminLayout.vue');
 export const printRoutes = {
@@ -79,15 +79,15 @@ export const adminRoutes = {
             meta: { title: 'Chi tiết phim' }
         },
         
-        // Lịch chiếu (Danh sách - Sơ đồ chuyển trong table)
+        // Lịch chiếu
         {
-            path: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.path + '/list',
-            name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.children.LIST.name,
+            path: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.SCHEDULE.name,
             component: () => import('@/pages/admin/lichChieu/AdminSchedule.vue'),
             meta: { title: 'Lịch chiếu' }
         },
 
-        // Suất chiếu (tách riêng)
+        // Suất chiếu
         {
             path: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.path,
             name: ROUTES_CONSTANTS.ADMIN.children.SHOWTIMES.name,
@@ -170,4 +170,3 @@ export const adminRoutes = {
         },
     ]
 };
-
