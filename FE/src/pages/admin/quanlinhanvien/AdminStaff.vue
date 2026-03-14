@@ -22,11 +22,11 @@ const searchQuery = ref('');
 const staffColumns = [
   { label: 'STT', key: 'stt', width: '60px', align: 'center' },
   { label: 'Mã NV', key: 'maNhanVien', width: '100px', align: 'center' },
-  { label: 'Nhân viên', key: 'staff', minWidth: '180px', align: 'center' },
-  { label: 'Số điện thoại', key: 'soDienThoai', width: '140px', align: 'center' },
-  { label: 'Email', key: 'email', width: '180px', align: 'center' },
+  { label: 'Nhân viên', key: 'staff', width: '180px', align: 'center' },
+  { label: 'Số điện thoại', key: 'soDienThoai', width: '170px', align: 'center' },
+  { label: 'Email', key: 'email', width: '280px', align: 'center' },
   { label: 'Vai trò', key: 'role', width: '130px', align: 'center' },
-  { label: 'Địa chỉ', key: 'diaChi', minWidth: '200px', align: 'center' },
+  { label: 'Địa chỉ', key: 'diaChi', width: '200px', align: 'center' },
   { label: 'Trạng thái', key: 'trangThai', width: '140px', align: 'center' },
 ];
 
@@ -91,6 +91,7 @@ const dialogVisible = ref(false);
 
 const filterRole = ref('');
 const filterStatus = ref('');
+const filterGender = ref('');
 const totalElements = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(5);
@@ -114,6 +115,7 @@ const fetchStaff = async () => {
       searchQuery.value || null,
       filterRole.value || null,
       filterStatus.value === '' ? null : filterStatus.value,
+      filterGender.value === '' ? null : filterGender.value,
       currentPage.value - 1,
       pageSize.value
     );
@@ -148,6 +150,7 @@ const handleReset = () => {
   searchQuery.value = '';
   filterRole.value = '';
   filterStatus.value = '';
+  filterGender.value = '';
   currentPage.value = 1;
   fetchStaff();
 };
@@ -221,7 +224,7 @@ onMounted(() => {
 });
 
 watch(searchQuery, debouncedFetch);
-watch([filterRole, filterStatus, currentPage, pageSize], fetchStaff);
+watch([filterRole, filterStatus, filterGender, currentPage, pageSize], fetchStaff);
 </script>
 
 <template>
@@ -243,21 +246,31 @@ watch([filterRole, filterStatus, currentPage, pageSize], fetchStaff);
 
       <!-- Optimized Filters -->
       <template #filters>
-        <div class="me-2 mb-2 mb-md-0" style="min-width: 240px;">
-          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm</label>
+          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable class="w-100" />
         </div>
-        <div class="me-2 mb-2 mb-md-0">
-          <el-select v-model="filterRole" placeholder="Vai trò" style="width: 170px;">
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Vai trò</label>
+          <el-select v-model="filterRole" placeholder="Tất cả" class="w-100">
             <el-option label="Tất cả vai trò" value="" />
-
             <el-option v-for="r in roles" :key="r.id" :label="r.tenVaiTro" :value="r.id" />
           </el-select>
         </div>
-        <div class="mb-2 mb-md-0">
-          <el-select v-model="filterStatus" placeholder="Trạng thái" style="width: 170px;">
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
+          <el-select v-model="filterStatus" placeholder="Tất cả" class="w-100">
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
+          </el-select>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Giới tính</label>
+          <el-select v-model="filterGender" placeholder="Tất cả" class="w-100">
+            <el-option label="Tất cả" value="" />
+            <el-option label="Nam" :value="1" />
+            <el-option label="Nữ" :value="0" />
           </el-select>
         </div>
       </template>
@@ -317,7 +330,7 @@ watch([filterRole, filterStatus, currentPage, pageSize], fetchStaff);
         <span class="fw-bold text-dark" style="white-space: nowrap;">{{ row.soDienThoai || '—' }}</span>
       </template>
       <template #cell-diaChi="{ row }">
-        <div class="text-secondary smaller text-truncate text-center mx-auto" style="max-width: 250px;" :title="row.diaChi">{{ row.diaChi ||
+        <div class="text-secondary smaller text-center mx-auto" :title="row.diaChi">{{ row.diaChi ||
           '—' }}</div>
       </template>
     </BaseTable>

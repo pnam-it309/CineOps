@@ -116,13 +116,13 @@
                       <div class="fw-bold">{{ row.ngayChieu }}</div>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Giờ" prop="gioBatDau" width="150">
+                  <el-table-column label="Giờ" prop="gioBatDau" width="280">
                     <template #default="{row}">
                       <el-tag size="small" effect="plain" type="info">{{ row.gioBatDau }} - {{ row.gioKetThuc }}</el-tag>
                     </template>
                   </el-table-column>
                   <el-table-column label="Phòng" prop="tenPhongChieu" />
-                  <el-table-column label="Ghế trống" prop="soGheTrong" width="100">
+                  <el-table-column label="Ghế trống" prop="soGheTrong" width="120">
                     <template #default="{row}">
                       <span :class="row.soGheTrong < 10 ? 'text-danger fw-bold' : ''">{{ row.soGheTrong }}</span>
                     </template>

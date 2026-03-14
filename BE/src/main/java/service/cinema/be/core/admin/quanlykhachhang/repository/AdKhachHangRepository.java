@@ -20,10 +20,14 @@ public interface AdKhachHangRepository extends KhachHangRepository {
             "OR k.sdt LIKE %:search% " +
             "OR tk.email LIKE %:search%) " +
             "AND (:trangThai IS NULL OR k.trangThai = :trangThai) " +
+            "AND (:gioiTinh IS NULL OR k.gioiTinh = :gioiTinh) " +
+            "AND (:idLoaiKhachHang IS NULL OR k.loaiKhachHang.id = :idLoaiKhachHang) " +
             "ORDER BY k.ngayTao DESC")
     Page<KhachHang> findAllBySearch(
             @Param("search") String search,
             @Param("trangThai") Integer trangThai,
+            @Param("gioiTinh") Integer gioiTinh,
+            @Param("idLoaiKhachHang") String idLoaiKhachHang,
             Pageable pageable);
 
     // Lấy mã khách hàng lớn nhất để sinh mã tự động

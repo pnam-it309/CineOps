@@ -127,9 +127,17 @@ public class AdPhieuGiamGiaService {
     private final service.cinema.be.core.email.service.IEmailService emailService;
 
     @Transactional(readOnly = true)
-    public Page<AdPhieuGiamGiaResponse> getAll(String keyword, Integer trangThai, int page, int size) {
+    public Page<AdPhieuGiamGiaResponse> getAll(
+            String keyword, 
+            Integer trangThai, 
+            Integer loaiPhieu,
+            Integer kieuPhatHanh,
+            java.time.LocalDateTime startDate,
+            java.time.LocalDateTime endDate,
+            int page, 
+            int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
-        return repository.search(keyword, trangThai, pageable).map(this::toResponse);
+        return repository.search(keyword, trangThai, loaiPhieu, kieuPhatHanh, startDate, endDate, pageable).map(this::toResponse);
     }
 
     @Transactional

@@ -26,21 +26,21 @@
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm chung</label>
           <el-input v-model="searchQuery" placeholder="Tìm theo mã hoặc tên..." :prefix-icon="Search" clearable
-            style="width: 250px;" />
+            class="w-100" />
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Kiểu voucher</label>
-          <el-select v-model="filterLoaiPhieu" placeholder="Tất cả" style="width: 170px;" clearable>
+          <el-select v-model="filterLoaiPhieu" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Tất cả" value="" />
-            <el-option label="Giảm phần trăm" :value="1" />
-            <el-option label="Giảm số tiền" :value="2" />
+            <el-option label="Giảm phần trăm" :value="0" />
+            <el-option label="Giảm số tiền" :value="1" />
           </el-select>
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Đối tượng</label>
-          <el-select v-model="filterDoiTuong" placeholder="Tất cả" style="width: 170px;" clearable>
+          <el-select v-model="filterKieuPhatHanh" placeholder="Tất cả" class="w-100" clearable content="filterKieuPhatHanh">
             <el-option label="Tất cả" value="" />
             <el-option label="Công khai" :value="0" />
             <el-option label="Cá nhân" :value="1" />
@@ -48,8 +48,20 @@
         </div>
 
         <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Thời gian hiệu lực</label>
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="Từ"
+            end-placeholder="Đến"
+            class="w-100"
+          />
+        </div>
+
+        <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Trạng thái hoạt động</label>
-          <el-select v-model="filterStatus" placeholder="Tất cả" style="width: 170px;" clearable>
+          <el-select v-model="filterStatus" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Tất cả" value="" />
             <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
@@ -73,10 +85,10 @@
         <div class="fw-bold text-dark">{{ row.tenPhieu }}</div>
       </template>
 
-      <template #cell-doiTuong="{ row }">
+      <template #cell-kieuPhatHanh="{ row }">
         <div class="text-center">
-          <el-tag size="small" :type="row.doiTuong === 1 ? 'primary' : 'info'" effect="light" round class="fw-bold" style="opacity: 0.8">
-            {{ row.doiTuong === 1 ? 'Cá nhân' : 'Công khai' }}
+          <el-tag size="small" :type="row.kieuPhatHanh === 1 ? 'primary' : 'info'" effect="light" round class="fw-bold" style="opacity: 0.8">
+            {{ row.kieuPhatHanh === 1 ? 'Cá nhân' : 'Công khai' }}
           </el-tag>
         </div>
       </template>
@@ -87,11 +99,11 @@
 
       <template #cell-detail="{ row }">
         <div class="text-center py-1">
-          <el-tag :type="row.loaiPhieu === 1 ? 'danger' : 'success'" effect="light" size="small" class="fw-bold mb-1">
-            {{ row.loaiPhieu === 1 ? `Giảm ${row.phanTramGiamGia}%` : `Giảm -${formatCurrency(row.soTienGiam)}` }}
+          <el-tag :type="row.loaiPhieu === 0 ? 'danger' : 'success'" effect="light" size="small" class="fw-bold mb-1">
+            {{ row.loaiPhieu === 0 ? `Giảm ${row.phanTramGiamGia}%` : `Giảm -${formatCurrency(row.soTienGiam)}` }}
           </el-tag>
-          <div class="smaller text-secondary">Tối đa: {{ row.loaiPhieu === 1 ? formatCurrency(row.giamToiDa) : '—' }}</div>
-          <div class="smaller text-secondary">Đơn tối thiểu: {{ formatCurrency(row.donToiThieu) }}</div>
+          <div class="smaller text-secondary">Tối đa: {{ row.loaiPhieu === 0 ? formatCurrency(row.giamToiDa) : '—' }}</div>
+          <div class="smaller text-secondary">Đơn tối thiểu: {{ formatCurrency(row.giaTriHoaDonToiThieu) }}</div>
         </div>
       </template>
 
@@ -111,9 +123,9 @@
           </el-tag>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Hoạt động</el-dropdown-item>
-              <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Ngừng hoạt động</el-dropdown-item>
-              <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Kết thúc</el-dropdown-item>
+              <el-dropdown-item :command="1">Đang diễn ra</el-dropdown-item>
+              <el-dropdown-item :command="0">Chưa bắt đầu</el-dropdown-item>
+              <el-dropdown-item :command="2">Đã kết thúc</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -208,12 +220,12 @@
               <div class="info-card p-3 border h-100">
                 <div class="info-row mb-3 pb-3 border-bottom">
                   <label class="text-secondary tiny-text d-block">ĐƠN TỐI THIỂU</label>
-                  <div class="fw-bold fs-5">{{ formatCurrency(selectedItem.donToiThieu) }}</div>
+                  <div class="fw-bold fs-5">{{ formatCurrency(selectedItem.giaTriHoaDonToiThieu) }}</div>
                 </div>
                 <div class="info-row">
                   <label class="text-secondary tiny-text d-block">GIẢM TỐI ĐA</label>
                   <div class="fw-bold fs-5 text-danger">
-                    {{ selectedItem.loaiPhieu === 1 ? formatCurrency(selectedItem.giamToiDa) : 'Không giới hạn' }}
+                    {{ selectedItem.loaiPhieu === 0 ? formatCurrency(selectedItem.giamToiDa) : 'Không giới hạn' }}
                   </div>
                 </div>
               </div>
@@ -230,9 +242,9 @@
                 <div class="info-row">
                   <label class="text-secondary tiny-text d-block">ĐỐI TƯỢNG ÁP DỤNG</label>
                   <div class="fw-bold">
-                    <i :class="selectedItem.doiTuong === 1 ? 'bi bi-person-heart text-warning' : 'bi bi-globe text-primary'"
+                    <i :class="selectedItem.kieuPhatHanh === 1 ? 'bi bi-person-heart text-warning' : 'bi bi-globe text-primary'"
                       class="me-2"></i>
-                    {{ selectedItem.doiTuong === 1 ? 'Khách hàng cá nhân' : 'Toàn bộ khách hàng' }}
+                    {{ selectedItem.kieuPhatHanh === 1 ? 'Khách hàng cá nhân' : 'Toàn bộ khách hàng' }}
                   </div>
                 </div>
               </div>
@@ -280,8 +292,8 @@ const voucherColumns = [
   { label: 'STT', key: 'stt', width: '60px' },
   { label: 'Mã', key: 'maPhieuGiamGia', width: '130px', align: 'center' },
   { label: 'Tên', key: 'tenPhieu', width: '200px' },
-  { label: 'Đối tượng', key: 'doiTuong', width: '110px', align: 'center' },
-  { label: 'Số lượng', key: 'soLuong', width: '90px', align: 'center' },
+  { label: 'Đối tượng', key: 'kieuPhatHanh', width: '110px', align: 'center' },
+  { label: 'Số lượng', key: 'soLuong', width: '120px', align: 'center' },
   { label: 'Chi tiết ưu đãi', key: 'detail', width: '220px', align: 'center' },
   { label: 'Thời gian áp dụng', key: 'time', width: '200px' },
   { label: 'Trạng thái', key: 'trangThai', width: '130px', align: 'center' },
@@ -295,8 +307,9 @@ const currentPage = ref(1);
 const pageSize = ref(5);
 const filterStatus = ref('');
 const filterLoaiPhieu = ref('');
-const filterDoiTuong = ref('');
+const filterKieuPhatHanh = ref('');
 const searchQuery = ref('');
+const dateRange = ref([]);
 const detailVisible = ref(false);
 const selectedItem = ref(null);
 
@@ -312,7 +325,9 @@ const fetchVouchers = async () => {
       keyword: searchQuery.value,
       trangThai: filterStatus.value === '' ? null : filterStatus.value,
       loaiPhieu: filterLoaiPhieu.value === '' ? null : filterLoaiPhieu.value,
-      doiTuong: filterDoiTuong.value === '' ? null : filterDoiTuong.value,
+      kieuPhatHanh: filterKieuPhatHanh.value === '' ? null : filterKieuPhatHanh.value,
+      startDate: dateRange.value?.[0] ? dateRange.value[0].toISOString() : null,
+      endDate: dateRange.value?.[1] ? dateRange.value[1].toISOString() : null,
       page: currentPage.value - 1,
       size: pageSize.value,
       sort: 'id,desc'
@@ -336,12 +351,13 @@ const resetFilter = () => {
   searchQuery.value = '';
   filterStatus.value = '';
   filterLoaiPhieu.value = '';
-  filterDoiTuong.value = '';
+  filterKieuPhatHanh.value = '';
+  dateRange.value = [];
   currentPage.value = 1;
 };
 
 watch(searchQuery, handleSearch);
-watch([filterStatus, filterLoaiPhieu, filterDoiTuong, currentPage, pageSize], () => {
+watch([filterStatus, filterLoaiPhieu, filterKieuPhatHanh, dateRange, currentPage, pageSize], () => {
   if (loading.value) return;
   fetchVouchers();
 });
@@ -383,7 +399,7 @@ const getStatusTag = (status) => {
 };
 
 const getStatusLabel = (status) => {
-  const map = { 1: 'Hoạt động', 0: 'Ngừng hoạt động', 2: 'Kết thúc' };
+  const map = { 1: 'Đang diễn ra', 0: 'Chưa bắt đầu', 2: 'Đã kết thúc' };
   return map[status] || 'Không xác định';
 };
 

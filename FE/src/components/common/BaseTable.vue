@@ -177,44 +177,48 @@ const pageSizeLocal = computed({
     <!-- Card 1: Title Card -->
     <div class="premium-card mb-3 p-4 px-5" v-if="title && !noPadding">
       <div class="d-flex align-items-center gap-3">
-        <div class="header-icon-box-modern shadow-sm" style="width: 40px; height: 40px; font-size: 20px;">
-          <i :class="titleIcon || 'bi bi-table'"></i>
+        <div class="header-icon-box-modern shadow-sm" style="width: 44px; height: 44px; font-size: 22px;">
+          <i :class="titleIcon || 'bi bi-grid-fill'"></i>
         </div>
         <div>
-          <h1 class="premium-page-title m-0" style="font-size: 20px; color: #1e293b; text-transform: none;">{{ title }}</h1>
-          <p v-if="subtitle" class="m-0 text-secondary mt-1 smaller" style="font-size: 13px;">{{ subtitle }}</p>
-          <p v-else class="m-0 text-secondary mt-1 smaller" style="font-size: 13px;">Quản lý danh sách {{ title.toLowerCase() }} có mặt tại hệ thống</p>
+          <h1 class="premium-page-title m-0" style="font-size: 22px; color: #1e293b; text-transform: none; letter-spacing: -0.5px;">{{ title }}</h1>
+          <p v-if="subtitle" class="m-0 text-secondary mt-1 smaller" style="font-size: 13px; opacity: 0.8;">{{ subtitle }}</p>
+          <p v-else class="m-0 text-secondary mt-1 smaller" style="font-size: 13px; opacity: 0.8;">Quản lý và theo dõi danh sách {{ title.toLowerCase() }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Card 2: Filter Card -->
-    <div class="premium-card mb-3 p-3 px-5" v-if="showFilters && $slots.filters">
-      <h2 class="mb-3 text-secondary fw-bold text-uppercase smaller letter-spacing-1" style="font-size: 13px;">Bộ lọc tìm kiếm</h2>
-      <div class="d-flex align-items-end flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-4 flex-wrap flex-grow-1">
-          <slot name="filters"></slot>
-
-          <el-tooltip content="Làm mới bộ lọc" placement="top">
-            <button @click="$emit('reset-filter')" class="btn-cine-refresh-icon">
-              <el-icon><Refresh /></el-icon>
-            </button>
-          </el-tooltip>
+    <!-- Card 2: Filter Card (Keep stretched content) -->
+    <div class="premium-card mb-3 p-4 px-5" v-if="showFilters && $slots.filters && !noPadding">
+      <div class="filter-stretch-wrapper">
+        <div class="d-flex align-items-end justify-content-between flex-wrap gap-3">
+          <div class="filters-main-area d-flex align-items-end gap-3 flex-wrap flex-grow-1">
+            <slot name="filters"></slot>
+          </div>
+          
+          <div class="filter-actions-area d-flex align-items-end gap-2 ms-auto">
+            <el-tooltip content="Làm mới bộ lọc" placement="top">
+              <button @click="$emit('reset-filter')" class="btn-cine-refresh-icon">
+                <el-icon><Refresh /></el-icon>
+              </button>
+            </el-tooltip>
+            <slot name="filter-extra-actions"></slot>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Card 3: Table Card -->
     <div class="premium-card flex-grow-1 d-flex flex-column overflow-hidden" :class="{ 'mb-3': !noPadding }">
-      <div v-if="!hideHeader" class="p-2 px-5 border-bottom d-flex align-items-center justify-content-between bg-white sticky-top z-3">
-        <h2 class="m-0 text-dark fw-bold text-uppercase smaller letter-spacing-1" style="font-size: 13px;">Danh sách {{ title || 'Quản lý' }}</h2>
+      <!-- Moved Actions to Table Header -->
+      <div v-if="!hideHeader" class="p-3 px-5 border-bottom d-flex align-items-center justify-content-between bg-white sticky-top z-3">
+        <h2 class="m-0 text-dark fw-bold text-uppercase smaller letter-spacing-1" style="font-size: 11px; opacity: 0.6;">Dữ liệu bảng</h2>
         <div class="d-flex align-items-center gap-2">
           <slot name="header-actions-left"></slot>
           <slot name="header-actions"></slot>
-          <el-button v-if="addButtonLabel" @click="$emit('add-click')" type="primary" class="btn-premium-action-main">
-            <el-icon class="me-1">
-              <Plus />
-            </el-icon>
+          <slot name="table-header-actions"></slot>
+          <el-button v-if="addButtonLabel" @click="$emit('add-click')" type="primary" class="btn-premium-action-main shadow-sm px-4 ms-2">
+            <el-icon class="me-2"><Plus /></el-icon>
             {{ addButtonLabel }}
           </el-button>
         </div>
@@ -309,8 +313,8 @@ const pageSizeLocal = computed({
       </div>
     </div>
 
-    <!-- Card 4: Chỉ Phân trang (Riêng biệt ở dưới) -->
-    <div class="premium-card footer-pagination-only-card p-3" v-if="!hidePagination && total > 0">
+    <!-- Card 4: Pagination Card (Separate) -->
+    <div class="premium-card p-3" v-if="!hidePagination && total > 0">
       <div class="d-flex align-items-center justify-content-between flex-wrap w-100">
         <!-- Left Part: Result count & Page size -->
         <div class="pagination-left-info d-flex align-items-center gap-3" style="min-width: 220px;">
@@ -363,6 +367,27 @@ const pageSizeLocal = computed({
 }
 
 /* Custom UI spacers */
+.filter-stretch-wrapper {
+  margin-top: 5px;
+}
+
+.filters-main-area :deep(.flex-grow-1) {
+  flex-grow: 1 !important;
+}
+
+.filters-main-area :deep(.el-input),
+.filters-main-area :deep(.el-select),
+.filters-main-area :deep(.el-date-editor) {
+  width: 100% !important;
+  min-width: 160px;
+}
+
+/* Ensure filter items with labels stretch correctly */
+.filters-main-area :deep(.d-flex.flex-column) {
+  flex: 1 1 200px;
+  max-width: 400px;
+}
+
 .letter-spacing-1 {
   letter-spacing: 0.05em;
 }

@@ -10,12 +10,13 @@ export const nhanVienService = {
      * @param {String} idPhanQuyen - ID vai trò (Quản lý, Nhân viên...)
      * @param {Number} trangThai - 1: Hoạt động, 0: Ngừng hoạt động
      */
-    getAll(search, idPhanQuyen, trangThai, page = 0, size = 10, sort = 'id,desc') {
+    getAll(search, idPhanQuyen, trangThai, gioiTinh, page = 0, size = 10, sort = 'id,desc') {
         return axios.get(BASE_URL, {
             params: {
                 search: search || null,
                 idPhanQuyen: idPhanQuyen || null,
                 trangThai: (trangThai === 0 || trangThai === 1) ? trangThai : null,
+                gioiTinh: (gioiTinh === 0 || gioiTinh === 1) ? gioiTinh : null,
                 page: page,
                 size: size,
                 sort: sort

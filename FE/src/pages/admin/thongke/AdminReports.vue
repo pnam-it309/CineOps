@@ -58,27 +58,29 @@ const filteredReports = computed(() => {
 
 
       <template #filters>
-        <div class="filter-item">
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Khoảng ngày</label>
           <el-date-picker
             v-model="dateRange"
             type="daterange"
-            range-separator="Đến"
-            start-placeholder="Bắt đầu"
-            end-placeholder="Kết thúc"
-            size="default"
+            range-separator="-"
+            start-placeholder="Từ"
+            end-placeholder="Đến"
             class="w-100"
           />
         </div>
-        <div class="filter-item">
-          <el-select v-model="selectedType" placeholder="Phương thức" size="default" class="w-100">
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Phương thức</label>
+          <el-select v-model="selectedType" placeholder="Tất cả" class="w-100">
             <el-option label="Tất cả phương thức" value="All" />
             <el-option label="VNPay" value="VNPay" />
             <el-option label="Momo" value="Momo" />
             <el-option label="Credit Card" value="Credit Card" />
           </el-select>
         </div>
-        <div class="filter-item">
-          <el-input v-model="searchQuery" placeholder="Mã GD hoặc khách hàng..." :prefix-icon="Search" size="default" clearable />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm</label>
+          <el-input v-model="searchQuery" placeholder="Mã GD, khách hàng..." :prefix-icon="Search" clearable class="w-100" />
         </div>
       </template>
 

@@ -30,8 +30,18 @@ public class AdKhachHangService {
     private final service.cinema.be.repository.DiaChiRepository diaChiRepository;
 
     @Transactional(readOnly = true)
-    public Page<AdKhachHangResponse> getAllKhachHang(String search, Integer trangThai, Pageable pageable) {
-        return adKhachHangRepository.findAllBySearch(search, trangThai, pageable)
+    public Page<AdKhachHangResponse> getAllKhachHang(
+            String search, 
+            Integer trangThai, 
+            Integer gioiTinh,
+            String idLoaiKhachHang,
+            Pageable pageable) {
+        return adKhachHangRepository.findAllBySearch(
+                (search != null && search.isBlank()) ? null : search,
+                trangThai,
+                gioiTinh,
+                (idLoaiKhachHang != null && idLoaiKhachHang.isBlank()) ? null : idLoaiKhachHang,
+                pageable)
                 .map(this::toResponse);
     }
 

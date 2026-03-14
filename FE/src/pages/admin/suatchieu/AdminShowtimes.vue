@@ -10,7 +10,7 @@
       :total="filteredRoomGroups.length" 
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize" 
-      @reset-filter="resetFilter" 
+      @reset-filter="handleReset" 
       :hidePagination="false"
       @fetch="fetchShowtimes"
     >
@@ -31,21 +31,17 @@
 
       <!-- Optimized Filters (Matching Image 1: Labels above inputs) -->
       <template #filters>
-        <div class="d-flex flex-column gap-1">
-          <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm phim</label>
-          <el-input v-model="searchQuery" placeholder="Tên phim..." :prefix-icon="Search" size="default"
-            clearable />
-        </div>
+        <!-- Movie search removed as showtimes are no longer movie-dependent here -->
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Ngày chiếu</label>
           <el-date-picker v-model="filterDate" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY"
-            value-format="YYYY-MM-DD" size="default" style="width:180px;" />
+            value-format="YYYY-MM-DD" size="default" class="w-100" />
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Phòng chiếu</label>
-          <el-select v-model="filterRoom" placeholder="Tất cả" clearable style="width:180px;">
+          <el-select v-model="filterRoom" placeholder="Tất cả" clearable class="w-100">
             <el-option label="Tất cả phòng" value="" />
             <el-option v-for="r in phongChieuList" :key="r.id" :label="r.tenPhong" :value="r.id" />
           </el-select>
@@ -53,7 +49,7 @@
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
-          <el-select v-model="filterTrangThai" placeholder="Tất cả" clearable style="width:180px;">
+          <el-select v-model="filterTrangThai" placeholder="Tất cả" clearable class="w-100">
             <el-option label="Tất cả" value="" />
             <el-option label="Sắp chiếu" :value="1" />
             <el-option label="Đang chiếu" :value="2" />
@@ -64,9 +60,11 @@
 
       <!-- Content: BaseTable trực tiếp, không qua sub-component -->
       <template #cell-roomName="{ row }">
-        <div class="d-flex align-items-center justify-content-center gap-2">
-          <div class="room-badge shadow-sm">{{ row.tenPhong }}</div>
-          <div class="smaller text-secondary fw-bold text-uppercase" style="letter-spacing: 0.5px;">{{ row.loaiPhong || 'Standard' }}</div>
+        <div class="d-flex flex-column align-items-center justify-content-center">
+          <div class="room-badge shadow-sm mb-1">{{ row.tenPhong }}</div>
+          <div class="smaller text-secondary fw-bold text-uppercase opacity-75" style="letter-spacing: 1px; font-size: 10px;">
+            <i class="bi bi-award me-1"></i>Loại: {{ row.loaiPhong || 'Standard' }}
+          </div>
         </div>
       </template>
 
@@ -76,29 +74,22 @@
 
       <template #cell-totalSlots="{ row }">
         <div class="d-flex flex-column align-items-center justify-content-center">
-          <el-badge :value="row.totalSlots" type="primary" class="mt-2">
-            <el-button size="small" circle icon="Monitor" />
-          </el-badge>
-          <div class="smaller text-secondary mt-1 fw-bold">{{ row.totalSlots }} suất</div>
+          <div class="display-6 fw-bold text-dark mb-0">{{ row.totalSlots }}</div>
+          <div class="smaller text-secondary fw-bold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">suất chiếu</div>
         </div>
       </template>
 
-      <template #cell-moviesDistribution="{ row }">
-        <div class="d-flex flex-wrap justify-content-center gap-1">
-          <el-tag v-for="(m, idx) in row.movies" :key="idx" size="small" effect="plain" class="movie-tag-item">
-            {{ m }}
-          </el-tag>
-          <span v-if="row.movies.length === 0" class="text-muted smaller italic">Chưa có suất chiếu</span>
-        </div>
-      </template>
+      <!-- Movie distribution removed -->
 
       <template #cell-avgOccupancy="{ row }">
-        <div class="d-flex flex-column align-items-center" style="min-width: 100px;">
+        <div class="d-flex flex-column align-items-center" style="min-width: 120px;">
           <div class="fw-bold text-primary mb-1">{{ row.avgOccupancy }}%</div>
-          <div class="bg-light w-100 rounded-pill overflow-hidden" style="height: 6px;">
-            <div class="bg-primary h-100" :style="{ width: row.avgOccupancy + '%' }"></div>
+          <div class="bg-light w-100 rounded-pill overflow-hidden" style="height: 8px; border: 1px solid #e2e8f0;">
+            <div class="bg-primary h-100 transition-all" :style="{ width: row.avgOccupancy + '%' }"></div>
           </div>
-          <div class="smaller text-secondary mt-1" style="font-size: 10px;">Trung bình ngày</div>
+          <div class="smaller text-secondary mt-1 fw-bold" style="font-size: 11px;">
+            Đã bán: {{ row.totalSold }}/{{ row.totalCapacity }} ghế
+          </div>
         </div>
       </template>
 
@@ -110,9 +101,9 @@
 
       <template #actions="{ row }">
         <div class="d-flex justify-content-center align-items-center gap-2">
-          <el-tooltip content="Xem chi tiết các suất" placement="top">
-            <el-button type="primary" plain size="small" @click="viewRoomSchedules(row)">
-              <i class="bi bi-list-ul me-1"></i>Chi tiết
+          <el-tooltip content="Xem chi tiết lịch chiếu tại phòng này" placement="top">
+            <el-button type="danger" size="small" class="px-3" @click="viewRoomSchedules(row)">
+              <i class="bi bi-calendar-event me-1"></i>Xem suất chiếu
             </el-button>
           </el-tooltip>
         </div>
@@ -126,14 +117,7 @@
       :loading="saving" @confirm="handleSubmit">
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <div class="row g-4">
-          <div class="col-12">
-            <el-form-item label="Phim chiếu" prop="idPhim">
-              <el-select v-model="form.idPhim" class="w-100" placeholder="Chọn phim" filterable>
-                <el-option v-for="p in phimList" :key="p.id" :label="`${p.tenPhim} [${p.loaiPhim || '2D'}]`"
-                  :value="p.id" />
-              </el-select>
-            </el-form-item>
-          </div>
+          <!-- Movie selection removed -->
           <div class="col-12">
             <el-form-item label="Phòng chiếu" prop="idPhongChieu">
               <el-select v-model="form.idPhongChieu" class="w-100" placeholder="Chọn phòng" filterable>
@@ -184,20 +168,7 @@
 
       <el-form v-if="!batchResult" :model="batchForm" :rules="rules" ref="batchFormRef" label-position="top">
         <div class="row g-3">
-          <div class="col-md-12">
-            <el-form-item label="Chọn Phim" prop="idPhim">
-              <el-select v-model="batchForm.idPhim" placeholder="-- Chọn phim --" filterable class="w-100"
-                @change="onBatchPhimChange">
-                <el-option v-for="p in phimList" :key="p.id" :label="p.tenPhim" :value="p.id" />
-              </el-select>
-              <div v-if="selectedBatchPhim" class="batch-info-box mt-2">
-                <div class="d-flex justify-content-between text-dark">
-                  <span>Thời lượng: <strong>{{ selectedBatchPhim.thoiLuong }} phút</strong></span>
-                  <span>Định dạng: <strong>2D Digital</strong></span>
-                </div>
-              </div>
-            </el-form-item>
-          </div>
+          <!-- Movie selection removed -->
 
           <div class="col-md-6">
             <el-form-item label="Từ ngày" prop="tuNgay">
@@ -236,9 +207,9 @@
                   <el-time-picker v-model="batchForm.danhSachGioBatDau[idx]" format="HH:mm" value-format="HH:mm:ss"
                     placeholder="Giờ" style="width: 110px" />
 
-                  <div class="ms-3 flex-grow-1" v-if="selectedBatchPhim && slot">
-                    <span class="text-secondary smaller me-1">Kết thúc dự kiến:</span>
-                    <span class="fw-bold text-primary smaller">{{ calcEndTime(slot) }}</span>
+                  <div class="ms-3 flex-grow-1" v-if="slot">
+                    <span class="text-secondary smaller me-1">Khung giờ:</span>
+                    <span class="fw-bold text-primary smaller">{{ slot }}</span>
                   </div>
 
                   <div class="ms-auto ps-2">
@@ -390,6 +361,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { Search, Monitor, Filter, MagicStick, Plus, Delete } from '@element-plus/icons-vue';
 import { suatChieuService } from '@/services/api/admin/suatChieuService';
 import notification from '@/utils/notifications';
@@ -398,6 +370,8 @@ import dayjs from 'dayjs';
 import BaseModal from '@/components/common/BaseModal.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
 import ExcelActions from '@/components/common/ExcelActions.vue';
+
+const router = useRouter();
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const loading = ref(false);
@@ -455,7 +429,6 @@ const pageSize = ref(5);
 const selectedShowtimes = ref([]);
 
 const form = ref({
-  idPhim: '',
   idPhongChieu: '',
   ngayChieu: null,
   gioBatDau: null,
@@ -464,7 +437,6 @@ const form = ref({
 });
 
 const batchForm = ref({
-  idPhim: '',
   idPhongChieu: '',
   tuNgay: null,
   denNgay: null,
@@ -474,14 +446,12 @@ const batchForm = ref({
 });
 
 const rules = {
-  idPhim: [{ required: true, message: 'Vui lòng chọn phim', trigger: 'change' }],
   idPhongChieu: [{ required: true, message: 'Vui lòng chọn phòng chiếu', trigger: 'change' }],
   ngayChieu: [{ required: true, message: 'Vui lòng chọn ngày chiếu', trigger: 'change' }],
   gioBatDau: [{ required: true, message: 'Vui lòng chọn giờ bắt đầu', trigger: 'change' }],
 };
 
 const batchRules = {
-  idPhim: [{ required: true, message: 'Vui lòng chọn phim', trigger: 'change' }],
   idPhongChieu: [{ required: true, message: 'Vui lòng chọn phòng chiếu', trigger: 'change' }],
   tuNgay: [{ required: true, message: 'Vui lòng chọn ngày bắt đầu', trigger: 'change' }],
   denNgay: [{ required: true, message: 'Vui lòng chọn ngày kết thúc', trigger: 'change' }],
@@ -513,11 +483,10 @@ watch([() => form.value.idPhim, () => form.value.gioBatDau], ([newPhimId, newSta
 
 // ── Columns ───────────────────────────────────────────────────────────────────
 const roomColumns = [
-  { label: 'Phòng chiếu', key: 'roomName', width: '200px', align: 'center' },
+  { label: 'Phòng chiếu', key: 'roomName', width: '220px', align: 'center' },
   { label: 'Ngày xem', key: 'dateInfo', width: '150px', align: 'center' },
-  { label: 'Tổng suất', key: 'totalSlots', width: '120px', align: 'center' },
-  { label: 'Phân bổ Phim trong ngày', key: 'moviesDistribution', width: '300px', align: 'center' },
-  { label: 'Lấp đầy TB', key: 'avgOccupancy', width: '150px', align: 'center' },
+  { label: 'Tổng suất chiếu', key: 'totalSlots', width: '170px', align: 'center' },
+  { label: 'Hiệu suất lấp đầy', key: 'avgOccupancy', width: '180px', align: 'center' },
   { label: 'Trạng thái', key: 'roomStatus', width: '150px', align: 'center' },
 ];
 
@@ -535,9 +504,15 @@ const filteredRoomGroups = computed(() => {
     const movies = [...new Set(roomShowtimes.map(s => s.tenPhim))].filter(Boolean);
     
     let totalOccupancy = 0;
+    let totalSold = 0;
+    let totalCapacity = 0;
+
     roomShowtimes.forEach(s => {
-      const sold = (s.tongGhe || room.tongGhe || 1) - (s.soGheTrong || 0);
-      totalOccupancy += (sold / (s.tongGhe || room.tongGhe || 1)) * 100;
+      const capacity = s.tongGhe || room.tongGhe || 0;
+      const sold = capacity - (s.soGheTrong || 0);
+      totalOccupancy += capacity > 0 ? (sold / capacity) * 100 : 0;
+      totalSold += sold;
+      totalCapacity += capacity;
     });
 
     groups.push({
@@ -547,6 +522,8 @@ const filteredRoomGroups = computed(() => {
       totalSlots: roomShowtimes.length,
       ngayChieu: targetDate,
       movies: movies,
+      totalSold,
+      totalCapacity,
       avgOccupancy: roomShowtimes.length > 0 ? Math.round(totalOccupancy / roomShowtimes.length) : 0
     });
   });
@@ -607,8 +584,16 @@ async function fetchShowtimes() {
 }
 
 const viewRoomSchedules = (row) => {
-  notification.info(`Đang chuyển tới lịch chi tiết của ${row.tenPhong}`);
-  // Logic điều hướng hoặc mở modal list chi tiết có thể thêm sau
+  // Chuyển sang tab Lịch chiếu và áp dụng filter
+  router.push({
+    path: '/admin/schedule',
+    query: {
+      roomId: row.id,
+      date: row.ngayChieu,
+      tab: 'visual'
+    }
+  });
+  notification.success(`Đang chuyển tới sơ đồ suất chiếu ${row.tenPhong}`);
 };
 
 const openDialog = (row = null) => {
@@ -761,7 +746,7 @@ const getDoTuoiTagType = (nhanDoTuoi) => {
   return types[nhanDoTuoi] || 'info';
 };
 
-const resetFilter = () => {
+const handleReset = () => {
   filterDate.value = dayjs().format('YYYY-MM-DD');
   filterRoom.value = null;
   filterTrangThai.value = '';
@@ -769,7 +754,7 @@ const resetFilter = () => {
   currentPage.value = 1;
 };
 
-watch([filterDate, filterRoom], () => {
+watch([filterDate, filterRoom, searchQuery], () => {
   currentPage.value = 1;
   fetchShowtimes();
 });

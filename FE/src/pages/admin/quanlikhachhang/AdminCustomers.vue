@@ -18,6 +18,8 @@ const loading = ref(false);
 const searchQuery = ref('');
 const filterTrangThai = ref('');
 const filterGioiTinh = ref('');
+const filterLoaiKhach = ref('');
+const customerTypes = ref([]);
 const totalElements = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(5);
@@ -33,7 +35,7 @@ const customerColumns = [
   { label: 'Khách hàng', key: 'customer', width: '160px' },
   { label: 'Số điện thoại', key: 'sdt', width: '120px' },
   { label: 'Email', key: 'email', width: '180px' },
-  { label: 'Địa chỉ', key: 'diaChi', width: '180px' },
+  { label: 'Địa chỉ', key: 'diaChi', width: '200px', align: 'center' },
   { label: 'Loại khách', key: 'loaiKhach', width: '120px' },
   { label: 'Trạng thái', key: 'trangThai', width: '130px' },
 ];
@@ -122,6 +124,7 @@ const fetchCustomers = async () => {
       searchQuery.value || null,
       filterTrangThai.value === '' ? null : filterTrangThai.value,
       filterGioiTinh.value === '' ? null : filterGioiTinh.value,
+      filterLoaiKhach.value || null,
       currentPage.value - 1,
       pageSize.value,
       'id,desc'
@@ -153,10 +156,21 @@ const debouncedFetch = debounce(() => {
   fetchCustomers();
 }, 300);
 
+const fetchCustomerTypes = async () => {
+  try {
+    const res = await khachHangService.getLoaiKhachHang();
+    customerTypes.value = res.data?.data || [];
+  } catch (err) { console.error(err); }
+};
+
 onMounted(() => {
   fetchCustomers();
   fetchProvinces();
+  fetchCustomerTypes();
 });
+
+watch(searchQuery, debouncedFetch);
+watch([filterTrangThai, filterGioiTinh, filterLoaiKhach, currentPage, pageSize], fetchCustomers);
 
 // --- Logic xử lý Modal (Thêm & Sửa) ---
 const handleAdd = () => {
@@ -322,10 +336,11 @@ const handleUpdateStatus = (row, status = null) => {
 };
 
 // --- Các hàm hỗ trợ khác ---
-const resetFilter = () => {
+const handleReset = () => {
   searchQuery.value = '';
   filterTrangThai.value = '';
   filterGioiTinh.value = '';
+  filterLoaiKhach.value = '';
   currentPage.value = 1;
   fetchCustomers();
 };
@@ -349,7 +364,7 @@ const getGenderText = (g) => g === 1 ? 'Nam' : 'Nữ';
 const getStatusLabel = (status) => status === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
 
 watch(searchQuery, debouncedFetch);
-watch([filterTrangThai, filterGioiTinh, currentPage, pageSize], () => {
+watch([filterTrangThai, filterGioiTinh, filterLoaiKhach, currentPage, pageSize], () => {
   if (loading.value) return;
   fetchCustomers();
 });
@@ -359,7 +374,7 @@ watch([filterTrangThai, filterGioiTinh, currentPage, pageSize], () => {
   <div class="d-flex flex-column flex-grow-1 h-100 overflow-hidden">
     <BaseTable title="Quản lý khách hàng" titleIcon="bi bi-people-fill" addButtonLabel="Thêm khách hàng"
       :data="customers" :columns="customerColumns" :loading="loading" :total="totalElements"
-      v-model:currentPage="currentPage" v-model:pageSize="pageSize" @add-click="handleAdd" @reset-filter="resetFilter"
+      v-model:currentPage="currentPage" v-model:pageSize="pageSize" @add-click="handleAdd" @reset-filter="handleReset"
       @edit="handleEdit" @delete="handleUpdateStatus">
       <template #header-actions-left>
         <ExcelActions module="khach-hang" @import-success="fetchCustomers" />
@@ -367,21 +382,30 @@ watch([filterTrangThai, filterGioiTinh, currentPage, pageSize], () => {
 
       <!-- Optimized Filters -->
       <template #filters>
-        <div class="me-2 mb-2 mb-md-0" style="min-width: 240px;">
-          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm</label>
+          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable class="w-100" />
         </div>
 
-        <div class="me-2 mb-2 mb-md-0">
-          <el-select v-model="filterTrangThai" placeholder="Trạng thái" style="width: 170px;" clearable>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
+          <el-select v-model="filterTrangThai" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
           </el-select>
         </div>
 
-        <div class="mb-2 mb-md-0">
-          <el-select v-model="filterGioiTinh" placeholder="Giới tính" style="width: 170px;" clearable>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Giới tính</label>
+          <el-select v-model="filterGioiTinh" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Nam" :value="1" />
             <el-option label="Nữ" :value="0" />
+          </el-select>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Loại khách</label>
+          <el-select v-model="filterLoaiKhach" placeholder="Tất cả" class="w-100" clearable>
+            <el-option v-for="t in customerTypes" :key="t.id" :label="t.tenLoai" :value="t.id" />
           </el-select>
         </div>
       </template>
@@ -411,7 +435,7 @@ watch([filterTrangThai, filterGioiTinh, currentPage, pageSize], () => {
       </template>
 
       <template #cell-diaChi="{ row }">
-        <div class="text-secondary smaller text-truncate" style="max-width: 250px;" :title="row.diaChi">{{ row.diaChi ||
+        <div class="text-secondary smaller text-center mx-auto" :title="row.diaChi">{{ row.diaChi ||
           '—' }}</div>
       </template>
 

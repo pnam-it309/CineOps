@@ -21,14 +21,14 @@ html, body {
 .el-menu-item, 
 .el-sub-menu__title, 
 .el-menu-item span {
-  font-size: 15px !important;
-  --el-font-size-base: 15px !important;
+  font-size: 20px !important;
+  --el-font-size-base: 20px !important;
 }
 
 /* Main content base font size */
 .el-main {
-  font-size: 15px !important;
-  --el-font-size-base: 15px !important;
+  font-size: 20px !important;
+  --el-font-size-base: 20px !important;
   color: var(--color-gray-900);
 }
 
@@ -39,7 +39,7 @@ html, body {
 .el-main .el-table .cell,
 .el-main .cine-premium-table td,
 .el-main .cine-premium-table th {
-  font-size: 13px !important;
+  font-size: 18px !important;
   line-height: normal !important;
 }
 
@@ -51,32 +51,32 @@ html, body {
 .el-main .el-tag--small, 
 .el-main .el-tag--default,
 .el-main .text-secondary.small {
-  font-size: 13px !important;
+  font-size: 18px !important;
   line-height: 1.2 !important;
   height: auto !important;
-  padding: 1px 8px !important; /* Slightly more compact padding */
+  padding: 2px 12px !important; /* Adjusted padding for much larger font */
 }
 
 /* Strong labels inside table cells */
 .el-main .el-table .cell strong,
 .el-main .cine-premium-table td strong {
-  font-size: 14px !important;
+  font-size: 19px !important;
 }
 
 .el-main .el-button, 
 .el-main .el-input__inner, 
 .el-main .el-form-item__label {
-  font-size: 14px !important;
+  font-size: 19px !important;
 }
 
 /* Global rule for Element Plus Select Dropdowns */
 .el-select-dropdown__item, 
 .el-dropdown-menu__item,
 .el-select-dropdown__item span {
-  font-size: 16px !important;
+  font-size: 21px !important;
   height: auto !important;
   line-height: normal !important;
-  padding: 8px 16px !important;
+  padding: 12px 24px !important; /* Adjusted padding */
 }
 
 /* Custom Responsive Utilities */

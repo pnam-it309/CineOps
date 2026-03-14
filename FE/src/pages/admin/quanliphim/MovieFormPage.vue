@@ -189,191 +189,193 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="form-page-container">
-    <div class="form-header-modern">
-      <div>
-        <el-button :icon="ArrowLeft" link @click="router.back()" class="form-header-back-btn">
-          Quay lại danh sách
-        </el-button>
-        <h1 class="form-header-title">
-          {{ isEdit ? 'Chỉnh sửa phim: ' + movieForm.tenPhim : 'Thêm phim mới' }}
-        </h1>
+  <div class="movie-form-page">
+    <div class="form-page-container">
+      <div class="form-header-modern">
+        <div>
+          <el-button :icon="ArrowLeft" link @click="router.back()" class="form-header-back-btn">
+            Quay lại danh sách
+          </el-button>
+          <h1 class="form-header-title">
+            {{ isEdit ? 'Chỉnh sửa phim: ' + movieForm.tenPhim : 'Thêm phim mới' }}
+          </h1>
+        </div>
+        <div class="d-flex gap-3">
+          <el-button @click="router.back()" class="btn-cine-action-outline">Hủy bỏ</el-button>
+          <el-button type="primary" :icon="Check" @click="handleSave" :loading="loading" class="btn-premium-action-main px-4">
+            {{ isEdit ? 'Lưu thay đổi' : 'Tạo phim mới' }}
+          </el-button>
+        </div>
       </div>
-      <div class="d-flex gap-3">
-        <el-button @click="router.back()" class="btn-cine-action-outline">Hủy bỏ</el-button>
-        <el-button type="primary" :icon="Check" @click="handleSave" :loading="loading" class="btn-premium-action-main px-4">
-          {{ isEdit ? 'Lưu thay đổi' : 'Tạo phim mới' }}
-        </el-button>
-      </div>
-    </div>
 
-    <div class="row g-4">
-      <div class="col-lg-8">
-        <div class="form-card-premium p-4 px-5">
-          <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
-            <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="form-card-premium p-4 px-5">
+            <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
+              <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+            </div>
+            <el-form :model="movieForm" label-position="top" class="premium-form">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <el-form-item label="Tên phim *" required>
+                    <el-input v-model="movieForm.tenPhim" placeholder="VD: Dune: Part Two" :prefix-icon="Files" size="large" />
+                  </el-form-item>
+                </div>
+                <div class="col-md-4">
+                  <el-form-item label="Mã phim (Hệ thống tự động)">
+                    <el-input v-model="movieForm.maPhim" readonly :prefix-icon="Tickets" size="large" />
+                  </el-form-item>
+                </div>
+                <div class="col-12">
+                  <el-form-item label="Mô tả nội dung">
+                    <el-input v-model="movieForm.moTa" type="textarea" :rows="5" placeholder="Nhập tóm tắt nội dung phim..." />
+                  </el-form-item>
+                </div>
+                <div class="col-md-6">
+                  <el-form-item label="Thể loại" prop="idTheLoais">
+                    <el-select 
+                      v-model="movieForm.idTheLoais" 
+                      multiple 
+                      filterable 
+                      placeholder="Chọn thể loại" 
+                      class="w-100"
+                    >
+                      <template #suffix>
+                        <el-icon @click.stop="showAddGenreDialog = true" class="cursor-pointer mr-2">
+                          <Plus />
+                        </el-icon>
+                      </template>
+                      <el-option 
+                        v-for="item in listTheLoai" 
+                        :key="item.id" 
+                        :label="item.tenTheLoai" 
+                        :value="item.id" 
+                      />
+                    </el-select>
+                  </el-form-item>
+                </div>
+                <div class="col-md-6">
+                  <el-form-item label="Ngôn ngữ">
+                    <el-input v-model="movieForm.ngonNgu" placeholder="VD: Tiếng Anh - Phụ đề Tiếng Việt" size="large" />
+                  </el-form-item>
+                </div>
+              </div>
+            </el-form>
           </div>
-          <el-form :model="movieForm" label-position="top" class="premium-form">
+
+          <div class="form-card-premium p-4 px-5">
+            <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
+              <i class="bi bi-calendar-event me-2"></i>Lịch chiếu & Thời gian
+            </div>
             <div class="row g-3">
-              <div class="col-md-8">
-                <el-form-item label="Tên phim *" required>
-                  <el-input v-model="movieForm.tenPhim" placeholder="VD: Dune: Part Two" :prefix-icon="Files" size="large" />
+              <div class="col-md-6">
+                <el-form-item label="Ngày khởi chiếu">
+                  <el-date-picker v-model="movieForm.ngayKhoiChieu" type="date" class="w-100" value-format="YYYY-MM-DD" size="large" />
                 </el-form-item>
               </div>
-              <div class="col-md-4">
-                <el-form-item label="Mã phim (Hệ thống tự động)">
-                  <el-input v-model="movieForm.maPhim" readonly :prefix-icon="Tickets" size="large" />
+              <div class="col-md-6">
+                <el-form-item label="Ngày kết thúc">
+                  <el-date-picker v-model="movieForm.ngayKetThuc" type="date" class="w-100" value-format="YYYY-MM-DD" size="large" :disabled-date="disabledDateEnd" />
                 </el-form-item>
               </div>
               <div class="col-12">
-                <el-form-item label="Mô tả nội dung">
-                  <el-input v-model="movieForm.moTa" type="textarea" :rows="5" placeholder="Nhập tóm tắt nội dung phim..." />
-                </el-form-item>
-              </div>
-              <div class="col-md-6">
-                <el-form-item label="Thể loại" prop="idTheLoais">
-                  <el-select 
-                    v-model="movieForm.idTheLoais" 
-                    multiple 
-                    filterable 
-                    placeholder="Chọn thể loại" 
-                    class="w-100"
-                  >
-                    <template #suffix>
-                      <el-icon @click.stop="showAddGenreDialog = true" class="cursor-pointer mr-2">
-                        <Plus />
-                      </el-icon>
-                    </template>
-                    <el-option 
-                      v-for="item in listTheLoai" 
-                      :key="item.id" 
-                      :label="item.tenTheLoai" 
-                      :value="item.id" 
-                    />
-                  </el-select>
-                </el-form-item>
-              </div>
-              <div class="col-md-6">
-                <el-form-item label="Ngôn ngữ">
-                  <el-input v-model="movieForm.ngonNgu" placeholder="VD: Tiếng Anh - Phụ đề Tiếng Việt" size="large" />
-                </el-form-item>
-              </div>
-            </div>
-          </el-form>
-        </div>
-
-        <div class="form-card-premium p-4 px-5">
-          <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
-            <i class="bi bi-calendar-event me-2"></i>Lịch chiếu & Thời gian
-          </div>
-          <div class="row g-3">
-            <div class="col-md-6">
-              <el-form-item label="Ngày khởi chiếu">
-                <el-date-picker v-model="movieForm.ngayKhoiChieu" type="date" class="w-100" value-format="YYYY-MM-DD" size="large" />
-              </el-form-item>
-            </div>
-            <div class="col-md-6">
-              <el-form-item label="Ngày kết thúc">
-                <el-date-picker v-model="movieForm.ngayKetThuc" type="date" class="w-100" value-format="YYYY-MM-DD" size="large" :disabled-date="disabledDateEnd" />
-              </el-form-item>
-            </div>
-            <div class="col-12">
-              <label class="form-label small fw-bold mb-2">Lịch chiếu trong tuần (tối đa 5 thứ)</label>
-              <div class="p-3 bg-light rounded-3">
-                <el-checkbox-group v-model="movieForm.lichChieu" @change="onLichChieuChange" class="d-flex flex-wrap gap-2">
-                  <el-checkbox-button v-for="t in thuOptions" :key="t.value" :value="t.value">{{ t.label }}</el-checkbox-button>
-                </el-checkbox-group>
-                <div class="text-secondary mt-2 small" v-if="movieForm.lichChieu.length > 0">
-                  Đã chọn: <span class="text-primary fw-bold">{{ movieForm.lichChieu.map(t => thuLabels[t]).join(', ') }}</span>
+                <label class="form-label small fw-bold mb-2">Lịch chiếu trong tuần (tối đa 5 thứ)</label>
+                <div class="p-3 bg-light rounded-3">
+                  <el-checkbox-group v-model="movieForm.lichChieu" @change="onLichChieuChange" class="d-flex flex-wrap gap-2">
+                    <el-checkbox-button v-for="t in thuOptions" :key="t.value" :value="t.value">{{ t.label }}</el-checkbox-button>
+                  </el-checkbox-group>
+                  <div class="text-secondary mt-2 small" v-if="movieForm.lichChieu.length > 0">
+                    Đã chọn: <span class="text-primary fw-bold">{{ movieForm.lichChieu.map(t => thuLabels[t]).join(', ') }}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-lg-4">
-        <div class="form-card-premium p-4">
-          <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
-            <i class="bi bi-gear-fill me-2"></i>Cấu hình & Phân loại
-          </div>
-          <el-form :model="movieForm" label-position="top">
-
-            <el-form-item label="Giá phim (VNĐ)">
-              <el-input-number v-model="movieForm.giaPhim" :min="0" :step="5000" class="w-100" size="large" controls-position="right" />
-            </el-form-item>
-            <div class="row g-2">
-              <div class="col-6">
-                <el-form-item label="Thời lượng (p)">
-                  <el-input-number v-model="movieForm.thoiLuong" :min="1" class="w-100" size="large" controls-position="right" />
-                </el-form-item>
-              </div>
-              <div class="col-6">
-                <el-form-item label="Độ tuổi">
-                  <el-input-number v-model="movieForm.doTuoi" :min="0" :max="18" class="w-100" size="large" controls-position="right" />
-                </el-form-item>
-              </div>
+        <div class="col-lg-4">
+          <div class="form-card-premium p-4">
+            <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
+              <i class="bi bi-gear-fill me-2"></i>Cấu hình & Phân loại
             </div>
-            <el-form-item label="Đánh giá (0-10)">
-              <el-input-number v-model="movieForm.danhGia" :min="0" :max="10" :precision="1" :step="0.1" class="w-100" size="large" controls-position="right" />
-            </el-form-item>
-            
-            <el-form-item label="Định dạng phim">
-              <el-select v-model="movieForm.loaiPhim" placeholder="Chọn định dạng" class="w-100" size="large">
-                <el-option label="2D" value="2D" />
-                <el-option label="3D" value="3D" />
-                <el-option label="IMAX" value="IMAX" />
-                <el-option label="4DX" value="4DX" />
-              </el-select>
-            </el-form-item>
-            
-            <el-form-item label="Phụ phí định dạng (VNĐ)">
-              <el-input-number v-model="movieForm.phuPhiLoaiPhim" :min="0" :step="5000" class="w-100" size="large" controls-position="right" />
-            </el-form-item>
-            
-            <el-divider content-position="left">Kiểm duyệt độ tuổi</el-divider>
-            
-            <el-form-item label="Nhãn độ tuổi">
-              <el-select v-model="movieForm.nhanDoTuoi" placeholder="Chọn nhãn độ tuổi" class="w-100" size="large">
-                <el-option label="P - Tất cả" value="P" />
-                <el-option label="T13" value="T13" />
-                <el-option label="T16" value="T16" />
-                <el-option label="T18" value="T18" />
-              </el-select>
-            </el-form-item>
-            
-            <el-form-item>
-              <el-checkbox v-model="movieForm.hienThiCanhBaoDoTuoi" label="Hiển thị cảnh báo độ tuổi trên giao diện khách hàng" />
-            </el-form-item>
-          </el-form>
-        </div>
+            <el-form :model="movieForm" label-position="top">
 
-        <div class="form-card-premium p-4 mt-4">
-          <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
-            <i class="bi bi-image me-2"></i>Hình ảnh & Media
+              <el-form-item label="Giá phim (VNĐ)">
+                <el-input-number v-model="movieForm.giaPhim" :min="0" :step="5000" class="w-100" size="large" controls-position="right" />
+              </el-form-item>
+              <div class="row g-2">
+                <div class="col-6">
+                  <el-form-item label="Thời lượng (p)">
+                    <el-input-number v-model="movieForm.thoiLuong" :min="1" class="w-100" size="large" controls-position="right" />
+                  </el-form-item>
+                </div>
+                <div class="col-6">
+                  <el-form-item label="Độ tuổi">
+                    <el-input-number v-model="movieForm.doTuoi" :min="0" :max="18" class="w-100" size="large" controls-position="right" />
+                  </el-form-item>
+                </div>
+              </div>
+              <el-form-item label="Đánh giá (0-10)">
+                <el-input-number v-model="movieForm.danhGia" :min="0" :max="10" :precision="1" :step="0.1" class="w-100" size="large" controls-position="right" />
+              </el-form-item>
+              
+              <el-form-item label="Định dạng phim">
+                <el-select v-model="movieForm.loaiPhim" placeholder="Chọn định dạng" class="w-100" size="large">
+                  <el-option label="2D" value="2D" />
+                  <el-option label="3D" value="3D" />
+                  <el-option label="IMAX" value="IMAX" />
+                  <el-option label="4DX" value="4DX" />
+                </el-select>
+              </el-form-item>
+              
+              <el-form-item label="Phụ phí định dạng (VNĐ)">
+                <el-input-number v-model="movieForm.phuPhiLoaiPhim" :min="0" :step="5000" class="w-100" size="large" controls-position="right" />
+              </el-form-item>
+              
+              <el-divider content-position="left">Kiểm duyệt độ tuổi</el-divider>
+              
+              <el-form-item label="Nhãn độ tuổi">
+                <el-select v-model="movieForm.nhanDoTuoi" placeholder="Chọn nhãn độ tuổi" class="w-100" size="large">
+                  <el-option label="P - Tất cả" value="P" />
+                  <el-option label="T13" value="T13" />
+                  <el-option label="T16" value="T16" />
+                  <el-option label="T18" value="T18" />
+                </el-select>
+              </el-form-item>
+              
+              <el-form-item>
+                <el-checkbox v-model="movieForm.hienThiCanhBaoDoTuoi" label="Hiển thị cảnh báo độ tuổi trên giao diện khách hàng" />
+              </el-form-item>
+            </el-form>
           </div>
-          <el-form-item label="Link Poster">
-            <el-input v-model="movieForm.poster" placeholder="https://..." size="large" />
-            <div v-if="movieForm.poster" class="mt-3 text-center">
-              <img :src="movieForm.poster" class="rounded-3 shadow-sm border" style="width: 100%; max-height: 250px; object-fit: cover;" @error="e => e.target.style.display='none'" />
+
+          <div class="form-card-premium p-4 mt-4">
+            <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
+              <i class="bi bi-image me-2"></i>Hình ảnh & Media
             </div>
-          </el-form-item>
-          <el-form-item label="Link Trailer (YouTube)">
-            <el-input v-model="movieForm.trailer" placeholder="https://..." size="large" />
-          </el-form-item>
+            <el-form-item label="Link Poster">
+              <el-input v-model="movieForm.poster" placeholder="https://..." size="large" />
+              <div v-if="movieForm.poster" class="mt-3 text-center">
+                <img :src="movieForm.poster" class="rounded-3 shadow-sm border" style="width: 100%; max-height: 250px; object-fit: cover;" @error="e => e.target.style.display='none'" />
+              </div>
+            </el-form-item>
+            <el-form-item label="Link Trailer (YouTube)">
+              <el-input v-model="movieForm.trailer" placeholder="https://..." size="large" />
+            </el-form-item>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Dialog thêm thể loại nhanh -->
-  <el-dialog v-model="showAddGenreDialog" title="Thêm thể loại mới" width="30%">
-    <el-input v-model="newGenreName" placeholder="Nhập tên thể loại..." />
-    <template #footer>
-      <el-button @click="showAddGenreDialog = false">Hủy</el-button>
-      <el-button type="primary" @click="handleQuickAddGenre">Xác nhận</el-button>
-    </template>
-  </el-dialog>
+    <!-- Dialog thêm thể loại nhanh -->
+    <el-dialog v-model="showAddGenreDialog" title="Thêm thể loại mới" width="30%">
+      <el-input v-model="newGenreName" placeholder="Nhập tên thể loại..." />
+      <template #footer>
+        <el-button @click="showAddGenreDialog = false">Hủy</el-button>
+        <el-button type="primary" @click="handleQuickAddGenre">Xác nhận</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <style scoped>

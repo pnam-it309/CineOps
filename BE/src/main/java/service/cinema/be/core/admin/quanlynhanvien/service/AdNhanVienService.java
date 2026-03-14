@@ -37,8 +37,13 @@ public class AdNhanVienService {
     private final RandomNumberGenerator randomGenerator = new RandomNumberGenerator();
 
     @Transactional(readOnly = true)
-    public Page<AdNhanVienResponse> getAll(String search, String idPhanQuyen, Integer trangThai, Pageable pageable) {
-        return adNhanVienRepository.searchNhanVien(search, idPhanQuyen, trangThai, pageable)
+    public Page<AdNhanVienResponse> getAll(String search, String idPhanQuyen, Integer trangThai, Integer gioiTinh, Pageable pageable) {
+        return adNhanVienRepository.searchNhanVien(
+                (search != null && search.isBlank()) ? null : search,
+                idPhanQuyen, 
+                trangThai, 
+                gioiTinh,
+                pageable)
                 .map(this::toResponse);
     }
 

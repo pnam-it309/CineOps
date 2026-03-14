@@ -18,12 +18,15 @@ public interface AdPhimRepository extends PhimRepository{
         WHERE (:tenPhim IS NULL OR LOWER(p.tenPhim) LIKE LOWER(CONCAT('%', :tenPhim, '%')))
           AND (:trangThai IS NULL OR p.trangThai = :trangThai)
           AND (:idTheLoai IS NULL OR tl.id = :idTheLoai)
-        ORDER BY p.ngayKhoiChieu DESC
+          AND (CAST(:startDate AS date) IS NULL OR p.ngayKhoiChieu >= :startDate)
+          AND (CAST(:endDate AS date) IS NULL OR p.ngayKhoiChieu <= :endDate)
     """)
     Page<Phim> searchPhim(
             @Param("tenPhim") String tenPhim,
             @Param("trangThai") Integer trangThai,
             @Param("idTheLoai") String idTheLoai,
+            @Param("startDate") java.time.LocalDate startDate,
+            @Param("endDate") java.time.LocalDate endDate,
             Pageable pageable
     );
 

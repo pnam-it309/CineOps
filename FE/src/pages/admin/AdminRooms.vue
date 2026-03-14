@@ -243,27 +243,23 @@ watch([searchQuery, filterStatus, filterType], () => {
 
       <!-- Filters Slot -->
       <template #filters>
-        <div class="filter-item search-input-wrapper">
-          <el-input
-            v-model="searchQuery"
-            placeholder="Tìm tên phòng..."
-            :prefix-icon="Search"
-            size="default"
-            clearable
-            style="width: 250px;"
-          />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tên phòng</label>
+          <el-input v-model="searchQuery" placeholder="Tìm tên phòng..." :prefix-icon="Search" clearable class="w-100" />
         </div>
 
-        <div class="filter-item">
-          <el-select v-model="filterStatus" placeholder="Chọn trạng thái" style="width: 180px;" size="default" clearable>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
+          <el-select v-model="filterStatus" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Tất cả trạng thái" value="all" />
             <el-option label="Hoạt động" value="Hoạt động" />
             <el-option label="Ngừng hoạt động" value="Ngừng hoạt động" />
           </el-select>
         </div>
 
-        <div class="filter-item">
-          <el-select v-model="filterType" placeholder="Chọn loại phòng" style="width: 180px;" size="default" clearable>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Loại phòng</label>
+          <el-select v-model="filterType" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Tất cả loại" value="all" />
             <el-option label="2D/3D Standard" value="2D/3D Standard" />
             <el-option label="IMAX" value="IMAX" />
@@ -427,15 +423,6 @@ watch([searchQuery, filterStatus, filterType], () => {
           <div class="col-6">
             <el-form-item label="Số ghế mỗi hàng">
               <el-input-number v-model="roomForm.cols" :min="1" class="w-100" controls-position="right" />
-            </el-form-item>
-          </div>
-          <div class="col-12">
-            <el-form-item label="Trạng thái">
-              <el-select v-model="roomForm.status" class="w-100">
-                <template #prefix><el-icon><PieChart /></el-icon></template>
-                <el-option label="Hoạt động" value="Hoạt động" />
-                <el-option label="Ngừng hoạt động" value="Ngừng hoạt động" />
-              </el-select>
             </el-form-item>
           </div>
           <div class="col-12">

@@ -24,12 +24,12 @@ const isEdit = computed(() => !!route.params.id);
 const form = reactive({
   maPhieuGiamGia: '',
   tenPhieu: '',
-  loaiPhieu: 1,
-  doiTuong: 0,
+  loaiPhieu: 0,
+  kieuPhatHanh: 0,
   phanTramGiamGia: 0,
   soTienGiam: 0,
   giamToiDa: 0,
-  donToiThieu: 0,
+  giaTriHoaDonToiThieu: 0,
   soLuong: 0,
   ngayBatDau: '',
   ngayKetThuc: '',
@@ -42,7 +42,7 @@ const form = reactive({
 
 // Logic reset giá trị khi đổi loại phiếu
 watch(() => form.loaiPhieu, (val) => {
-  if (val === 1) form.soTienGiam = 0;
+  if (val === 0) form.soTienGiam = 0;
   else { form.phanTramGiamGia = 0; form.giamToiDa = 0; }
 });
 
@@ -56,12 +56,12 @@ const customerTableRef = ref(null);
 
 const customerColumns = [
   { type: 'selection', width: '55px', fixed: 'left' },
-  { label: 'Mã KH', key: 'maKhachHang', width: '100px' },
-  { label: 'Tên KH', key: 'tenKhachHang', minWidth: '180px' },
-  { label: 'SĐT', key: 'sdt', width: '130px' },
+  { label: 'Mã khách hàng', key: 'maKhachHang', width: '100px' },
+  { label: 'Tên khách hàng', key: 'tenKhachHang', width: '180px' },
+  { label: 'Số điện thoại', key: 'sdt', width: '130px' },
   { label: 'Email', key: 'email', width: '220px' },
   { label: 'Ngày sinh', key: 'ngaySinh', width: '120px' },
-  { label: 'Ngày mua gần nhất', key: 'buyLast', width: '160px' },
+  { label: 'Ngày mua gần nhất', key: 'buyLast', width: '200px' },
   { label: 'Số đơn', key: 'orders', width: '100px', sortable: true },
   { label: 'Số tiền đã tiêu', key: 'spent', width: '150px', sortable: true },
 ];
@@ -69,8 +69,8 @@ const customerColumns = [
 const fetchCustomers = async () => {
   customerLoading.value = true;
   try {
-    // Remove hardcoded trangThai to ensure we see available customers
-    const res = await khachHangService.getAll(customerSearch.value, null, 0, 1000);
+    // Correct arguments: (search, trangThai, gioiTinh, page, size)
+    const res = await khachHangService.getAll(customerSearch.value, null, null, 0, 1000);
     const apiRes = res.data?.data || res.data;
     if (apiRes && apiRes.content) {
       customers.value = apiRes.content;
@@ -91,13 +91,13 @@ const handleSelectionChange = (selection) => {
   selectedCustomers.value = selection;
   form.idKhachHangs = selection.map(c => c.id);
 
-  // Nếu là doiTuong = 1 (Cá nhân), tự động cập nhật số lượng
-  if (form.doiTuong === 1) {
+  // Nếu là kieuPhatHanh = 1 (Cá nhân), tự động cập nhật số lượng
+  if (form.kieuPhatHanh === 1) {
     form.soLuong = selection.length;
   }
 };
 
-watch(() => form.doiTuong, (newVal) => {
+watch(() => form.kieuPhatHanh, (newVal) => {
   if (newVal === 1) {
     fetchCustomers();
   } else {
@@ -256,19 +256,10 @@ onMounted(() => {
             <div class="row g-3">
               <div class="col-md-4">
                 <el-form-item label="Đối tượng">
-                  <el-radio-group v-model="form.doiTuong" :disabled="isEdit"
+                  <el-radio-group v-model="form.kieuPhatHanh" :disabled="isEdit"
                     class="vertical-radio-group w-100 d-flex flex-column align-items-start gap-2 bg-light p-3 rounded-3 mt-1">
                     <el-radio :value="0">Công khai</el-radio>
                     <el-radio :value="1">Cá nhân</el-radio>
-                  </el-radio-group>
-                </el-form-item>
-              </div>
-              <div class="col-md-4">
-                <el-form-item label="Trạng thái">
-                  <el-radio-group v-model="form.trangThai"
-                    class="vertical-radio-group w-100 d-flex flex-column align-items-start gap-2 bg-light p-3 rounded-3 mt-1">
-                    <el-radio :value="1">Hoạt động</el-radio>
-                    <el-radio :value="0">Ngừng hoạt động</el-radio>
                   </el-radio-group>
                 </el-form-item>
               </div>
@@ -302,13 +293,13 @@ onMounted(() => {
             <div class="col-12">
               <el-form-item label="Loại giảm giá">
                 <el-select v-model="form.loaiPhieu" style="width: 100%" size="large">
-                  <el-option label="Phần trăm (%)" :value="1" />
-                  <el-option label="Tiền mặt (đ)" :value="2" />
+                  <el-option label="Phần trăm (%)" :value="0" />
+                  <el-option label="Tiền mặt (đ)" :value="1" />
                 </el-select>
               </el-form-item>
             </div>
 
-            <template v-if="form.loaiPhieu === 1">
+            <template v-if="form.loaiPhieu === 0">
               <div class="col-12">
                 <el-form-item label="Phần trăm giảm (%)">
                   <el-input-number v-model="form.phanTramGiamGia" :min="1" :max="100" class="w-100" size="large"
@@ -331,16 +322,16 @@ onMounted(() => {
             </div>
             <div class="col-12">
               <el-form-item label="Giá trị đơn tối thiểu (đ)">
-                <el-input-number v-model="form.donToiThieu" :min="0" :step="10000" class="w-100" size="large"
+                <el-input-number v-model="form.giaTriHoaDonToiThieu" :min="0" :step="10000" class="w-100" size="large"
                   controls-position="right" />
               </el-form-item>
             </div>
             <div class="col-12">
               <el-form-item label="Tổng số lượng phát hành">
                 <el-input-number v-model="form.soLuong"
-                  :min="form.doiTuong === 1 ? (form.idKhachHangs.length || 1) : 1"
-                  :disabled="form.doiTuong === 1" class="w-100" size="large" controls-position="right" />
-                <div v-if="form.doiTuong === 1" class="small text-primary mt-1">
+                  :min="form.kieuPhatHanh === 1 ? (form.idKhachHangs.length || 1) : 1"
+                  :disabled="form.kieuPhatHanh === 1" class="w-100" size="large" controls-position="right" />
+                <div v-if="form.kieuPhatHanh === 1" class="small text-primary mt-1">
                   * Tự động cập nhật theo số lượng khách đã chọn
                 </div>
               </el-form-item>
@@ -351,7 +342,7 @@ onMounted(() => {
     </div>
 
     <!-- Bảng khách hàng - Chỉ hiện khi Phát hành Cá nhân -->
-    <div class="row mt-4" v-if="form.doiTuong === 1">
+    <div class="row mt-4" v-if="form.kieuPhatHanh === 1">
       <div class="col-12">
         <div class="form-card-premium p-5">
           <div class="d-flex justify-content-between align-items-start mb-4">
@@ -390,7 +381,7 @@ onMounted(() => {
                 <span class="small">{{ row.ngaySinh || '—' }}</span>
               </template>
               <template #cell-buyLast="{ row }">
-                <span class="small">{{ row.buyLast || '—' }}</span>
+                <span class="small text-nowrap">{{ row.buyLast || '—' }}</span>
               </template>
               <template #cell-orders="{ row }">
                 <span class="small">{{ row.orders || 0 }}</span>
@@ -419,7 +410,7 @@ onMounted(() => {
 
         <div class="voucher-discount-section mb-4">
           <span class="discount-value">
-            {{ form.loaiPhieu === 1 ? (form.phanTramGiamGia || 0) + '%' : (form.soTienGiam || 0).toLocaleString() + '₫'
+            {{ form.loaiPhieu === 0 ? (form.phanTramGiamGia || 0) + '%' : (form.soTienGiam || 0).toLocaleString() + '₫'
             }}
           </span>
           <span class="discount-label">Giảm giá</span>
@@ -516,5 +507,9 @@ onMounted(() => {
 
 :deep(.vertical-radio-group .el-radio__input) {
   margin-top: 2px;
+}
+
+:deep(.customer-full-table th) {
+  white-space: nowrap !important;
 }
 </style>

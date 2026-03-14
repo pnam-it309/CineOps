@@ -332,90 +332,74 @@ onMounted(() => {
 
 
       <template #filters>
-        <div class="card border-0 bg-transparent w-100 p-0">
-          <div class="row g-3 mb-3">
-            <div class="col-md-4">
-              <el-input 
-                v-model="params.tuKhoa" 
-                placeholder="Mã vé, mã hóa đơn, tên phim, SĐT..."
-                :prefix-icon="Search" 
-                clearable 
-                class="w-100"
-                @input="onSearch" 
-              />
-            </div>
-            <div class="col-md-4">
-              <el-date-picker
-                v-model="customDateRange"
-                type="daterange"
-                range-separator="đến"
-                start-placeholder="Từ ngày"
-                end-placeholder="Đến ngày"
-                format="DD/MM/YYYY"
-                value-format="YYYY-MM-DD"
-                @change="handleDateChange"
-                class="w-100"
-              />
-            </div>
-            <div class="col-md-2">
-              <el-select v-model="params.kyThoiGian" placeholder="Kỳ thời gian" clearable @change="handlePeriodChange" class="w-100">
-                <el-option label="Tất cả thời gian" value=""/>
-                <el-option label="Hôm nay" value="TODAY"/>
-                <el-option label="Tuần này" value="THIS_WEEK"/>
-                <el-option label="Tháng này" value="THIS_MONTH"/>
-              </el-select>
-            </div>
-            <div class="col-md-2">
-              <el-select v-model="params.trangThai" placeholder="Trạng thái" clearable @change="loadData" class="w-100">
-                <el-option label="Thành công" :value="1" />
-                <el-option label="Đã hủy" :value="0" />
-              </el-select>
-            </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm</label>
+          <el-input 
+            v-model="params.tuKhoa" 
+            placeholder="Mã vé, phim, SĐT..."
+            :prefix-icon="Search" 
+            clearable 
+            class="w-100"
+            @input="onSearch" 
+          />
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Khoảng ngày</label>
+          <el-date-picker
+            v-model="customDateRange"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="Từ"
+            end-placeholder="Đến"
+            format="DD/MM/YYYY"
+            value-format="YYYY-MM-DD"
+            @change="handleDateChange"
+            class="w-100"
+          />
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Kỳ thời gian</label>
+          <el-select v-model="params.kyThoiGian" placeholder="Tất cả" clearable @change="handlePeriodChange" class="w-100">
+            <el-option label="Tất cả thời gian" value=""/>
+            <el-option label="Hôm nay" value="TODAY"/>
+            <el-option label="Tuần này" value="THIS_WEEK"/>
+            <el-option label="Tháng này" value="THIS_MONTH"/>
+          </el-select>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
+          <el-select v-model="params.trangThai" placeholder="Tất cả" clearable @change="loadData" class="w-100">
+            <el-option label="Thành công" :value="1" />
+            <el-option label="Đã hủy" :value="0" />
+          </el-select>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Kênh bán</label>
+          <el-select v-model="params.loaiVe" @change="loadData" placeholder="Tất cả" class="w-100" clearable>
+            <el-option label="Tại quầy" :value="0" />
+            <el-option label="Online" :value="1" />
+          </el-select>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Phòng chiếu</label>
+          <el-select v-model="params.idPhongChieu" @change="loadData" placeholder="Tất cả" class="w-100" clearable>
+            <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong" :value="pc.id" />
+          </el-select>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Giá thanh toán</label>
+          <div class="d-flex align-items-center gap-1">
+            <el-input-number v-model="params.minPrice" :controls="false" placeholder="Giá từ" class="w-100" @change="loadData" />
+            <span class="text-secondary smaller">-</span>
+            <el-input-number v-model="params.maxPrice" :controls="false" placeholder="Đến" class="w-100" @change="loadData" />
           </div>
-
-          <div class="row g-3">
-            <div class="col-md-2">
-              <el-select v-model="params.loaiVe" @change="loadData" placeholder="Kênh bán" class="w-100" clearable>
-                <el-option label="Tại quầy" :value="0" />
-                <el-option label="Online" :value="1" />
-              </el-select>
-            </div>
-            <div class="col-md-2">
-              <el-select v-model="params.idPhongChieu" @change="loadData" placeholder="Phòng chiếu" class="w-100" clearable>
-                <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong" :value="pc.id" />
-              </el-select>
-            </div>
-            <div class="col-md-5">
-              <div class="input-group shadow-sm rounded">
-                <span class="input-group-text bg-white text-secondary border-end-0">
-                  <i class="bi bi-cash-stack"></i>
-                </span>
-                <el-input-number 
-                  v-model="params.minPrice" 
-                  :controls="false" 
-                  placeholder="Giá từ" 
-                  class="flex-grow-1"
-                  @change="loadData"
-                />
-                <span class="input-group-text bg-white border-start-0 border-end-0">-</span>
-                <el-input-number 
-                  v-model="params.maxPrice" 
-                  :controls="false" 
-                  placeholder="Đến" 
-                  class="flex-grow-1"
-                  @change="loadData"
-                />
-              </div>
-            </div>
-
-            <div class="col-md-3">
-              <el-select v-model="params.sortDir" placeholder="Sắp xếp" @change="loadData" class="w-100">
-                <template #prefix><i class="bi bi-sort-numeric-down"></i></template>
-                <el-option label="Mới nhất trước" value="DESC"/>
-                <el-option label="Cũ nhất trước" value="ASC"/>
-              </el-select>
-            </div>
-          </div>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Sắp xếp</label>
+          <el-select v-model="params.sortDir" placeholder="Mới nhất" @change="loadData" class="w-100">
+            <el-option label="Mới nhất" value="DESC"/>
+            <el-option label="Cũ nhất" value="ASC"/>
+          </el-select>
         </div>
       </template>
 

@@ -22,8 +22,9 @@ public class AdNhanVienController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String idPhanQuyen,
             @RequestParam(required = false) Integer trangThai,
+            @RequestParam(required = false) Integer gioiTinh,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.getAll(search, idPhanQuyen, trangThai, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(adNhanVienService.getAll(search, idPhanQuyen, trangThai, gioiTinh, pageable)));
     }
 
     @GetMapping("/{id}")

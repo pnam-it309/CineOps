@@ -15,25 +15,22 @@
       @delete="null"
       @fetch="handleFilter"
     >
-      <!-- Optimized Filters (Matching Image 1: Labels above inputs) -->
       <template #filters>
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm nhanh</label>
-          <el-input v-model="listQuery.tuKhoa" placeholder="Mã HĐ, khách hàng..." :prefix-icon="Search" clearable
-             style="width: 220px;" />
+          <el-input v-model="listQuery.tuKhoa" placeholder="Mã HĐ, khách hàng..." :prefix-icon="Search" clearable class="w-100" />
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Khoảng ngày</label>
           <el-date-picker v-model="customDateRange" type="daterange" range-separator="-" start-placeholder="Từ"
             end-placeholder="Đến" format="DD/MM/YYYY" value-format="YYYY-MM-DD" @change="handleDateChange"
-            style="width: 240px" />
+            class="w-100" />
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
-          <el-select v-model="listQuery.trangThai" placeholder="Tất cả" clearable
-            style="width: 140px">
+          <el-select v-model="listQuery.trangThai" placeholder="Tất cả" clearable class="w-100">
             <el-option label="Tất cả" value="" />
             <el-option label="Thành công" :value="1" />
             <el-option label="Đã hủy" :value="0" />
@@ -42,8 +39,7 @@
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Kỳ thời gian</label>
-          <el-select v-model="listQuery.kyThoiGian" placeholder="Tất cả" clearable @change="handlePeriodChange"
-            style="width: 140px">
+          <el-select v-model="listQuery.kyThoiGian" placeholder="Tất cả" clearable @change="handlePeriodChange" class="w-100">
             <el-option label="Tất cả" value="" />
             <el-option label="Hôm nay" value="TODAY" />
             <el-option label="Tuần này" value="THIS_WEEK" />
@@ -64,7 +60,7 @@
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Sắp xếp</label>
-          <el-select v-model="listQuery.sortDir" placeholder="Mới nhất" style="width: 140px">
+          <el-select v-model="listQuery.sortDir" placeholder="Mới nhất" class="w-100">
             <el-option label="Mới nhất" value="DESC" />
             <el-option label="Cũ nhất" value="ASC" />
           </el-select>

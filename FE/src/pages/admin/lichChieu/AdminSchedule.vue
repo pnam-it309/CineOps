@@ -6,7 +6,8 @@
       titleIcon="bi bi-calendar-week-fill" :data="paginatedSchedules" :columns="listColumns" :loading="loading"
       :total="filteredSchedules.length" v-model:currentPage="currentPage" v-model:pageSize="pageSize"
       :show-filters="activeTab === 'list'" :hide-pagination="activeTab === 'visual'"
-      :no-padding="activeTab === 'visual'" @reset-filter="resetFilter" @fetch="handleSearch">
+      addButtonLabel="Thêm lịch chiếu"
+      :no-padding="activeTab === 'visual'" @reset-filter="resetFilter" @fetch="handleSearch" @add-click="openDialog()">
       <!-- Header Actions: visual/list toggle -->
       <template #header-actions>
         <div class="d-flex align-items-center gap-3">
@@ -26,18 +27,18 @@
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Tên phim</label>
           <el-input v-model="searchQuery" placeholder="Tìm tên phim..." :prefix-icon="Search" clearable
-            @input="handleSearch" style="width: 250px;" />
+            @input="handleSearch" class="w-100" />
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Ngày chiếu</label>
           <el-date-picker v-model="filterDate" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY"
-            value-format="YYYY-MM-DD" style="width: 170px" @change="handleSearch" clearable />
+            value-format="YYYY-MM-DD" class="w-100" @change="handleSearch" clearable />
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Phòng chiếu</label>
-          <el-select v-model="filterRoomId" placeholder="Tất cả" style="width: 170px" @change="handleSearch" clearable>
+          <el-select v-model="filterRoomId" placeholder="Tất cả" class="w-100" @change="handleSearch" clearable>
             <el-option label="Tất cả phòng" value="" />
             <el-option v-for="r in phongChieuList" :key="r.id" :label="r.tenPhong || r.ten_phong" :value="r.id" />
           </el-select>
@@ -45,7 +46,7 @@
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
-          <el-select v-model="filterStatus" placeholder="Tất cả" style="width: 170px" @change="handleSearch" clearable>
+          <el-select v-model="filterStatus" placeholder="Tất cả" class="w-100" @change="handleSearch" clearable>
             <el-option label="Tất cả" value="" />
             <el-option label="Sắp chiếu" :value="1" />
             <el-option label="Đang chiếu" :value="2" />
@@ -91,24 +92,18 @@
 
       <template #cell-status="{ row }">
         <div class="d-flex justify-content-center align-items-center">
-          <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" effect="dark" size="small" class="fw-bold">
-            {{ row.trangThai === 1 ? 'Đang chiếu' : 'Dừng chiếu' }}
+          <el-tag :type="row.statusType" effect="dark" size="small" class="fw-bold">
+            {{ row.displayStatus }}
           </el-tag>
         </div>
       </template>
 
       <template #actions="{ row }">
         <div class="d-flex justify-content-center gap-1">
-          <el-tooltip content="Sơ đồ ghế" placement="top">
-            <button class="btn-action-icon action-seat" @click="openSeatMap(row)">
-              <i class="bi bi-grid-3x3-gap"></i>
-            </button>
-          </el-tooltip>
-          <el-tooltip content="Chỉnh sửa" placement="top">
-            <button class="btn-action-icon action-edit"
-              :disabled="(row.trangThai ?? row.trang_thai) === 0 || (row.trangThai ?? row.trang_thai) === 3"
-              @click="openDialog(row)">
-              <i class="bi bi-pencil"></i>
+          <el-tooltip content="Xem chi tiết & Chỉnh sửa" placement="top">
+            <button class="btn-action-icon action-view"
+              @click="viewMovieSchedules(row)">
+              <i class="bi bi-eye"></i>
             </button>
           </el-tooltip>
         </div>
@@ -116,9 +111,9 @@
       <!-- Visual View overrides the default table when active -->
       <template v-if="activeTab === 'visual'">
         <div class="h-100 overflow-hidden">
-          <ScheduleVisual :showtimes="showtimes" :phongChieuList="phongChieuList" :phimList="phimList"
-            :allKhungGio="allKhungGio" @view="openSeatMap" @addShowtime="handleAddShowtime"
-            @weekChange="onWeekChange" />
+          <ScheduleVisual ref="visualRef" :showtimes="showtimes" :phongChieuList="phongChieuList" :phimList="phimList"
+            :allKhungGio="allKhungGio" :initialDate="filterDate" :initialRoomId="filterRoomId"
+            @view="openSeatMap" @editShowtime="openDialog" @addShowtime="handleAddShowtime" @weekChange="onWeekChange" />
         </div>
       </template>
     </BaseTable>
@@ -253,6 +248,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
 import { Search, Refresh } from "@element-plus/icons-vue";
 import { suatChieuService } from "@/services/api/admin/suatChieuService";
 import notification from "@/utils/notifications";
@@ -264,6 +260,7 @@ import BaseModal from "@/components/common/BaseModal.vue";
 import BaseTable from "@/components/common/BaseTable.vue";
 import ScheduleVisual from "./ScheduleVisual.vue";
 
+const route = useRoute();
 const activeTab = ref("list");
 const loading = ref(false);
 const saving = ref(false);
@@ -272,6 +269,7 @@ const seatMapVisible = ref(false);
 const loadingSeats = ref(false);
 const currentSeats = ref([]);
 const selectedShowtime = ref(null);
+const visualRef = ref(null);
 const formRef = ref(null);
 
 const showtimes = ref([]);
@@ -345,20 +343,76 @@ async function fetchShowtimes() {
 // ── Computed: list tab ─────────────────────────────────────────────────────
 const filteredSchedules = computed(() => {
   return phimList.value.map(phim => {
-    const movieShowtimes = showtimes.value.filter(s => (s.idPhim ?? s.id_phim) === phim.id);
+    // Lọc danh sách suất chiếu của phim này theo các tiêu chí đang chọn
+    const movieShowtimes = showtimes.value.filter(s => {
+      const matchPhim = (s.idPhim ?? s.id_phim) === phim.id;
+      const matchRoom = !filterRoomId.value || (s.idPhongChieu ?? s.id_phong_chieu) === filterRoomId.value;
+      const matchDate = !filterDate.value || dayjs(s.ngayChieu || s.ngay_chiêu).isSame(dayjs(filterDate.value), 'day');
+      const matchStatus = filterStatus.value === '' || (s.trangThai ?? s.trang_thai) === filterStatus.value;
+      return matchPhim && matchRoom && matchDate && matchStatus;
+    });
+    
     const rooms = [...new Set(movieShowtimes.map(s => s.tenPhongChieu || s.ten_phong_chieu))].filter(Boolean);
     
+    // Ưu tiên lấy giai đoạn từ phim, nếu không có thì lấy từ các suất chiếu tìm thấy
+    let start = phim.ngayKhoiChieu || phim.ngay_khoi_chieu || phim.ngay_phat_hanh;
+    let end = phim.ngayKetThuc || phim.ngay_ket_thuc;
+
+    if (!start && movieShowtimes.length > 0) {
+      const dates = movieShowtimes.map(s => s.ngayChieu || s.ngay_chieu).filter(Boolean).sort();
+      start = dates[0];
+      end = dates[dates.length - 1];
+    }
+
+    const giaiDoan = start && end
+      ? `${dayjs(start).format('DD/MM/YYYY')} - ${dayjs(end).format('DD/MM/YYYY')}`
+      : '—';
+
+    // Tính toán trạng thái hiển thị thông minh
+    const today = dayjs().startOf('day');
+    const startDate = start ? dayjs(start).startOf('day') : null;
+    const endDate = end ? dayjs(end).startOf('day') : null;
+    const pStatus = phim.trangThai ?? phim.trang_thai;
+
+    let displayStatus = 'Ngừng chiếu';
+    let statusType = 'info';
+
+    if (pStatus === 0) {
+      displayStatus = 'Ngừng chiếu';
+      statusType = 'danger';
+    } else if (startDate && today.isBefore(startDate)) {
+      displayStatus = 'Sắp chiếu';
+      statusType = 'primary';
+    } else if (endDate && today.isAfter(endDate)) {
+      displayStatus = 'Kết thúc';
+      statusType = 'info';
+    } else if (startDate) {
+      displayStatus = 'Đang chiếu';
+      statusType = 'success';
+    } else {
+      displayStatus = 'Chưa rõ';
+      statusType = 'info';
+    }
+
     return {
       ...phim,
-      giaiDoan: phim.ngayKhoiChieu && phim.ngayKetThuc 
-        ? `${dayjs(phim.ngayKhoiChieu).format('DD/MM/YYYY')} - ${dayjs(phim.ngayKetThuc).format('DD/MM/YYYY')}`
-        : 'Chưa xác định',
+      giaiDoan,
+      displayStatus,
+      statusType,
       tongSuat: movieShowtimes.length,
       phongs: rooms.join(', ') || '—'
     };
   }).filter(m => {
-    if (!searchQuery.value) return true;
-    return m.tenPhim?.toLowerCase().includes(searchQuery.value.toLowerCase());
+    // Lọc theo từ khóa tìm kiếm
+    const matchSearch = !searchQuery.value || m.tenPhim?.toLowerCase().includes(searchQuery.value.toLowerCase());
+    
+    // Nếu đang có bộ lọc (Phòng/Ngày/Trạng thái), chỉ hiện các phim có suất chiếu thỏa mãn
+    const hasFilter = filterRoomId.value || filterDate.value || filterStatus.value !== '';
+    if (hasFilter) {
+      return matchSearch && m.tongSuat > 0;
+    }
+    
+    return matchSearch;
   });
 });
 
@@ -379,6 +433,16 @@ const resetFilter = () => {
   filterStatus.value = "";
   currentPage.value = 1;
   fetchShowtimes();
+};
+
+const viewMovieSchedules = (row) => {
+  activeTab.value = "visual";
+  // Đợi component Sơ đồ render xong mới set movie
+  setTimeout(() => {
+    if (visualRef.value?.selectPhimById) {
+      visualRef.value.selectPhimById(row.id);
+    }
+  }, 100);
 };
 
 const editingId = ref(null);
@@ -410,13 +474,17 @@ const groupedSeats = computed(() => {
 });
 
 const openDialog = (row = null) => {
-  editingId.value = row?.id || null;
+  // logic linh hoạt: nếu truyền vào suat_chieu (từ tab Sơ đồ) hoặc phim (từ tab Danh sách)
+  const isShowtime = row && (row.idKhungGio || row.id_khung_gio);
+  
+  editingId.value = isShowtime ? row.id : null;
+  
   form.value = row
     ? {
-      idPhim: row.idPhim || row.id_phim,
-      idPhongChieu: row.idPhongChieu || row.id_phong_chieu,
-      idKhungGio: row.idKhungGio || row.id_khung_gio,
-      ngayChieu: row.ngayChieu || row.ngay_chieu,
+      idPhim: row.idPhim || row.id_phim || (isShowtime ? '' : row.id), // row.id của phim nếu không phải suat_chieu
+      idPhongChieu: row.idPhongChieu || row.id_phong_chieu || "",
+      idKhungGio: row.idKhungGio || row.id_khung_gio || "",
+      ngayChieu: row.ngayChieu || row.ngay_chieu || null,
       trangThai: row.trangThai ?? row.trang_thai ?? 1,
     }
     : {
@@ -533,7 +601,8 @@ onMounted(async () => {
       id: p.id,
       tenPhim: p.tenPhim ?? p.ten_phim,
       thoiLuong: p.thoiLuong ?? p.thoi_luong ?? 0,
-      ngayKhoiChieu: p.ngayKhoiChieu ?? p.ngay_chieu ?? null,
+      ngayKhoiChieu: p.ngayKhoiChieu ?? p.ngay_khoi_chieu ?? p.ngay_phat_hanh ?? null,
+      ngayKetThuc: p.ngayKetThuc ?? p.ngay_ket_thuc ?? null,
       loaiPhim: p.loaiPhim ?? p.loai_phim ?? "2D",
       poster: p.poster ?? "",
       trangThai: p.trangThai ?? p.trang_thai ?? null,
@@ -548,6 +617,11 @@ onMounted(async () => {
     }));
 
     await fetchShowtimes();
+
+    // Handle deep linking from Showtimes page
+    if (route.query.tab) activeTab.value = route.query.tab;
+    if (route.query.roomId) filterRoomId.value = route.query.roomId;
+    if (route.query.date) filterDate.value = route.query.date;
   } catch (e) {
     notification.error("Không thể tải dữ liệu ban đầu");
     console.error(e);

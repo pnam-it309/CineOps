@@ -25,10 +25,12 @@ public class AdPhimController {
             @RequestParam(required = false) String tenPhim,
             @RequestParam(required = false) Integer trangThai,
             @RequestParam(required = false) String idTheLoai,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(
-                adPhimService.getPhim(tenPhim, trangThai, idTheLoai, page, size)));
+                adPhimService.getPhim(tenPhim, trangThai, idTheLoai, startDate, endDate, page, size)));
     }
 
     @GetMapping("/{id}")

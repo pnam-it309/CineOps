@@ -126,32 +126,48 @@
       </div>
 
 
-      <!-- Dòng 4: Sơ đồ -->
-      <div class="showtime-area custom-scrollbar">
-        <div v-if="!selectedPhim" class="empty-state">
-          <i class="bi bi-hand-index-thumb fs-1 opacity-15"></i>
-          <p class="text-secondary mt-3 small">
-            Chọn một phim bên trái để xem sơ đồ suất chiếu
-          </p>
-        </div>
+        <!-- Dòng 4: Sơ đồ -->
+        <div class="showtime-area custom-scrollbar">
+          <div v-if="!selectedPhim && !filterRoomId" class="empty-state">
+            <i class="bi bi-hand-index-thumb fs-1 opacity-15"></i>
+            <p class="text-secondary mt-3 small">
+              Chọn một phim bên trái HOẶC lọc phòng phía trên để xem sơ đồ
+            </p>
+          </div>
 
-        <template v-else>
-          <!-- Info bar phim -->
-          <div class="selected-phim-bar">
-            <img v-if="getPoster(selectedPhim)" :src="getPoster(selectedPhim)" class="sel-poster"
-              @error="(e) => (e.target.style.display = 'none')" />
-            <div v-else class="sel-poster-ph"><i class="bi bi-film"></i></div>
-            <div class="sel-info">
-              <div class="sel-name">{{ getTenPhim(selectedPhim) }}</div>
-              <div class="sel-meta">
-                {{ getThoiLuong(selectedPhim) }} phút ·
-                {{ getLoaiPhim(selectedPhim) }}
+          <template v-else>
+            <!-- TIÊU ĐỀ: Khi lọc theo PHÒNG -->
+            <div v-if="filterRoomId" class="room-context-bar mb-3 animate__animated animate__fadeIn">
+              <div class="room-info-card">
+                <i class="bi bi-door-open-fill room-icon"></i>
+                <div class="room-details">
+                  <div class="room-title">LỊCH CHIẾU: {{ getTenPhong(phongChieuList.find(r => r.id === filterRoomId)) }}</div>
+                  <div class="room-movies-list">
+                    <span class="label">Phim hôm nay:</span>
+                    <span v-for="mId in Array.from(new Set(todayShowtimes.filter(s => String(scPhong(s)) === String(filterRoomId)).map(s => scPhim(s))))" :key="mId" class="movie-tag-small">
+                      {{ getMovieTitleBySc({ idPhim: mId, id_phim: mId }) }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-            <el-tag class="ms-auto" :type="getPhimBadgeType(selectedPhim)" size="small" round effect="light">
-              {{ getPhimStatusLabel(selectedPhim) }}
-            </el-tag>
-          </div>
+
+            <!-- TIÊU ĐỀ: Khi chỉ chọn PHIM -->
+            <div v-else-if="selectedPhim" class="selected-phim-bar mb-3 animate__animated animate__fadeIn">
+              <img v-if="getPoster(selectedPhim)" :src="getPoster(selectedPhim)" class="sel-poster"
+                @error="(e) => (e.target.style.display = 'none')" />
+              <div v-else class="sel-poster-ph"><i class="bi bi-film"></i></div>
+              <div class="sel-info">
+                <div class="sel-name">{{ getTenPhim(selectedPhim) }}</div>
+                <div class="sel-meta">
+                  {{ getThoiLuong(selectedPhim) }} phút ·
+                  {{ getLoaiPhim(selectedPhim) }}
+                </div>
+              </div>
+              <el-tag class="ms-auto" :type="getPhimBadgeType(selectedPhim)" size="small" round effect="light">
+                {{ getPhimStatusLabel(selectedPhim) }}
+              </el-tag>
+            </div>
 
           <!-- Cảnh báo không có khung giờ -->
           <div v-if="!allKhungGio || allKhungGio.length === 0" class="no-kg-hint">
@@ -177,7 +193,7 @@
                 <!-- Thông báo số suất -->
                 <div class="room-meta-info d-flex align-items-center gap-3">
                   <span class="room-tag tag-count">
-                    {{ getShowtimesForRoom(selectedPhim.id, room.id).length }} /
+                    {{ (selectedPhim ? getShowtimesForRoom(selectedPhim.id, room.id) : todayShowtimes.filter(s => scPhong(s) === room.id)).length }} /
                     {{ allKhungGio.length }} suất
                   </span>
                   
@@ -201,19 +217,27 @@
                       <div class="slot-stripe"></div>
                       <div class="slot-body">
                         <div class="slot-time-row">
-                          <span class="slot-time-big">{{
-                            fTime(kg, "gioBatDau", "gio_bat_dau")
-                          }}</span>
-                          <span class="slot-time-small">~{{ fTime(kg, "gioKetThuc", "gio_ket_thuc") }}</span>
+                          <span class="slot-time-big">{{ fTime(kg, "gioBatDau", "gio_bat_dau") }}</span>
                         </div>
-                        <div class="slot-kg-name">{{ getKgName(kg) }}</div>
+                        
+                        <div v-if="getAnyShowtime(room.id, kg.id)" class="slot-movie-title">
+                          {{ getMovieTitleBySc(getAnyShowtime(room.id, kg.id)) }}
+                        </div>
+                        <div v-else class="slot-kg-name">{{ getKgName(kg) }}</div>
 
-                        <template v-if="getShowtime(selectedPhim.id, room.id, kg.id)">
+                        <template v-if="getAnyShowtime(room.id, kg.id)">
                           <div class="slot-seats-box">
-                            Còn <strong>{{ getSeats(selectedPhim.id, room.id, kg.id) }}</strong>/{{ getTongGhe(room) }}
+                            Còn <strong>{{ scGheTrong(getAnyShowtime(room.id, kg.id)) }}</strong>/{{ getTongGhe(room) }}
                           </div>
-                          <div class="slot-status-badge">
-                            {{ getScStatusLabel(getShowtime(selectedPhim.id, room.id, kg.id)) }}
+                          <div class="d-flex align-items-center justify-content-between mt-1">
+                            <div class="slot-status-badge">
+                              {{ getScStatusLabel(getAnyShowtime(room.id, kg.id)) }}
+                            </div>
+                            <el-tooltip content="Xem sơ đồ ghế" placement="top">
+                              <button class="btn-mini-view shadow-sm" @click.stop="emit('view', getAnyShowtime(room.id, kg.id))">
+                                <i class="bi bi-grid-3x3-gap-fill"></i>
+                              </button>
+                            </el-tooltip>
                           </div>
                         </template>
                         <template v-else>
@@ -245,7 +269,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { Search, ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
+import { Search, ArrowLeft, ArrowRight, Plus, Delete } from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 
 const props = defineProps({
@@ -253,8 +277,11 @@ const props = defineProps({
   phongChieuList: { type: Array, required: true },
   phimList: { type: Array, required: true },
   allKhungGio: { type: Array, default: () => [] },
+  initialDate: { type: String, default: "" },
+  initialRoomId: { type: [String, Number], default: "" },
+  initialMovieId: { type: [String, Number], default: "" },
 });
-const emit = defineEmits(["view", "addShowtime", "weekChange"]);
+const emit = defineEmits(["view", "addShowtime", "editShowtime", "weekChange"]);
 
 // ── Field helpers — đọc cả camelCase lẫn snake_case ───────────────────────
 const fv = (obj, ...keys) => {
@@ -311,6 +338,38 @@ const toggleRoom = (id) => {
   else expandedRooms.value.push(id);
 };
 
+// Hàm tự động chọn phim và mở phòng khi có tham số khởi tạo
+const handleInitialAutoSelection = () => {
+  if (!props.showtimes || props.showtimes.length === 0) return;
+  if (selectedPhim.value) return; // Đã chọn rồi thì thôi
+
+  const targetRoomId = props.initialRoomId;
+  const targetDate = props.initialDate || selectedDate.value;
+
+  if (targetRoomId) {
+    // Tìm suất chiếu đầu tiên của phòng này trong ngày này
+    const firstSc = props.showtimes.find(sc => 
+      String(sc.idPhongChieu || sc.id_phong_chieu) === String(targetRoomId) &&
+      scNgay(sc)?.substring(0, 10) === targetDate
+    );
+
+    if (firstSc) {
+      const movieId = firstSc.idPhim || firstSc.id_phim;
+      const movie = props.phimList.find(p => p.id === movieId);
+      if (movie) {
+        selectedPhim.value = movie;
+        // Tự động mở rộng phòng này
+        if (!expandedRooms.value.includes(targetRoomId)) {
+          expandedRooms.value.push(targetRoomId);
+        }
+      }
+    }
+  } else if (props.initialMovieId) {
+    const movie = props.phimList.find(p => p.id === props.initialMovieId);
+    if (movie) selectedPhim.value = movie;
+  }
+};
+
 const expandAll = () => {
   expandedRooms.value = visibleRooms.value.map(r => r.id);
 };
@@ -322,6 +381,16 @@ const collapseAll = () => {
 // Tick đồng hồ realtime mỗi phút
 let clockTimer = null;
 onMounted(() => {
+  if (props.initialDate) {
+    selectedDate.value = props.initialDate;
+    pickedDate.value = props.initialDate;
+  }
+  if (props.initialRoomId) {
+    filterRoomId.value = props.initialRoomId;
+  }
+
+  handleInitialAutoSelection();
+
   clockTimer = setInterval(() => {
     nowTime.value = dayjs().format("HH:mm");
   }, 60000);
@@ -405,20 +474,32 @@ const visibleRooms = computed(() => {
 });
 
 // ── Slot ─────────────────────────────────────────────────────────────────
-const getSeats = (phimId, roomId, khungId) => {
-  const sc = getShowtime(phimId, roomId, khungId);
-  return sc ? scGheTrong(sc) : 0;
+const getAnyShowtime = (roomId, khungId) =>
+  todayShowtimes.value.find(
+    (sc) => String(scPhong(sc)) === String(roomId) && String(scKhung(sc)) === String(khungId)
+  ) || null;
+
+const getMovieTitleBySc = (sc) => {
+  const movieId = scPhim(sc);
+  const movie = props.phimList.find(p => String(p.id) === String(movieId));
+  return movie ? (movie.tenPhim || movie.ten_phim) : "—";
 };
 
 const getSlotClass = (phimId, roomId, khungId) => {
-  const sc = getShowtime(phimId, roomId, khungId);
+  const sc = getAnyShowtime(roomId, khungId);
   if (!sc) return "slot-empty";
+  
   const tt = scTrangThai(sc);
+  // Nếu đang lọc theo PHÒNG cụ thể, tất cả suất chiếu đều hiện ĐỎ (Active)
+  const isSelectedPhim = selectedPhim.value && String(scPhim(sc)) === String(selectedPhim.value.id);
+  const shouldBeActive = filterRoomId.value || isSelectedPhim;
+  
   return {
-    "slot-upcoming": tt === 1,
-    "slot-showing": tt === 2,
+    "slot-upcoming": tt === 1 && shouldBeActive,
+    "slot-showing": tt === 2 && shouldBeActive,
     "slot-ended": tt === 3,
-    "slot-cancelled": tt === 0,
+    "slot-other-movie": !shouldBeActive, 
+    "slot-active": shouldBeActive,
   };
 };
 
@@ -426,6 +507,12 @@ const getScStatusLabel = (sc) =>
   ({ 0: "Đã hủy", 1: "Sắp chiếu", 2: "Đang chiếu", 3: "Kết thúc" })[
   scTrangThai(sc)
   ] ?? "—";
+
+// ── Watch ─────────────────────────────────────────────────────────────
+import { watch } from 'vue';
+watch(() => props.showtimes, () => {
+  handleInitialAutoSelection();
+}, { deep: true });
 
 // ── Realtime current slots ────────────────────────────────────────────────
 // Các suất đang chiếu hoặc sắp chiếu trong ~30 phút tới tại ngày hôm nay
@@ -459,9 +546,9 @@ const currentSlots = computed(() => {
 
 // ── Actions ───────────────────────────────────────────────────────────────
 const handleSlotClick = (phimId, roomId, khungId) => {
-  const sc = getShowtime(phimId, roomId, khungId);
+  const sc = getAnyShowtime(roomId, khungId);
   sc
-    ? emit("view", sc)
+    ? emit("editShowtime", sc)
     : emit("addShowtime", {
       phimId,
       roomId,
@@ -469,6 +556,13 @@ const handleSlotClick = (phimId, roomId, khungId) => {
       date: selectedDate.value,
     });
 };
+
+const selectPhimById = (id) => {
+  const movie = props.phimList.find(p => p.id === id);
+  if (movie) selectedPhim.value = movie;
+};
+
+defineExpose({ selectPhimById });
 const selectPhim = (phim) => {
   selectedPhim.value = selectedPhim.value?.id === phim.id ? null : phim;
 };
@@ -618,6 +712,19 @@ const formatDate = (d) => {
   object-fit: cover;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.4s ease;
+}
+
+.phim-thumb:hover, .sel-poster:hover {
+  animation: poster-wobble 0.6s ease-in-out infinite;
+  cursor: pointer;
+}
+
+@keyframes poster-wobble {
+  0% { transform: rotate(0deg) scale(1.1); }
+  25% { transform: rotate(-5deg) scale(1.1); }
+  75% { transform: rotate(5deg) scale(1.1); }
+  100% { transform: rotate(0deg) scale(1.1); }
 }
 
 .phim-thumb-ph {
@@ -948,10 +1055,70 @@ const formatDate = (d) => {
   border-color: #ddd6fe;
 }
 
-.tag-count {
-  background: #fff1f2;
+/* ── Room Context Bar ── */
+.room-context-bar {
+  background: #fff;
+  border: 1px solid #e31e24;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(227, 30, 36, 0.08);
+}
+
+.room-info-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.room-icon {
+  font-size: 28px;
   color: #e31e24;
-  border-color: #fecdd3;
+  background: #fef2f2;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.room-title {
+  font-size: 16px;
+  font-weight: 850;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+.room-movies-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.room-movies-list .label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.movie-tag-small {
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sel-poster {
+  width: 40px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.4s ease;
 }
 
 .slots-grid-wrap {
@@ -1124,5 +1291,30 @@ const formatDate = (d) => {
 .custom-scrollbar-x::-webkit-scrollbar-thumb {
   background: #fca5a5;
   border-radius: 10px;
+}
+
+.btn-mini-view {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.btn-mini-view:hover {
+  background: #f8fafc;
+  color: #e31e24;
+  border-color: #fca5a5;
+  transform: scale(1.1);
+}
+
+.btn-mini-view i {
+  font-size: 11px;
 }
 </style>

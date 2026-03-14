@@ -20,7 +20,7 @@ const searchQuery = ref("");
 const statusFilter = ref(null);
 const genreFilter = ref(null);
 const genreOptions = ref([]);
-
+const dateRange = ref([]);
 const selectedPhim = ref([]);
 
 // Quick add genre
@@ -60,7 +60,7 @@ const tableColumns = [
   { label: 'Poster', key: 'poster', width: '80px', align: 'center' },
   { label: 'Tên phim', key: 'tenPhim', width: '180px', align: 'center' },
   { label: 'Độ tuổi', key: 'doTuoi', width: '90px', align: 'center' },
-  { label: 'Thời lượng', key: 'thoiLuong', width: '110px', align: 'center' },
+  { label: 'Thời lượng', key: 'thoiLuong', width: '130px', align: 'center' },
   { label: 'Thể loại', key: 'theLoais', width: '160px', align: 'center' },
   { label: 'Phát hành', key: 'ngayKhoiChieu', width: '130px', align: 'center' },
   { label: 'Giá gốc', key: 'giaPhim', width: '110px', align: 'center' },
@@ -102,6 +102,8 @@ const fetchMovies = async () => {
       tenPhim: searchQuery.value || null,
       trangThai: statusFilter.value === "" ? null : statusFilter.value,
       idTheLoai: genreFilter.value || null,
+      startDate: dateRange.value?.[0] ? dateRange.value[0].toISOString().split('T')[0] : null,
+      endDate: dateRange.value?.[1] ? dateRange.value[1].toISOString().split('T')[0] : null,
       page: currentPage.value - 1,
       size: pageSize.value,
       sort: 'id,desc',
@@ -235,6 +237,7 @@ const handleReset = () => {
   searchQuery.value = "";
   statusFilter.value = null;
   genreFilter.value = null;
+  dateRange.value = [];
   currentPage.value = 1;
 };
 
@@ -245,7 +248,7 @@ onMounted(() => {
 });
 
 watch(searchQuery, debouncedFetch);
-watch([statusFilter, genreFilter, currentPage, pageSize], () => {
+watch([statusFilter, genreFilter, dateRange, currentPage, pageSize], () => {
   if (loading.value) return;
   fetchMovies();
 });
@@ -278,19 +281,22 @@ watch([statusFilter, genreFilter, currentPage, pageSize], () => {
 
       <!-- Filters using Bootstrap spacing -->
       <template #filters>
-        <div class="me-2 mb-2 mb-md-0" style="min-width: 220px;">
-          <el-input v-model="searchQuery" placeholder="Nhập tên phim..." :prefix-icon="Search" clearable />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tên phim</label>
+          <el-input v-model="searchQuery" placeholder="Nhập tên phim..." :prefix-icon="Search" clearable class="w-100" />
         </div>
-        <div class="me-2 mb-2 mb-md-0">
-          <el-select v-model="statusFilter" placeholder="Trạng thái" style="width: 170px" clearable>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
+          <el-select v-model="statusFilter" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Đang chiếu" :value="1" />
             <el-option label="Sắp chiếu" :value="2" />
             <el-option label="Ngừng chiếu" :value="0" />
           </el-select>
         </div>
-        <div class="mb-2 mb-md-0">
-          <el-select v-model="genreFilter" placeholder="Thể loại" style="width: 170px;" clearable filterable>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Thể loại</label>
+          <el-select v-model="genreFilter" placeholder="Tất cả" class="w-100" clearable filterable>
             <template #suffix>
               <el-icon @click.stop="showAddGenreDialog = true" class="cursor-pointer">
                 <Plus />
@@ -299,6 +305,17 @@ watch([statusFilter, genreFilter, currentPage, pageSize], () => {
             <el-option label="Tất cả thể loại" value="" />
             <el-option v-for="g in genreOptions" :key="g.id" :label="g.tenTheLoai" :value="g.id" />
           </el-select>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Ngày khởi chiếu</label>
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="Từ ngày"
+            end-placeholder="Đến ngày"
+            class="w-100"
+          />
         </div>
       </template>
 

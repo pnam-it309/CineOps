@@ -2,10 +2,11 @@
   <el-header class="nav-top-bar d-flex align-items-center justify-content-between bg-white px-3 border-bottom border-light"
     style="height: 60px;">
     <div class="d-flex align-items-center gap-3">
-      <el-icon class="fs-4 cursor-pointer text-dark" @click="$emit('toggle-sidebar')">
-        <Fold v-if="!isCollapse" />
-        <Expand v-else />
-      </el-icon>
+      <div class="sidebar-toggle-wrapper" :class="{ 'is-active': isCollapse }" @click="$emit('toggle-sidebar')">
+        <el-icon class="toggle-icon">
+          <Fold />
+        </el-icon>
+      </div>
 
       <el-breadcrumb separator="/">
         <el-breadcrumb-item v-for="item in breadcrumbs" :key="item.path" :to="{ path: item.path }">
@@ -99,6 +100,44 @@ const handleCommand = async (command) => {
 .nav-top-bar {
   z-index: 5;
 }
+
+.sidebar-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: transparent;
+  color: #e31e24; /* Giữ màu đỏ như ảnh bạn gửi */
+}
+
+.sidebar-toggle-wrapper:hover {
+  transform: scale(1.1);
+}
+
+.toggle-icon {
+  font-size: 26px;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Khi đang MỞ (!isCollapse / .is-active là false) */
+.sidebar-toggle-wrapper:not(.is-active) .toggle-icon {
+  transform: rotate(180deg); /* Mặc định quay ra ngoài (phải) */
+}
+.sidebar-toggle-wrapper:not(.is-active):hover .toggle-icon {
+  transform: rotate(0deg); /* Di chuột vào quay vào sidebar (trái) */
+}
+
+/* Khi đang ĐÓNG (isCollapse / .is-active là true) */
+.sidebar-toggle-wrapper.is-active .toggle-icon {
+  transform: rotate(0deg); /* Mặc định quay vào sidebar (trái) */
+}
+.sidebar-toggle-wrapper.is-active:hover .toggle-icon {
+  transform: rotate(180deg); /* Di chuột vào quay ra ngoài (phải) */
+}
+
 .cursor-pointer {
   cursor: pointer;
 }

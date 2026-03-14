@@ -134,14 +134,6 @@
                   </el-select>
                 </el-form-item>
 
-                <el-form-item label="Trạng thái kinh doanh">
-                  <div class="d-flex align-items-center gap-3">
-                    <el-switch v-model="isProductActive" active-color="#13ce66" />
-                    <span :class="isProductActive ? 'text-success fw-bold' : 'text-danger fw-bold'">
-                      {{ isProductActive ? 'Đang kinh doanh' : 'Ngừng kinh doanh' }}
-                    </span>
-                  </div>
-                </el-form-item>
               </div>
 
               <!-- Section 4: Image & Media -->

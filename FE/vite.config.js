@@ -32,6 +32,14 @@ export default defineConfig({
   },
   server: {
     port: 3456,
+    host: '0.0.0.0',
+    strictPort: true,
+    hmr: {
+      clientPort: 3456,
+    },
+    watch: {
+      usePolling: true,
+    },
   },
   optimizeDeps: {
     include: [

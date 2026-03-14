@@ -1,34 +1,55 @@
-# Stage 1: Build the application
-FROM gradle:7.6-jdk17-alpine AS build
+# Stage 1: Preparation stage
+# Sử dụng bản JDK 17 trên nền Ubuntu Jammy để đảm bảo đầy đủ glibc
+FROM gradle:7.6-jdk17 AS build
 WORKDIR /app
 
-# Copy gradle files
+# Switch sang root để cài đặt thư viện hệ thống
+USER root
+
+# Cài đặt các thư viện hệ thống cần thiết cho OpenCV (đầy đủ hơn)
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Trở lại user gradle để bảo mật (nếu cần) nhưng vẫn giữ quyền chạy bootRun
+# Lưu ý: Trong dev mode, mount volume đôi khi cần quyền root để tránh lỗi permission
+# USER gradle
+
+# Copy gradle files only to download dependencies
 COPY --chown=gradle:gradle gradlew build.gradle settings.gradle ./
 COPY --chown=gradle:gradle gradle/ ./gradle/
-
-# Build caching layer for dependencies
-# Note: In real scenarios, this is a bit trickier with Gradle than with Maven,
-# but we'll copy the source and build the jar.
-COPY --chown=gradle:gradle src/ ./src/
 
 # Grant execute permission
 RUN chmod +x gradlew
 
-# Build JAR file (skip tests as they are run in CI)
+# Download dependencies (Cache layer)
+RUN ./gradlew dependencies --no-daemon
+
+# Stage 2: Production Build stage
+FROM build AS build-production
+COPY --chown=gradle:gradle src/ ./src/
 RUN ./gradlew build -x test --no-daemon
 
-# Stage 2: Runtime image
-FROM eclipse-temurin:17-jre-alpine
+# Stage 3: Runtime image
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
-# Add a non-root user for security
-RUN addgroup -S cineops && adduser -S cineops -G cineops
+# Cài đặt thư viện đồ họa tương tự ở bản Runtime
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN addgroup --system cineops && adduser --system --group cineops
 USER cineops
+COPY --from=build-production /app/build/libs/*.jar ./app.jar
 
-# Copy built jar from the build stage
-# Assuming the jar is named based on the project version, typically *.jar
-COPY --from=build /app/build/libs/*.jar ./app.jar
-
-# Define port and command
-EXPOSE 8080
+EXPOSE 8888
 ENTRYPOINT ["java", "-jar", "app.jar"]

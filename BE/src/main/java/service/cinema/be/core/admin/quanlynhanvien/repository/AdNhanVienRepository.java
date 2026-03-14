@@ -23,11 +23,13 @@ public interface AdNhanVienRepository extends NhanVienRepository {
             "OR tk.email LIKE %:search%) " +
             "AND (:idPhanQuyen IS NULL OR :idPhanQuyen = '' OR p.id = :idPhanQuyen) " +
             "AND (:trangThai IS NULL OR n.trangThai = :trangThai) " +
+            "AND (:gioiTinh IS NULL OR n.gioiTinh = :gioiTinh) " +
             "ORDER BY n.ngayTao DESC")
     Page<NhanVien> searchNhanVien(
             @Param("search") String search,
             @Param("idPhanQuyen") String idPhanQuyen,
             @Param("trangThai") Integer trangThai,
+            @Param("gioiTinh") Integer gioiTinh,
             Pageable pageable);
 
     @Query("SELECT n.maNhanVien FROM NhanVien n WHERE n.maNhanVien LIKE 'NV%' ORDER BY n.maNhanVien DESC LIMIT 1")

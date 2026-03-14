@@ -35,12 +35,12 @@
       <template #filters>
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Số ghế</label>
-          <el-input v-model="searchQuery" placeholder="Tìm số ghế..." :prefix-icon="Search" clearable />
+          <el-input v-model="searchQuery" placeholder="Tìm số ghế..." :prefix-icon="Search" clearable class="w-100" />
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Phòng chiếu</label>
-          <el-select v-model="selectedRoom" placeholder="Tất cả" style="width: 170px;" @change="fetchSeats" clearable>
+          <el-select v-model="selectedRoom" placeholder="Tất cả" class="w-100" @change="fetchSeats" clearable>
             <el-option label="Tất cả phòng" value="" />
             <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong" :value="pc.id" />
           </el-select>
@@ -48,7 +48,7 @@
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Loại ghế</label>
-          <el-select v-model="filterLoaiGhe" placeholder="Tất cả" style="width: 170px;">
+          <el-select v-model="filterLoaiGhe" placeholder="Tất cả" class="w-100">
             <el-option value="" label="Tất cả loại ghế" />
             <el-option v-for="lg in loaiGheList" :key="lg.id" :label="lg.tenLoai" :value="lg.id" />
           </el-select>
@@ -275,13 +275,9 @@ const fetchDropdowns = async () => {
 };
 
 const fetchSeats = async () => {
-  if (selectedRoom.value === '' || selectedRoom.value === null) {
-    seats.value = [];
-    return;
-  }
   loading.value = true;
   try {
-    const res = await gheService.getSeatsByRoom(selectedRoom.value);
+    const res = await gheService.getSeatsByRoom(selectedRoom.value || null);
     seats.value = res.data?.data || [];
   } catch (e) {
     notification.error('Không thể tải danh sách ghế');

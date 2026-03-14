@@ -31,12 +31,21 @@
         // ==================== DANH SÁCH + TÌM KIẾM ====================
     
         @Transactional(readOnly = true)
-        public AdPhimPageResponse getPhim(String tenPhim, Integer trangThai, String idTheLoai, int page, int size) {
+        public AdPhimPageResponse getPhim(
+                String tenPhim, 
+                Integer trangThai, 
+                String idTheLoai, 
+                java.time.LocalDate startDate,
+                java.time.LocalDate endDate,
+                int page, 
+                int size) {
             Pageable pageable = PageRequest.of(page, size);
             Page<Phim> pageResult = adPhimRepository.searchPhim(
                     (tenPhim != null && tenPhim.isBlank()) ? null : tenPhim,
                     trangThai,
                     (idTheLoai != null && idTheLoai.isBlank()) ? null : idTheLoai,
+                    startDate,
+                    endDate,
                     pageable
             );
             List<AdPhimResponse> content = pageResult.getContent()

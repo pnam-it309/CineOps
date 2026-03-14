@@ -23,11 +23,15 @@ public class AdPhieuGiamGiaController {
     public ResponseEntity<ApiResponse<Page<AdPhieuGiamGiaResponse>>> getAll(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer trangThai,
+            @RequestParam(required = false) Integer loaiPhieu,
+            @RequestParam(required = false) Integer kieuPhatHanh,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         return ResponseEntity.ok(
-                ApiResponse.success(service.getAll(keyword, trangThai, page, size))
+                ApiResponse.success(service.getAll(keyword, trangThai, loaiPhieu, kieuPhatHanh, startDate, endDate, page, size))
         );
     }
     @PostMapping
@@ -57,8 +61,12 @@ public class AdPhieuGiamGiaController {
     public ResponseEntity<ApiResponse<Page<AdPhieuGiamGiaResponse>>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer trangThai,
+            @RequestParam(required = false) Integer loaiPhieu,
+            @RequestParam(required = false) Integer kieuPhatHanh,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success(service.getAll(keyword, trangThai, page, size)));
+        return ResponseEntity.ok(ApiResponse.success(service.getAll(keyword, trangThai, loaiPhieu, kieuPhatHanh, startDate, endDate, page, size)));
     }
 }

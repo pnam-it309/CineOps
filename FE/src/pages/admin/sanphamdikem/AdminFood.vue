@@ -3,26 +3,26 @@
     <BaseTable title="Quản lý sản phẩm đi kèm" titleIcon="bi bi-box-seam-fill" addButtonLabel="Thêm sản phẩm"
       :data="paginatedItems" :columns="tableColumns" :loading="loading" :total="filteredItems.length"
       v-model:currentPage="currentPage" v-model:pageSize="pageSize" v-model:selection="selectedItems"
-      @add-click="goToAddPage" @edit="goToEditPage" @delete="handleDelete" @reset-filter="handleSearch"
+      @add-click="goToAddPage" @edit="goToEditPage" @delete="handleDelete" @reset-filter="handleReset"
       @update-status="({ row, val }) => handleDelete(row)">
       <!-- Filters Slot -->
       <template #filters>
-        <div class="filter-item search-input-wrapper">
-          <el-input v-model="searchQuery" placeholder="Tìm kiếm sản phẩm..." :prefix-icon="Search" clearable
-            @input="handleSearch" style="width: 250px;" />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm sản phẩm</label>
+          <el-input v-model="searchQuery" placeholder="Nhập tên sản phẩm..." :prefix-icon="Search" clearable class="w-100" />
         </div>
 
-        <div class="filter-item">
-          <el-select v-model="activeCategory" placeholder="Chọn danh mục" style="width: 180px;"
-            @change="handleSearch" clearable>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Danh mục</label>
+          <el-select v-model="activeCategory" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Tất cả danh mục" value="All" />
             <el-option v-for="cat in categories" :key="cat.id" :label="cat.tenLoai" :value="cat.id" />
           </el-select>
         </div>
 
-        <div class="filter-item">
-          <el-select v-model="filterTrangThai" placeholder="Chọn trạng thái" style="width: 180px;"
-            @change="handleSearch" clearable>
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
+          <el-select v-model="filterTrangThai" placeholder="Tất cả" class="w-100" clearable>
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
@@ -52,7 +52,7 @@
       </template>
 
       <template #cell-description="{ row }">
-        <div class="small text-secondary text-truncate" style="max-width: 150px;">
+        <div class="small text-secondary text-truncate text-center mx-auto" style="max-width: 150px;">
           {{ row.description || '—' }}
         </div>
       </template>
@@ -114,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, Edit, Delete, Search, Check } from '@element-plus/icons-vue'
 import { sanPhamDiKemService } from '@/services/api/admin/sanPhamDiKemService'
@@ -139,7 +139,7 @@ const tableColumns = [
   { label: 'Hình ảnh', key: 'image', width: '100px' },
   { label: 'Tên sản phẩm', key: 'name', width: '220px' },
   { label: 'Danh mục', key: 'category', width: '130px', align: 'center' },
-  { label: 'Mô tả', key: 'description', width: '180px' },
+  { label: 'Mô tả', key: 'description', width: '180px', align: 'center' },
   { label: 'Thông tin biến thể', key: 'variantSummary', width: '240px', align: 'center' },
   { label: 'Tổng tồn', key: 'stockSummary', width: '110px', align: 'center' },
   { label: 'Trạng thái', key: 'trangThai', width: '120px', align: 'center' },
@@ -210,6 +210,17 @@ const handleSearch = debounce(() => {
   currentPage.value = 1
   fetchItems()
 }, 300)
+
+const handleReset = () => {
+  searchQuery.value = ''
+  activeCategory.value = 'All'
+  filterTrangThai.value = ''
+  currentPage.value = 1
+  fetchItems()
+}
+
+watch([searchQuery], handleSearch)
+watch([activeCategory, filterTrangThai, currentPage], fetchItems)
 
 const filteredItems = computed(() => {
   let result = items.value

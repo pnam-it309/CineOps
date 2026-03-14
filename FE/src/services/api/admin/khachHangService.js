@@ -10,18 +10,22 @@ export const khachHangService = {
      * @param {Number} page - Trang hiện tại (bắt đầu từ 0)
      * @param {Number} size - Số bản ghi trên mỗi trang
      */
-    getAll(search, trangThai, page = 0, size = 10, sort = 'id,desc') {
+    getAll(search, trangThai, gioiTinh, idLoaiKhachHang, page = 0, size = 10, sort = 'id,desc') {
         return axios.get(BASE_URL, {
             params: {
                 search: search || null,
-                trangThai: (trangThai === 0 || trangThai === 1) ? trangThai : null,
+                trangThai: (trangThai === 0 || trangThai === 1 || trangThai === 2) ? trangThai : null,
+                gioiTinh: (gioiTinh === 0 || gioiTinh === 1) ? gioiTinh : null,
+                idLoaiKhachHang: idLoaiKhachHang || null,
                 page: page,
                 size: size,
                 sort: sort
             }
         });
     },
-
+    getLoaiKhachHang() {
+        return axios.get(`${BASE_URL}/loai-khach-hang`);
+    },
     getById(id) {
         return axios.get(`${BASE_URL}/${id}`);
     },
