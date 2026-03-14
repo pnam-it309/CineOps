@@ -203,6 +203,17 @@ const handleDelete = (room) => {
     }
   }).catch(() => {});
 };
+const handleReset = () => {
+  searchQuery.value = '';
+  filterStatus.value = 'all';
+  filterType.value = 'all';
+  currentPage.value = 1;
+};
+
+import { watch } from 'vue';
+watch([searchQuery, filterStatus, filterType], () => {
+  currentPage.value = 1;
+});
 </script>
 
 <template>
@@ -218,7 +229,7 @@ const handleDelete = (room) => {
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
       @add-click="openDialog()"
-      @reset-filter="() => { searchQuery = ''; filterStatus = 'all'; filterType = 'all'; }"
+      @reset-filter="handleReset"
       @edit="openDialog"
       @delete="handleDelete"
       @update-status="({ row, val }) => handleDelete(row)"

@@ -112,6 +112,8 @@ const rules = {
   sdt: [{ required: true, message: 'Vui lòng nhập số điện thoại', trigger: 'blur' }]
 };
 
+import debounce from 'lodash/debounce';
+
 // --- Logic tải dữ liệu ---
 const fetchCustomers = async () => {
   loading.value = true;
@@ -121,7 +123,8 @@ const fetchCustomers = async () => {
       filterTrangThai.value === '' ? null : filterTrangThai.value,
       filterGioiTinh.value === '' ? null : filterGioiTinh.value,
       currentPage.value - 1,
-      pageSize.value
+      pageSize.value,
+      'id,desc'
     );
 
     const apiRes = res.data;
@@ -144,6 +147,11 @@ const fetchCustomers = async () => {
     loading.value = false;
   }
 };
+
+const debouncedFetch = debounce(() => {
+  currentPage.value = 1;
+  fetchCustomers();
+}, 300);
 
 onMounted(() => {
   fetchCustomers();
@@ -318,6 +326,7 @@ const resetFilter = () => {
   searchQuery.value = '';
   filterTrangThai.value = '';
   filterGioiTinh.value = '';
+  currentPage.value = 1;
   fetchCustomers();
 };
 
@@ -339,7 +348,11 @@ const calculateAge = (dob) => {
 const getGenderText = (g) => g === 1 ? 'Nam' : 'Nữ';
 const getStatusLabel = (status) => status === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
 
-watch([currentPage, pageSize], fetchCustomers);
+watch(searchQuery, debouncedFetch);
+watch([filterTrangThai, filterGioiTinh, currentPage, pageSize], () => {
+  if (loading.value) return;
+  fetchCustomers();
+});
 </script>
 
 <template>
@@ -355,26 +368,24 @@ watch([currentPage, pageSize], fetchCustomers);
       <!-- Optimized Filters -->
       <template #filters>
         <div class="me-2 mb-2 mb-md-0" style="min-width: 240px;">
-          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable
-            @input="fetchCustomers" />
+          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable />
         </div>
 
         <div class="me-2 mb-2 mb-md-0">
-          <el-select v-model="filterTrangThai" placeholder="Trạng thái" style="width: 170px;" clearable
-            @change="fetchCustomers">
+          <el-select v-model="filterTrangThai" placeholder="Trạng thái" style="width: 170px;" clearable>
             <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
           </el-select>
         </div>
 
         <div class="mb-2 mb-md-0">
-          <el-select v-model="filterGioiTinh" placeholder="Giới tính" style="width: 170px;" clearable
-            @change="fetchCustomers">
+          <el-select v-model="filterGioiTinh" placeholder="Giới tính" style="width: 170px;" clearable>
             <el-option label="Nam" :value="1" />
             <el-option label="Nữ" :value="0" />
           </el-select>
         </div>
       </template>
+
 
       <!-- Cell Templates -->
       <template #cell-stt="{ index }">
@@ -413,7 +424,7 @@ watch([currentPage, pageSize], fetchCustomers);
 
       <template #cell-trangThai="{ row }">
         <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" effect="dark" class="fw-bold">
-          {{ row.trangThai === 1 ? 'Hoạt động' : 'Tạm khóa' }}
+          {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
         </el-tag>
       </template>
 

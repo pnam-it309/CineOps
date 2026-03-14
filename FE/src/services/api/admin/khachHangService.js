@@ -10,13 +10,14 @@ export const khachHangService = {
      * @param {Number} page - Trang hiện tại (bắt đầu từ 0)
      * @param {Number} size - Số bản ghi trên mỗi trang
      */
-    getAll(search, trangThai, page = 0, size = 10) {
+    getAll(search, trangThai, page = 0, size = 10, sort = 'id,desc') {
         return axios.get(BASE_URL, {
             params: {
                 search: search || null,
                 trangThai: (trangThai === 0 || trangThai === 1) ? trangThai : null,
-                page: page, // Bổ sung tham số này
-                size: size  // Bổ sung tham số này
+                page: page,
+                size: size,
+                sort: sort
             }
         });
     },

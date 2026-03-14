@@ -92,6 +92,8 @@ const formatDate = (d) => {
   }
 };
 
+import debounce from 'lodash/debounce';
+
 // ── API ───────────────────────────────────────────────────────────────────────
 const fetchMovies = async () => {
   loading.value = true;
@@ -102,6 +104,7 @@ const fetchMovies = async () => {
       idTheLoai: genreFilter.value || null,
       page: currentPage.value - 1,
       size: pageSize.value,
+      sort: 'id,desc',
     });
     moviesList.value = res.data.data.content;
     totalElements.value = res.data.data.totalElements;
@@ -111,6 +114,11 @@ const fetchMovies = async () => {
     loading.value = false;
   }
 };
+
+const debouncedFetch = debounce(() => {
+  currentPage.value = 1;
+  fetchMovies();
+}, 300);
 
 const fetchGenres = async () => {
   try {
@@ -228,7 +236,6 @@ const handleReset = () => {
   statusFilter.value = null;
   genreFilter.value = null;
   currentPage.value = 1;
-  fetchMovies();
 };
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -236,7 +243,13 @@ onMounted(() => {
   fetchGenres();
   fetchMovies();
 });
-watch([currentPage, pageSize], fetchMovies);
+
+watch(searchQuery, debouncedFetch);
+watch([statusFilter, genreFilter, currentPage, pageSize], () => {
+  if (loading.value) return;
+  fetchMovies();
+});
+
 </script>
 
 <template>
@@ -266,10 +279,10 @@ watch([currentPage, pageSize], fetchMovies);
       <!-- Filters using Bootstrap spacing -->
       <template #filters>
         <div class="me-2 mb-2 mb-md-0" style="min-width: 220px;">
-          <el-input v-model="searchQuery" placeholder="Nhập tên phim..." :prefix-icon="Search" clearable @keyup.enter="fetchMovies" />
+          <el-input v-model="searchQuery" placeholder="Nhập tên phim..." :prefix-icon="Search" clearable />
         </div>
         <div class="me-2 mb-2 mb-md-0">
-          <el-select v-model="statusFilter" placeholder="Trạng thái" style="width: 170px" clearable @change="fetchMovies">
+          <el-select v-model="statusFilter" placeholder="Trạng thái" style="width: 170px" clearable>
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Đang chiếu" :value="1" />
             <el-option label="Sắp chiếu" :value="2" />
@@ -277,7 +290,7 @@ watch([currentPage, pageSize], fetchMovies);
           </el-select>
         </div>
         <div class="mb-2 mb-md-0">
-          <el-select v-model="genreFilter" placeholder="Thể loại" style="width: 170px;" clearable @change="fetchMovies" filterable>
+          <el-select v-model="genreFilter" placeholder="Thể loại" style="width: 170px;" clearable filterable>
             <template #suffix>
               <el-icon @click.stop="showAddGenreDialog = true" class="cursor-pointer">
                 <Plus />

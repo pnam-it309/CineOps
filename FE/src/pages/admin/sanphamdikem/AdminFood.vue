@@ -24,8 +24,8 @@
           <el-select v-model="filterTrangThai" placeholder="Chọn trạng thái" style="width: 180px;"
             @change="handleSearch" clearable>
             <el-option label="Tất cả trạng thái" value="" />
-            <el-option label="Đang bán" :value="1" />
-            <el-option label="Ngừng bán" :value="0" />
+            <el-option label="Hoạt động" :value="1" />
+            <el-option label="Ngừng hoạt động" :value="0" />
           </el-select>
         </div>
       </template>
@@ -92,7 +92,7 @@
       <template #cell-trangThai="{ row }">
         <div class="text-center">
           <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="small" round>
-            {{ row.trangThai === 1 ? 'Đang bán' : 'Ngừng bán' }}
+            {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
           </el-tag>
         </div>
       </template>
@@ -168,7 +168,8 @@ const fetchItems = async () => {
       keyword: searchQuery.value || null,
       trangThai: null,
       page: 0,
-      size: 100
+      size: 100,
+      sort: 'id,desc'
     }
     const res = await sanPhamDiKemService.getAll(params)
     const rawData = res.data.data.content || []
@@ -241,7 +242,7 @@ const goToEditPage = (row) => {
 const handleDelete = item => {
   const isInactive = item.trangThai === 0;
   const newStatus = isInactive ? 1 : 0;
-  const label = isInactive ? 'kích hoạt' : 'ngừng bán';
+  const label = isInactive ? 'kích hoạt' : 'ngừng hoạt động';
 
   confirmDialog.status('sản phẩm', label, isInactive).then(async () => {
     try {

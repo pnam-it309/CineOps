@@ -26,12 +26,12 @@
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm chung</label>
           <el-input v-model="searchQuery" placeholder="Tìm theo mã hoặc tên..." :prefix-icon="Search" clearable
-            @input="handleSearch" style="width: 250px;" />
+            style="width: 250px;" />
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Kiểu voucher</label>
-          <el-select v-model="filterLoaiPhieu" placeholder="Tất cả" style="width: 170px;" @change="fetchVouchers" clearable>
+          <el-select v-model="filterLoaiPhieu" placeholder="Tất cả" style="width: 170px;" clearable>
             <el-option label="Tất cả" value="" />
             <el-option label="Giảm phần trăm" :value="1" />
             <el-option label="Giảm số tiền" :value="2" />
@@ -40,7 +40,7 @@
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Đối tượng</label>
-          <el-select v-model="filterDoiTuong" placeholder="Tất cả" style="width: 170px;" @change="fetchVouchers" clearable>
+          <el-select v-model="filterDoiTuong" placeholder="Tất cả" style="width: 170px;" clearable>
             <el-option label="Tất cả" value="" />
             <el-option label="Công khai" :value="0" />
             <el-option label="Cá nhân" :value="1" />
@@ -49,10 +49,10 @@
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Trạng thái hoạt động</label>
-          <el-select v-model="filterStatus" placeholder="Tất cả" style="width: 170px;" @change="fetchVouchers" clearable>
+          <el-select v-model="filterStatus" placeholder="Tất cả" style="width: 170px;" clearable>
             <el-option label="Tất cả" value="" />
-            <el-option label="Đang hoạt động" :value="1" />
-            <el-option label="Tạm ngưng" :value="0" />
+            <el-option label="Hoạt động" :value="1" />
+            <el-option label="Ngừng hoạt động" :value="0" />
             <el-option label="Đã kết thúc" :value="2" />
           </el-select>
         </div>
@@ -112,7 +112,7 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Hoạt động</el-dropdown-item>
-              <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Tạm ngưng</el-dropdown-item>
+              <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Ngừng hoạt động</el-dropdown-item>
               <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Kết thúc</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -314,7 +314,8 @@ const fetchVouchers = async () => {
       loaiPhieu: filterLoaiPhieu.value === '' ? null : filterLoaiPhieu.value,
       doiTuong: filterDoiTuong.value === '' ? null : filterDoiTuong.value,
       page: currentPage.value - 1,
-      size: pageSize.value
+      size: pageSize.value,
+      sort: 'id,desc'
     };
     const res = await voucherService.getAll(params);
     vouchers.value = res.data?.data?.content || [];
@@ -337,8 +338,13 @@ const resetFilter = () => {
   filterLoaiPhieu.value = '';
   filterDoiTuong.value = '';
   currentPage.value = 1;
-  fetchVouchers();
 };
+
+watch(searchQuery, handleSearch);
+watch([filterStatus, filterLoaiPhieu, filterDoiTuong, currentPage, pageSize], () => {
+  if (loading.value) return;
+  fetchVouchers();
+});
 
 const openDialog = (row = null) => {
   if (row && row.id) {
@@ -377,7 +383,7 @@ const getStatusTag = (status) => {
 };
 
 const getStatusLabel = (status) => {
-  const map = { 1: 'Hoạt động', 0: 'Tạm ngưng', 2: 'Kết thúc' };
+  const map = { 1: 'Hoạt động', 0: 'Ngừng hoạt động', 2: 'Kết thúc' };
   return map[status] || 'Không xác định';
 };
 

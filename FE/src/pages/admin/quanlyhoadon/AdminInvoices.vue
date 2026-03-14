@@ -20,7 +20,7 @@
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm nhanh</label>
           <el-input v-model="listQuery.tuKhoa" placeholder="Mã HĐ, khách hàng..." :prefix-icon="Search" clearable
-            @keyup.enter="handleFilter" @clear="handleFilter" style="width: 220px;" />
+             style="width: 220px;" />
         </div>
 
         <div class="d-flex flex-column gap-1">
@@ -32,7 +32,7 @@
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
-          <el-select v-model="listQuery.trangThai" placeholder="Tất cả" clearable @change="handleFilter"
+          <el-select v-model="listQuery.trangThai" placeholder="Tất cả" clearable
             style="width: 140px">
             <el-option label="Tất cả" value="" />
             <el-option label="Thành công" :value="1" />
@@ -54,17 +54,17 @@
         <div class="d-flex flex-column gap-1 d-none d-xl-flex">
           <label class="smaller text-secondary fw-bold ms-1">Giá thanh toán</label>
           <div class="d-flex align-items-center gap-1">
-            <el-input-number v-model="listQuery.minPrice" :controls="false" placeholder="Giá từ" @change="handleFilter"
+            <el-input-number v-model="listQuery.minPrice" :controls="false" placeholder="Giá từ"
               style="width: 90px" />
             <span class="text-secondary smaller">-</span>
-            <el-input-number v-model="listQuery.maxPrice" :controls="false" placeholder="Đến" @change="handleFilter"
+            <el-input-number v-model="listQuery.maxPrice" :controls="false" placeholder="Đến"
               style="width: 90px" />
           </div>
         </div>
 
         <div class="d-flex flex-column gap-1">
           <label class="smaller text-secondary fw-bold ms-1">Sắp xếp</label>
-          <el-select v-model="listQuery.sortDir" placeholder="Mới nhất" @change="handleFilter" style="width: 140px">
+          <el-select v-model="listQuery.sortDir" placeholder="Mới nhất" style="width: 140px">
             <el-option label="Mới nhất" value="DESC" />
             <el-option label="Cũ nhất" value="ASC" />
           </el-select>
@@ -451,6 +451,12 @@ const handlePrint = () => {
   window.open(routeData.href, '_blank');
 };
 
+import debounce from 'lodash/debounce';
+
+const debouncedFetch = debounce(() => {
+  handleFilter();
+}, 300);
+
 const handleFilter = () => {
   if (listQuery.page !== 1) listQuery.page = 1;
   else fetchInvoices();
@@ -463,7 +469,6 @@ const handleReset = () => {
     minPrice: null, maxPrice: null, page: 1, sortDir: 'DESC'
   });
   customDateRange.value = [];
-  fetchInvoices();
 };
 
 // --- FORMATTERS ---
@@ -480,11 +485,19 @@ const formatDate = (dateString) => {
   return `${time} ${day}`;
 };
 
+watch(() => listQuery.tuKhoa, debouncedFetch);
+watch(() => [
+  listQuery.trangThai,
+  listQuery.phuongThucThanhToan,
+  listQuery.kyThoiGian,
+  listQuery.tuNgay,
+  listQuery.denNgay,
+  listQuery.minPrice,
+  listQuery.maxPrice,
+  listQuery.sortDir,
+  listQuery.size
+], handleFilter);
 watch(() => listQuery.page, fetchInvoices);
-watch(() => listQuery.size, () => {
-  if (listQuery.page !== 1) listQuery.page = 1;
-  else fetchInvoices();
-});
 
 onMounted(fetchInvoices);
 </script>

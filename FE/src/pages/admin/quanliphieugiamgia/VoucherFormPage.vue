@@ -25,11 +25,11 @@ const form = reactive({
   maPhieuGiamGia: '',
   tenPhieu: '',
   loaiPhieu: 1,
-  kieuPhatHanh: 0,
+  doiTuong: 0,
   phanTramGiamGia: 0,
   soTienGiam: 0,
   giamToiDa: 0,
-  giaTriHoaDonToiThieu: 0,
+  donToiThieu: 0,
   soLuong: 0,
   ngayBatDau: '',
   ngayKetThuc: '',
@@ -91,13 +91,13 @@ const handleSelectionChange = (selection) => {
   selectedCustomers.value = selection;
   form.idKhachHangs = selection.map(c => c.id);
 
-  // Nếu là kieuPhatHanh = 1 (Cá nhân), tự động cập nhật số lượng
-  if (form.kieuPhatHanh === 1) {
+  // Nếu là doiTuong = 1 (Cá nhân), tự động cập nhật số lượng
+  if (form.doiTuong === 1) {
     form.soLuong = selection.length;
   }
 };
 
-watch(() => form.kieuPhatHanh, (newVal) => {
+watch(() => form.doiTuong, (newVal) => {
   if (newVal === 1) {
     fetchCustomers();
   } else {
@@ -254,21 +254,30 @@ onMounted(() => {
           </div>
           <el-form label-position="top">
             <div class="row g-3">
-              <div class="col-md-6">
-                <el-form-item label="Đối tượng phát hành">
-                  <el-radio-group v-model="form.kieuPhatHanh" :disabled="isEdit"
-                    class="vertical-radio-group w-100 d-flex flex-column align-items-start gap-3 bg-light p-3 rounded-3 mt-1">
-                    <el-radio :value="0">Công khai (Tất cả)</el-radio>
-                    <el-radio :value="1">Cá nhân (Chọn khách hàng)</el-radio>
+              <div class="col-md-4">
+                <el-form-item label="Đối tượng">
+                  <el-radio-group v-model="form.doiTuong" :disabled="isEdit"
+                    class="vertical-radio-group w-100 d-flex flex-column align-items-start gap-2 bg-light p-3 rounded-3 mt-1">
+                    <el-radio :value="0">Công khai</el-radio>
+                    <el-radio :value="1">Cá nhân</el-radio>
                   </el-radio-group>
                 </el-form-item>
               </div>
-              <div class="col-md-6">
-                <el-form-item label="Quy tắc cộng dồn">
+              <div class="col-md-4">
+                <el-form-item label="Trạng thái">
+                  <el-radio-group v-model="form.trangThai"
+                    class="vertical-radio-group w-100 d-flex flex-column align-items-start gap-2 bg-light p-3 rounded-3 mt-1">
+                    <el-radio :value="1">Hoạt động</el-radio>
+                    <el-radio :value="0">Ngừng hoạt động</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+              </div>
+              <div class="col-md-4">
+                <el-form-item label="Cộng dồn">
                   <el-radio-group v-model="form.coChoCongDon"
-                    class="vertical-radio-group w-100 d-flex flex-column align-items-start gap-3 bg-light p-3 rounded-3 mt-1">
-                    <el-radio :value="1">Có, được phép cộng dồn</el-radio>
-                    <el-radio :value="0">Không, chỉ dùng đơn lẻ</el-radio>
+                    class="vertical-radio-group w-100 d-flex flex-column align-items-start gap-2 bg-light p-3 rounded-3 mt-1">
+                    <el-radio :value="1">Cho phép</el-radio>
+                    <el-radio :value="0">Không</el-radio>
                   </el-radio-group>
                 </el-form-item>
               </div>
@@ -322,16 +331,16 @@ onMounted(() => {
             </div>
             <div class="col-12">
               <el-form-item label="Giá trị đơn tối thiểu (đ)">
-                <el-input-number v-model="form.giaTriHoaDonToiThieu" :min="0" :step="10000" class="w-100" size="large"
+                <el-input-number v-model="form.donToiThieu" :min="0" :step="10000" class="w-100" size="large"
                   controls-position="right" />
               </el-form-item>
             </div>
             <div class="col-12">
               <el-form-item label="Tổng số lượng phát hành">
                 <el-input-number v-model="form.soLuong"
-                  :min="form.kieuPhatHanh === 1 ? (form.idKhachHangs.length || 1) : 1"
-                  :disabled="form.kieuPhatHanh === 1" class="w-100" size="large" controls-position="right" />
-                <div v-if="form.kieuPhatHanh === 1" class="small text-primary mt-1">
+                  :min="form.doiTuong === 1 ? (form.idKhachHangs.length || 1) : 1"
+                  :disabled="form.doiTuong === 1" class="w-100" size="large" controls-position="right" />
+                <div v-if="form.doiTuong === 1" class="small text-primary mt-1">
                   * Tự động cập nhật theo số lượng khách đã chọn
                 </div>
               </el-form-item>
@@ -342,7 +351,7 @@ onMounted(() => {
     </div>
 
     <!-- Bảng khách hàng - Chỉ hiện khi Phát hành Cá nhân -->
-    <div class="row mt-4" v-if="form.kieuPhatHanh === 1">
+    <div class="row mt-4" v-if="form.doiTuong === 1">
       <div class="col-12">
         <div class="form-card-premium p-5">
           <div class="d-flex justify-content-between align-items-start mb-4">

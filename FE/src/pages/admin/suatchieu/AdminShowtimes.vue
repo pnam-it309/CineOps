@@ -761,6 +761,19 @@ const getDoTuoiTagType = (nhanDoTuoi) => {
   return types[nhanDoTuoi] || 'info';
 };
 
+const resetFilter = () => {
+  filterDate.value = dayjs().format('YYYY-MM-DD');
+  filterRoom.value = null;
+  filterTrangThai.value = '';
+  searchQuery.value = '';
+  currentPage.value = 1;
+};
+
+watch([filterDate, filterRoom], () => {
+  currentPage.value = 1;
+  fetchShowtimes();
+});
+
 onMounted(async () => {
   const [pcRes, phimRes] = await Promise.all([
     suatChieuService.getPhongChieuDropdown(),

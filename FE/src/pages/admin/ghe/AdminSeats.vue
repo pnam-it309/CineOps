@@ -89,7 +89,7 @@
 
       <template #cell-trangThai="{ row }">
         <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" effect="dark" size="small" class="fw-bold">
-          {{ row.trangThai === 1 ? 'Hoạt động' : 'Bảo trì' }}
+          {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
         </el-tag>
       </template>
 
@@ -380,7 +380,7 @@ const handleUpdateStatus = async (target) => {
   if (items.length === 0) return;
 
   try {
-    const label = newStatus === 1 ? 'Hoạt động' : 'Bảo trì';
+    const label = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
     if (!isBulk) {
       const row = items[0];
       await confirmDialog.custom(`Đổi trạng thái ghế ${row.soGhe} sang ${label}?`, 'Xác nhận');

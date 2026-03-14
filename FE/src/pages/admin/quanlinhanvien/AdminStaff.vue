@@ -13,6 +13,8 @@ import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
 import ExcelActions from '@/components/common/ExcelActions.vue';
 
+import debounce from 'lodash/debounce';
+
 const staff = ref([]);
 const loading = ref(false);
 const searchQuery = ref('');
@@ -137,6 +139,19 @@ const fetchStaff = async () => {
   }
 };
 
+const debouncedFetch = debounce(() => {
+  currentPage.value = 1;
+  fetchStaff();
+}, 300);
+
+const handleReset = () => {
+  searchQuery.value = '';
+  filterRole.value = '';
+  filterStatus.value = '';
+  currentPage.value = 1;
+  fetchStaff();
+};
+
 const filteredStaff = computed(() => staff.value);
 
 const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v);
@@ -183,8 +198,6 @@ const handleUpdateStatus = async (row, status = null) => {
 
 
 
-
-
 const handleSendPasswordReset = async (row) => {
   try {
     await confirmDialog.custom(`Bạn có chắc muốn gửi email đặt lại mật khẩu đến ${row.email}?`, 'Xác nhận gửi email');
@@ -206,7 +219,9 @@ onMounted(() => {
   fetchRoles();
   fetchChucVu();
 });
-watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff);
+
+watch(searchQuery, debouncedFetch);
+watch([filterRole, filterStatus, currentPage, pageSize], fetchStaff);
 </script>
 
 <template>
@@ -214,7 +229,7 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
     <BaseTable title="Quản lý nhân viên" titleIcon="bi bi-people-fill" addButtonLabel="Thêm nhân viên" :data="staff"
       :columns="staffColumns" :loading="loading" :total="totalElements" v-model:currentPage="currentPage"
       v-model:pageSize="pageSize" @add-click="handleAdd"
-      @reset-filter="() => { searchQuery = ''; filterRole = ''; filterStatus = ''; }" @edit="handleEdit"
+      @reset-filter="handleReset" @edit="handleEdit"
       @delete="handleDelete" @update-status="({ row, val }) => handleUpdateStatus(row, val ? 1 : 0)">
       <template #header-actions-left>
         <div class="d-flex align-items-center gap-2">
@@ -233,14 +248,15 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
         </div>
         <div class="me-2 mb-2 mb-md-0">
           <el-select v-model="filterRole" placeholder="Vai trò" style="width: 170px;">
-            <el-option label="Tất cả vai trò" value="all" />
+            <el-option label="Tất cả vai trò" value="" />
+
             <el-option v-for="r in roles" :key="r.id" :label="r.tenVaiTro" :value="r.id" />
           </el-select>
         </div>
         <div class="mb-2 mb-md-0">
           <el-select v-model="filterStatus" placeholder="Trạng thái" style="width: 170px;">
             <el-option label="Tất cả trạng thái" value="" />
-            <el-option label="Đang hoạt động" :value="1" />
+            <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
           </el-select>
         </div>
@@ -293,7 +309,7 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
 
       <template #cell-trangThai="{ row }">
         <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" effect="dark" class="fw-bold">
-          {{ row.trangThai === 1 ? 'Hoạt động' : 'Đã khóa' }}
+          {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
         </el-tag>
       </template>
 
@@ -327,7 +343,7 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
             <div class="d-flex align-items-center gap-2">
               <el-tag type="info" effect="plain" round size="small">{{ selectedItem.tenPhanQuyen }}</el-tag>
               <el-tag :type="selectedItem.trangThai === 1 ? 'info' : 'plain'" effect="plain" round size="small">
-                {{ selectedItem.trangThai === 1 ? 'HOẠT ĐỘNG' : 'TẠM KHÓA' }}
+                {{ selectedItem.trangThai === 1 ? 'HOẠT ĐỘNG' : 'NGỪNG HOẠT ĐỘNG' }}
               </el-tag>
             </div>
           </div>
