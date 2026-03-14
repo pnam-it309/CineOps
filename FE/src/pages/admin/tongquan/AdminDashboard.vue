@@ -1,13 +1,18 @@
 <template>
   <div class="admin-dashboard-wrapper container-fluid p-4">
     <!-- Page Header -->
-    <div class="mb-4 d-flex justify-content-between align-items-end">
-      <div>
-        <h2 class="mb-1 fw-bold text-dark" style="font-size: 20px;">Tổng quan Hệ thống</h2>
-      </div>
-      <div class="d-flex gap-2">
-        <el-button class="btn-cine-secondary" :icon="Calendar">Tháng này</el-button>
-        <el-button class="btn-cine-primary" :icon="Download">Báo cáo</el-button>
+    <!-- Page Header (Standardized Title Card) -->
+    <div class="premium-card title-card mb-4 p-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <div class="header-icon-box-modern">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+          <div>
+            <h1 class="premium-page-title m-0">Tổng quan Hệ thống</h1>
+            <p class="premium-page-subtitle m-0">Chào mừng bạn trở lại! Dưới đây là tóm tắt hoạt động của rạp phim hôm nay.</p>
+          </div>
+        </div>
       </div>
     </div>
 

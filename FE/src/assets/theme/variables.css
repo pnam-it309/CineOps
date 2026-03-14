@@ -4,21 +4,18 @@
   font-family: 'Inter', sans-serif;
   /* ========== Color Palette ========== */
   
-  /* Primary Colors */
-  --color-primary: #667eea;
-  --color-primary-dark: #5568d3;
-  --color-primary-light: #a5b4fc;
-  --color-primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  
-  /* Secondary Colors */
-  --color-secondary: #764ba2;
-  --color-secondary-dark: #5e3c82;
-  --color-secondary-light: #9d7bb8;
-  
-  /* Accent Colors */
-  --color-accent: #f093fb;
-  --color-accent-dark: #c56aca;
-  --color-accent-light: #f5b7fc;
+  /* Primary Colors (CineOps Brand) */
+  --brand-red: #E31E24;
+  --brand-dark-red: #A51C1C;
+  --brand-orange: #F37021;
+  --brand-yellow: #FFBA00;
+  --brand-light-red: #FFF1F1;
+  --brand-gradient: linear-gradient(90deg, #A51C1C 0%, #E31E24 40%, #F37021 70%, #FFBA00 100%);
+
+  --color-primary: var(--brand-red);
+  --color-primary-dark: var(--brand-dark-red);
+  --color-primary-light: var(--brand-light-red);
+  --color-primary-gradient: var(--brand-gradient);
   
   /* Semantic Colors */
   --color-success: #10b981;

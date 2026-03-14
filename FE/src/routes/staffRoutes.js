@@ -1,6 +1,6 @@
 import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 
-const StaffLayout = () => import('@/layout/StaffLayout.vue');
+const StaffLayout = () => import('@/layouts/StaffLayout.vue');
 
 export const staffRoutes = {
     path: ROUTES_CONSTANTS.STAFF.path, // /staff

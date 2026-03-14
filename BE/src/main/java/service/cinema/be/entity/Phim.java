@@ -47,19 +47,27 @@ public class Phim extends PrimaryEntity {
     @Column(name = "lich_chieu")
     private String lichChieu;
 
-    @ExcelColumn(headerName = "Trailer", order = 6, required = false, maxLength = 255)
+    @ExcelColumn(headerName = "Đạo Diễn", order = 6, required = false, maxLength = 250)
+    @Column(name = "dao_dien", length = 250)
+    private String daoDien;
+
+    @ExcelColumn(headerName = "Diễn Viên", order = 7, required = false, maxLength = 350)
+    @Column(name = "dien_vien", length = 350)
+    private String dienVien;
+
+    @ExcelColumn(headerName = "Trailer", order = 8, required = false, maxLength = 255)
     @Column(name = "trailer", length = 255)
     private String trailer;
 
-    @ExcelColumn(headerName = "Poster", order = 7, required = false, maxLength = 255)
+    @ExcelColumn(headerName = "Poster", order = 9, required = false, maxLength = 255)
     @Column(name = "poster", length = 255)
     private String poster;
 
-    @ExcelColumn(headerName = "Ngôn Ngữ", order = 8, required = false, maxLength = 100)
+    @ExcelColumn(headerName = "Ngôn Ngữ", order = 10, required = false, maxLength = 100)
     @Column(name = "ngon_ngu", length = 100)
     private String ngonNgu;
 
-    @ExcelColumn(headerName = "Độ Tuổi", order = 9, required = false)
+    @ExcelColumn(headerName = "Độ Tuổi", order = 11, required = false)
     @Column(name = "do_tuoi")
     private Integer doTuoi;
 
@@ -70,19 +78,19 @@ public class Phim extends PrimaryEntity {
     @Column(name = "nhan_do_tuoi", length = 10)
     private String nhanDoTuoi;
 
-    @ExcelColumn(headerName = "Mô Tả", order = 10, required = false)
+    @ExcelColumn(headerName = "Mô Tả", order = 12, required = false)
     @Column(name = "mo_ta", columnDefinition = "TEXT")
     private String moTa;
 
-    @ExcelColumn(headerName = "Đánh Giá", order = 11, required = false)
+    @ExcelColumn(headerName = "Đánh Giá", order = 13, required = false)
     @Column(name = "danh_gia")
     private Double danhGia;
 
-    @ExcelColumn(headerName = "Trạng Thái", order = 12, required = true)
+    @ExcelColumn(headerName = "Trạng Thái", order = 14, required = true)
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @ExcelColumn(headerName = "Giá Phim", order = 13, required = false)
+    @ExcelColumn(headerName = "Giá Phim", order = 15, required = false)
     @Column(name = "gia_phim")
     private Double giaPhim;
 
@@ -90,7 +98,7 @@ public class Phim extends PrimaryEntity {
      * Định dạng phim: "2D", "3D", "IMAX", "4DX"
      * Dùng để tính phụ phí format khi xuất vé.
      */
-    @ExcelColumn(headerName = "Loại Phim", order = 14, required = false, maxLength = 20)
+    @ExcelColumn(headerName = "Loại Phim", order = 16, required = false, maxLength = 20)
     @Column(name = "loai_phim", length = 20)
     private String loaiPhim;
 
@@ -105,7 +113,7 @@ public class Phim extends PrimaryEntity {
      * Phụ phí theo định dạng (ví dụ: 3D +30k, IMAX +50k)
      * Giả trị 0 nếu không có phụ phí. Chuyn cho Pricing Engine.
      */
-    @ExcelColumn(headerName = "Phụ Phí Loại Phim", order = 15, required = false)
+    @ExcelColumn(headerName = "Phụ Phí Loại Phim", order = 17, required = false)
     @Column(name = "phu_phi_loai_phim")
     private Double phuPhiLoaiPhim = 0.0;
     @OneToMany(mappedBy = "phim")

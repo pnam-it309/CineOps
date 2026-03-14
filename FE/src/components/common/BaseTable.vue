@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { Plus, Refresh } from '@element-plus/icons-vue';
 
 const props = defineProps({
@@ -9,7 +9,7 @@ const props = defineProps({
   },
   columns: {
     type: Array,
-    required: true,
+    default: () => [],
   },
   loading: {
     type: Boolean,
@@ -46,6 +46,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  subtitle: {
+    type: String,
+    default: "",
+  },
   titleIcon: {
     type: String,
     default: "",
@@ -58,6 +62,18 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  hideTable: {
+    type: Boolean,
+    default: false,
+  },
+  hideHeader: {
+    type: Boolean,
+    default: false,
+  },
+  noPadding: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const emit = defineEmits([
@@ -83,14 +99,12 @@ const isAllSelected = computed(() => {
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    // Clear selections of current page data
     const newSelection = props.selection.filter(
       (i) => !props.data.some((d) => (d.id || d) === (i.id || i))
     );
     emit("update:selection", newSelection);
     emit("selection-change", newSelection);
   } else {
-    // Add all current page data to selection
     const newItems = props.data.filter(
       (d) => !props.selection.some((i) => (i.id || i) === (d.id || d))
     );
@@ -159,408 +173,197 @@ const pageSizeLocal = computed({
 </script>
 
 <template>
-  <div class="base-table-container h-100 d-flex flex-column overflow-hidden p-3 bg-light">
-    <!-- Card 1: Header, Filters, and Pagination Consolidated -->
-    <div class="filter-card bg-white border rounded-0 shadow-sm mb-3">
-      <!-- Card Header with Title and Main Actions -->
-      <div class="card-header-section p-3 border-bottom" v-if="title || addButtonLabel">
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center gap-3">
-            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center" style="font-size: 18px;" v-if="title">
-              <i :class="[titleIcon, 'me-2 text-primary']" v-if="titleIcon"></i>
-              {{ title }}
-            </h4>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <slot name="header-actions-left"></slot>
-            <el-tooltip :content="addButtonLabel" placement="top" v-if="addButtonLabel">
-              <el-button @click="$emit('add-click')" type="primary" class="square-btn">
-                <template #icon>
-                  <el-icon><Plus /></el-icon>
-                </template>
-              </el-button>
-            </el-tooltip>
-          </div>
+  <div class="base-table-container d-flex flex-column h-100" :class="{ 'p-4': !noPadding, 'p-0': noPadding }">
+    <!-- Card 1: Title Card -->
+    <div class="premium-card mb-3 p-4 px-5" v-if="title && !noPadding">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon-box-modern shadow-sm" style="width: 40px; height: 40px; font-size: 20px;">
+          <i :class="titleIcon || 'bi bi-table'"></i>
         </div>
-      </div>
-
-      <!-- Filters Area (Top) -->
-      <div class="p-3 border-top" v-if="showFilters && $slots.filters">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <!-- Left side: Filters and Reset -->
-          <div class="d-flex align-items-center gap-3 flex-wrap">
-            <slot name="filters"></slot>
-            <el-tooltip content="Làm mới bộ lọc" placement="top">
-              <el-button v-if="showFilters && $slots.filters" @click="$emit('reset-filter')" size="default" type="info" plain class="square-btn">
-                <el-icon><Refresh /></el-icon>
-              </el-button>
-            </el-tooltip>
-          </div>
+        <div>
+          <h1 class="premium-page-title m-0" style="font-size: 20px; color: #1e293b; text-transform: none;">{{ title }}</h1>
+          <p v-if="subtitle" class="m-0 text-secondary mt-1 smaller" style="font-size: 13px;">{{ subtitle }}</p>
+          <p v-else class="m-0 text-secondary mt-1 smaller" style="font-size: 13px;">Quản lý danh sách {{ title.toLowerCase() }} có mặt tại hệ thống</p>
         </div>
       </div>
     </div>
 
-    <!-- Card 2: Table Content and Pagination -->
-    <div class="table-card bg-white border rounded-0 d-flex flex-column h-100 overflow-hidden shadow-sm" style="min-height: 0;">
-      <!-- Table content wrapper -->
-      <div
-        class="table-content-wrapper"
-        style="flex: 1 1 0; min-height: 0; overflow: auto"
-      >
-        <table
-          class="table table-bordered align-middle mb-0 text-center"
-          style="
-            border-collapse: separate;
-            border-spacing: 0;
-            table-layout: auto;
-            min-width: 100%;
-          "
-        >
-          <!-- Sticky Header -->
-          <thead class="sticky-top shadow-sm" style="z-index: 20">
-            <tr>
-              <th
-                v-for="(col, colIdx) in columns"
-                :key="col.key || colIdx"
-                class="py-3 px-3 fw-bold text-nowrap text-center table-header-bg border-start border-end"
-                :class="{
-                  'sticky-col-stt': colIdx === 0,
-                }"
-                :style="{
-                  width: col.width || 'auto',
-                  minWidth: col.minWidth || col.width || 'auto',
-                }"
-              >
-                <template v-if="col.type === 'selection'">
-                  <div class="form-check d-flex justify-content-center">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      :checked="isAllSelected"
-                      @change="toggleSelectAll"
-                    />
-                  </div>
-                </template>
-                <template v-else>
-                  {{ col.label }}
-                </template>
-              </th>
-              <th
-                v-if="showActions"
-                class="py-3 px-3 fw-bold text-center table-header-bg sticky-col-actions border-start"
-                style="width: 160px; min-width: 160px"
-              >
-                Thao tác
-              </th>
-            </tr>
-          </thead>
-          <tbody v-if="!loading && (data || []).length > 0">
-            <tr
-              v-for="(item, index) in data"
-              :key="item.id || index"
-              class="border-bottom"
-            >
-              <td
-                v-for="(col, colIdx) in columns"
-                :key="col.key || colIdx"
-                class="py-3 px-3 text-dark border-start border-end"
-                :class="{
-                  'table-cell-sticky-stt': colIdx === 0,
-                }"
-                :style="{
-                  width: col.width || 'auto',
-                  minWidth: col.minWidth || col.width || 'auto',
-                  whiteSpace: 'normal',
-                  overflow: 'hidden',
-                  maxWidth: col.maxWidth || 'none',
-                  textAlign: 'center'
-                }"
-              >
-                <template v-if="col.type === 'selection'">
-                  <div class="form-check d-flex justify-content-center">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      :checked="isItemSelected(item)"
-                      @change="toggleSelection(item)"
-                    />
-                  </div>
-                </template>
-                <template v-else>
-                  <slot :name="'cell-' + col.key" :row="item" :index="index">
-                    {{ item[col.key] }}
-                  </slot>
-                </template>
-              </td>
-              <td
-                v-if="showActions"
-                class="py-3 px-3 td-sticky-actions border-start"
-                style="width: 160px; min-width: 160px"
-              >
-                <div class="d-flex justify-content-center align-items-center gap-2">
-                  <slot name="actions" :row="item">
-                    <el-tooltip content="Chi tiết" placement="top">
-                      <button
-                        class="btn-action-icon action-view square-action"
-                        @click="$emit('view', item)"
-                      >
-                        <i class="bi bi-eye fs-6"></i>
-                      </button>
-                    </el-tooltip>
-                    <el-tooltip content="Chỉnh sửa" placement="top">
-                      <button
-                        class="btn-action-icon action-edit square-action"
-                        :disabled="item.trangThai === 0 || item.status === 'Ngừng hoạt động' || item.status === 'Đang bảo trì'"
-                        @click="$emit('edit', item)"
-                      >
-                        <i class="bi bi-pencil fs-6"></i>
-                      </button>
-                    </el-tooltip>
-                    <el-tooltip :content="item.trangThai === 1 || item.status === 'Đang hoạt động' ? 'Ngừng hoạt động' : 'Kích hoạt'" placement="top">
-                      <el-switch
-                        :model-value="item.trangThai === 1 || item.status === 'Đang hoạt động' || item.status === 'Hoạt động' || item.status === 'Sẵn sàng'"
-                        @change="(val) => $emit('update-status', { row: item, val })"
-                        class="status-switch mx-1"
-                        inactive-color="#ff4949"
-                      />
-                    </el-tooltip>
-                    <el-tooltip content="Xóa" placement="top">
-                      <button
-                        class="btn-action-icon action-delete square-action"
-                        @click="$emit('delete', item)"
-                      >
-                        <i class="bi bi-trash fs-6"></i>
-                      </button>
-                    </el-tooltip>
-                  </slot>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-          <tbody v-else-if="loading">
-            <tr>
-              <td
-                :colspan="(columns || []).length + (showActions ? 1 : 0)"
-                class="py-5 border-0"
-              >
-                <div class="spinner-premium"></div>
-                <div class="mt-3 text-secondary small">
-                  Đang tải dữ liệu...
-                </div>
-              </td>
-            </tr>
-          </tbody>
-          <tbody v-else>
-            <tr>
-              <td
-                :colspan="(columns || []).length + (showActions ? 1 : 0)"
-                class="py-5 text-secondary opacity-50 border-0"
-              >
-                <div class="mb-3">
-                  <i class="bi bi-inbox fs-1"></i>
-                </div>
-                <div class="fw-medium">Không có dữ liệu</div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Card 2: Filter Card -->
+    <div class="premium-card mb-3 p-3 px-5" v-if="showFilters && $slots.filters">
+      <h2 class="mb-3 text-secondary fw-bold text-uppercase smaller letter-spacing-1" style="font-size: 13px;">Bộ lọc tìm kiếm</h2>
+      <div class="d-flex align-items-end flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-4 flex-wrap flex-grow-1">
+          <slot name="filters"></slot>
+
+          <el-tooltip content="Làm mới bộ lọc" placement="top">
+            <button @click="$emit('reset-filter')" class="btn-cine-refresh-icon">
+              <el-icon><Refresh /></el-icon>
+            </button>
+          </el-tooltip>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Table Card -->
+    <div class="premium-card flex-grow-1 d-flex flex-column overflow-hidden" :class="{ 'mb-3': !noPadding }">
+      <div v-if="!hideHeader" class="p-2 px-5 border-bottom d-flex align-items-center justify-content-between bg-white sticky-top z-3">
+        <h2 class="m-0 text-dark fw-bold text-uppercase smaller letter-spacing-1" style="font-size: 13px;">Danh sách {{ title || 'Quản lý' }}</h2>
+        <div class="d-flex align-items-center gap-2">
+          <slot name="header-actions-left"></slot>
+          <slot name="header-actions"></slot>
+          <el-button v-if="addButtonLabel" @click="$emit('add-click')" type="primary" class="btn-premium-action-main">
+            <el-icon class="me-1">
+              <Plus />
+            </el-icon>
+            {{ addButtonLabel }}
+          </el-button>
+        </div>
       </div>
 
-      <!-- Pagination Section (At the bottom of Table Card) -->
-      <div v-if="!hidePagination && total > 0" class="pagination-section border-top px-3 py-3 bg-white">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <!-- Left side: Total results and Page Size Selector -->
-          <div class="d-flex align-items-center gap-3">
-            <span class="text-secondary small">Tổng cộng: <strong>{{ total }}</strong></span>
-            <div class="d-flex align-items-center gap-2">
-              <el-select
-                v-model="pageSizeLocal"
-                size="small"
-                class="square-select"
-                style="width: 120px"
-              >
-                <el-option :value="5" label="5 / trang" />
-                <el-option :value="10" label="10 / trang" />
-                <el-option :value="20" label="20 / trang" />
-                <el-option :value="50" label="50 / trang" />
-              </el-select>
-            </div>
-          </div>
+      <div class="table-scroll-area flex-grow-1 overflow-auto">
+        <slot>
+          <table class="table cine-premium-table align-middle m-0">
+            <thead class="sticky-top">
+              <tr>
+                <th v-for="(col, colIdx) in columns" :key="col.key || colIdx" :style="{
+                  width: col.width || 'auto',
+                  minWidth: col.minWidth || col.width || 'auto',
+                  textAlign: col.align || 'center'
+                }" :class="{ 'text-center': true, 'sticky-col': colIdx === 0 }">
+                  <template v-if="col.type === 'selection'">
+                    <div class="form-check d-flex justify-content-center">
+                      <input class="form-check-input" type="checkbox" :checked="isAllSelected"
+                        @change="toggleSelectAll" />
+                    </div>
+                  </template>
+                  <template v-else>
+                    {{ col.label }}
+                  </template>
+                </th>
+                <th v-if="showActions" class="text-center sticky-col-actions" style="width: 150px;">
+                  Thao tác
+                </th>
+              </tr>
+            </thead>
+            <tbody v-if="!loading && (data || []).length > 0">
+              <tr v-for="(item, index) in data" :key="item.id || index">
+                <td v-for="(col, colIdx) in columns" :key="col.key || colIdx" :style="{
+                  width: col.width || 'auto',
+                  minWidth: col.minWidth || col.width || 'auto',
+                  textAlign: col.align || 'center'
+                }" :class="{ 'text-center': true, 'sticky-col': colIdx === 0 }">
+                  <template v-if="col.type === 'selection'">
+                    <div class="form-check d-flex justify-content-center">
+                      <input class="form-check-input" type="checkbox" :checked="isItemSelected(item)"
+                        @change="toggleSelection(item)" />
+                    </div>
+                  </template>
+                  <template v-else>
+                    <slot :name="'cell-' + col.key" :row="item" :index="index">
+                      {{ item[col.key] }}
+                    </slot>
+                  </template>
+                </td>
+                <td v-if="showActions" class="text-center sticky-col-actions">
+                  <div class="d-flex justify-content-center gap-1">
+                    <slot name="actions" :row="item">
+                      <el-tooltip content="Xem chi tiết" placement="top">
+                        <button class="btn-cine-action action-view" @click="$emit('view', item)">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </el-tooltip>
+                      <el-tooltip content="Cập nhật" placement="top">
+                        <button class="btn-cine-action action-edit" :disabled="item.trangThai === 0"
+                          @click="$emit('edit', item)">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                      </el-tooltip>
+                      <el-tooltip content="Xóa" placement="top">
+                        <button class="btn-cine-action action-delete" @click="$emit('delete', item)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </el-tooltip>
+                    </slot>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+            <tbody v-else-if="loading">
+              <tr>
+                <td :colspan="(columns || []).length + (showActions ? 1 : 0)" class="py-5 text-center">
+                  <div class="spinner-premium"></div>
+                  <div class="mt-3 text-secondary small">Đang kết nối dữ liệu...</div>
+                </td>
+              </tr>
+            </tbody>
+            <tbody v-else>
+              <tr>
+                <td :colspan="(columns || []).length + (showActions ? 1 : 0)" class="py-5 text-center text-secondary">
+                  <i class="bi bi-inbox fs-1 opacity-25"></i>
+                  <div class="mt-2 fw-medium">Danh sách trống</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </slot>
+      </div>
+    </div>
 
-          <!-- Right side: Page Navigation -->
-          <div class="d-flex align-items-center gap-1">
-            <button
-              class="square-page-btn"
-              :class="{ disabled: currentPage <= 1 }"
-              @click="handlePageChange(currentPage - 1)"
-            >
+    <!-- Card 4: Chỉ Phân trang (Riêng biệt ở dưới) -->
+    <div class="premium-card footer-pagination-only-card p-3" v-if="!hidePagination && total > 0">
+      <div class="d-flex align-items-center justify-content-between flex-wrap w-100">
+        <!-- Left Part: Result count & Page size -->
+        <div class="pagination-left-info d-flex align-items-center gap-3" style="min-width: 220px;">
+          <span class="text-secondary small">Hiện <strong>{{ total }}</strong> kết quả</span>
+          <el-select v-model="pageSizeLocal" size="small" style="width: 110px;" class="premium-page-size-select">
+            <el-option :value="5" label="5 / trang" />
+            <el-option :value="10" label="10 / trang" />
+            <el-option :value="20" label="20 / trang" />
+            <el-option :value="50" label="50 / trang" />
+          </el-select>
+        </div>
+
+        <!-- Center Part: Page numbers -->
+        <div class="pagination-center-numbers flex-grow-1 d-flex justify-content-center my-2 my-md-0">
+          <div class="pagination-premium d-flex align-items-center gap-1">
+            <button class="btn-cine-page" :disabled="currentPage <= 1" @click="handlePageChange(currentPage - 1)">
               <i class="bi bi-chevron-left"></i>
             </button>
-
-            <button
-              v-for="page in pagesToShow"
-              :key="page"
-              class="square-page-btn"
-              :class="{ active: page === currentPage }"
-              @click="handlePageChange(page)"
-            >
+            <button v-for="page in pagesToShow" :key="page" class="btn-cine-page"
+              :class="{ active: page === currentPage }" @click="handlePageChange(page)">
               {{ page }}
             </button>
-
-            <button
-              class="square-page-btn"
-              :class="{ disabled: currentPage >= totalPages }"
-              @click="handlePageChange(currentPage + 1)"
-            >
+            <button class="btn-cine-page" :disabled="currentPage >= totalPages"
+              @click="handlePageChange(currentPage + 1)">
               <i class="bi bi-chevron-right"></i>
             </button>
           </div>
         </div>
+
+        <!-- Right Part: Spacer for centering -->
+        <div class="pagination-right-spacer d-none d-lg-block" style="min-width: 220px;"></div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Main wrapper styles */
+/* Scoped styles are now minimal as they are moved to admin-tables.css */
 .base-table-container {
-  min-height: 0;
-  background-color: #f1f5f9;
+  min-height: 100%;
 }
 
-/* Square Corners for Cards */
-.filter-card, .table-card {
-  border-radius: 0 !important;
-  border: 1px solid #cbd5e1 !important;
+/* Target specific layout needs not covered by global CSS */
+.filter-box-card :deep(.el-form-item) {
+  margin-bottom: 0;
 }
 
-.table-header-bg {
-  background-color: #f8fafc !important;
-  color: #334155 !important;
-  font-weight: 700 !important;
-  font-size: 14px !important;
-  border-bottom: 2px solid #cbd5e1 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.sticky-top {
+  border-bottom: 1px solid var(--border-color-light) !important;
 }
 
-/* Grid Lines */
-.table-bordered td, .table-bordered th {
-  border: 1px solid #e2e8f0 !important;
+/* Custom UI spacers */
+.letter-spacing-1 {
+  letter-spacing: 0.05em;
 }
-
-/* Center Content */
-th, td {
-  text-align: center !important;
-  vertical-align: middle !important;
-}
-
-/* Square Buttons & Actions */
-.square-btn {
-  border-radius: 0 !important;
-  height: 40px;
-  width: 40px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.square-action {
-  border-radius: 0 !important;
-  border: 1px solid #e2e8f0 !important;
-  background: #fff;
-  width: 34px;
-  height: 34px;
-}
-
-.square-action:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-}
-
-.action-view { color: #3b82f6; }
-.action-edit { color: #10b981; }
-.action-delete { color: #ef4444; }
-
-/* Square Page Buttons */
-.square-page-btn {
-  min-width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  color: #475569;
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 -1px; /* Overlap borders */
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.square-page-btn:hover:not(.disabled):not(.active) {
-  background: #f1f5f9;
-  z-index: 1;
-}
-
-.square-page-btn.active {
-  background: #3b82f6;
-  color: #fff;
-  border-color: #3b82f6;
-  z-index: 2;
-}
-
-.square-page-btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #f8fafc;
-}
-
-/* Select Styling */
-:deep(.square-select .el-input__wrapper) {
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  border: 1px solid #e2e8f0 !important;
-}
-
-:deep(.square-select .el-input__wrapper:hover) {
-  border-color: #cbd5e1 !important;
-}
-
-/* Scrollbar */
-.table-content-wrapper {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-}
-
-/* Sticky styles with grid consistency */
-.sticky-col-stt, .table-cell-sticky-stt {
-  position: sticky !important;
-  left: 0;
-  z-index: 10;
-  background-color: #fff !important;
-  border-right: 2px solid #cbd5e1 !important;
-}
-
-.sticky-col-actions, .td-sticky-actions {
-  position: sticky !important;
-  right: 0;
-  z-index: 10;
-  background-color: #fff !important;
-  border-left: 2px solid #cbd5e1 !important;
-}
-
-.spinner-premium {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #f1f5f9;
-  border-top: 3px solid #3b82f6;
-  border-radius: 50%;
-  margin: 0 auto;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin { 100% { transform: rotate(360deg); } }
 </style>

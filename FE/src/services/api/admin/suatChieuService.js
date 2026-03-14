@@ -50,6 +50,10 @@ export const suatChieuService = {
   // Tự động sinh hàng loạt suất chiếu
   generateBatch(batchData) {
     return axios.post(`${API_ADMIN_SUAT_CHIEU}/generate-batch`, batchData);
+  },
+
+  getGheStatus(id) {
+    return axios.get(`${API_ADMIN_SUAT_CHIEU}/${id}/ghe-status`);
   }
 };
 

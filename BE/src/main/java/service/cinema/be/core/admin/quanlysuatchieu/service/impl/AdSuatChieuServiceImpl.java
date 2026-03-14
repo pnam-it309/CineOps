@@ -19,6 +19,12 @@ import service.cinema.be.repository.PhimRepository;
 import service.cinema.be.repository.PhongChieuRepository;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.request.AdBatchSuatChieuRequest;
 import service.cinema.be.core.admin.quanlysuatchieu.dto.response.AdBatchSuatChieuResult;
+import service.cinema.be.core.admin.quanlyve.repository.AdVeRepository;
+import service.cinema.be.repository.GheRepository;
+import service.cinema.be.entity.Ve;
+import service.cinema.be.entity.Ghe;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -35,6 +41,8 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
     private final PhimRepository phimRepository;
     private final PhongChieuRepository phongChieuRepository;
     private final KhungGioRepository khungGioRepository;
+    private final AdVeRepository adVeRepository;
+    private final GheRepository gheRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -325,6 +333,8 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
                 .loaiManHinh(sc.getPhongChieu().getLoaiManHinh())
                 .loaiPhim(sc.getPhim().getLoaiPhim())
                 .soGheTrong(sc.getSoGheTrong())
+                .tongGhe(sc.getPhongChieu() != null ? sc.getPhongChieu().getTongGhe() : 0)
+                .thoiGianDonVeSinh(sc.getThoiGianDonVeSinh())
                 .build();
         
         if (sc.getKhungGio() != null) {
@@ -355,5 +365,36 @@ public class AdSuatChieuServiceImpl implements AdSuatChieuService {
         }
 
         return responseList;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<?> getGheStatus(String idSuatChieu) {
+        SuatChieu sc = adSuatChieuRepository.findById(idSuatChieu)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy suất chiếu"));
+        
+        // 1. Lấy toàn bộ ghế của phòng
+        List<Ghe> tatCaGhe = gheRepository.findByPhongChieuIdOrderBySoGheAsc(sc.getPhongChieu().getId());
+        
+        // 2. Lấy danh sách vé đã bán (trạng thái = 1) cho suất này
+        List<Ve> veDaBan = adVeRepository.findBySuatChieuIdAndTrangThai(idSuatChieu, 1);
+        
+        // Map idGhe -> status
+        Map<String, Integer> statusMap = new HashMap<>();
+        for (Ve v : veDaBan) {
+            statusMap.put(v.getGhe().getId(), 1); // 1 = Đã bán/Hết
+        }
+        
+        // 3. Chuyển đổi sang List DTO hoặc Map đơn giản
+        return tatCaGhe.stream().map(g -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", g.getId());
+            map.put("soGhe", g.getSoGhe());
+            map.put("loaiGhe", g.getLoaiGhe() != null ? g.getLoaiGhe().getTenLoai() : "Thường");
+            map.put("hang", g.getSoGhe().replaceAll("[0-9]", "")); // A1 -> A
+            map.put("cot", Integer.parseInt(g.getSoGhe().replaceAll("[^0-9]", ""))); // A1 -> 1
+            map.put("trangThai", statusMap.getOrDefault(g.getId(), 0)); // 0: Trống, 1: Hết
+            return map;
+        }).collect(Collectors.toList());
     }
 }

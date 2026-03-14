@@ -41,9 +41,27 @@ export const useUIStore = defineStore('ui', () => {
   };
 
   // ==========================================
-  // PAGE DATA CACHE (tránh gọi API lại khi quay về trang)
+  // PAGE DATA CACHE (tránh gọi API lại khi quay về trang và khi F5)
   // ==========================================
-  const pageCache = ref(new Map());
+  const loadCacheFromSession = () => {
+    try {
+      const stored = sessionStorage.getItem('page-cache');
+      return stored ? new Map(JSON.parse(stored)) : new Map();
+    } catch (e) {
+      console.error('Lỗi load cache:', e);
+      return new Map();
+    }
+  };
+
+  const pageCache = ref(loadCacheFromSession());
+
+  const saveCacheToSession = () => {
+    try {
+      sessionStorage.setItem('page-cache', JSON.stringify([...pageCache.value.entries()]));
+    } catch (e) {
+      console.warn('Lỗi save cache (có thể do dung lượng):', e);
+    }
+  };
 
   const getCachedData = (key) => {
     const cached = pageCache.value.get(key);
@@ -53,6 +71,7 @@ export const useUIStore = defineStore('ui', () => {
     const ttl = cached.ttl || 60_000; // Default: 1 phút
     if (now - cached.timestamp > ttl) {
       pageCache.value.delete(key);
+      saveCacheToSession();
       return null; // Cache đã hết hạn
     }
     return cached.data;
@@ -64,6 +83,7 @@ export const useUIStore = defineStore('ui', () => {
       timestamp: Date.now(),
       ttl: ttlMs,
     });
+    saveCacheToSession();
   };
 
   const clearCache = (key) => {
@@ -72,6 +92,7 @@ export const useUIStore = defineStore('ui', () => {
     } else {
       pageCache.value.clear();
     }
+    saveCacheToSession();
   };
 
   // ==========================================

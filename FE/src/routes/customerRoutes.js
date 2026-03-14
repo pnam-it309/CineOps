@@ -1,6 +1,6 @@
 import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 
-const CustomerLayout = () => import('@/layout/CustomerLayout.vue');
+const CustomerLayout = () => import('@/layouts/CustomerLayout.vue');
 
 // Eager-load các trang được truy cập nhiều nhất
 const Home       = () => import('@/pages/customer/HomePage.vue');

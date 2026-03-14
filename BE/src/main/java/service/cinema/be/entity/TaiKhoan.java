@@ -28,7 +28,7 @@ public class TaiKhoan extends PrimaryEntity {
     private String email;
 
     @Column(name = "mat_khau", length = 255, nullable = false)
-    private String mat_khau;
+    private String matKhau;
 
     @Column(name = "trang_thai")
     private Integer trangThai;

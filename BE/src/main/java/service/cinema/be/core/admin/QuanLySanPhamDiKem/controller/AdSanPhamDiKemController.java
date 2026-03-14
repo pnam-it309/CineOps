@@ -38,6 +38,11 @@ public class AdSanPhamDiKemController {
         );
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<AdSanPhamDiKemResponse>> getById(@PathVariable String id) {
+        return ResponseEntity.ok(ApiResponse.success(service.getById(id)));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AdSanPhamDiKemResponse>> update(
             @PathVariable String id,

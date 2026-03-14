@@ -73,7 +73,7 @@ public class AdNhanVienService {
         TaiKhoan taiKhoan = new TaiKhoan();
         taiKhoan.setId(UUID.randomUUID().toString());
         taiKhoan.setEmail(request.getEmail());
-        taiKhoan.setMat_khau(passwordEncoder.encode(rawPassword));
+        taiKhoan.setMatKhau(passwordEncoder.encode(rawPassword));
         taiKhoan.setTrangThai(1); 
 
         if (request.getIdPhanQuyen() != null) {

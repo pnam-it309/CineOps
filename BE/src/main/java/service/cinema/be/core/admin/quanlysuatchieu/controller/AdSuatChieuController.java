@@ -81,5 +81,10 @@ public class AdSuatChieuController {
             @Valid @RequestBody AdBatchSuatChieuRequest req) {
         return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.generateBatch(req)));
     }
+
+    @GetMapping("/{id}/ghe-status")
+    public ResponseEntity<ApiResponse<List<?>>> getGheStatus(@PathVariable String id) {
+        return ResponseEntity.ok(ApiResponse.success(adSuatChieuService.getGheStatus(id)));
+    }
 }
 

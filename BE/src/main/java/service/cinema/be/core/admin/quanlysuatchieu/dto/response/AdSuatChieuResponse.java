@@ -26,6 +26,8 @@ public class AdSuatChieuResponse {
     private String loaiManHinh;
     private String loaiPhim; 
     private Integer soGheTrong;
+    private Integer tongGhe;
+    private Integer thoiGianDonVeSinh;
     private String idKhungGio;
     private String tenKhungGio;
 }

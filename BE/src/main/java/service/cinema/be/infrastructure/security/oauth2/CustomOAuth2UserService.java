@@ -93,7 +93,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             tk.setId(UUID.randomUUID().toString());
             tk.setEmail(oAuth2UserInfo.getEmail());
             // No password for OAuth users initially
-            tk.setMat_khau("OAUTH2_EXTERNAL");
+            tk.setMatKhau("OAUTH2_EXTERNAL");
             tk.setTrangThai(1);
             tk = taiKhoanRepository.save(tk);
         }

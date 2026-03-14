@@ -1,7 +1,6 @@
 <script setup>
 import { ref, markRaw, computed } from 'vue';
 import { Download, Search, Filter, Document, Money, Ticket, Calendar, Refresh } from '@element-plus/icons-vue';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
 
 const reportColumns = [
@@ -40,14 +39,17 @@ const filteredReports = computed(() => {
 
 <template>
   <div class="admin-reports-page">
-    <AdminTableLayout
+    <BaseTable
       title="Báo cáo Giao dịch"
       titleIcon="bi bi-bar-chart-fill"
-      :data="filteredReports"
+      :data="filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :columns="reportColumns"
       :total="filteredReports.length"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
       @reset-filter="() => { dateRange = []; selectedType = 'All'; searchQuery = ''; }"
+      :show-actions="false"
+      :hide-pagination="false"
     >
       <template #header-actions-left>
         <el-button class="btn-cine-secondary text-success border-success-subtle" :icon="Download">Xuất CSV</el-button>
@@ -80,48 +82,36 @@ const filteredReports = computed(() => {
         </div>
       </template>
 
-      <template #content>
-        <BaseTable
-          :data="filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
-          :columns="reportColumns"
-          :total="filteredReports.length"
-          v-model:currentPage="currentPage"
-          v-model:pageSize="pageSize"
-          :show-actions="false"
-          :hide-pagination="true"
-        >
-          <template #cell-id="{ row }">
-            <span class="fw-bold text-indigo-500">#{{ row.id }}</span>
-          </template>
-
-          <template #cell-date="{ row }">
-            <div class="small text-secondary"><i class="bi bi-clock me-1"></i>{{ row.date }}</div>
-          </template>
-
-          <template #cell-customer="{ row }">
-            <span class="fw-semibold text-dark">{{ row.customer }}</span>
-          </template>
-
-          <template #cell-items="{ row }">
-            <div class="small text-truncate" style="max-width: 250px;" :title="row.items">{{ row.items }}</div>
-          </template>
-
-          <template #cell-total="{ row }">
-            <span class="fw-bold text-dark">{{ row.total.toLocaleString() }}đ</span>
-          </template>
-
-          <template #cell-status="{ row }">
-            <el-tag :type="row.status === 'Completed' ? 'success' : 'danger'" size="small" round effect="light">
-              {{ row.status === 'Completed' ? 'Thành công' : 'Đã hoàn tiền' }}
-            </el-tag>
-          </template>
-
-          <template #cell-method="{ row }">
-            <span class="badge bg-light-subtle text-dark border px-2 py-1">{{ row.method }}</span>
-          </template>
-        </BaseTable>
+      <template #cell-id="{ row }">
+        <span class="fw-bold text-indigo-500">#{{ row.id }}</span>
       </template>
-    </AdminTableLayout>
+
+      <template #cell-date="{ row }">
+        <div class="small text-secondary"><i class="bi bi-clock me-1"></i>{{ row.date }}</div>
+      </template>
+
+      <template #cell-customer="{ row }">
+        <span class="fw-semibold text-dark">{{ row.customer }}</span>
+      </template>
+
+      <template #cell-items="{ row }">
+        <div class="small text-truncate" style="max-width: 250px;" :title="row.items">{{ row.items }}</div>
+      </template>
+
+      <template #cell-total="{ row }">
+        <span class="fw-bold text-dark">{{ row.total.toLocaleString() }}đ</span>
+      </template>
+
+      <template #cell-status="{ row }">
+        <el-tag :type="row.status === 'Completed' ? 'success' : 'danger'" size="small" round effect="light">
+          {{ row.status === 'Completed' ? 'Thành công' : 'Đã hoàn tiền' }}
+        </el-tag>
+      </template>
+
+      <template #cell-method="{ row }">
+        <span class="badge bg-light-subtle text-dark border px-2 py-1">{{ row.method }}</span>
+      </template>
+    </BaseTable>
   </div>
 </template>
 

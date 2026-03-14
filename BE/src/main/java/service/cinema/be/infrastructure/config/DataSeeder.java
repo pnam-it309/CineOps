@@ -77,8 +77,8 @@ public class DataSeeder implements ApplicationRunner {
         TaiKhoan tk;
         if (tkOptional.isPresent()) {
             tk = tkOptional.get();
-            if (tk.getMat_khau() == null || tk.getMat_khau().isEmpty()) {
-                tk.setMat_khau(encodedPassword);
+            if (tk.getMatKhau() == null || tk.getMatKhau().isEmpty()) {
+                tk.setMatKhau(encodedPassword);
                 tk.setPhanQuyen(phanQuyen);
                 taiKhoanRepository.save(tk);
                 log.info("[DataSeeder] 🔄 Cập nhật mật khẩu tài khoản Admin: {}", email);
@@ -87,7 +87,7 @@ public class DataSeeder implements ApplicationRunner {
             tk = new TaiKhoan();
             tk.setId(UUID.randomUUID().toString());
             tk.setEmail(email);
-            tk.setMat_khau(encodedPassword);
+            tk.setMatKhau(encodedPassword);
             tk.setPhanQuyen(phanQuyen);
             tk.setTrangThai(1);
             tk = taiKhoanRepository.save(tk);

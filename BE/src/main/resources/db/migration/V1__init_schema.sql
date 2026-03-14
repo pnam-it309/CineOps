@@ -470,8 +470,8 @@ CREATE TABLE lich_su_hoa_don
 (
     id                  VARCHAR(36) PRIMARY KEY,
     hoa_don_id          VARCHAR(36),
-    han_dong           VARCHAR(255),
-    thoi_gian_han_dong DATETIME DEFAULT CURRENT_TIMESTAMP,
+    hanh_dong           VARCHAR(255),
+    thoi_gian_hanh_dong DATETIME DEFAULT CURRENT_TIMESTAMP,
     trang_thai          INT      DEFAULT 1,
     ngay_tao            DATETIME DEFAULT CURRENT_TIMESTAMP,
     nguoi_tao           VARCHAR(100),

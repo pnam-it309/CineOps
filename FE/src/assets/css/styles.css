@@ -1,0 +1,135 @@
+/* Global Styles - Refactored from styles.scss */
+
+/* 0. Custom Brand Colors */
+:root {
+  --brand-gradient: linear-gradient(90deg, #A51C1C 0%, #E31E24 40%, #F37021 70%, #FFBA00 100%);
+  --brand-color-1: #A51C1C;
+  --brand-color-2: #E31E24;
+  --brand-color-3: #F37021;
+  --brand-color-4: #FFBA00;
+  --brand-primary: #E31E24;
+}
+
+/* 1. Global Reset & Overrides */
+html, body {
+    overflow-x: hidden;
+}
+
+/* Sidebar font size */
+.el-aside, 
+.el-menu, 
+.el-menu-item, 
+.el-sub-menu__title, 
+.el-menu-item span {
+  font-size: 15px !important;
+  --el-font-size-base: 15px !important;
+}
+
+/* Main content base font size */
+.el-main {
+  font-size: 15px !important;
+  --el-font-size-base: 15px !important;
+  color: var(--color-gray-900);
+}
+
+/* Table content font size normalization - Reduced to 13px */
+.el-main .el-table, 
+.el-main .el-table th.el-table__cell, 
+.el-main .el-table td.el-table__cell,
+.el-main .el-table .cell,
+.el-main .cine-premium-table td,
+.el-main .cine-premium-table th {
+  font-size: 13px !important;
+  line-height: normal !important;
+}
+
+/* Metadata and tags - Target exactly 13px */
+.el-main .small, 
+.el-main small, 
+.el-main .badge, 
+.el-main .el-tag, 
+.el-main .el-tag--small, 
+.el-main .el-tag--default,
+.el-main .text-secondary.small {
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  height: auto !important;
+  padding: 1px 8px !important; /* Slightly more compact padding */
+}
+
+/* Strong labels inside table cells */
+.el-main .el-table .cell strong,
+.el-main .cine-premium-table td strong {
+  font-size: 14px !important;
+}
+
+.el-main .el-button, 
+.el-main .el-input__inner, 
+.el-main .el-form-item__label {
+  font-size: 14px !important;
+}
+
+/* Global rule for Element Plus Select Dropdowns */
+.el-select-dropdown__item, 
+.el-dropdown-menu__item,
+.el-select-dropdown__item span {
+  font-size: 16px !important;
+  height: auto !important;
+  line-height: normal !important;
+  padding: 8px 16px !important;
+}
+
+/* Custom Responsive Utilities */
+.container-responsive {
+  width: 100%;
+  max-width: 1920px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container-responsive {
+    padding-left: 5vw;
+    padding-right: 5vw;
+  }
+}
+
+.card-img-top {
+  object-fit: cover;
+}
+
+/* Global Utilities */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.animation-fade-in {
+  animation: cineFadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cineFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

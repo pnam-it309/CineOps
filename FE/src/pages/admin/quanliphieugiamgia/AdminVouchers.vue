@@ -1,144 +1,160 @@
 <template>
-  <div class="admin-vouchers-page">
-    <AdminTableLayout title="Quản lý phiếu giảm giá" titleIcon="bi bi-ticket-perforated-fill"
-      addButtonLabel="Thêm phiếu giảm giá" :data="vouchers" :loading="loading" :total="total"
-      v-model:currentPage="currentPage" v-model:pageSize="pageSize" @add-click="openDialog()"
-      @reset-filter="resetFilter">
-
-
+  <div class="d-flex flex-column flex-grow-1 h-100 overflow-hidden">
+    <BaseTable 
+      title="Quản lý phiếu giảm giá" 
+      subtitle="Quản lý danh sách Phiếu Giảm Giá có mặt tại cửa hàng"
+      titleIcon="bi bi-ticket-perforated-fill" 
+      addButtonLabel="Thêm phiếu giảm giá"
+      :data="vouchers" 
+      :columns="voucherColumns" 
+      :loading="loading" 
+      :total="total"
+      v-model:currentPage="currentPage" 
+      v-model:pageSize="pageSize" 
+      @add-click="openDialog()" 
+      @reset-filter="resetFilter"
+      @edit="openDialog" 
+      @delete="handleUpdateStatus"
+      @fetch="fetchVouchers"
+    >
       <template #header-actions-left>
         <ExcelActions module="phieu-giam-gia" @import-success="fetchVouchers" />
       </template>
 
+      <!-- Optimized Filters (Matching Image 1: Labels above inputs) -->
       <template #filters>
-        <div class="filter-item search-input-wrapper">
-          <el-input v-model="searchQuery" placeholder="Nhập mã hoặc tên phiếu..." :prefix-icon="Search" clearable @input="handleSearch" style="width: 250px;" />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm chung</label>
+          <el-input v-model="searchQuery" placeholder="Tìm theo mã hoặc tên..." :prefix-icon="Search" clearable
+            @input="handleSearch" style="width: 250px;" />
         </div>
 
-        <div class="filter-item">
-          <el-select v-model="filterStatus" placeholder="Chọn trạng thái" style="width: 180px;" @change="fetchVouchers" clearable>
-            <el-option label="Tất cả trạng thái" value="" />
-            <el-option label="Đang hoạt động" :value="1" />
-            <el-option label="Tạm ngưng" :value="0" />
-            <el-option label="Đã kết thúc" :value="2" />
-          </el-select>
-        </div>
-
-        <div class="filter-item">
-          <el-select v-model="filterLoaiPhieu" placeholder="Chọn loại phiếu" style="width: 180px;" @change="fetchVouchers" clearable>
-            <el-option label="Tất cả loại phiếu" value="" />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Kiểu voucher</label>
+          <el-select v-model="filterLoaiPhieu" placeholder="Tất cả" style="width: 170px;" @change="fetchVouchers" clearable>
+            <el-option label="Tất cả" value="" />
             <el-option label="Giảm phần trăm" :value="1" />
             <el-option label="Giảm số tiền" :value="2" />
           </el-select>
         </div>
 
-        <div class="filter-item">
-          <el-select v-model="filterDoiTuong" placeholder="Chọn đối tượng" style="width: 180px;" @change="fetchVouchers" clearable>
-            <el-option label="Tất cả đối tượng" value="" />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Đối tượng</label>
+          <el-select v-model="filterDoiTuong" placeholder="Tất cả" style="width: 170px;" @change="fetchVouchers" clearable>
+            <el-option label="Tất cả" value="" />
             <el-option label="Công khai" :value="0" />
             <el-option label="Cá nhân" :value="1" />
           </el-select>
         </div>
+
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái hoạt động</label>
+          <el-select v-model="filterStatus" placeholder="Tất cả" style="width: 170px;" @change="fetchVouchers" clearable>
+            <el-option label="Tất cả" value="" />
+            <el-option label="Đang hoạt động" :value="1" />
+            <el-option label="Tạm ngưng" :value="0" />
+            <el-option label="Đã kết thúc" :value="2" />
+          </el-select>
+        </div>
       </template>
 
-      <template #content>
-        <BaseTable :data="vouchers" :columns="voucherColumns" :loading="loading" :total="total"
-          v-model:currentPage="currentPage" v-model:pageSize="pageSize" :hide-pagination="true" @edit="openDialog"
-          @delete="handleUpdateStatus">
-          <template #cell-stt="{ index }">
-            <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
-          </template>
-
-          <template #cell-maPhieuGiamGia="{ row }">
-            <el-tag type="primary" effect="light" round size="small" style="font-weight: 600; letter-spacing: 0.5px;">
-              {{ row.maPhieuGiamGia }}
-            </el-tag>
-          </template>
-
-          <template #cell-soLuong="{ row }">
-            <span class="fw-bold text-dark">{{ row.soLuong }}</span>
-          </template>
-
-          <template #cell-tenPhieu="{ row }">
-            <span class="fw-semibold text-dark" style="white-space: nowrap;">{{ row.tenPhieu }}</span>
-          </template>
-
-          <template #cell-loaiPhieu="{ row }">
-            <div v-if="row.loaiPhieu === 1">
-              <el-tag type="warning" effect="dark" round size="small">{{ row.phanTramGiamGia }}%</el-tag>
-            </div>
-            <div v-else>
-              <el-tag type="danger" effect="dark" round size="small">-{{ formatCurrency(row.soTienGiam) }}</el-tag>
-            </div>
-          </template>
-
-          <template #cell-giamToiDa="{ row }">
-            <span class="small text-secondary">{{ row.loaiPhieu === 1 ? formatCurrency(row.giamToiDa) : '—' }}</span>
-          </template>
-
-          <template #cell-doiTuong="{ row }">
-            <el-tag size="small" :type="row.doiTuong === 1 ? 'warning' : 'info'" effect="plain" round>
-              {{ row.doiTuong === 1 ? 'Cá nhân' : 'Công khai' }}
-            </el-tag>
-          </template>
-
-
-          <template #cell-trangThai="{ row }">
-            <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)"
-              :disabled="row.trangThai === 0 || row.trangThai === 2">
-              <el-tag :type="getStatusTag(row.trangThai)" round size="small"
-                :class="{ 'cursor-pointer': row.trangThai !== 0 && row.trangThai !== 2 }">
-                {{ getStatusLabel(row.trangThai) }}
-              </el-tag>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Hoạt động</el-dropdown-item>
-                  <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Tạm ngưng</el-dropdown-item>
-                  <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Kết thúc</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-
-          <template #actions="{ row }">
-            <div class="d-flex justify-content-center align-items-center gap-1">
-              <el-tooltip content="Xem chi tiết" placement="top">
-                <button class="btn-action-icon action-view" @click="handleView(row)">
-                  <i class="bi bi-eye fs-6"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0 || row.trangThai === 2"
-                  @click="openDialog(row)">
-                  <i class="bi bi-pencil fs-6"></i>
-                </button>
-              </el-tooltip>
-              <el-switch
-                :model-value="row.trangThai === 1"
-                :disabled="row.trangThai === 2"
-                @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
-                class="status-switch mx-1"
-                active-color="#ff4949"
-                inactive-color="#ff4949"
-              />
-            </div>
-          </template>
-        </BaseTable>
+      <!-- Cell Templates -->
+      <template #cell-stt="{ index }">
+        <span class="text-secondary smaller">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
       </template>
-    </AdminTableLayout>
+
+      <template #cell-maPhieuGiamGia="{ row }">
+        <div class="text-center py-1">
+          <span class="fw-bold text-dark font-monospace">{{ row.maPhieuGiamGia }}</span>
+        </div>
+      </template>
+
+      <template #cell-tenPhieu="{ row }">
+        <div class="fw-bold text-dark">{{ row.tenPhieu }}</div>
+      </template>
+
+      <template #cell-doiTuong="{ row }">
+        <div class="text-center">
+          <el-tag size="small" :type="row.doiTuong === 1 ? 'primary' : 'info'" effect="light" round class="fw-bold" style="opacity: 0.8">
+            {{ row.doiTuong === 1 ? 'Cá nhân' : 'Công khai' }}
+          </el-tag>
+        </div>
+      </template>
+
+      <template #cell-soLuong="{ row }">
+        <div class="text-center fw-bold text-dark">{{ row.soLuong }}</div>
+      </template>
+
+      <template #cell-detail="{ row }">
+        <div class="text-center py-1">
+          <el-tag :type="row.loaiPhieu === 1 ? 'danger' : 'success'" effect="light" size="small" class="fw-bold mb-1">
+            {{ row.loaiPhieu === 1 ? `Giảm ${row.phanTramGiamGia}%` : `Giảm -${formatCurrency(row.soTienGiam)}` }}
+          </el-tag>
+          <div class="smaller text-secondary">Tối đa: {{ row.loaiPhieu === 1 ? formatCurrency(row.giamToiDa) : '—' }}</div>
+          <div class="smaller text-secondary">Đơn tối thiểu: {{ formatCurrency(row.donToiThieu) }}</div>
+        </div>
+      </template>
+
+      <template #cell-time="{ row }">
+        <div class="smaller text-secondary lh-sm">
+          <div><span class="opacity-50">Từ:</span> {{ formatFullDate(row.ngayBatDau) }}</div>
+          <div><span class="opacity-50">Đến:</span> {{ formatFullDate(row.ngayKetThuc) }}</div>
+        </div>
+      </template>
+
+      <template #cell-trangThai="{ row }">
+        <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)"
+          :disabled="row.trangThai === 0 || row.trangThai === 2">
+          <el-tag :type="getStatusTag(row.trangThai)" round size="small" class="fw-bold"
+            :class="{ 'cursor-pointer': row.trangThai !== 0 && row.trangThai !== 2 }">
+            {{ getStatusLabel(row.trangThai) }}
+          </el-tag>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Hoạt động</el-dropdown-item>
+              <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Tạm ngưng</el-dropdown-item>
+              <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Kết thúc</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </template>
+
+      <template #actions="{ row }">
+        <div class="d-flex justify-content-center align-items-center gap-1">
+          <el-tooltip content="Xem chi tiết" placement="top">
+            <button class="btn-action-icon action-view" @click="handleView(row)">
+              <i class="bi bi-eye fs-6"></i>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="Chỉnh sửa" placement="top">
+            <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0 || row.trangThai === 2"
+              @click="openDialog(row)">
+              <i class="bi bi-pencil fs-6"></i>
+            </button>
+          </el-tooltip>
+          <el-switch :model-value="row.trangThai === 1" :disabled="row.trangThai === 2"
+            @change="(val) => handleUpdateStatus(row, val ? 1 : 0)" class="status-switch mx-1" active-color="#ff4949"
+            inactive-color="#ff4949" />
+        </div>
+      </template>
+    </BaseTable>
 
     <!-- Detail Modal -->
-    <BaseModal v-model="detailVisible" title="Thông tin phiếu giảm giá" icon="bi bi-ticket-perforated-fill" width="650px" isDetail onlyCancel>
+    <BaseModal v-model="detailVisible" title="Thông tin phiếu giảm giá" icon="bi bi-ticket-perforated-fill"
+      width="650px" isDetail onlyCancel>
       <div v-if="selectedItem" class="voucher-premium-container">
         <!-- Premium Hero Section -->
-        <div class="profile-hero-banner p-4 text-white position-relative overflow-hidden" 
-             style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+        <div class="profile-hero-banner p-4 text-white position-relative overflow-hidden"
+          style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
           <div class="row align-items-center position-relative" style="z-index: 2;">
             <div class="col-md-5 text-center">
-              <div class="voucher-hero-card bg-white p-3 shadow-lg rounded-0 d-inline-block text-dark border-start border-4 border-warning">
+              <div
+                class="voucher-hero-card bg-white p-3 shadow-lg rounded-0 d-inline-block text-dark border-start border-4 border-warning">
                 <div class="small opacity-75 uppercase-label text-secondary">GIÁ TRỊ GIẢM</div>
-                <div v-if="selectedItem.loaiPhieu === 1" class="display-5 fw-bold">{{ selectedItem.phanTramGiamGia }}%</div>
-                <div v-else class="display-5 fw-bold">{{ formatCurrency(selectedItem.soTienGiam).replace('₫', '') }}<small class="fs-4">₫</small></div>
+                <div v-if="selectedItem.loaiPhieu === 1" class="display-5 fw-bold">{{ selectedItem.phanTramGiamGia }}%
+                </div>
+                <div v-else class="display-5 fw-bold">{{ formatCurrency(selectedItem.soTienGiam).replace('₫', '')
+                  }}<small class="fs-4">₫</small></div>
               </div>
             </div>
             <div class="col-md-7 border-start border-white border-opacity-10 ps-4">
@@ -149,11 +165,14 @@
                 <span class="badge bg-white bg-opacity-20 font-monospace">#{{ selectedItem.maPhieuGiamGia }}</span>
               </div>
               <h1 class="fw-bold m-0 text-truncate" :title="selectedItem.tenPhieu">{{ selectedItem.tenPhieu }}</h1>
-              <p class="opacity-75 mb-0 mt-2"><i class="bi bi-clock-history me-2"></i>Hết hạn: {{ formatDate(selectedItem.ngayKetThuc) }}</p>
+              <p class="opacity-75 mb-0 mt-2"><i class="bi bi-clock-history me-2"></i>Hết hạn: {{
+                formatDate(selectedItem.ngayKetThuc) }}</p>
             </div>
           </div>
           <!-- Decoration -->
-          <div class="decoration-circle position-absolute" style="width: 300px; height: 300px; background: rgba(255,193,7,0.1); border-radius: 50%; top: -150px; right: -50px;"></div>
+          <div class="decoration-circle position-absolute"
+            style="width: 300px; height: 300px; background: rgba(255,193,7,0.1); border-radius: 50%; top: -150px; right: -50px;">
+          </div>
         </div>
 
         <!-- Detail Body -->
@@ -161,27 +180,26 @@
           <div class="row g-4">
             <!-- Usage Stats -->
             <div class="col-12">
-               <h6 class="text-secondary fw-bold small text-uppercase mb-3 letter-spacing-1">Hiệu suất sử dụng</h6>
-               <div class="p-3 border bg-light d-flex justify-content-between align-items-center mb-2">
-                 <div>
-                   <label class="text-secondary tiny-text d-block">TỔNG LƯỢT PHÁT HÀNH</label>
-                   <div class="fw-bold fs-5">{{ selectedItem.soLuongBanDau || selectedItem.soLuong }} <span class="small fw-normal">phiếu</span></div>
-                 </div>
-                 <div class="text-center px-4 border-start border-end">
-                    <label class="text-secondary tiny-text d-block">ĐÃ SỬ DỤNG</label>
-                    <div class="fw-bold fs-5 text-primary">{{ (selectedItem.soLuongBanDau || selectedItem.soLuong) - selectedItem.soLuong }}</div>
-                 </div>
-                 <div class="text-end">
-                    <label class="text-secondary tiny-text d-block">CÒN LẠI</label>
-                    <div class="fw-bold fs-5 text-success">{{ selectedItem.soLuong }}</div>
-                 </div>
-               </div>
-               <el-progress 
-                :percentage="Math.round(((selectedItem.soLuongBanDau || selectedItem.soLuong) - selectedItem.soLuong) / (selectedItem.soLuongBanDau || selectedItem.soLuong) * 100)" 
-                :stroke-width="12"
-                :show-text="true"
-                class="square-progress"
-              />
+              <h6 class="text-secondary fw-bold small text-uppercase mb-3 letter-spacing-1">Hiệu suất sử dụng</h6>
+              <div class="p-3 border bg-light d-flex justify-content-between align-items-center mb-2">
+                <div>
+                  <label class="text-secondary tiny-text d-block">TỔNG LƯỢT PHÁT HÀNH</label>
+                  <div class="fw-bold fs-5">{{ selectedItem.soLuongBanDau || selectedItem.soLuong }} <span
+                      class="small fw-normal">phiếu</span></div>
+                </div>
+                <div class="text-center px-4 border-start border-end">
+                  <label class="text-secondary tiny-text d-block">ĐÃ SỬ DỤNG</label>
+                  <div class="fw-bold fs-5 text-primary">{{ (selectedItem.soLuongBanDau || selectedItem.soLuong) -
+                    selectedItem.soLuong }}</div>
+                </div>
+                <div class="text-end">
+                  <label class="text-secondary tiny-text d-block">CÒN LẠI</label>
+                  <div class="fw-bold fs-5 text-success">{{ selectedItem.soLuong }}</div>
+                </div>
+              </div>
+              <el-progress
+                :percentage="Math.round(((selectedItem.soLuongBanDau || selectedItem.soLuong) - selectedItem.soLuong) / (selectedItem.soLuongBanDau || selectedItem.soLuong) * 100)"
+                :stroke-width="12" :show-text="true" class="square-progress" />
             </div>
 
             <!-- Rules Grid -->
@@ -212,7 +230,8 @@
                 <div class="info-row">
                   <label class="text-secondary tiny-text d-block">ĐỐI TƯỢNG ÁP DỤNG</label>
                   <div class="fw-bold">
-                    <i :class="selectedItem.doiTuong === 1 ? 'bi bi-person-heart text-warning' : 'bi bi-globe text-primary'" class="me-2"></i>
+                    <i :class="selectedItem.doiTuong === 1 ? 'bi bi-person-heart text-warning' : 'bi bi-globe text-primary'"
+                      class="me-2"></i>
                     {{ selectedItem.doiTuong === 1 ? 'Khách hàng cá nhân' : 'Toàn bộ khách hàng' }}
                   </div>
                 </div>
@@ -221,17 +240,18 @@
 
             <!-- Campaign Stats -->
             <div class="col-12" v-if="selectedItem.tongTienGiam">
-              <div class="p-3 bg-warning bg-opacity-10 border border-warning border-opacity-20 d-flex justify-content-between align-items-center">
-                 <div class="d-flex align-items-center gap-3">
-                   <div class="icon-box bg-warning text-white p-3"><i class="bi bi-graph-up"></i></div>
-                   <div>
-                     <div class="small fw-bold text-dark">TỔNG NGÂN SÁCH ĐÃ TIẾT KIỆM</div>
-                     <div class="text-secondary small">Dựa trên các giao dịch đã áp dụng mã này</div>
-                   </div>
-                 </div>
-                 <div class="text-end">
-                   <div class="display-6 fw-bold text-dark">{{ formatCurrency(selectedItem.tongTienGiam) }}</div>
-                 </div>
+              <div
+                class="p-3 bg-warning bg-opacity-10 border border-warning border-opacity-20 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="icon-box bg-warning text-white p-3"><i class="bi bi-graph-up"></i></div>
+                  <div>
+                    <div class="small fw-bold text-dark">TỔNG NGÂN SÁCH ĐÃ TIẾT KIỆM</div>
+                    <div class="text-secondary small">Dựa trên các giao dịch đã áp dụng mã này</div>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="display-6 fw-bold text-dark">{{ formatCurrency(selectedItem.tongTienGiam) }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -251,7 +271,6 @@ import { voucherService } from '@/services/api/admin/voucherService';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
 import debounce from 'lodash/debounce';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
 import ExcelActions from '@/components/common/ExcelActions.vue';
 
@@ -259,13 +278,13 @@ const router = useRouter();
 
 const voucherColumns = [
   { label: 'STT', key: 'stt', width: '60px' },
-  { label: 'Mã giảm giá', key: 'maPhieuGiamGia', width: '130px' },
-  { label: 'Tên phiếu giảm giá', key: 'tenPhieu', width: '180px' },
-  { label: 'Số lượng', key: 'soLuong', width: '90px' },
-  { label: 'Giảm giá', key: 'loaiPhieu', width: '120px' },
-  { label: 'Giảm tối đa', key: 'giamToiDa', width: '120px' },
-  { label: 'Đối tượng', key: 'doiTuong', width: '110px' },
-  { label: 'Trạng thái', key: 'trangThai', width: '130px' },
+  { label: 'Mã', key: 'maPhieuGiamGia', width: '130px', align: 'center' },
+  { label: 'Tên', key: 'tenPhieu', width: '200px' },
+  { label: 'Đối tượng', key: 'doiTuong', width: '110px', align: 'center' },
+  { label: 'Số lượng', key: 'soLuong', width: '90px', align: 'center' },
+  { label: 'Chi tiết ưu đãi', key: 'detail', width: '220px', align: 'center' },
+  { label: 'Thời gian áp dụng', key: 'time', width: '200px' },
+  { label: 'Trạng thái', key: 'trangThai', width: '130px', align: 'center' },
 ];
 
 
@@ -366,9 +385,16 @@ const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currenc
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleString('vi-VN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
+    day: '2-digit', month: '2-digit', year: 'numeric'
   });
+};
+
+const formatFullDate = (dateStr) => {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const date = d.toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric', year: 'numeric' });
+  return `${time} ${date}`;
 };
 
 onMounted(fetchVouchers);
@@ -376,23 +402,38 @@ watch([currentPage, pageSize], fetchVouchers);
 </script>
 
 <style scoped>
+/* Scoped styles are minimal, prioritizing global CSS and Bootstrap utilities */
+.status-switch :deep(.el-switch__label) {
+  display: none !important;
+}
 
-.voucher-premium-container { margin: -20px; background: #f8fafc; }
-.voucher-ticket { display: flex; overflow: hidden; border-radius: 0 0 20px 20px; }
-.ticket-left { width: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border-right: 2px dashed #e2e8f0; }
-.ticket-left::before, .ticket-left::after { content: ''; position: absolute; right: -10px; width: 20px; height: 20px; background: #f8fafc; border-radius: 50%; z-index: 2; }
-.ticket-left::before { top: -10px; }
-.ticket-left::after { bottom: -10px; }
-.ticket-right { flex: 1; }
-.discount-value { text-align: center; }
-.ticket-sideways { position: absolute; left: -40px; top: 50%; transform: rotate(-90deg) translateY(-50%); letter-spacing: 2px; }
-.section-title-sm { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; }
-.tiny-text { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 2px; }
-.rule-card { transition: all 0.2s; }
-.rule-card:hover { border-color: var(--el-color-primary-light-5); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-.voucher-code-box { border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+.w-fit {
+  width: fit-content;
+}
 
-.admin-vouchers-page {
-  padding: 0;
+.font-monospace {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+:deep(.el-tag--danger.el-tag--light) {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+  color: #ef4444;
+}
+
+:deep(.el-tag--success.el-tag--light) {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+  color: #16a34a;
+}
+
+:deep(.el-tag--primary.el-tag--light) {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #3b82f6;
+}
+
+.letter-spacing-1 {
+  letter-spacing: 1px;
 }
 </style>

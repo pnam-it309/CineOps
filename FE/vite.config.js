@@ -33,6 +33,19 @@ export default defineConfig({
   server: {
     port: 3456,
   },
+  optimizeDeps: {
+    include: [
+      'element-plus',
+      'element-plus/es',
+      'element-plus/es/components/**/style/css',
+      '@element-plus/icons-vue',
+      'axios',
+      'lodash',
+      'pinia',
+      'vue',
+      'vue-router'
+    ],
+  },
   css: {
     preprocessorOptions: {
       scss: {

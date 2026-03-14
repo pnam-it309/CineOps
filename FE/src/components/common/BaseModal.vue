@@ -2,8 +2,8 @@
   <el-dialog
     v-model="visible"
     :width="width"
-    top="2vh"
-    class="premium-dialog square-modal"
+    top="5vh"
+    class="premium-dialog modern-modal"
     :show-close="false"
     :close-on-click-modal="false"
     :destroy-on-close="true"
@@ -35,7 +35,7 @@
 
     <template #footer v-if="!$slots.footer && !hideFooter && !isDetail">
       <div class="premium-footer-modern">
-        <el-button @click="visible = false" class="square-btn">
+        <el-button @click="visible = false" class="modern-btn">
           {{ cancelText }}
         </el-button>
         <el-button 
@@ -43,7 +43,7 @@
           type="primary" 
           @click="$emit('confirm')" 
           :loading="loading"
-          class="square-btn"
+          class="modern-btn confirm-btn"
         >
           {{ confirmText }}
         </el-button>
@@ -86,7 +86,7 @@ const props = defineProps({
   },
   cancelText: {
     type: String,
-    default: 'Đóng'
+    default: 'Bỏ qua'
   },
   icon: {
     type: String,
@@ -116,27 +116,35 @@ const visible = computed({
 
 <style scoped>
 .modal-body-content {
-  padding: 1.5rem;
-  max-height: 85vh;
+  padding: 1.75rem;
+  max-height: 80vh;
   overflow-y: auto;
+  background-color: #fff;
 }
 
 .modal-body-content.no-padding {
   padding: 0;
 }
 
-/* Square Modal */
-:deep(.square-modal) {
-  border-radius: 0 !important;
-  overflow: hidden;
+/* Modern Rounded Modal */
+:deep(.el-overlay) {
+  backdrop-filter: blur(4px);
+  background-color: rgba(15, 23, 42, 0.4);
 }
 
-:deep(.square-modal .el-dialog__header) {
+:deep(.modern-modal) {
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+:deep(.modern-modal .el-dialog__header) {
   padding: 0;
   margin: 0;
 }
 
-:deep(.square-modal .el-dialog__body) {
+:deep(.modern-modal .el-dialog__body) {
   padding: 0;
 }
 
@@ -144,92 +152,123 @@ const visible = computed({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1.75rem;
   background: #fff;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .detail-header {
   background: #f8fafc;
-  padding: 1.5rem;
+  border-bottom-color: #e2e8f0;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .header-icon-box-modern {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eff6ff;
-  color: #3b82f6;
-  border-radius: 0;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 12px;
   font-size: 1.25rem;
-  border: 1px solid #dbeafe;
+  transition: all 0.3s ease;
 }
 
 .detail-icon {
   background: #1e293b;
   color: #fff;
-  border: none;
 }
 
 .header-text-modern .title {
   margin: 0;
   font-weight: 700;
-  font-size: 1.15rem;
-  color: #1e293b;
+  font-size: 1.25rem;
+  color: #0f172a;
+  letter-spacing: -0.025em;
 }
 
 .header-text-modern .subtitle {
-  margin: 0;
-  font-size: 0.85rem;
+  margin: 0.15rem 0 0 0;
+  font-size: 0.875rem;
   color: #64748b;
+  font-weight: 400;
 }
 
 .header-close-btn {
-  background: transparent;
-  border: none;
-  font-size: 1.25rem;
-  color: #94a3b8;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  font-size: 1rem;
+  color: #64748b;
   cursor: pointer;
   padding: 0.5rem;
   display: flex;
-  transition: all 0.2s;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .header-close-btn:hover {
-  color: #ef4444;
-  background: #fef2f2;
+  color: #0f172a;
+  background: #f1f5f9;
+  transform: scale(1.05);
 }
 
 .premium-footer-modern {
-  padding: 1.25rem 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  padding: 1.25rem 1.75rem;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.square-btn {
-  border-radius: 0 !important;
+.modern-btn {
+  border-radius: 10px !important;
+  font-weight: 600;
+  padding: 12px 24px;
+  height: auto;
+  transition: all 0.2s;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.modern-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 4px 15px -3px rgba(234, 88, 12, 0.4) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confirm-btn:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.5) !important;
 }
 
 /* Custom Scrollbar */
 .modal-body-content::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 .modal-body-content::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f8fafc;
 }
 .modal-body-content::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 0;
+  border-radius: 10px;
+  border: 2px solid #f8fafc;
 }
 .modal-body-content::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;

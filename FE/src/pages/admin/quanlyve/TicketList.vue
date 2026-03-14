@@ -6,7 +6,6 @@ import {
   Calendar, Timer, Download, Ticket, CircleCheck, CircleClose, Money
 } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseModal from '@/components/common/BaseModal.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
 import MovieTicketTemplate from './MovieTicketTemplate.vue';
@@ -308,15 +307,17 @@ onMounted(() => {
 <template>
 <!-- TicketList.vue — uses BaseTable in #content slot, consistent with other admin pages -->
   <div class="admin-ticket-page">
-    <AdminTableLayout
+    <BaseTable
       title="Quản Lý Vé"
       titleIcon="bi bi-ticket-perforated-fill"
       :data="tickets"
+      :columns="ticketColumns"
       :loading="loading"
       :total="totalElements"
       v-model:currentPage="params.page"
       v-model:pageSize="params.size"
       @reset-filter="resetFilter"
+      :hidePagination="false"
     >
       <template #header-actions-left>
         <el-button type="primary" :icon="Plus" @click="$router.push('/admin/pos')">
@@ -418,73 +419,61 @@ onMounted(() => {
         </div>
       </template>
 
-      <template #content>
-        <BaseTable
-          :data="tickets"
-          :columns="ticketColumns"
-          :loading="loading"
-          :total="totalElements"
-          v-model:currentPage="params.page"
-          v-model:pageSize="params.size"
-          :hide-pagination="true"
-        >
-          <template #cell-stt="{ index }">
-            <span class="small fw-bold text-secondary">{{ (params.page - 1) * params.size + index + 1 }}</span>
-          </template>
-
-          <template #cell-maVe="{ row }">
-            <span class="fw-bold text-indigo-500">#{{ row.maVe }}</span>
-          </template>
-          <template #cell-maHoaDon="{ row }">
-            <span class="fw-bold text-indigo-500">#{{ row.maHoaDon }}</span>
-          </template>
-          <template #cell-tenPhim="{ row }">
-            <div class="fw-bold text-dark">{{ row.tenPhim || '—' }}</div>
-          </template>
-
-          <template #cell-phong="{ row }">
-            <span class="text-secondary small fw-semibold">{{ row.tenPhongChieu || '—' }}</span>
-          </template>
-
-          <template #cell-suatChieu="{ row }">
-             <el-tag size="small" type="info" effect="plain">{{ formatTime(row.ngayTao) }}</el-tag>
-          </template>
-
-          <template #cell-ngayChieu="{ row }">
-             <span class="small">{{ formatDate(row.ngayTao) }}</span>
-          </template>
-
-          <template #cell-ghe="{ row }">
-            <div class="fw-bold text-danger text-nowrap">{{ row.viTriGhe || '—' }}</div>
-          </template>
-
-          <template #cell-giaThanhToan="{ row }">
-            <span class="fw-bold text-primary">{{ formatPrice(row.giaThanhToan) }}đ</span>
-          </template>
-
-          <template #cell-trangThai="{ row }">
-            <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="small" round effect="light">
-              {{ row.trangThai === 1 ? 'Thành công' : 'Đã hủy' }}
-            </el-tag>
-          </template>
-
-          <template #actions="{ row }">
-            <div class="d-flex justify-content-center gap-1">
-              <el-tooltip content="In vé" placement="top">
-                <button class="btn-action-icon btn-action-print" @click="printTicket(row)">
-                  <i class="bi bi-printer"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Hủy vé" placement="top" v-if="row.trangThai === 1">
-                <button class="btn-action-icon action-delete" @click="confirmCancel(row.id)">
-                  <i class="bi bi-slash-circle"></i>
-                </button>
-              </el-tooltip>
-            </div>
-          </template>
-        </BaseTable>
+      <template #cell-stt="{ index }">
+        <span class="small fw-bold text-secondary">{{ (params.page - 1) * params.size + index + 1 }}</span>
       </template>
-    </AdminTableLayout>
+
+      <template #cell-maVe="{ row }">
+        <span class="fw-bold text-indigo-500">#{{ row.maVe }}</span>
+      </template>
+      <template #cell-maHoaDon="{ row }">
+        <span class="fw-bold text-indigo-500">#{{ row.maHoaDon }}</span>
+      </template>
+      <template #cell-tenPhim="{ row }">
+        <div class="fw-bold text-dark">{{ row.tenPhim || '—' }}</div>
+      </template>
+
+      <template #cell-phong="{ row }">
+        <span class="text-secondary small fw-semibold">{{ row.tenPhongChieu || '—' }}</span>
+      </template>
+
+      <template #cell-suatChieu="{ row }">
+         <el-tag size="small" type="info" effect="plain">{{ formatTime(row.ngayTao) }}</el-tag>
+      </template>
+
+      <template #cell-ngayChieu="{ row }">
+         <span class="small">{{ formatDate(row.ngayTao) }}</span>
+      </template>
+
+      <template #cell-ghe="{ row }">
+        <div class="fw-bold text-danger text-nowrap">{{ row.viTriGhe || '—' }}</div>
+      </template>
+
+      <template #cell-giaThanhToan="{ row }">
+        <span class="fw-bold text-primary">{{ formatPrice(row.giaThanhToan) }}đ</span>
+      </template>
+
+      <template #cell-trangThai="{ row }">
+        <el-tag :type="row.trangThai === 1 ? 'success' : 'danger'" size="small" round effect="light">
+          {{ row.trangThai === 1 ? 'Thành công' : 'Đã hủy' }}
+        </el-tag>
+      </template>
+
+      <template #actions="{ row }">
+        <div class="d-flex justify-content-center gap-1">
+          <el-tooltip content="In vé" placement="top">
+            <button class="btn-action-icon btn-action-print" @click="printTicket(row)">
+              <i class="bi bi-printer"></i>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="Hủy vé" placement="top" v-if="row.trangThai === 1">
+            <button class="btn-action-icon action-delete" @click="confirmCancel(row.id)">
+              <i class="bi bi-slash-circle"></i>
+            </button>
+          </el-tooltip>
+        </div>
+      </template>
+    </BaseTable>
 
     <!-- ===== DIGITAL TICKET DETAIL (PREMIUM) ===== -->
     <BaseModal v-model="detailVisible" title="Thông tin vé điện tử" icon="bi bi-ticket-perforated-fill" width="600px" isDetail onlyCancel>
@@ -589,69 +578,15 @@ onMounted(() => {
 </template>
 
 <style scoped>
-
-.premium-ticket-detail { margin: -20px; background: #fff; }
-.ticket-visual-header { height: 180px; position: relative; }
-.poster-blur-bg { position: absolute; inset: -20px; background-size: cover; background-position: center; filter: blur(15px) brightness(0.4); z-index: 0; }
-.mini-poster { width: 80px; height: 120px; flex-shrink: 0; z-index: 1; }
-.header-overlay { z-index: 1; height: 100%; }
-.ticket-perforation { position: absolute; top: -12px; left: 0; right: 0; height: 24px; z-index: 5; }
-.dot-cutout { width: 24px; height: 24px; background: #fff; border-radius: 50%; border: 1px solid #eee; }
-.dot-cutout.left { margin-left: -12px; }
-.dot-cutout.right { margin-right: -12px; }
-.tiny-label { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #94a3b8; margin-bottom: 2px; }
-.spec-block { transition: all 0.2s; }
-.spec-block:hover { transform: translateY(-3px); border-color: var(--el-color-primary-light-7); }
-.shadow-inner { box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); }
-
-.section-divider-sm { display: flex; align-items: center; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-.section-divider-sm::after { content: ''; flex-grow: 1; height: 1px; background: #f1f5f9; margin-left: 10px; }
-.transaction-audit label { display: block; }
-
-.text-indigo-500 {
-  color: #4f46e5;
-}
-
 .admin-ticket-page {
   padding: 0;
-}
-
-/* Action buttons — đồng bộ với BaseTable.vue */
-.btn-action-icon {
-  width: 32px;
-  height: 32px;
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  transition: all 0.2s;
-  padding: 0;
-  cursor: pointer;
-  font-size: 16px;
+  flex-direction: column;
 }
 
-.btn-action-icon:hover {
-  background-color: #f1f5f9;
-}
-
-.btn-action-print {
-  color: #3b82f6;
-}
-
-.btn-action-print:hover {
-  color: #1d4ed8;
-  background-color: #eff6ff !important;
-}
-
-.action-delete {
-  color: #ef4444;
-}
-
-.action-delete:hover {
-  color: #b91c1c;
-  background-color: #fef2f2 !important;
+.filter-item {
+  margin-bottom: 10px;
 }
 
 @media print {

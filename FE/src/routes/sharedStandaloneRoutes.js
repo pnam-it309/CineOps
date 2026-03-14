@@ -1,6 +1,6 @@
 export const sharedStandaloneRoutes = {
     path: '/shared',
-    component: () => import('@/layout/MainLayout.vue'), // Simple layout or MainLayout
+    component: () => import('@/layouts/MainLayout.vue'), // Simple layout or MainLayout
     children: [
         {
             path: 'invoices/:id',

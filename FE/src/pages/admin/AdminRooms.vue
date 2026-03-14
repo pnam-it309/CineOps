@@ -6,12 +6,11 @@ import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
 import { ElMessageBox } from 'element-plus';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 // Define columns
 const roomColumns = [
   { label: 'STT', key: 'stt', width: '60px' },
-  { label: 'Phòng chiếu', key: 'room', minWidth: '220px' },
+  { label: 'Phòng chiếu', key: 'room', width: '220px' },
   { label: 'Sức chứa', key: 'capacity', width: '150px' },
   { label: 'Trạng thái', key: 'status', width: '150px' },
 ];
@@ -208,17 +207,21 @@ const handleDelete = (room) => {
 
 <template>
   <div class="admin-rooms-page">
-    <AdminTableLayout
+    <BaseTable
       title="Quản lý Phòng chiếu"
       titleIcon="bi bi-door-open-fill"
       addButtonLabel="Thêm phòng mới"
-      :data="filteredRooms"
+      :data="filteredRooms.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :columns="roomColumns"
       :loading="false"
       :total="filteredRooms.length"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
       @add-click="openDialog()"
       @reset-filter="() => { searchQuery = ''; filterStatus = 'all'; filterType = 'all'; }"
+      @edit="openDialog"
+      @delete="handleDelete"
+      @update-status="({ row, val }) => handleDelete(row)"
     >
       <!-- Header Actions Left Slot -->
       <template #header-actions-left>
@@ -258,76 +261,56 @@ const handleDelete = (room) => {
         </div>
       </template>
 
-      <template #content>
-        <BaseTable
-          :data="filteredRooms.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
-          :columns="roomColumns"
-          :total="filteredRooms.length"
-          v-model:currentPage="currentPage"
-          v-model:pageSize="pageSize"
-          v-model:selection="selectedRooms"
-          :hide-pagination="true"
-          @edit="openDialog"
-          @delete="handleDelete"
-          @update-status="({ row, val }) => handleDelete(row)"
-        >
-          <template #cell-status="{ row }">
-            <el-tag :type="row.status === 'Hoạt động' ? 'success' : 'info'" size="small" round>
-              {{ row.status }}
-            </el-tag>
-          </template>
-
-          <template #cell-stt="{ index }">
-            <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
-          </template>
-
-          <template #cell-room="{ row }">
-            <div class="d-flex align-items-center gap-3">
-              <div class="room-icon-box bg-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                <i class="bi bi-display fs-5"></i>
-              </div>
-              <div>
-                <div class="fw-bold text-dark small">{{ row.name }}</div>
-                <div class="text-secondary" style="font-size: 11px;">{{ row.type }}</div>
-              </div>
-            </div>
-          </template>
-
-          <template #cell-capacity="{ row }">
-             <div class="stat-badge bg-light text-dark border px-3 py-1 rounded-pill small d-inline-block">
-              <i class="bi bi-people me-1"></i>{{ row.capacity || (row.rows * row.cols) }} ghế
-            </div>
-          </template>
-
-          <template #actions="{ row }">
-            <div class="d-flex justify-content-center align-items-center gap-1">
-              <el-tooltip content="Xem chi tiết" placement="top">
-                <button class="btn-action-icon action-view" @click="handleView(row)">
-                  <i class="bi bi-eye fs-6"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Chỉnh sửa sơ đồ ghế" placement="top">
-                <button class="btn-action-icon action-variant" :disabled="row.status === 'Ngừng hoạt động'">
-                  <i class="bi bi-grid-3x3 fs-6"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Chỉnh sửa thông tin" placement="top">
-                <button class="btn-action-icon action-edit" :disabled="row.status === 'Ngừng hoạt động'" @click="openDialog(row)">
-                  <i class="bi bi-pencil fs-6"></i>
-                </button>
-              </el-tooltip>
-              <el-switch
-                :model-value="row.status === 'Hoạt động'"
-                @change="() => handleDelete(row)"
-                class="status-switch mx-1"
-                active-color="#ff4949"
-                inactive-color="#ff4949"
-              />
-            </div>
-          </template>
-        </BaseTable>
+      <template #cell-status="{ row }">
+        <el-tag :type="row.status === 'Hoạt động' ? 'success' : 'info'" size="small" round>
+          {{ row.status }}
+        </el-tag>
       </template>
-    </AdminTableLayout>
+
+      <template #cell-stt="{ index }">
+        <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+      </template>
+
+      <template #cell-room="{ row }">
+        <div class="d-flex align-items-center gap-3">
+          <div class="room-icon-box bg-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            <i class="bi bi-display fs-5"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-dark small">{{ row.name }}</div>
+            <div class="text-secondary" style="font-size: 11px;">{{ row.type }}</div>
+          </div>
+        </div>
+      </template>
+
+      <template #cell-capacity="{ row }">
+         <div class="stat-badge bg-light text-dark border px-3 py-1 rounded-pill small d-inline-block">
+          <i class="bi bi-people me-1"></i>{{ row.capacity || (row.rows * row.cols) }} ghế
+        </div>
+      </template>
+
+      <template #actions="{ row }">
+        <div class="d-flex justify-content-center align-items-center gap-1">
+          <el-tooltip content="Xem chi tiết" placement="top">
+            <button class="btn-action-icon action-view" @click="handleView(row)">
+              <i class="bi bi-eye fs-6"></i>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="Chỉnh sửa thông tin" placement="top">
+            <button class="btn-action-icon action-edit" :disabled="row.status === 'Ngừng hoạt động'" @click="openDialog(row)">
+              <i class="bi bi-pencil fs-6"></i>
+            </button>
+          </el-tooltip>
+          <el-switch
+            :model-value="row.status === 'Hoạt động'"
+            @change="() => handleDelete(row)"
+            class="status-switch mx-1"
+            active-color="#ff4949"
+            inactive-color="#ff4949"
+          />
+        </div>
+      </template>
+    </BaseTable>
 
     <!-- Detail Modal (Premium Hall Profile) -->
     <BaseModal v-model="detailVisible" title="Hồ sơ chi tiết phòng chiếu" icon="bi bi-display-fill" width="550px" isDetail>

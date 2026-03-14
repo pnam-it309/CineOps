@@ -1,16 +1,18 @@
 <template>
-  <div class="admin-showtimes-page">
-    <AdminTableLayout
-      title="Quản lý suất chiếu"
-      titleIcon="bi bi-alarm"
-      addButtonLabel="Thêm suất chiếu"
-      :data="filteredShowtimes"
-      :loading="loading"
-      :total="filteredShowtimes.length"
+  <div class="d-flex flex-column flex-grow-1 h-100 overflow-hidden">
+    <BaseTable 
+      title="Quản lí suất chiếu" 
+      subtitle="Theo dõi tổng số suất chiếu "
+      titleIcon="bi bi-display" 
+      :data="paginatedRoomData"
+      :columns="roomColumns" 
+      :loading="loading" 
+      :total="filteredRoomGroups.length" 
       v-model:currentPage="currentPage"
-      v-model:pageSize="pageSize"
-      @add-click="openDialog()"
-      @reset-filter="resetFilter"
+      v-model:pageSize="pageSize" 
+      @reset-filter="resetFilter" 
+      :hidePagination="false"
+      @fetch="fetchShowtimes"
     >
       <template #header-actions-left>
         <ExcelActions module="suat-chieu" @import-success="fetchShowtimes" />
@@ -20,37 +22,39 @@
       <template #header-actions>
         <div class="filter-item border-start ps-3 ms-2">
           <el-tooltip content="Tạo suất chiếu tự động" placement="top">
-            <el-button
-              id="btn-auto-generate-showtime"
-              type="warning"
-              :icon="MagicStick"
-              @click="openBatchDialog"
-              class="square"
-              plain
-            >
+            <el-button id="btn-auto-generate-showtime" type="warning" :icon="MagicStick" @click="openBatchDialog"
+              class="square" plain style="height: 38px; width: 38px;">
             </el-button>
           </el-tooltip>
         </div>
       </template>
 
-      <!-- Filters -->
+      <!-- Optimized Filters (Matching Image 1: Labels above inputs) -->
       <template #filters>
-        <div class="filter-item search-input-wrapper">
-          <el-input v-model="searchQuery" placeholder="Tìm tên phim..." :prefix-icon="Search" size="default" clearable />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tìm kiếm phim</label>
+          <el-input v-model="searchQuery" placeholder="Tên phim..." :prefix-icon="Search" size="default"
+            clearable />
         </div>
-        <div class="filter-item">
-          <el-date-picker v-model="filterDate" type="date" placeholder="Chọn ngày chiếu"
-            format="DD/MM/YYYY" value-format="YYYY-MM-DD" size="default" style="width:200px;" />
+
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Ngày chiếu</label>
+          <el-date-picker v-model="filterDate" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY"
+            value-format="YYYY-MM-DD" size="default" style="width:180px;" />
         </div>
-        <div class="filter-item">
-          <el-select v-model="filterRoom" placeholder="Chọn phòng chiếu" clearable style="width:200px;">
+
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Phòng chiếu</label>
+          <el-select v-model="filterRoom" placeholder="Tất cả" clearable style="width:180px;">
             <el-option label="Tất cả phòng" value="" />
             <el-option v-for="r in phongChieuList" :key="r.id" :label="r.tenPhong" :value="r.id" />
           </el-select>
         </div>
-        <div class="filter-item">
-          <el-select v-model="filterTrangThai" placeholder="Chọn trạng thái" clearable style="width:200px;">
-            <el-option label="Tất cả trạng thái" value="" />
+
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
+          <el-select v-model="filterTrangThai" placeholder="Tất cả" clearable style="width:180px;">
+            <el-option label="Tất cả" value="" />
             <el-option label="Sắp chiếu" :value="1" />
             <el-option label="Đang chiếu" :value="2" />
             <el-option label="Đã hủy" :value="0" />
@@ -59,200 +63,74 @@
       </template>
 
       <!-- Content: BaseTable trực tiếp, không qua sub-component -->
-      <template #content>
-        <BaseTable
-          :data="paginatedData"
-          :columns="columns"
-          :loading="loading"
-          :total="filteredShowtimes.length"
-          v-model:currentPage="currentPage"
-          v-model:pageSize="pageSize"
-          v-model:selection="selectedShowtimes"
-          :hide-pagination="true"
-        >
-          <template #cell-index="{ index }">
-            <span class="text-secondary small">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
-          </template>
-
-          <template #cell-phim="{ row }">
-            <div class="d-flex align-items-center justify-content-center gap-2">
-              <img v-if="row.poster" :src="row.poster" class="rounded shadow-sm flex-shrink-0"
-                style="width:32px;height:44px;object-fit:cover;" :alt="row.tenPhim" />
-              <div v-else class="rounded d-flex align-items-center justify-content-center bg-light border flex-shrink-0"
-                style="width:32px;height:44px;">
-                <i class="bi bi-film text-secondary"></i>
-              </div>
-              <div class="fw-semibold small text-dark">{{ row.tenPhim || '—' }}</div>
-            </div>
-          </template>
-
-          <template #cell-phongChieu="{ row }">
-            <div class="small fw-semibold text-dark">
-              <i class="bi bi-door-open me-1 text-primary"></i>{{ row.tenPhongChieu }}
-            </div>
-          </template>
-
-          <template #cell-ngayChieu="{ row }">
-            <span class="small fw-semibold text-dark">{{ formatDate(row.ngayChieu) }}</span>
-          </template>
-
-          <template #cell-gioChieu="{ row }">
-            <div class="small d-flex align-items-center justify-content-center gap-1">
-              <el-tag type="info" effect="plain" size="small" class="fw-bold">{{ row.gioBatDau }}</el-tag>
-              <span class="text-secondary">→</span>
-              <el-tag type="info" effect="plain" size="small">{{ row.gioKetThuc }}</el-tag>
-            </div>
-          </template>
-
-          <template #cell-soGheTrong="{ row }">
-            <el-tag :type="row.soGheTrong > 0 ? 'success' : 'danger'" effect="light" size="small" class="fw-bold">
-              {{ row.soGheTrong }}
-            </el-tag>
-          </template>
-
-          <template #cell-trangThai="{ row }">
-            <el-dropdown trigger="click" @command="status => handleUpdateStatus(row, status)" :disabled="row.trangThai === 0 || row.trangThai === 3">
-              <el-tag :type="getStatusTag(row.trangThai)" round size="small" :class="{ 'cursor-pointer': row.trangThai !== 0 && row.trangThai !== 3 }">
-                {{ getStatusLabel(row.trangThai) }}
-              </el-tag>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item :command="1" :disabled="row.trangThai === 1">Sắp chiếu</el-dropdown-item>
-                  <el-dropdown-item :command="2" :disabled="row.trangThai === 2">Đang chiếu</el-dropdown-item>
-                  <el-dropdown-item :command="3" :disabled="row.trangThai === 3">Kết thúc</el-dropdown-item>
-                  <el-dropdown-item :command="0" :disabled="row.trangThai === 0">Đã hủy</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-
-          <template #actions="{ row }">
-            <div class="d-flex justify-content-center align-items-center gap-1">
-              <el-tooltip content="Xem chi tiết" placement="top">
-                <button class="btn-action-icon action-view" @click="handleView(row)">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0 || row.trangThai === 3" @click="openDialog(row)">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </el-tooltip>
-              <el-switch
-                :model-value="row.trangThai === 1 || row.trangThai === 2"
-                :disabled="row.trangThai === 3"
-                @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
-                class="status-switch mx-1"
-                active-color="#ff4949"
-                inactive-color="#ff4949"
-              />
-            </div>
-          </template>
-        </BaseTable>
+      <template #cell-roomName="{ row }">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <div class="room-badge shadow-sm">{{ row.tenPhong }}</div>
+          <div class="smaller text-secondary fw-bold text-uppercase" style="letter-spacing: 0.5px;">{{ row.loaiPhong || 'Standard' }}</div>
+        </div>
       </template>
-    </AdminTableLayout>
 
-    <!-- Detail Modal -->
-    <BaseModal v-model="detailVisible" title="Chi tiết suất chiếu" icon="bi bi-clock-history" width="580px" isDetail>
-      <div v-if="selectedShowtime" class="p-0">
-        <!-- Hero Movie Header (Colorless) -->
-        <div class="p-4 border-bottom bg-white">
-          <div class="d-flex gap-4">
-            <div class="poster-card shadow-sm border" style="width: 100px; height: 150px; flex-shrink: 0;">
-              <img v-if="selectedShowtime.poster" :src="selectedShowtime.poster" class="rounded-3 h-100 w-100 object-fit-cover" />
-              <div v-else class="rounded-3 bg-light d-flex align-items-center justify-content-center h-100 w-100"><i class="bi bi-film fs-1"></i></div>
-            </div>
-            <div class="hero-info flex-grow-1 d-flex flex-column justify-content-center">
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <el-tag type="info" effect="plain" round size="small">{{ selectedShowtime.loaiPhim || '2D' }}</el-tag>
-                <el-tag type="info" effect="plain" round size="small">
-                  {{ getStatusLabel(selectedShowtime.trangThai) }}
-                </el-tag>
-              </div>
-              <h3 class="fw-bold m-0 lh-sm text-dark">{{ selectedShowtime.tenPhim }}</h3>
-              <div class="small text-secondary mt-1"><i class="bi bi-stopwatch me-1"></i>Thời lượng: {{ selectedShowtime.thoiLuong }} phút</div>
-            </div>
+      <template #cell-dateInfo="{ row }">
+        <span class="fw-bold text-dark">{{ formatDate(row.ngayChieu) }}</span>
+      </template>
+
+      <template #cell-totalSlots="{ row }">
+        <div class="d-flex flex-column align-items-center justify-content-center">
+          <el-badge :value="row.totalSlots" type="primary" class="mt-2">
+            <el-button size="small" circle icon="Monitor" />
+          </el-badge>
+          <div class="smaller text-secondary mt-1 fw-bold">{{ row.totalSlots }} suất</div>
+        </div>
+      </template>
+
+      <template #cell-moviesDistribution="{ row }">
+        <div class="d-flex flex-wrap justify-content-center gap-1">
+          <el-tag v-for="(m, idx) in row.movies" :key="idx" size="small" effect="plain" class="movie-tag-item">
+            {{ m }}
+          </el-tag>
+          <span v-if="row.movies.length === 0" class="text-muted smaller italic">Chưa có suất chiếu</span>
+        </div>
+      </template>
+
+      <template #cell-avgOccupancy="{ row }">
+        <div class="d-flex flex-column align-items-center" style="min-width: 100px;">
+          <div class="fw-bold text-primary mb-1">{{ row.avgOccupancy }}%</div>
+          <div class="bg-light w-100 rounded-pill overflow-hidden" style="height: 6px;">
+            <div class="bg-primary h-100" :style="{ width: row.avgOccupancy + '%' }"></div>
           </div>
+          <div class="smaller text-secondary mt-1" style="font-size: 10px;">Trung bình ngày</div>
         </div>
+      </template>
 
-        <!-- Dashboard (Colorless) -->
-        <div class="p-4 bg-white">
-           <h6 class="text-uppercase small fw-bold text-secondary mb-3">Hiệu suất vận hành</h6>
-           <div class="row g-3 mb-4">
-             <div class="col-6">
-                <div class="p-3 border bg-white">
-                   <div class="tiny-label text-secondary small mb-1">DOANH THU ƯỚC TÍNH</div>
-                   <div class="fw-bold fs-4 text-dark">{{ formatCurrency((selectedShowtime.tongGhe - selectedShowtime.soGheTrong) * (selectedShowtime.giaVe || 75000)) }}</div>
-                </div>
-             </div>
-             <div class="col-6">
-                <div class="p-3 border bg-white">
-                   <div class="tiny-label text-secondary small mb-1">TỶ LỆ LẤP ĐẦY</div>
-                   <div class="fw-bold fs-4 text-dark">{{ Math.round(((selectedShowtime.tongGhe - selectedShowtime.soGheTrong) / selectedShowtime.tongGhe) * 100) || 0 }}%</div>
-                </div>
-             </div>
-           </div>
+      <template #cell-roomStatus="{ row }">
+        <el-tag :type="row.totalSlots > 0 ? 'success' : 'info'" round size="small" effect="light">
+          {{ row.totalSlots > 0 ? 'Đang vận hành' : 'Trống lịch' }}
+        </el-tag>
+      </template>
 
-           <h6 class="text-uppercase small fw-bold text-secondary mb-3">Lịch trình & Địa điểm</h6>
-           <div class="row g-3">
-             <div class="col-12">
-                <div class="p-3 bg-white border d-flex align-items-center justify-content-between">
-                   <div class="text-center flex-grow-1">
-                      <div class="small text-secondary">BẮT ĐẦU</div>
-                      <div class="fs-5 text-dark fw-bold">{{ selectedShowtime.gioBatDau }}</div>
-                   </div>
-                   <div class="text-secondary px-3"><i class="bi bi-arrow-right"></i></div>
-                   <div class="text-center flex-grow-1">
-                      <div class="small text-secondary">KẾT THÚC</div>
-                      <div class="fs-5 text-dark fw-bold">{{ selectedShowtime.gioKetThuc }}</div>
-                   </div>
-                </div>
-             </div>
-             <div class="col-6">
-                <div class="p-3 border bg-white h-100">
-                   <label class="text-secondary small d-block mb-1">Ngày chiếu</label>
-                   <div class="fw-bold text-dark">{{ formatDate(selectedShowtime.ngayChieu) }}</div>
-                </div>
-             </div>
-             <div class="col-6">
-                <div class="p-3 border bg-white h-100">
-                   <label class="text-secondary small d-block mb-1">Phòng chiếu</label>
-                   <div class="fw-bold text-dark">{{ selectedShowtime.tenPhongChieu }}</div>
-                </div>
-             </div>
-             <div class="col-12">
-                <div class="p-3 bg-white border">
-                   <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="fw-bold small text-secondary">TRẠNG THÁI GHẾ</span>
-                      <span class="text-dark fw-bold">{{ selectedShowtime.soGheTrong }} / {{ selectedShowtime.tongGhe }} ghế trống</span>
-                   </div>
-                   <div class="bg-light" style="height: 6px;">
-                      <div class="bg-dark h-100" :style="{ width: ((selectedShowtime.soGheTrong / selectedShowtime.tongGhe) * 100) + '%' }"></div>
-                   </div>
-                </div>
-             </div>
-           </div>
+      <template #actions="{ row }">
+        <div class="d-flex justify-content-center align-items-center gap-2">
+          <el-tooltip content="Xem chi tiết các suất" placement="top">
+            <el-button type="primary" plain size="small" @click="viewRoomSchedules(row)">
+              <i class="bi bi-list-ul me-1"></i>Chi tiết
+            </el-button>
+          </el-tooltip>
         </div>
-      </div>
-    </BaseModal>
+      </template>
+    </BaseTable>
+
 
     <!-- Add/Edit Modal -->
-    <BaseModal
-      v-model="dialogVisible"
-      :title="editingId ? 'Cập nhật suất chiếu' : 'Thêm suất chiếu mới'"
-      icon="bi bi-pencil-square"
-      width="600px"
-      :confirmText="editingId ? 'Cập nhật ngay' : 'Thêm suất chiếu'"
-      :loading="saving"
-      @confirm="handleSubmit"
-    >
+    <BaseModal v-model="dialogVisible" :title="editingId ? 'Cập nhật suất chiếu' : 'Thêm suất chiếu mới'"
+      icon="bi bi-pencil-square" width="600px" :confirmText="editingId ? 'Cập nhật ngay' : 'Thêm suất chiếu'"
+      :loading="saving" @confirm="handleSubmit">
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <div class="row g-4">
           <div class="col-12">
             <el-form-item label="Phim chiếu" prop="idPhim">
               <el-select v-model="form.idPhim" class="w-100" placeholder="Chọn phim" filterable>
-                <el-option v-for="p in phimList" :key="p.id"
-                  :label="`${p.tenPhim} [${p.loaiPhim || '2D'}]`" :value="p.id" />
+                <el-option v-for="p in phimList" :key="p.id" :label="`${p.tenPhim} [${p.loaiPhim || '2D'}]`"
+                  :value="p.id" />
               </el-select>
             </el-form-item>
           </div>
@@ -265,8 +143,8 @@
           </div>
           <div class="col-6">
             <el-form-item label="Ngày chiếu" prop="ngayChieu">
-              <el-date-picker v-model="form.ngayChieu" type="date" class="w-100"
-                placeholder="Chọn ngày" value-format="YYYY-MM-DD" />
+              <el-date-picker v-model="form.ngayChieu" type="date" class="w-100" placeholder="Chọn ngày"
+                value-format="YYYY-MM-DD" />
             </el-form-item>
           </div>
           <div class="col-6">
@@ -276,7 +154,8 @@
           </div>
           <div class="col-6">
             <el-form-item label="Giờ kết thúc (dự kiến)">
-              <el-time-picker v-model="form.gioKetThuc" class="w-100" format="HH:mm" value-format="HH:mm:00" readonly disabled />
+              <el-time-picker v-model="form.gioKetThuc" class="w-100" format="HH:mm" value-format="HH:mm:00" readonly
+                disabled />
               <div class="small text-secondary mt-1">Đã tính 15 phút dọn dẹp</div>
             </el-form-item>
           </div>
@@ -288,301 +167,291 @@
     <!-- ══════════════════════════════════════════════════
          MODAL: Tạo hàng loạt suất chiếu tự động
          ══════════════════════════════════════════════════ -->
-    <el-dialog
-      v-model="batchDialogVisible"
-      title=""
-      width="680px"
-      :close-on-click-modal="false"
-      class="batch-gen-dialog"
-      destroy-on-close
-    >
-      <!-- Custom header -->
-      <template #header>
-        <div class="batch-dialog-header">
-          <div class="batch-header-icon">
-            <i class="bi bi-magic"></i>
-          </div>
-          <div>
-            <div class="batch-header-title">Tạo suất chiếu tự động</div>
-            <div class="batch-header-sub">Hệ thống tự gen nhiều suất / ngày, tự kiểm tra trùng lịch phòng</div>
-          </div>
+    <!-- Batch Generation Dialog -->
+    <el-dialog v-model="batchDialogVisible" title="Tạo suất chiếu tự động" width="640px" append-to-body
+      class="batch-gen-dialog rounded-modal">
+      <div class="batch-dialog-header">
+        <div class="batch-header-icon">
+          <el-icon>
+            <MagicStick />
+          </el-icon>
         </div>
-      </template>
+        <div>
+          <div class="batch-header-title">Cấu hình suất chiếu hàng loạt</div>
+          <p class="batch-header-sub d-none d-sm-block">Tự động tạo lịch chiếu cho nhiều ngày từ khung giờ mẫu</p>
+        </div>
+      </div>
 
-      <!-- Form body -->
-      <el-form
-        v-if="!batchResult"
-        ref="batchFormRef"
-        label-position="top"
-        class="batch-form"
-      >
-        <!-- Row 1: Phim + Phòng -->
+      <el-form v-if="!batchResult" :model="batchForm" :rules="rules" ref="batchFormRef" label-position="top">
         <div class="row g-3">
-          <div class="col-7">
-            <el-form-item label="Phim chiếu" prop="idPhim">
-              <el-select
-                v-model="batchForm.idPhim"
-                class="w-100"
-                placeholder="Chọn phim..."
-                filterable
-                @change="onBatchPhimChange"
-              >
-                <el-option
-                  v-for="p in phimList"
-                  :key="p.id"
-                  :value="p.id"
-                  :label="p.tenPhim"
-                >
-                  <div class="d-flex align-items-center gap-2">
-                    <img v-if="p.poster" :src="p.poster" style="width:24px;height:32px;object-fit:cover;border-radius:3px;" />
-                    <div v-else style="width:24px;height:32px;background:#eee;border-radius:3px;"></div>
-                    <div>
-                      <div class="fw-semibold" style="font-size:13px;">{{ p.tenPhim }}</div>
-                      <div class="text-secondary" style="font-size:11px;">{{ p.thoiLuong }} phút · {{ p.loaiPhim }}</div>
-                    </div>
-                  </div>
-                </el-option>
+          <div class="col-md-12">
+            <el-form-item label="Chọn Phim" prop="idPhim">
+              <el-select v-model="batchForm.idPhim" placeholder="-- Chọn phim --" filterable class="w-100"
+                @change="onBatchPhimChange">
+                <el-option v-for="p in phimList" :key="p.id" :label="p.tenPhim" :value="p.id" />
               </el-select>
-              <!-- Hiển thị thông tin phim đã chọn -->
-              <div v-if="selectedBatchPhim" class="batch-phim-info">
-                <i class="bi bi-clock me-1"></i>
-                Thời lượng: <strong>{{ selectedBatchPhim.thoiLuong }} phút</strong>
-                <span class="mx-2">·</span>
-                <i class="bi bi-film me-1"></i>
-                Loại: <strong>{{ selectedBatchPhim.loaiPhim || 'Chưa xác định' }}</strong>
+              <div v-if="selectedBatchPhim" class="batch-info-box mt-2">
+                <div class="d-flex justify-content-between text-dark">
+                  <span>Thời lượng: <strong>{{ selectedBatchPhim.thoiLuong }} phút</strong></span>
+                  <span>Định dạng: <strong>2D Digital</strong></span>
+                </div>
               </div>
             </el-form-item>
           </div>
-          <div class="col-5">
+
+          <div class="col-md-6">
+            <el-form-item label="Từ ngày" prop="tuNgay">
+              <el-date-picker v-model="batchForm.tuNgay" type="date" value-format="YYYY-MM-DD" class="w-100"
+                :disabled-date="disabledBeforeToday" />
+            </el-form-item>
+          </div>
+          <div class="col-md-6">
+            <el-form-item label="Đến ngày" prop="denNgay">
+              <el-date-picker v-model="batchForm.denNgay" type="date" value-format="YYYY-MM-DD" class="w-100"
+                :disabled-date="disabledBeforeStart" />
+            </el-form-item>
+          </div>
+
+          <div class="col-md-6">
             <el-form-item label="Phòng chiếu" prop="idPhongChieu">
-              <el-select v-model="batchForm.idPhongChieu" class="w-100" placeholder="Chọn phòng..." filterable>
-                <el-option
-                  v-for="pc in phongChieuList"
-                  :key="pc.id"
-                  :label="pc.tenPhong"
-                  :value="pc.id"
-                />
+              <el-select v-model="batchForm.idPhongChieu" placeholder="Chọn phòng" class="w-100" filterable>
+                <el-option v-for="r in phongChieuList" :key="r.id" :label="r.tenPhong" :value="r.id" />
               </el-select>
             </el-form-item>
           </div>
-        </div>
 
-        <!-- Row 2: Khoảng ngày -->
-        <div class="row g-3">
-          <div class="col-6">
-            <el-form-item label="Từ ngày" prop="tuNgay">
-              <el-date-picker
-                v-model="batchForm.tuNgay"
-                type="date"
-                class="w-100"
-                placeholder="Ngày bắt đầu"
-                value-format="YYYY-MM-DD"
-                :disabled-date="disabledBeforeToday"
-              />
-            </el-form-item>
-          </div>
-          <div class="col-6">
-            <el-form-item label="Đến ngày" prop="denNgay">
-              <el-date-picker
-                v-model="batchForm.denNgay"
-                type="date"
-                class="w-100"
-                placeholder="Ngày kết thúc"
-                value-format="YYYY-MM-DD"
-                :disabled-date="disabledBeforeStart"
-              />
-            </el-form-item>
-          </div>
-        </div>
-
-        <!-- Row 3: Buffer + Trạng thái -->
-        <div class="row g-3">
-          <div class="col-6">
+          <div class="col-md-6">
             <el-form-item label="Buffer giữa các suất (phút)">
-              <el-input-number
-                v-model="batchForm.bufferPhut"
-                :min="0"
-                :max="60"
-                :step="5"
-                class="w-100"
-                controls-position="right"
-              />
-              <div class="batch-hint">Quảng cáo + dọn phòng (thường 15–20 phút)</div>
+              <el-input-number v-model="batchForm.bufferPhut" :min="0" :max="60" :step="5" class="w-100"
+                controls-position="right" />
             </el-form-item>
           </div>
 
-        </div>
+          <div class="col-md-12">
+            <label class="el-form-item__label">Khung giờ trong ngày</label>
+            <div class="batch-slot-container mt-1">
+              <div class="batch-slot-scroll scrollbar-thin" style="max-height: 240px; overflow-y: auto; overflow-x: hidden; padding-right: 4px;">
+                <div v-for="(slot, idx) in batchForm.danhSachGioBatDau" :key="idx" 
+                     class="batch-slot-item d-flex align-items-center p-2 mb-2 border rounded bg-white">
+                  <el-time-picker v-model="batchForm.danhSachGioBatDau[idx]" format="HH:mm" value-format="HH:mm:ss"
+                    placeholder="Giờ" style="width: 110px" />
 
-        <!-- Row 4: Danh sách giờ chiếu -->
-        <el-form-item label="Khung giờ trong ngày" prop="danhSachGioBatDau">
-          <div class="slot-container">
-            <div
-              v-for="(slot, idx) in batchForm.danhSachGioBatDau"
-              :key="idx"
-              class="slot-item"
-            >
-              <el-time-picker
-                v-model="batchForm.danhSachGioBatDau[idx]"
-                format="HH:mm"
-                value-format="HH:mm:ss"
-                placeholder="--:--"
-                class="slot-time-picker"
-              />
-              <!-- Hiển thị end time dự kiến -->
-              <span v-if="selectedBatchPhim && slot" class="slot-end-preview">
-                → {{ calcEndTime(slot) }}
-              </span>
-              <button
-                type="button"
-                class="slot-remove-btn"
-                @click="removeSlot(idx)"
-                :disabled="batchForm.danhSachGioBatDau.length <= 1"
-              >
-                <i class="bi bi-x-lg"></i>
+                  <div class="ms-3 flex-grow-1" v-if="selectedBatchPhim && slot">
+                    <span class="text-secondary smaller me-1">Kết thúc dự kiến:</span>
+                    <span class="fw-bold text-primary smaller">{{ calcEndTime(slot) }}</span>
+                  </div>
+
+                  <div class="ms-auto ps-2">
+                    <el-button type="danger" link @click="removeSlot(idx)" :disabled="batchForm.danhSachGioBatDau.length <= 1">
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-outline-secondary btn-sm border-dashed w-100 py-2 mt-2"
+                @click="addSlot">
+                <el-icon class="me-1">
+                  <Plus />
+                </el-icon> Thêm khung giờ
               </button>
             </div>
-            <button type="button" class="slot-add-btn" @click="addSlot">
-              <i class="bi bi-plus-circle me-1"></i> Thêm khung giờ
-            </button>
-          </div>
-
-          <!-- Preview số suất sẽ tạo -->
-          <div v-if="batchPreviewCount > 0" class="batch-preview-count">
-            <i class="bi bi-lightning-charge-fill me-1"></i>
-            Dự kiến tạo tối đa
-            <strong>{{ batchPreviewCount }} suất chiếu</strong>
-            ({{ dayCount }} ngày × {{ batchForm.danhSachGioBatDau.filter(Boolean).length }} khung giờ)
-          </div>
-        </el-form-item>
-      </el-form>
-
-      <!-- Kết quả sau khi generate -->
-      <div v-if="batchResult" class="batch-result">
-        <!-- Summary cards -->
-        <div class="batch-result-cards">
-          <div class="result-card result-card-total">
-            <div class="result-card-icon"><i class="bi bi-collection"></i></div>
-            <div class="result-card-num">{{ batchResult.tongSlot }}</div>
-            <div class="result-card-label">Tổng slot</div>
-          </div>
-          <div class="result-card result-card-success">
-            <div class="result-card-icon"><i class="bi bi-check-circle-fill"></i></div>
-            <div class="result-card-num">{{ batchResult.taoThanhCong }}</div>
-            <div class="result-card-label">Đã tạo</div>
-          </div>
-          <div class="result-card result-card-skip">
-            <div class="result-card-icon"><i class="bi bi-skip-forward-circle"></i></div>
-            <div class="result-card-num">{{ batchResult.boBoBiTrung }}</div>
-            <div class="result-card-label">Bỏ qua (trùng)</div>
           </div>
         </div>
 
-        <!-- Success message -->
-        <el-alert
-          v-if="batchResult.taoThanhCong > 0"
-          :title="`✅ Đã tạo thành công ${batchResult.taoThanhCong} suất chiếu!`"
-          type="success"
-          :closable="false"
-          show-icon
-          class="mb-3"
-        />
-        <el-alert
-          v-if="batchResult.boBoBiTrung > 0"
-          :title="`⚠️ ${batchResult.boBoBiTrung} slot bị bỏ qua do trùng lịch phòng`"
-          type="warning"
-          :closable="false"
-          show-icon
-          class="mb-3"
-        />
+        <div v-if="batchPreviewCount > 0" class="batch-summary-box mt-3">
+          <i class="bi bi-lightning-charge-fill me-1"></i> Dự kiến tạo tối đa <strong>{{ batchPreviewCount }}</strong>
+          suất
+          chiếu mới ({{ dayCount }} ngày × {{ batchForm.danhSachGioBatDau.filter(Boolean).length }} khung giờ).
+        </div>
+      </el-form>
 
-        <!-- Danh sách slot bị trùng -->
-        <el-collapse v-if="batchResult.danhSachBiTrung?.length > 0" class="batch-skip-collapse">
+      <!-- Result View -->
+      <div v-if="batchResult" class="py-2">
+        <div class="d-flex gap-2 mb-4">
+          <div class="flex-grow-1 p-3 border rounded text-center bg-light">
+            <div class="text-secondary small mb-1">Tổng slot</div>
+            <div class="h4 mb-0 fw-bold">{{ batchResult.tongSlot }}</div>
+          </div>
+          <div class="flex-grow-1 p-3 border rounded text-center bg-success-light">
+            <div class="text-success small mb-1">Đã tạo</div>
+            <div class="h4 mb-0 fw-bold text-success">{{ batchResult.taoThanhCong }}</div>
+          </div>
+          <div class="flex-grow-1 p-3 border rounded text-center bg-warning-light">
+            <div class="text-warning small mb-1">Bỏ qua (trùng)</div>
+            <div class="h4 mb-0 fw-bold text-warning">{{ batchResult.boBoBiTrung }}</div>
+          </div>
+        </div>
+
+        <el-collapse v-if="batchResult.danhSachBiTrung?.length > 0" class="border-0">
           <el-collapse-item :title="`Xem chi tiết ${batchResult.boBoBiTrung} slot bị bỏ qua`" name="skipped">
-            <div class="skip-list">
-              <div
-                v-for="(skip, i) in batchResult.danhSachBiTrung"
-                :key="i"
-                class="skip-item"
-              >
+            <div class="overflow-auto px-1" style="max-height: 200px">
+              <div v-for="(skip, i) in batchResult.danhSachBiTrung" :key="i"
+                class="p-2 mb-1 border rounded bg-light small d-flex align-items-center">
                 <i class="bi bi-x-circle text-danger me-2"></i>
-                <span class="skip-date">{{ formatDate(skip.ngay) }}</span>
-                <el-tag type="danger" size="small" effect="plain" class="ms-2">
-                  {{ formatTime(skip.gioBatDau) }} → {{ formatTime(skip.gioKetThuc) }}
-                </el-tag>
-                <span class="ms-2 text-secondary small">{{ skip.lyDo }}</span>
+                <span class="fw-bold me-2">{{ formatDate(skip.ngay) }}</span>
+                <span class="text-secondary">{{ formatTime(skip.gioBatDau) }} → {{ formatTime(skip.gioKetThuc) }}</span>
+                <span class="ms-auto text-secondary smaller italic">{{ skip.lyDo }}</span>
               </div>
             </div>
           </el-collapse-item>
         </el-collapse>
       </div>
 
-      <!-- Footer -->
       <template #footer>
-        <div class="batch-dialog-footer">
+        <div class="d-flex justify-content-end gap-2">
           <template v-if="!batchResult">
             <el-button @click="batchDialogVisible = false">Hủy</el-button>
-            <el-button
-              type="warning"
-              :icon="MagicStick"
-              :loading="batchSaving"
-              @click="handleBatchSubmit"
-              id="btn-confirm-batch-generate"
-            >
-              Tạo tự động ngay
-            </el-button>
+            <el-button type="warning" :icon="MagicStick" :loading="batchSaving" @click="handleBatchSubmit">Tạo tự động
+              ngay</el-button>
           </template>
           <template v-else>
             <el-button @click="closeBatchDialog">Đóng</el-button>
-            <el-button type="primary" @click="resetBatchForm">
-              <i class="bi bi-arrow-repeat me-1"></i> Tạo đợt mới
-            </el-button>
+            <el-button type="primary" @click="resetBatchForm">Tạo đợt mới</el-button>
           </template>
         </div>
       </template>
     </el-dialog>
+
+    <!-- ══════════════════════════════════════════════════
+         MODAL: Sơ đồ ghế Real-time
+         ══════════════════════════════════════════════════ -->
+    <BaseModal v-model="seatMapVisible" title="Sơ đồ ghế Real-time" icon="bi bi-grid-3x3-gap-fill" width="950px" isDetail onlyCancel>
+      <div v-if="selectedShowtime" class="p-4 bg-light-map">
+        <!-- Header Map (Light Theme) -->
+        <div class="d-flex justify-content-between align-items-center mb-5 px-3">
+          <div>
+            <h4 class="fw-bold mb-1 text-dark">{{ selectedShowtime.tenPhim }}</h4>
+            <div class="text-secondary fw-medium">
+              <i class="bi bi-door-open me-1"></i> {{ selectedShowtime.tenPhongChieu }} 
+              <span class="mx-2">|</span>
+              <i class="bi bi-calendar3 me-1"></i> {{ formatDate(selectedShowtime.ngayChieu) }} 
+              <span class="mx-2">|</span>
+              <i class="bi bi-clock me-1"></i> {{ selectedShowtime.gioBatDau }}
+            </div>
+          </div>
+          <div class="d-flex gap-4">
+            <div class="text-center px-3 py-2 border rounded bg-white shadow-sm">
+              <div class="h4 mb-0 fw-bold text-success">{{ selectedShowtime.soGheTrong }}</div>
+              <div class="smaller text-secondary fw-bold">TRỐNG</div>
+            </div>
+            <div class="text-center px-3 py-2 border rounded bg-white shadow-sm">
+              <div class="h4 mb-0 fw-bold text-danger">{{ (selectedShowtime.tongGhe || 0) - (selectedShowtime.soGheTrong || 0) }}</div>
+              <div class="smaller text-secondary fw-bold">ĐÃ BÁN</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screen -->
+        <div class="screen-container mb-5">
+          <div class="screen-line"></div>
+          <div class="text-center smaller fw-bold text-secondary mt-2 tracking-widest">MÀN HÌNH</div>
+        </div>
+
+        <!-- Seat Grid -->
+        <div class="seat-grid-container py-4" v-loading="loadingSeats">
+          <div v-for="(rowSeats, rowName) in groupedSeats" :key="rowName" class="seat-row d-flex justify-content-center gap-2 mb-3">
+            <div class="row-label text-secondary fw-bold">{{ rowName }}</div>
+            <div v-for="seat in rowSeats" :key="seat.id" 
+                 class="admin-seat" 
+                 :class="[seat.loaiGhe?.toLowerCase(), seat.trangThai === 1 ? 'sold' : 'available']">
+              <el-tooltip :content="`${seat.soGhe} - ${seat.loaiGhe} (${seat.trangThai === 1 ? 'Đã bán' : 'Trống'})`" placement="top">
+                <span class="seat-num">{{ seat.cot }}</span>
+              </el-tooltip>
+            </div>
+            <div class="row-label text-secondary fw-bold">{{ rowName }}</div>
+          </div>
+          
+          <!-- Empty State Fallback -->
+          <div v-if="!loadingSeats && Object.keys(groupedSeats).length === 0" class="text-center py-5">
+            <el-empty description="Phòng chiếu này chưa được cấu hình sơ đồ ghế" />
+          </div>
+        </div>
+
+        <!-- Legend (Clean) -->
+        <div class="mt-4 d-flex justify-content-center gap-5 py-4 border-top bg-light-subtle rounded-3">
+          <div class="d-flex align-items-center gap-2">
+             <div class="admin-seat available sm shadow-none"></div> <span class="small fw-bold text-dark">Ghế trống</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+             <div class="admin-seat sold sm shadow-none"></div> <span class="small fw-bold text-dark">Đã bán</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+             <div class="admin-seat vip sm available shadow-none"></div> <span class="small fw-bold text-dark">Ghế VIP</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+             <div class="admin-seat couple sm available shadow-none" style="width: 30px;"></div> <span class="small fw-bold text-dark">Ghế Couple</span>
+          </div>
+        </div>
+      </div>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { Search, Monitor, Filter, MagicStick } from '@element-plus/icons-vue';
+import { Search, Monitor, Filter, MagicStick, Plus, Delete } from '@element-plus/icons-vue';
 import { suatChieuService } from '@/services/api/admin/suatChieuService';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
 import dayjs from 'dayjs';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
 import BaseModal from '@/components/common/BaseModal.vue';
 import BaseTable from '@/components/common/BaseTable.vue';
 import ExcelActions from '@/components/common/ExcelActions.vue';
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const loading  = ref(false);
-const saving   = ref(false);
+const loading = ref(false);
+const saving = ref(false);
 const batchSaving = ref(false);
 const dialogVisible = ref(false);
-const detailVisible = ref(false);
 const batchDialogVisible = ref(false);
+const seatMapVisible = ref(false);
+const loadingSeats = ref(false);
+const currentSeats = ref([]);
 const batchResult = ref(null);
 const selectedShowtime = ref(null);
 const editingId = ref(null);
 
-const handleView = (row) => {
+
+const openSeatMap = async (row) => {
   selectedShowtime.value = row;
-  detailVisible.value = true;
+  seatMapVisible.value = true;
+  loadingSeats.value = true;
+  try {
+    const res = await suatChieuService.getGheStatus(row.id);
+    currentSeats.value = res.data?.data || [];
+  } catch (err) {
+    notification.error('Không thể tải sơ đồ ghế');
+  } finally {
+    loadingSeats.value = false;
+  }
 };
-const formRef  = ref(null);
+
+const groupedSeats = computed(() => {
+  const groups = {};
+  currentSeats.value.forEach(s => {
+    if (!groups[s.hang]) groups[s.hang] = [];
+    groups[s.hang].push(s);
+  });
+  // Sort each row by column
+  Object.keys(groups).forEach(key => {
+    groups[key].sort((a, b) => a.cot - b.cot);
+  });
+  return groups;
+});
+const formRef = ref(null);
 const batchFormRef = ref(null);
 
-const showtimes      = ref([]);
+const showtimes = ref([]);
 const phongChieuList = ref([]);
-const phimList       = ref([]);
+const phimList = ref([]);
 
-const filterDate     = ref(null);
-const filterRoom     = ref(null);
+const filterDate = ref(null);
+const filterRoom = ref(null);
 const filterTrangThai = ref('');
-const searchQuery    = ref('');
-const currentPage    = ref(1);
-const pageSize       = ref(5);
+const searchQuery = ref('');
+const currentPage = ref(1);
+const pageSize = ref(5);
 const selectedShowtimes = ref([]);
 
 const form = ref({
@@ -605,17 +474,17 @@ const batchForm = ref({
 });
 
 const rules = {
-  idPhim:       [{ required: true, message: 'Vui lòng chọn phim', trigger: 'change' }],
+  idPhim: [{ required: true, message: 'Vui lòng chọn phim', trigger: 'change' }],
   idPhongChieu: [{ required: true, message: 'Vui lòng chọn phòng chiếu', trigger: 'change' }],
-  ngayChieu:    [{ required: true, message: 'Vui lòng chọn ngày chiếu',  trigger: 'change' }],
-  gioBatDau:    [{ required: true, message: 'Vui lòng chọn giờ bắt đầu', trigger: 'change' }],
+  ngayChieu: [{ required: true, message: 'Vui lòng chọn ngày chiếu', trigger: 'change' }],
+  gioBatDau: [{ required: true, message: 'Vui lòng chọn giờ bắt đầu', trigger: 'change' }],
 };
 
 const batchRules = {
-  idPhim:       [{ required: true, message: 'Vui lòng chọn phim',        trigger: 'change' }],
+  idPhim: [{ required: true, message: 'Vui lòng chọn phim', trigger: 'change' }],
   idPhongChieu: [{ required: true, message: 'Vui lòng chọn phòng chiếu', trigger: 'change' }],
-  tuNgay:       [{ required: true, message: 'Vui lòng chọn ngày bắt đầu', trigger: 'change' }],
-  denNgay:      [{ required: true, message: 'Vui lòng chọn ngày kết thúc', trigger: 'change' }],
+  tuNgay: [{ required: true, message: 'Vui lòng chọn ngày bắt đầu', trigger: 'change' }],
+  denNgay: [{ required: true, message: 'Vui lòng chọn ngày kết thúc', trigger: 'change' }],
   danhSachGioBatDau: [
     { required: true, message: 'Cần ít nhất 1 khung giờ', trigger: 'change' },
     {
@@ -637,35 +506,61 @@ watch([() => form.value.idPhim, () => form.value.gioBatDau], ([newPhimId, newSta
       const [h, m] = newStart.split(':').map(Number);
       const total = h * 60 + m + phim.thoiLuong + 15;
       form.value.gioKetThuc =
-        `${String(Math.floor(total / 60) % 24).padStart(2,'0')}:${String(total % 60).padStart(2,'0')}:00`;
+        `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}:00`;
     }
   }
 });
 
 // ── Columns ───────────────────────────────────────────────────────────────────
-const columns = [
-  { label: 'STT',         key: 'index',      width: '60px'    },
-  { label: 'Phòng chiếu', key: 'phongChieu', width: '150px'   },
-  { label: 'Ngày chiếu',  key: 'ngayChieu',  width: '130px'   },
-  { label: 'Giờ chiếu',   key: 'gioChieu',   width: '160px'   },
-  { label: 'Trống',       key: 'soGheTrong', width: '90px'    },
-  { label: 'Trạng thái',  key: 'trangThai',  width: '130px'   },
+const roomColumns = [
+  { label: 'Phòng chiếu', key: 'roomName', width: '200px', align: 'center' },
+  { label: 'Ngày xem', key: 'dateInfo', width: '150px', align: 'center' },
+  { label: 'Tổng suất', key: 'totalSlots', width: '120px', align: 'center' },
+  { label: 'Phân bổ Phim trong ngày', key: 'moviesDistribution', width: '300px', align: 'center' },
+  { label: 'Lấp đầy TB', key: 'avgOccupancy', width: '150px', align: 'center' },
+  { label: 'Trạng thái', key: 'roomStatus', width: '150px', align: 'center' },
 ];
 
 // ── Computed ──────────────────────────────────────────────────────────────────
-const filteredShowtimes = computed(() =>
-  showtimes.value.filter(s => {
-    const matchRoom   = !filterRoom.value   || s.idPhongChieu === filterRoom.value;
-    const matchStatus  = filterTrangThai.value === '' || s.trangThai === filterTrangThai.value;
-    const matchDate   = !filterDate.value   || s.ngayChieu === filterDate.value;
-    const matchSearch = !searchQuery.value  || s.tenPhim?.toLowerCase().includes(searchQuery.value.toLowerCase());
-    return matchRoom && matchStatus && matchDate && matchSearch;
-  })
-);
+const filteredRoomGroups = computed(() => {
+  const groups = [];
+  const targetDate = filterDate.value || dayjs().format('YYYY-MM-DD');
 
-const paginatedData = computed(() => {
+  phongChieuList.value.forEach(room => {
+    const roomShowtimes = showtimes.value.filter(s => 
+      s.idPhongChieu === room.id && 
+      dayjs(s.ngayChieu).format('YYYY-MM-DD') === targetDate
+    );
+
+    const movies = [...new Set(roomShowtimes.map(s => s.tenPhim))].filter(Boolean);
+    
+    let totalOccupancy = 0;
+    roomShowtimes.forEach(s => {
+      const sold = (s.tongGhe || room.tongGhe || 1) - (s.soGheTrong || 0);
+      totalOccupancy += (sold / (s.tongGhe || room.tongGhe || 1)) * 100;
+    });
+
+    groups.push({
+      id: room.id,
+      tenPhong: room.tenPhong,
+      loaiPhong: room.loaiPhong || 'Premium',
+      totalSlots: roomShowtimes.length,
+      ngayChieu: targetDate,
+      movies: movies,
+      avgOccupancy: roomShowtimes.length > 0 ? Math.round(totalOccupancy / roomShowtimes.length) : 0
+    });
+  });
+
+  return groups.filter(g => {
+    if (!searchQuery.value) return true;
+    return g.tenPhong.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+           g.movies.some(m => m.toLowerCase().includes(searchQuery.value.toLowerCase()));
+  });
+});
+
+const paginatedRoomData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
-  return filteredShowtimes.value.slice(start, start + pageSize.value);
+  return filteredRoomGroups.value.slice(start, start + pageSize.value);
 });
 
 /** Phim đang chọn trong batch form */
@@ -691,10 +586,19 @@ async function fetchShowtimes() {
   loading.value = true;
   try {
     const params = {};
-    if (filterDate.value) params.ngayChieu    = filterDate.value;
+    if (filterDate.value) params.ngayChieu = filterDate.value;
     if (filterRoom.value) params.idPhongChieu = filterRoom.value;
     const res = await suatChieuService.getShowtimes(params);
-    showtimes.value = res.data?.data || [];
+    const data = res.data?.data || [];
+    
+    // Enrich with tongGhe from phongChieuList
+    showtimes.value = data.map(s => {
+      const room = phongChieuList.value.find(r => r.id === s.idPhongChieu);
+      return {
+        ...s,
+        tongGhe: s.tongGhe || room?.tongGhe || 0
+      }
+    });
   } catch {
     notification.error('Không thể tải danh sách suất chiếu');
   } finally {
@@ -702,18 +606,18 @@ async function fetchShowtimes() {
   }
 }
 
-const resetFilter = () => {
-  filterDate.value = null; filterRoom.value = null;
-  filterTrangThai.value = ''; searchQuery.value = '';
-  currentPage.value = 1;
-  fetchShowtimes();
+const viewRoomSchedules = (row) => {
+  notification.info(`Đang chuyển tới lịch chi tiết của ${row.tenPhong}`);
+  // Logic điều hướng hoặc mở modal list chi tiết có thể thêm sau
 };
 
 const openDialog = (row = null) => {
   editingId.value = row?.id || null;
   form.value = row
-    ? { idPhim: row.idPhim, idPhongChieu: row.idPhongChieu, ngayChieu: row.ngayChieu,
-        gioBatDau: row.gioBatDau, gioKetThuc: row.gioKetThuc, trangThai: row.trangThai }
+    ? {
+      idPhim: row.idPhim, idPhongChieu: row.idPhongChieu, ngayChieu: row.ngayChieu,
+      gioBatDau: row.gioBatDau, gioKetThuc: row.gioKetThuc, trangThai: row.trangThai
+    }
     : { idPhim: '', idPhongChieu: '', ngayChieu: null, gioBatDau: null, gioKetThuc: null, trangThai: 1 };
   dialogVisible.value = true;
 };
@@ -722,6 +626,15 @@ const handleSubmit = async () => {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
+    
+    try {
+      if (editingId.value) {
+        await confirmDialog.update('suất chiếu');
+      } else {
+        await confirmDialog.add('suất chiếu');
+      }
+    } catch { return; }
+
     saving.value = true;
     try {
       if (editingId.value) {
@@ -744,16 +657,16 @@ const handleSubmit = async () => {
 const handleUpdateStatus = (row, status = null) => {
   const newStatus = status !== null ? status : (row.trangThai === 0 ? 1 : 0);
   const label = getStatusLabel(newStatus).toLowerCase();
-  
+
   if (newStatus === row.trangThai) return;
 
-  confirmDialog.custom(`Đổi trạng thái suất chiếu sang <b>${label}</b>?`, 'Xác nhận').then(async () => {
+  confirmDialog.status('suất chiếu', label, newStatus !== 0).then(async () => {
     try {
       await suatChieuService.updateShowtime(row.id, { ...row, trangThai: newStatus });
       notification.success('Cập nhật trạng thái thành công');
       fetchShowtimes();
     } catch { notification.error('Cập nhật thất bại'); }
-  }).catch(() => {});
+  }).catch(() => { });
 };
 
 // ── Batch Generate ────────────────────────────────────────────────────────────
@@ -837,11 +750,16 @@ const handleBatchSubmit = async () => {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const getStatusTag   = (s) => ({ 0: 'danger', 1: 'primary', 2: 'success', 3: 'info' }[s] || 'info');
+const getStatusTag = (s) => ({ 0: 'danger', 1: 'primary', 2: 'success', 3: 'info' }[s] || 'info');
 const getStatusLabel = (s) => ({ 0: 'Đã hủy', 1: 'Sắp chiếu', 2: 'Đang chiếu', 3: 'Kết thúc' }[s] || '—');
 const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v);
-const formatDate     = (d) => d ? dayjs(d).format('DD/MM/YYYY') : '—';
-const formatTime     = (t) => t ? String(t).substring(0, 5) : '—';
+const formatDate = (d) => d ? dayjs(d).format('DD/MM/YYYY') : '—';
+const formatTime = (t) => t ? String(t).substring(0, 5) : '—';
+
+const getDoTuoiTagType = (nhanDoTuoi) => {
+  const types = { 'P': 'success', 'T13': 'warning', 'T16': 'danger', 'T18': 'info' };
+  return types[nhanDoTuoi] || 'info';
+};
 
 onMounted(async () => {
   const [pcRes, phimRes] = await Promise.all([
@@ -855,222 +773,250 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.admin-showtimes-page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.admin-showtimes-page :deep(.admin-table-layout) { flex: 1; }
-
-/* Auto-generate button */
-.btn-auto-gen {
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-/* ── Batch Dialog Styles ──────────────────────────────────────────────────── */
-:deep(.batch-gen-dialog .el-dialog__header) {
-  padding: 20px 24px 0;
-  border-bottom: none;
-}
-:deep(.batch-gen-dialog .el-dialog__body) {
-  padding: 16px 24px 8px;
-}
-:deep(.batch-gen-dialog .el-dialog__footer) {
-  padding: 12px 24px 20px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.batch-dialog-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 4px;
-}
-.batch-header-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 20px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.35);
-}
-.batch-header-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: #1a1a2e;
-}
-.batch-header-sub {
-  font-size: 13px;
-  color: #888;
-  margin-top: 2px;
-}
-
-/* Batch form */
-.batch-form {
-  margin-top: 8px;
-}
-.batch-phim-info {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #555;
-  background: #f8f9ff;
-  border: 1px solid #e8eaf6;
-  border-radius: 6px;
-  padding: 6px 10px;
-}
-.batch-hint {
-  font-size: 11.5px;
-  color: #aaa;
-  margin-top: 4px;
-}
-
-/* Slot time picker list */
-.slot-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.slot-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fafafa;
-  border: 1px solid #eee;
+/* Simplified to zero local styles beyond functional overrides */
+.border-dashed {
+  border: 1px dashed var(--border-color);
+  background: var(--color-gray-100);
   border-radius: 8px;
-  padding: 8px 12px;
-  transition: border-color 0.2s;
-}
-.slot-item:hover {
-  border-color: #f0a500;
-}
-.slot-time-picker {
-  width: 130px !important;
-}
-.slot-end-preview {
-  font-size: 12px;
-  color: #409eff;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.slot-remove-btn {
-  background: none;
-  border: none;
-  color: #ccc;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-  margin-left: auto;
-  transition: color 0.2s, background 0.2s;
-}
-.slot-remove-btn:hover:not(:disabled) {
-  color: #f56c6c;
-  background: #fff0f0;
-}
-.slot-remove-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.35;
-}
-.slot-add-btn {
-  background: none;
-  border: 2px dashed #e0e0e0;
-  border-radius: 8px;
-  padding: 8px 16px;
-  color: #888;
-  cursor: pointer;
-  font-size: 13px;
-  text-align: left;
   transition: all 0.2s;
 }
-.slot-add-btn:hover {
-  border-color: #f0a500;
-  color: #f0a500;
-  background: #fffbf0;
+
+.border-dashed:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-white);
 }
 
-/* Preview count */
-.batch-preview-count {
-  margin-top: 10px;
-  padding: 8px 14px;
-  background: linear-gradient(135deg, #fff8e1, #fff3cd);
-  border: 1px solid #ffe082;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #795548;
+.bg-success-light {
+  background: #f0fdf4;
+  border-color: #bcf0da !important;
 }
-.batch-preview-count strong {
-  color: #e65100;
+
+.bg-warning-light {
+  background: #fffbeb;
+  border-color: #fde68a !important;
+}
+
+:deep(.el-dialog__header) {
+  padding-bottom: 0;
+}
+
+.info-label-muted {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.section-title-clean {
   font-size: 15px;
-}
-
-/* Footer buttons */
-.batch-dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-/* ── Result section ───────────────────────────────────────────────────────── */
-.batch-result {
-  padding: 4px 0;
-}
-.batch-result-cards {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.result-card {
-  flex: 1;
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.result-card-total  { background: #f8f9fa; border: 1px solid #dee2e6; }
-.result-card-success { background: #f0fff4; border: 1px solid #b7ebc8; }
-.result-card-skip   { background: #fff8e1; border: 1px solid #ffe082; }
-
-.result-card-icon { font-size: 22px; margin-bottom: 4px; }
-.result-card-total  .result-card-icon { color: #6c757d; }
-.result-card-success .result-card-icon { color: #28a745; }
-.result-card-skip   .result-card-icon { color: #f39c12; }
-
-.result-card-num {
-  font-size: 28px;
   font-weight: 800;
-  line-height: 1;
+  color: #1e293b;
+  position: relative;
 }
-.result-card-total  .result-card-num { color: #495057; }
-.result-card-success .result-card-num { color: #28a745; }
-.result-card-skip   .result-card-num { color: #f39c12; }
 
-.result-card-label {
-  font-size: 12px;
-  color: #888;
+.uppercase-label {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bg-light-subtle {
+  background-color: #f8fafc !important;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #334155;
   font-weight: 500;
 }
 
-/* Skipped list */
-.batch-skip-collapse { margin-top: 4px; }
-.skip-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-.skip-item { display: flex; align-items: center; padding: 6px 10px; background: #fff5f5; border-radius: 6px; font-size: 13px; }
-.skip-date { font-weight: 600; color: #555; }
-@keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(3); opacity: 0; } }
+/* ──────────────────────────────────────────────────
+   STYLE: Seat Map Real-time (Light Clean & Clear)
+   ────────────────────────────────────────────────── */
+.bg-light-map {
+  background: #ffffff;
+  border-radius: 0 0 16px 16px;
+  min-height: 480px;
+  border: 1px solid #f1f5f9;
+}
 
-.section-divider-sm { display: flex; align-items: center; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-.section-divider-sm::after { content: ''; flex-grow: 1; height: 1px; background: #f1f5f9; margin-left: 10px; }
-.stat-card { transition: all 0.2s; }
-.stat-card:hover { border-color: var(--el-color-primary) !important; transform: translateY(-2px); }
-.dot { width: 8px; height: 8px; border-radius: 50%; }
+.screen-container { width: 100%; padding: 0 15%; }
+.screen-line {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 20px;
+}
+
+.row-label {
+  width: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.admin-seat {
+  width: 42px;
+  height: 42px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  cursor: default;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-seat.sm { width: 22px; height: 22px; font-size: 0; pointer-events: none; border-width: 1px; }
+
+.admin-seat.available { border-color: #cbd5e1; }
+.admin-seat.available:hover {
+  transform: translateY(-3px);
+  border-color: #3b82f6;
+  color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.admin-seat.sold {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #cbd5e1 !important;
+  position: relative;
+}
+.admin-seat.sold::after {
+  content: '✕';
+  position: absolute;
+  font-size: 18px;
+  opacity: 0.4;
+}
+
+.admin-seat.vip.available { border-color: #f59e0b; color: #b45309; }
+.admin-seat.vip.available:hover { border-color: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15); }
+
+.admin-seat.couple.available { border-color: #ec4899; color: #be185d; width: 92px; }
+.admin-seat.couple.available:hover { border-color: #ec4899; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15); }
+
+/* ──────────────────────────────────────────────────
+   STYLE: Batch Generation Modal
+   ────────────────────────────────────────────────── */
+.batch-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.batch-header-icon {
+  width: 48px;
+  height: 48px;
+  background: #f59e0b;
+  color: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.batch-header-title {
+  font-weight: 800;
+  font-size: 16px;
+  color: #92400e;
+}
+
+.batch-header-sub {
+  font-size: 12px;
+  color: #b45309;
+  margin: 0;
+}
+
+.batch-info-box {
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+}
+
+.batch-summary-box {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 12px;
+  border-radius: 8px;
+  color: #1e40af;
+  font-size: 13px;
+  text-align: center;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.batch-slot-item {
+  transition: all 0.2s ease;
+}
+
+.batch-slot-item:hover {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.05);
+}
+
+.rounded-modal :deep(.el-dialog) {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.btn-action-icon.action-seat {
+  color: #6366f1;
+}
+
+.btn-action-icon.action-seat:hover {
+  background: #e0e7ff;
+}
+.room-badge {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.movie-tag-item {
+  border-radius: 4px;
+  font-weight: 600;
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+.bg-primary-light {
+  background-color: #eff6ff;
+}
+
+.italic {
+  font-style: italic;
+}
 </style>

@@ -6,77 +6,87 @@ import { ElMessageBox } from 'element-plus';
  */
 export const confirmDialog = {
   /**
-   * Generic confirm method
-   * @param {string} message - The main message of the dialog
-   * @param {string} title - The title of the dialog
-   * @param {string} confirmText - Text for confirm button
-   * @param {string} type - 'warning', 'info', 'success', 'error'
-   * @returns {Promise} Resolves if user confirms, rejects if cancels
+   * Generic custom confirm method
    */
-  custom: (message, title = 'Xác nhận', confirmText = 'Đồng ý', type = 'warning') => {
-    return ElMessageBox.confirm(message, title, {
-      dangerouslyUseHTMLString: true,
-      confirmButtonText: confirmText,
-      cancelButtonText: 'Hủy',
-      type: type,
-    });
+  custom: (message, title = 'Xác nhận', confirmText = 'Đồng ý', type = 'warning', iconClass = '') => {
+    return ElMessageBox.confirm(
+      `<div class="d-flex align-items-center gap-3">
+        ${iconClass ? `<div class="confirm-icon-wrapper ${type}"><i class="${iconClass}"></i></div>` : ''}
+        <div class="confirm-content-text">${message}</div>
+      </div>`,
+      title,
+      {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: 'Hủy bỏ',
+        type: type,
+        customClass: 'premium-confirm-box',
+        center: true,
+        showClose: false,
+        buttonSize: 'default',
+        confirmButtonClass: `btn-confirm-${type}`
+      }
+    );
   },
 
   /**
    * Confirm adding a new item
-   * @param {string} entityName - Name of the entity being added (e.g., 'nhân viên', 'ghế')
-   * @returns {Promise}
    */
   add: (entityName = 'dữ liệu') => {
     return confirmDialog.custom(
-      `Bạn có chắc chắn muốn thêm <b>${entityName}</b> này không?`,
-      'Xác nhận thêm mới',
-      'Thêm',
-      'info'
+      `Bạn có chắc chắn muốn tạo mới <b>${entityName}</b> này không?`,
+      'Xác nhận tạo mới',
+      'Xác nhận tạo',
+      'success',
+      'bi bi-plus-circle-fill'
     );
   },
 
   /**
    * Confirm updating an existing item
-   * @param {string} entityName - Name of the entity being updated
-   * @returns {Promise}
    */
   update: (entityName = 'dữ liệu') => {
     return confirmDialog.custom(
-      `Bạn có chắc chắn muốn cập nhật thông tin <b>${entityName}</b> này không?`,
+      `Mọi thay đổi sẽ được lưu trữ. Bạn có chắc chắn muốn cập nhật <b>${entityName}</b> này không?`,
       'Xác nhận cập nhật',
-      'Cập nhật',
-      'warning'
+      'Cập nhật ngay',
+      'warning',
+      'bi bi-pencil-square'
+    );
+  },
+
+  /**
+   * Confirm status change
+   */
+  status: (entityName = 'dữ liệu', newStatusLabel = 'thay đổi', isActivation = true) => {
+    return confirmDialog.custom(
+      `Bạn đang thực hiện <b>${newStatusLabel}</b> cho <b>${entityName}</b>. Tiếp tục?`,
+      'Thay đổi trạng thái',
+      isActivation ? 'Kích hoạt' : 'Xác nhận',
+      isActivation ? 'success' : 'warning',
+      isActivation ? 'bi bi-check-circle-fill' : 'bi bi-exclamation-triangle-fill'
     );
   },
 
   /**
    * Confirm deleting an item
-   * @param {string} entityName - Name of the entity being deleted
-   * @param {string} detail - Extra detail to show (e.g., the name of the item)
-   * @returns {Promise}
    */
   delete: (entityName = 'dữ liệu', detail = '') => {
     const detailHtml = detail ? ` "<b>${detail}</b>"` : '';
     return confirmDialog.custom(
-      `Bạn có chắc chắn muốn xóa ${entityName}${detailHtml} không? Hành động này không thể hoàn tác.`,
-      'Xác nhận xóa',
-      'Xóa',
-      'error'
+      `Hành động này <b>không thể hoàn tác</b>. Bạn có chắc chắn muốn xóa ${entityName}${detailHtml} không?`,
+      'Cảnh báo xóa dữ liệu',
+      'Xóa vĩnh viễn',
+      'error',
+      'bi bi-trash3-fill'
     );
   },
 
   /**
-   * Confirm a generic save action
-   * @returns {Promise}
+   * Confirm a generic action
    */
-  save: () => {
-    return confirmDialog.custom(
-      'Bạn có chắc chắn muốn lưu các thay đổi này không?',
-      'Xác nhận lưu',
-      'Lưu lại',
-      'warning'
-    );
+  confirm: (title, message, confirmText = 'Xác nhận', type = 'info') => {
+    return confirmDialog.custom(message, title, confirmText, type, 'bi bi-question-circle-fill');
   }
 };
 

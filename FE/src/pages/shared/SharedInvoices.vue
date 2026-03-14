@@ -1,8 +1,16 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Search, Printer, Close, RefreshRight } from '@element-plus/icons-vue';
+import { Search, Printer } from '@element-plus/icons-vue';
 import notification from '@/utils/notifications';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
+import BaseTable from '@/components/common/BaseTable.vue';
+
+const invoiceColumns = [
+  { label: 'Mã hóa đơn', key: 'id', width: '150px' },
+  { label: 'Khách hàng', key: 'customer', minWidth: '200px' },
+  { label: 'Ngày lập', key: 'createdAt', width: '180px' },
+  { label: 'Tổng tiền', key: 'totalAmount', width: '150px' },
+  { label: 'Trạng thái', key: 'status', width: '150px' },
+];
 
 const invoices = ref([
   { id: 'INV-1023', createdAt: '2026-02-28 17:45', customerName: 'Tiền mặt (Khách vãng lai)', customerPhone: 'N/A', totalAmount: 195000, items: '2x Spider-Man', status: 'PAID' },
@@ -52,16 +60,17 @@ const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currenc
 
 <template>
   <div class="shared-invoices-page">
-    <AdminTableLayout
+    <BaseTable
       title="Hóa đơn"
       subtitle="Quản lý và tra cứu lịch sử hóa đơn khách hàng"
       titleIcon="bi bi-receipt"
       :data="filteredInvoices.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+      :columns="invoiceColumns"
       :total="filteredInvoices.length"
       v-model:currentPage="currentPage"
       v-model:pageSize="pageSize"
-      :selectable="false"
       @reset-filter="() => { searchQuery = ''; statusFilter = 'all'; }"
+      :hide-pagination="false"
     >
       <template #filters>
         <div class="filter-item" style="width: 350px;">
@@ -83,56 +92,42 @@ const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currenc
         </div>
       </template>
 
-      <template #columns>
-        <el-table-column label="Mã hóa đơn" width="150">
-          <template #default="{ row }">
-            <span class="fw-bold text-indigo-500">{{ row.id }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="Khách hàng" min-width="200">
-          <template #default="{ row }">
-            <div class="text-start">
-              <div class="fw-bold text-dark">{{ row.customerName }}</div>
-              <div class="small text-secondary">{{ row.customerPhone }}</div>
-            </div>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="Ngày lập" width="180" align="center">
-          <template #default="{ row }">
-            <div class="small">{{ row.createdAt }}</div>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="Tổng tiền" width="150" align="center">
-          <template #default="{ row }">
-            <span class="fw-bold">{{ formatCurrency(row.totalAmount) }}</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="Trạng thái" width="150" align="center">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" effect="light" size="small" round>
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="Thao tác" width="120" align="center" fixed="right">
-          <template #default="{ row }">
-            <div class="d-flex justify-content-center gap-1">
-              <button class="btn-action-icon action-view" @click="handleView(row)">
-                <i class="bi bi-eye fs-6"></i>
-              </button>
-              <button class="btn-action-icon btn-action-print" @click="handlePrint(row)">
-                <i class="bi bi-printer fs-6"></i>
-              </button>
-            </div>
-          </template>
-        </el-table-column>
+      <template #cell-id="{ row }">
+        <span class="fw-bold text-indigo-500">{{ row.id }}</span>
       </template>
-    </AdminTableLayout>
+
+      <template #cell-customer="{ row }">
+        <div class="text-center">
+          <div class="fw-bold text-dark">{{ row.customerName }}</div>
+          <div class="small text-secondary">{{ row.customerPhone }}</div>
+        </div>
+      </template>
+
+      <template #cell-createdAt="{ row }">
+        <div class="small">{{ row.createdAt }}</div>
+      </template>
+
+      <template #cell-totalAmount="{ row }">
+        <span class="fw-bold">{{ formatCurrency(row.totalAmount) }}</span>
+      </template>
+
+      <template #cell-status="{ row }">
+        <el-tag :type="getStatusType(row.status)" effect="light" size="small" round>
+          {{ getStatusLabel(row.status) }}
+        </el-tag>
+      </template>
+
+      <template #actions="{ row }">
+        <div class="d-flex justify-content-center gap-1">
+          <button class="btn-action-icon action-view" @click="handleView(row)">
+            <i class="bi bi-eye fs-6"></i>
+          </button>
+          <button class="btn-action-icon btn-action-print" @click="handlePrint(row)">
+            <i class="bi bi-printer fs-6"></i>
+          </button>
+        </div>
+      </template>
+    </BaseTable>
 
     <!-- Invoice Detail Dialog -->
     <el-dialog
@@ -177,5 +172,22 @@ code {
 .text-indigo-500 {
   color: #4f46e5;
 }
-</style>
+.btn-action-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  border: 1px solid #e2e8f0;
+  background: white;
+  transition: all 0.2s;
+}
 
+.btn-action-icon:hover {
+  background: #f1f5f9;
+}
+
+.action-view:hover { color: #3b82f6; border-color: #3b82f6; }
+.btn-action-print:hover { color: #10b981; border-color: #10b981; }
+</style>

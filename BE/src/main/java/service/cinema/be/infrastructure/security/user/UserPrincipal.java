@@ -53,7 +53,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
                 khachHang.getId(),
                 khachHang.getTaiKhoan().getEmail(),
                 khachHang.getTenKhachHang(),
-                khachHang.getTaiKhoan().getMat_khau(),
+                khachHang.getTaiKhoan().getMatKhau(),
                 authorities
         );
     }
@@ -79,7 +79,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
                 nhanVien.getId(),
                 nhanVien.getTaiKhoan().getEmail(),
                 nhanVien.getTenNhanVien(),
-                nhanVien.getTaiKhoan().getMat_khau(),
+                nhanVien.getTaiKhoan().getMatKhau(),
                 authorities
         );
     }

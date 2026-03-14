@@ -3,7 +3,6 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ROUTES_CONSTANTS } from '@/constants/routeConstants';
 import { User, Edit, Lock, Key, Setting, Search, Refresh } from '@element-plus/icons-vue';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 import BaseTable from '@/components/common/BaseTable.vue';
 import CCCDScanner from '@/components/common/CCCDScanner.vue'; // <-- Integrate Scanner
@@ -19,14 +18,14 @@ const loading = ref(false);
 const searchQuery = ref('');
 
 const staffColumns = [
-  { label: 'STT', key: 'stt', width: '60px' },
-  { label: 'Mã NV', key: 'maNhanVien', width: '100px' },
-  { label: 'Nhân viên', key: 'staff', minWidth: '180px' },
-  { label: 'Số điện thoại', key: 'soDienThoai', width: '120px' },
-  { label: 'Email', key: 'email', width: '180px' },
-  { label: 'Vai trò', key: 'role', width: '130px' },
-  { label: 'Địa chỉ', key: 'diaChi', minWidth: '200px' },
-  { label: 'Trạng thái', key: 'trangThai', width: '140px' },
+  { label: 'STT', key: 'stt', width: '60px', align: 'center' },
+  { label: 'Mã NV', key: 'maNhanVien', width: '100px', align: 'center' },
+  { label: 'Nhân viên', key: 'staff', minWidth: '180px', align: 'center' },
+  { label: 'Số điện thoại', key: 'soDienThoai', width: '140px', align: 'center' },
+  { label: 'Email', key: 'email', width: '180px', align: 'center' },
+  { label: 'Vai trò', key: 'role', width: '130px', align: 'center' },
+  { label: 'Địa chỉ', key: 'diaChi', minWidth: '200px', align: 'center' },
+  { label: 'Trạng thái', key: 'trangThai', width: '140px', align: 'center' },
 ];
 
 const roles = ref([]);
@@ -113,20 +112,20 @@ const fetchStaff = async () => {
       searchQuery.value || null,
       filterRole.value || null,
       filterStatus.value === '' ? null : filterStatus.value,
-      currentPage.value - 1, 
+      currentPage.value - 1,
       pageSize.value
     );
-    
+
     const apiRes = res.data;
     if (apiRes && apiRes.data) {
-       // Backend returns Page object
-       if (apiRes.data.content) {
-         staff.value = apiRes.data.content;
-         totalElements.value = apiRes.data.totalElements;
-       } else {
-         staff.value = Array.isArray(apiRes.data) ? apiRes.data : [];
-         totalElements.value = staff.value.length;
-       }
+      // Backend returns Page object
+      if (apiRes.data.content) {
+        staff.value = apiRes.data.content;
+        totalElements.value = apiRes.data.totalElements;
+      } else {
+        staff.value = Array.isArray(apiRes.data) ? apiRes.data : [];
+        totalElements.value = staff.value.length;
+      }
     } else {
       staff.value = [];
       totalElements.value = 0;
@@ -203,57 +202,43 @@ const disabledDate = (time) => {
 };
 
 onMounted(() => {
-    fetchStaff();
-    fetchRoles();
-    fetchChucVu();
+  fetchStaff();
+  fetchRoles();
+  fetchChucVu();
 });
 watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff);
 </script>
 
 <template>
-  <div class="admin-staff-page">
-    <AdminTableLayout
-      title="Quản lý nhân viên"
-      titleIcon="bi bi-people-fill"
-      addButtonLabel="Thêm nhân viên"
-      :data="staff"
-      :loading="loading"
-      :total="totalElements"
-      v-model:currentPage="currentPage"
-      v-model:pageSize="pageSize"
-      @add-click="handleAdd"
-      @reset-filter="() => { searchQuery = ''; filterRole = ''; filterStatus = ''; }"
-    >
+  <div class="d-flex flex-column flex-grow-1 h-100 overflow-hidden">
+    <BaseTable title="Quản lý nhân viên" titleIcon="bi bi-people-fill" addButtonLabel="Thêm nhân viên" :data="staff"
+      :columns="staffColumns" :loading="loading" :total="totalElements" v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize" @add-click="handleAdd"
+      @reset-filter="() => { searchQuery = ''; filterRole = ''; filterStatus = ''; }" @edit="handleEdit"
+      @delete="handleDelete" @update-status="({ row, val }) => handleUpdateStatus(row, val ? 1 : 0)">
       <template #header-actions-left>
         <div class="d-flex align-items-center gap-2">
           <ExcelActions module="nhan-vien" @import-success="fetchStaff" />
           <el-tooltip content="Cấu hình Vai trò & Quyền hạn" placement="top">
-            <el-button class="btn-cine-secondary square" :icon="Setting" @click="roleDialogVisible = true" plain></el-button>
+            <el-button class="btn-cine-secondary square" :icon="Setting" @click="roleDialogVisible = true"
+              plain></el-button>
           </el-tooltip>
         </div>
       </template>
 
+      <!-- Optimized Filters -->
       <template #filters>
-        <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-input
-            v-model="searchQuery"
-            placeholder="Tên, tên đăng nhập, email..."
-            :prefix-icon="Search"
-            size="default"
-            clearable
-          />
+        <div class="me-2 mb-2 mb-md-0" style="min-width: 240px;">
+          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable />
         </div>
-        <div class="filter-item">
-          <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterRole" placeholder="Chọn vai trò" style="width: 200px;" size="default">
+        <div class="me-2 mb-2 mb-md-0">
+          <el-select v-model="filterRole" placeholder="Vai trò" style="width: 170px;">
             <el-option label="Tất cả vai trò" value="all" />
             <el-option v-for="r in roles" :key="r.id" :label="r.tenVaiTro" :value="r.id" />
           </el-select>
         </div>
-        <div class="filter-item">
-           <span class="filter-label text-dark small fw-bold mb-1 d-block"></span>
-          <el-select v-model="filterStatus" placeholder="Chọn trạng thái" style="width: 200px;" size="default">
+        <div class="mb-2 mb-md-0">
+          <el-select v-model="filterStatus" placeholder="Trạng thái" style="width: 170px;">
             <el-option label="Tất cả trạng thái" value="" />
             <el-option label="Đang hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
@@ -261,93 +246,77 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
         </div>
       </template>
 
-      <template #content>
-        <BaseTable
-          :data="staff"
-          :columns="staffColumns"
-          :loading="loading"
-          :total="totalElements"
-          v-model:currentPage="currentPage"
-          v-model:pageSize="pageSize"
-          :hide-pagination="true"
-          @edit="handleEdit"
-          @delete="handleDelete"
-          @update-status="({ row, val }) => handleUpdateStatus(row, val ? 1 : 0)"
-        >
-          <template #actions="{ row }">
-            <div class="d-flex justify-content-center align-items-center gap-2">
-                <el-tooltip content="Xem chi tiết" placement="top">
-                  <button class="btn-action-icon action-view" @click="handleView(row)">
-                    <i class="bi bi-eye fs-6"></i>
-                  </button>
-                </el-tooltip>
-                <el-tooltip content="Chỉnh sửa" placement="top">
-                  <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
-                    <i class="bi bi-pencil fs-6"></i>
-                  </button>
-                </el-tooltip>
-                <el-tooltip content="Gửi email đặt lại mật khẩu" placement="top">
-                  <button class="btn-action-icon action-email" :disabled="row.trangThai === 0" @click="handleSendPasswordReset(row)">
-                    <i class="bi bi-envelope fs-6"></i>
-                  </button>
-                </el-tooltip>
-                <el-switch
-                  :model-value="row.trangThai === 1"
-                  @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
-                  class="status-switch mx-1"
-                  active-color="#ff4949"
-                  inactive-color="#ff4949"
-                />
-            </div>
-          </template>
-
-          <template #cell-trangThai="{ row }">
-            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round>
-              {{ row.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động' }}
-            </el-tag>
-          </template>
-          <template #cell-stt="{ index }">
-            <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
-          </template>
-
-          <template #cell-maNhanVien="{ row }">
-            <span class="text-secondary small fw-bold">#{{ row.maNhanVien }}</span>
-          </template>
-
-          <template #cell-staff="{ row }">
-            <div class="fw-bold text-dark">{{ row.tenNhanVien }}</div>
-          </template>
-
-          <template #cell-soDienThoai="{ row }">
-            <div class="text-secondary small">{{ row.soDienThoai || '—' }}</div>
-          </template>
-
-          <template #cell-email="{ row }">
-            <div class="text-secondary small">{{ row.email || '—' }}</div>
-          </template>
-
-          <template #cell-role="{ row }">
-            <el-tag :type="getRoleType(row.tenPhanQuyen)" size="small" effect="light" round>{{ row.tenPhanQuyen || 'Chưa gán' }}</el-tag>
-          </template>
-
-          <template #cell-diaChi="{ row }">
-            <div class="text-secondary small text-truncate" style="max-width: 250px;" :title="row.diaChi">{{ row.diaChi || '—' }}</div>
-          </template>
-
-        </BaseTable>
+      <!-- Action Templates -->
+      <template #actions="{ row }">
+        <div class="d-flex justify-content-center align-items-center gap-1">
+          <el-tooltip content="Xem chi tiết" placement="top">
+            <button class="btn-action-icon action-view" @click="handleView(row)">
+              <i class="bi bi-eye"></i>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="Chỉnh sửa" placement="top">
+            <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="Gửi mã reset" placement="top">
+            <button class="btn-action-icon action-email" :disabled="row.trangThai === 0"
+              @click="handleSendPasswordReset(row)">
+              <i class="bi bi-envelope"></i>
+            </button>
+          </el-tooltip>
+          <el-switch :model-value="row.trangThai === 1" @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
+            class="status-switch mx-1" />
+        </div>
       </template>
-    </AdminTableLayout>
+
+      <!-- Cell Templates -->
+      <template #cell-stt="{ index }">
+        <span class="text-secondary smaller">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
+      </template>
+
+      <template #cell-maNhanVien="{ row }">
+        <span class="text-primary smaller fw-bold">#{{ row.maNhanVien }}</span>
+      </template>
+
+      <template #cell-staff="{ row }">
+        <div class="d-flex flex-column align-items-center">
+          <div class="fw-bold text-dark">{{ row.tenNhanVien }}</div>
+          <div class="smaller text-secondary">{{ row.email || '—' }}</div>
+        </div>
+      </template>
+
+      <template #cell-role="{ row }">
+        <el-tag :type="getRoleType(row.tenPhanQuyen)" size="small" effect="plain" class="fw-bold border-0">{{
+          row.tenPhanQuyen || 'Chưa gán' }}</el-tag>
+      </template>
+
+      <template #cell-trangThai="{ row }">
+        <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" effect="dark" class="fw-bold">
+          {{ row.trangThai === 1 ? 'Hoạt động' : 'Đã khóa' }}
+        </el-tag>
+      </template>
+
+      <template #cell-soDienThoai="{ row }">
+        <span class="fw-bold text-dark" style="white-space: nowrap;">{{ row.soDienThoai || '—' }}</span>
+      </template>
+      <template #cell-diaChi="{ row }">
+        <div class="text-secondary smaller text-truncate text-center mx-auto" style="max-width: 250px;" :title="row.diaChi">{{ row.diaChi ||
+          '—' }}</div>
+      </template>
+    </BaseTable>
 
 
 
 
 
-    <BaseModal v-model="detailVisible" title="Hồ sơ nhân viên" icon="bi bi-person-workspace" width="600px" isDetail onlyCancel>
+    <BaseModal v-model="detailVisible" title="Hồ sơ nhân viên" icon="bi bi-person-workspace" width="600px" isDetail
+      onlyCancel>
       <div v-if="selectedItem" class="p-0">
         <!-- Profile Header (Colorless) -->
         <div class="p-4 border-bottom bg-white d-flex align-items-center gap-4">
-          <div class="shadow-sm border d-flex align-items-center justify-content-center bg-light text-secondary" 
-               style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
+          <div class="shadow-sm border d-flex align-items-center justify-content-center bg-light text-secondary"
+            style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
             {{ selectedItem.tenNhanVien?.charAt(0).toUpperCase() }}
           </div>
           <div class="flex-grow-1">
@@ -416,10 +385,10 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
             </div>
 
             <div class="col-12">
-               <div class="p-3 border bg-light">
-                 <h6 class="text-uppercase small fw-bold text-secondary mb-1">ĐỊA CHỈ</h6>
-                 <p class="text-dark mb-0 small">{{ selectedItem.diaChi || 'Chưa cập nhật địa chỉ' }}</p>
-               </div>
+              <div class="p-3 border bg-light">
+                <h6 class="text-uppercase small fw-bold text-secondary mb-1">ĐỊA CHỈ</h6>
+                <p class="text-dark mb-0 small">{{ selectedItem.diaChi || 'Chưa cập nhật địa chỉ' }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -446,7 +415,7 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
         <div v-for="role in roles" :key="role.id" class="p-3 border rounded-3 bg-light-subtle">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="d-flex align-items-center gap-2">
-            <i :class="[role.icon, 'fs-5']" :style="{ color: `var(--el-color-${role.color})` }"></i>
+              <i :class="[role.icon, 'fs-5']" :style="{ color: `var(--el-color-${role.color})` }"></i>
               <el-tag :type="role.color" effect="dark" round>{{ role.name }}</el-tag>
             </div>
             <el-button size="small" :icon="Edit" text class="text-indigo-500">Sửa</el-button>
@@ -462,25 +431,71 @@ watch([searchQuery, filterRole, filterStatus, currentPage, pageSize], fetchStaff
   </div>
 </template>
 <style scoped>
+.staff-profile-container {
+  margin: -20px;
+}
 
-.staff-profile-container { margin: -20px; }
-.profile-header { border-radius: 0 0 30px 30px; }
-.header-decoration { position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; }
-.profile-avatar { width: 80px; height: 80px; border-radius: 20px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; }
-.tiny-id { font-size: 11px; letter-spacing: 0.5px; }
-.section-divider { display: flex; align-items: center; margin: 15px 0; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-.section-divider::after { content: ''; flex-grow: 1; height: 1px; background: #e2e8f0; margin-left: 10px; }
-.tiny-text { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 3px; display: block; }
-.icon-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.icon-square { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.info-card-minimal { transition: all 0.2s; }
-.info-card-minimal:hover { border-color: #3b82f6 !important; background: #f8fafc; }
-.bg-success-light { background: #f0fdf4; }
-.bg-danger-light { background: #fef2f2; }
-.pulse-indicator { width: 8px; height: 8px; border-radius: 50%; position: relative; }
-.pulse-indicator::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: inherit; animation: pulse 1.5s infinite; opacity: 0.6; }
-@keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(3); opacity: 0; } }
-.letter-spacing-tight { letter-spacing: -1px; }
+.profile-header {
+  border-radius: 0 0 30px 30px;
+}
+
+.header-decoration {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.tiny-id {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-square {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.bg-success-light {
+  background: #f0fdf4;
+}
+
+.bg-danger-light {
+  background: #fef2f2;
+}
+
+.letter-spacing-tight {
+  letter-spacing: -1px;
+}
 
 .avatar-circle {
   width: 50px;

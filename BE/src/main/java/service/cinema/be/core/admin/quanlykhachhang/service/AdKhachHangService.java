@@ -56,7 +56,7 @@ public class AdKhachHangService {
         tk.setId(UUID.randomUUID().toString());
         tk.setEmail(request.getEmail());
         // Mật khẩu mặc định là số điện thoại
-        tk.setMat_khau(passwordEncoder.encode(request.getSdt())); 
+        tk.setMatKhau(passwordEncoder.encode(request.getSdt()));
         tk.setTrangThai(1);
         
         phanQuyenRepository.findByMaPhanQuyen("ROLE_CUSTOMER")

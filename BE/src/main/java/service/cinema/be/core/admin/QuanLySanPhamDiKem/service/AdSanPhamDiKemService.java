@@ -34,6 +34,13 @@ public class AdSanPhamDiKemService {
         return repository.getAll(pageable, keyword, trangThai).map(this::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    public AdSanPhamDiKemResponse getById(String id) {
+        return repository.findById(id)
+                .map(this::toResponse)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+    }
+
     @Transactional
     public AdSanPhamDiKemResponse create(AdSanPhamDiKemRequest request) {
         if (repository.existsByTenSanPhamIgnoreCase(request.getTenSanPham())) {

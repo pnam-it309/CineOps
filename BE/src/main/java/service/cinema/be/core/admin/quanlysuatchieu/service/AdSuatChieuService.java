@@ -33,5 +33,7 @@
          * Bỏ qua các slot bị trùng lịch phòng, trả về thống kê kết quả.
          */
         AdBatchSuatChieuResult generateBatch(AdBatchSuatChieuRequest req);
+
+        List<?> getGheStatus(String idSuatChieu);
     }
 

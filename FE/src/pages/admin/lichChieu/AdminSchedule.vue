@@ -1,82 +1,52 @@
 <template>
-  <div class="admin-schedule-page">
-    <AdminTableLayout
-      title="Quản lý lịch chiếu"
-      titleIcon="bi bi-calendar-week-fill"
-      :data="filteredShowtimes"
-      :loading="loading"
-      :total="filteredShowtimes.length"
-      v-model:currentPage="currentPage"
-      v-model:pageSize="pageSize"
-      :hide-pagination="activeTab === 'visual'"
-      :hide-filter="activeTab === 'visual'"
-      :disable-padding="activeTab === 'visual'"
-      @reset-filter="resetFilter"
-    >
+  <div class="d-flex flex-column flex-grow-1 h-100 overflow-hidden"
+    :class="{ 'visual-mode-active': activeTab === 'visual' }">
+    <BaseTable :title="activeTab === 'list' ? 'Quản lý lịch chiếu' : ''"
+      :subtitle="activeTab === 'list' ? 'Quản lý sơ đồ và danh sách suất chiếu phim tại các cụm rạp' : ''"
+      titleIcon="bi bi-calendar-week-fill" :data="paginatedSchedules" :columns="listColumns" :loading="loading"
+      :total="filteredSchedules.length" v-model:currentPage="currentPage" v-model:pageSize="pageSize"
+      :show-filters="activeTab === 'list'" :hide-pagination="activeTab === 'visual'"
+      :no-padding="activeTab === 'visual'" @reset-filter="resetFilter" @fetch="handleSearch">
       <!-- Header Actions: visual/list toggle -->
       <template #header-actions>
         <div class="d-flex align-items-center gap-3">
           <el-radio-group v-model="activeTab" size="default" class="premium-tabs-toggle">
-            <el-radio-button label="list">
+            <el-radio-button value="list">
               <i class="bi bi-list-ul me-1"></i> Danh sách
             </el-radio-button>
-            <el-radio-button label="visual">
+            <el-radio-button value="visual">
               <i class="bi bi-grid-3x3-gap me-1"></i> Sơ đồ
             </el-radio-button>
           </el-radio-group>
         </div>
       </template>
 
-      <!-- Filters (list only) -->
+      <!-- Optimized Filters (Matching Image 1: Labels above inputs) -->
       <template #filters v-if="activeTab === 'list'">
-        <div class="filter-item">
-          <el-input
-            v-model="searchQuery"
-            placeholder="Tìm tên phim..."
-            :prefix-icon="Search"
-            clearable
-            @input="handleSearch"
-            style="width: 230px"
-          />
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Tên phim</label>
+          <el-input v-model="searchQuery" placeholder="Tìm tên phim..." :prefix-icon="Search" clearable
+            @input="handleSearch" style="width: 250px;" />
         </div>
-        <div class="filter-item">
-          <el-date-picker
-            v-model="filterDate"
-            type="date"
-            placeholder="Chọn ngày chiếu"
-            format="DD/MM/YYYY"
-            value-format="YYYY-MM-DD"
-            style="width: 180px"
-            @change="handleSearch"
-            clearable
-          />
+
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Ngày chiếu</label>
+          <el-date-picker v-model="filterDate" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY"
+            value-format="YYYY-MM-DD" style="width: 170px" @change="handleSearch" clearable />
         </div>
-        <div class="filter-item">
-          <el-select
-            v-model="filterRoomId"
-            placeholder="Chọn phòng"
-            style="width: 180px"
-            @change="handleSearch"
-            clearable
-          >
+
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Phòng chiếu</label>
+          <el-select v-model="filterRoomId" placeholder="Tất cả" style="width: 170px" @change="handleSearch" clearable>
             <el-option label="Tất cả phòng" value="" />
-            <el-option
-              v-for="r in phongChieuList"
-              :key="r.id"
-              :label="r.tenPhong || r.ten_phong"
-              :value="r.id"
-            />
+            <el-option v-for="r in phongChieuList" :key="r.id" :label="r.tenPhong || r.ten_phong" :value="r.id" />
           </el-select>
         </div>
-        <div class="filter-item">
-          <el-select
-            v-model="filterStatus"
-            placeholder="Chọn trạng thái"
-            style="width: 180px"
-            @change="handleSearch"
-            clearable
-          >
-            <el-option label="Tất cả trạng thái" value="" />
+
+        <div class="d-flex flex-column gap-1">
+          <label class="smaller text-secondary fw-bold ms-1">Trạng thái</label>
+          <el-select v-model="filterStatus" placeholder="Tất cả" style="width: 170px" @change="handleSearch" clearable>
+            <el-option label="Tất cả" value="" />
             <el-option label="Sắp chiếu" :value="1" />
             <el-option label="Đang chiếu" :value="2" />
             <el-option label="Đã hủy" :value="0" />
@@ -85,332 +55,194 @@
         </div>
       </template>
 
-      <!-- Main Content -->
-      <template #content>
-        <!-- Tab List -->
-        <div v-if="activeTab === 'list'" class="h-100">
-          <BaseTable
-            :data="paginatedShowtimes"
-            :columns="listColumns"
-            :loading="loading"
-            :total="filteredShowtimes.length"
-            v-model:currentPage="currentPage"
-            v-model:pageSize="pageSize"
-            :hide-pagination="true"
-            @edit="openDialog"
-            @delete="handleUpdateStatus"
-          >
-            <template #cell-stt="{ index }">
-              <span class="small fw-bold text-secondary">{{
-                (currentPage - 1) * pageSize + index + 1
-              }}</span>
-            </template>
-            <template #cell-phong="{ row }">
-              <div class="fw-bold text-dark small">
-                <i class="bi bi-door-open me-1 text-primary"></i
-                >{{ row.tenPhongChieu || row.ten_phong_chieu }}
-              </div>
-            </template>
-            <template #cell-ngay="{ row }">
-              <span class="small fw-semibold">{{
-                formatDate(row.ngayChieu || row.ngay_chieu)
-              }}</span>
-            </template>
-            <template #cell-gio="{ row }">
-              <div class="small d-flex align-items-center gap-1">
-                <el-tag
-                  type="info"
-                  effect="plain"
-                  size="small"
-                  class="fw-bold"
-                  >{{ row.gioBatDau || row.gio_bat_dau }}</el-tag
-                >
-                <span class="text-secondary">→</span>
-                <el-tag type="info" effect="plain" size="small">{{
-                  row.gioKetThuc || row.gio_ket_thuc
-                }}</el-tag>
-              </div>
-            </template>
-            <template #cell-ghe="{ row }">
-              <el-tag
-                :type="
-                  (row.soGheTrong ?? row.so_ghe_trong) > 10
-                    ? 'success'
-                    : 'warning'
-                "
-                size="small"
-                round
-              >
-                {{ row.soGheTrong ?? row.so_ghe_trong }} ghế
-              </el-tag>
-            </template>
-            <template #cell-status="{ row }">
-              <el-tag
-                :type="getStatusTag(row.trangThai ?? row.trang_thai)"
-                size="small"
-                round
-              >
-                {{ getStatusLabel(row.trangThai ?? row.trang_thai) }}
-              </el-tag>
-            </template>
-            <template #actions="{ row }">
-              <div class="d-flex justify-content-center gap-1">
-                <el-tooltip content="Xem chi tiết" placement="top">
-                  <button
-                    class="btn-action-icon action-view"
-                    @click="handleView(row)"
-                  >
-                    <i class="bi bi-eye"></i>
-                  </button>
-                </el-tooltip>
-                <el-tooltip content="Chỉnh sửa" placement="top">
-                  <button
-                    class="btn-action-icon action-edit"
-                    :disabled="
-                      (row.trangThai ?? row.trang_thai) === 0 ||
-                      (row.trangThai ?? row.trang_thai) === 3
-                    "
-                    @click="openDialog(row)"
-                  >
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                </el-tooltip>
-              </div>
-            </template>
-          </BaseTable>
-
-          <!-- Custom Pagination for Tab List -->
-          <div class="schedule-pagination border-top px-4 py-3">
-            <div class="pagination-footer-row d-flex justify-content-between align-items-center">
-              <div class="footer-left small text-secondary">
-                Hiển thị {{ startRecord }}–{{ endRecord }} / {{ filteredShowtimes.length }} bản ghi
-              </div>
-              <div class="footer-center d-flex gap-1">
-                <el-button
-                  size="small"
-                  @click="currentPage--"
-                  :disabled="currentPage <= 1"
-                  circle
-                  ><el-icon><ArrowLeft /></el-icon
-                ></el-button>
-                <el-button
-                  v-for="p in pagesToShow"
-                  :key="p"
-                  size="small"
-                  :type="currentPage === p ? 'primary' : ''"
-                  @click="currentPage = p"
-                  >{{ p }}</el-button
-                >
-                <el-button
-                  size="small"
-                  @click="currentPage++"
-                  :disabled="currentPage >= totalPages"
-                  circle
-                  ><el-icon><ArrowRight /></el-icon
-                ></el-button>
-              </div>
-              <div class="footer-right small text-secondary">
-                Trang <strong>{{ currentPage }}</strong> / <strong>{{ totalPages }}</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab Sơ đồ -->
-        <div v-else class="h-100 overflow-hidden">
-          <ScheduleVisual
-            :showtimes="showtimes"
-            :phongChieuList="phongChieuList"
-            :phimList="phimList"
-            :allKhungGio="allKhungGio"
-            @view="handleView"
-            @addShowtime="handleAddShowtime"
-            @weekChange="onWeekChange"
-          />
+      <!-- Cell Templates (list only) -->
+      <template #cell-stt="{ index }">
+        <div class="d-flex justify-content-center align-items-center">
+          <span class="text-secondary smaller">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
         </div>
       </template>
-    </AdminTableLayout>
 
-    <!-- Modals (Shared) -->
-    <!-- Modal: Chi tiết -->
-    <BaseModal
-      v-model="detailVisible"
-      title="Chi tiết lịch chiếu"
-      icon="bi bi-calendar-event"
-      width="550px"
-      isDetail
-    >
-      <div v-if="selectedShowtime" class="p-2">
-        <div class="d-flex gap-4 mb-4 pb-4 border-bottom">
-          <img
-            v-if="selectedShowtime.poster"
-            :src="selectedShowtime.poster"
-            class="rounded-3 shadow-sm"
-            style="width: 100px; height: 140px; object-fit: cover"
-          />
-          <div
-            v-else
-            class="rounded-3 bg-light d-flex align-items-center justify-content-center border"
-            style="width: 100px; height: 140px"
-          >
-            <i class="bi bi-film text-secondary fs-1"></i>
+      <template #cell-phim="{ row }">
+        <div class="d-flex flex-column align-items-center justify-content-center">
+          <div class="fw-bold text-dark">{{ row.tenPhim }}</div>
+          <div class="smaller text-secondary">{{ row.loaiPhim || '2D' }} Digital</div>
+        </div>
+      </template>
+
+      <template #cell-giaiDoan="{ row }">
+        <div class="d-flex justify-content-center align-items-center smaller fw-bold text-primary">
+          {{ row.giaiDoan }}
+        </div>
+      </template>
+
+      <template #cell-tongSuat="{ row }">
+        <div class="d-flex justify-content-center align-items-center">
+          <el-tag type="info" effect="plain" class="fw-bold">{{ row.tongSuat }} suất</el-tag>
+        </div>
+      </template>
+
+      <template #cell-phongs="{ row }">
+        <div class="d-flex justify-content-center">
+          <div class="smaller text-secondary text-truncate" style="max-width: 180px;" :title="row.phongs">
+            {{ row.phongs }}
           </div>
-          <div class="flex-grow-1">
-            <h4 class="fw-bold text-dark mb-1">
-              {{ selectedShowtime.tenPhim || selectedShowtime.ten_phim }}
-            </h4>
-            <div class="d-flex align-items-center gap-2">
-              <el-tag
-                :type="
-                  getStatusTag(
-                    selectedShowtime.trangThai ?? selectedShowtime.trang_thai,
-                  )
-                "
-                round
-                size="small"
-                >{{
-                  getStatusLabel(
-                    selectedShowtime.trangThai ?? selectedShowtime.trang_thai,
-                  )
-                }}</el-tag
-              >
-              <el-tag
-                type="danger"
-                effect="dark"
-                round
-                size="small"
-                v-if="selectedShowtime.loaiPhim || selectedShowtime.loai_phim"
-                >{{
-                  selectedShowtime.loaiPhim || selectedShowtime.loai_phim
-                }}</el-tag
-              >
-              <span class="text-secondary small"
-                ><i class="bi bi-clock me-1"></i
-                >{{
-                  selectedShowtime.thoiLuong || selectedShowtime.thoi_luong
+        </div>
+      </template>
+
+      <template #cell-status="{ row }">
+        <div class="d-flex justify-content-center align-items-center">
+          <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" effect="dark" size="small" class="fw-bold">
+            {{ row.trangThai === 1 ? 'Đang chiếu' : 'Dừng chiếu' }}
+          </el-tag>
+        </div>
+      </template>
+
+      <template #actions="{ row }">
+        <div class="d-flex justify-content-center gap-1">
+          <el-tooltip content="Sơ đồ ghế" placement="top">
+            <button class="btn-action-icon action-seat" @click="openSeatMap(row)">
+              <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="Chỉnh sửa" placement="top">
+            <button class="btn-action-icon action-edit"
+              :disabled="(row.trangThai ?? row.trang_thai) === 0 || (row.trangThai ?? row.trang_thai) === 3"
+              @click="openDialog(row)">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </el-tooltip>
+        </div>
+      </template>
+      <!-- Visual View overrides the default table when active -->
+      <template v-if="activeTab === 'visual'">
+        <div class="h-100 overflow-hidden">
+          <ScheduleVisual :showtimes="showtimes" :phongChieuList="phongChieuList" :phimList="phimList"
+            :allKhungGio="allKhungGio" @view="openSeatMap" @addShowtime="handleAddShowtime"
+            @weekChange="onWeekChange" />
+        </div>
+      </template>
+    </BaseTable>
+
+    <!-- ══════════════════════════════════════════════════
+         MODAL: Sơ đồ ghế Real-time (Light Clean & Clear)
+         ══════════════════════════════════════════════════ -->
+    <BaseModal v-model="seatMapVisible" title="Sơ đồ ghế Real-time" icon="bi bi-grid-3x3-gap-fill" width="950px"
+      isDetail onlyCancel>
+      <div v-if="selectedShowtime" class="p-4 bg-light-map">
+        <!-- Header Map (Light Theme) -->
+        <div class="d-flex justify-content-between align-items-center mb-5 px-3">
+          <div>
+            <h4 class="fw-bold mb-1 text-dark">{{ selectedShowtime.tenPhim || selectedShowtime.ten_phim }}</h4>
+            <div class="text-secondary fw-medium">
+              <i class="bi bi-door-open me-1"></i> {{ selectedShowtime.tenPhongChieu || selectedShowtime.ten_phong_chieu
+              }}
+              <span class="mx-2">|</span>
+              <i class="bi bi-calendar3 me-1"></i> {{ formatDate(selectedShowtime.ngayChieu ||
+                selectedShowtime.ngay_chieu)
+              }}
+              <span class="mx-2">|</span>
+              <i class="bi bi-clock me-1"></i> {{ selectedShowtime.gioBatDau || selectedShowtime.gio_bat_dau }}
+            </div>
+          </div>
+          <div class="d-flex gap-4">
+            <div class="text-center px-3 py-2 border rounded bg-white shadow-sm">
+              <div class="h4 mb-0 fw-bold text-success">{{ selectedShowtime.soGheTrong ?? selectedShowtime.so_ghe_trong
                 }}
-                phút</span
-              >
+              </div>
+              <div class="smaller text-secondary fw-bold">TRỐNG</div>
+            </div>
+            <div class="text-center px-3 py-2 border rounded bg-white shadow-sm">
+              <div class="h4 mb-0 fw-bold text-danger">{{ (selectedShowtime.tongGhe || 0) - (selectedShowtime.soGheTrong
+                ??
+                selectedShowtime.so_ghe_trong ?? 0) }}</div>
+              <div class="smaller text-secondary fw-bold">ĐÃ BÁN</div>
             </div>
           </div>
         </div>
-        <div class="bg-light p-3 rounded-0 mb-4 border">
-          <div class="small text-secondary mb-1">Phòng chiếu</div>
-          <div class="fw-bold text-dark">
-            <i class="bi bi-door-open me-2 text-primary"></i>
-            {{
-              selectedShowtime.tenPhongChieu || selectedShowtime.ten_phong_chieu
-            }}
-            ({{
-              selectedShowtime.loaiManHinh || selectedShowtime.loai_man_hinh
-            }})
+
+        <!-- Screen -->
+        <div class="screen-container mb-5">
+          <div class="screen-line"></div>
+          <div class="text-center smaller fw-bold text-secondary mt-2 tracking-widest">MÀN HÌNH</div>
+        </div>
+
+        <!-- Seat Grid -->
+        <div class="seat-grid-container py-4" v-loading="loadingSeats">
+          <div v-for="(rowSeats, rowName) in groupedSeats" :key="rowName"
+            class="seat-row d-flex justify-content-center gap-2 mb-3">
+            <div class="row-label text-secondary fw-bold">{{ rowName }}</div>
+            <div v-for="seat in rowSeats" :key="seat.id" class="admin-seat"
+              :class="[seat.loaiGhe?.toLowerCase(), seat.trangThai === 1 ? 'sold' : 'available']">
+              <el-tooltip :content="`${seat.soGhe} - ${seat.loaiGhe} (${seat.trangThai === 1 ? 'Đã bán' : 'Trống'})`"
+                placement="top">
+                <span class="seat-num">{{ seat.cot }}</span>
+              </el-tooltip>
+            </div>
+            <div class="row-label text-secondary fw-bold">{{ rowName }}</div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-if="!loadingSeats && Object.keys(groupedSeats).length === 0" class="text-center py-5">
+            <el-empty description="Phòng chiếu này chưa được cấu hình sơ đồ ghế" />
           </div>
         </div>
-        <div class="row g-4">
-          <div class="col-6">
-            <div class="p-3 bg-light rounded-0 border">
-              <div class="small text-secondary mb-1">
-                <i class="bi bi-calendar3 me-2 text-primary"></i>Ngày chiếu
-              </div>
-              <div class="fw-bold">
-                {{
-                  formatDate(
-                    selectedShowtime.ngayChieu || selectedShowtime.ngay_chieu,
-                  )
-                }}
-              </div>
-            </div>
+
+        <!-- Legend -->
+        <div class="mt-4 d-flex justify-content-center gap-5 py-4 border-top bg-light-subtle rounded-3">
+          <div class="d-flex align-items-center gap-2">
+            <div class="admin-seat available sm shadow-none"></div> <span class="small fw-bold text-dark">Ghế
+              trống</span>
           </div>
-          <div class="col-6">
-            <div class="p-3 bg-light rounded-0 border">
-              <div class="small text-secondary mb-1">
-                <i class="bi bi-alarm me-2 text-primary"></i>Thời gian
-              </div>
-              <div class="fw-bold text-primary">
-                {{ selectedShowtime.gioBatDau || selectedShowtime.gio_bat_dau }}
-                →
-                {{
-                  selectedShowtime.gioKetThuc || selectedShowtime.gio_ket_thuc
-                }}
-              </div>
-            </div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="admin-seat sold sm shadow-none"></div> <span class="small fw-bold text-dark">Đã bán</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="admin-seat vip sm available shadow-none"></div> <span class="small fw-bold text-dark">Ghế
+              VIP</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="admin-seat couple sm available shadow-none" style="width: 30px;"></div> <span
+              class="small fw-bold text-dark">Ghế Couple</span>
           </div>
         </div>
       </div>
     </BaseModal>
 
     <!-- Modal: Thêm / Cập nhật -->
-    <BaseModal
-      v-model="dialogVisible"
-      :title="editingId ? 'Cập nhật lịch chiếu' : 'Thêm lịch chiếu mới'"
-      icon="bi bi-calendar-plus"
-      width="820px"
-      :confirmText="editingId ? 'Cập nhật' : 'Thêm lịch chiếu'"
-      :loading="saving"
-      @confirm="handleSubmit"
-    >
+    <BaseModal v-model="dialogVisible" :title="editingId ? 'Cập nhật lịch chiếu' : 'Thêm lịch chiếu mới'"
+      icon="bi bi-calendar-plus" width="820px" :confirmText="editingId ? 'Cập nhật' : 'Thêm lịch chiếu'"
+      :loading="saving" @confirm="handleSubmit">
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <div class="row g-4">
           <div class="col-12">
             <el-form-item label="Phim" prop="idPhim">
-              <el-select
-                v-model="form.idPhim"
-                class="w-100"
-                placeholder="Chọn phim"
-                filterable
-              >
-                <el-option
-                  v-for="p in phimList"
-                  :key="p.id"
-                  :label="`${p.tenPhim} [${p.loaiPhim || '2D'}]`"
-                  :value="p.id"
-                />
+              <el-select v-model="form.idPhim" class="w-100" placeholder="Chọn phim" filterable>
+                <el-option v-for="p in phimList" :key="p.id" :label="`${p.tenPhim} [${p.loaiPhim || '2D'}]`"
+                  :value="p.id" />
               </el-select>
             </el-form-item>
           </div>
           <div class="col-12">
             <el-form-item label="Phòng chiếu" prop="idPhongChieu">
-              <el-select
-                v-model="form.idPhongChieu"
-                class="w-100"
-                placeholder="Chọn phòng"
-                filterable
-              >
-                <el-option
-                  v-for="pc in phongChieuList"
-                  :key="pc.id"
-                  :label="pc.tenPhong || pc.ten_phong"
-                  :value="pc.id"
-                />
+              <el-select v-model="form.idPhongChieu" class="w-100" placeholder="Chọn phòng" filterable>
+                <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong || pc.ten_phong"
+                  :value="pc.id" />
               </el-select>
             </el-form-item>
           </div>
           <div class="col-6">
             <el-form-item label="Khung giờ" prop="idKhungGio">
-              <el-select
-                v-model="form.idKhungGio"
-                class="w-100"
-                placeholder="Chọn khung giờ"
-                filterable
-              >
-                <el-option
-                  v-for="kg in allKhungGio"
-                  :key="kg.id"
+              <el-select v-model="form.idKhungGio" class="w-100" placeholder="Chọn khung giờ" filterable>
+                <el-option v-for="kg in allKhungGio" :key="kg.id"
                   :label="`${kg.tenKhungGio || kg.ten_khung_gio} (${formatTime(kg.gioBatDau || kg.gio_bat_dau)} → ${formatTime(kg.gioKetThuc || kg.gio_ket_thuc)})`"
-                  :value="kg.id"
-                />
+                  :value="kg.id" />
               </el-select>
             </el-form-item>
           </div>
           <div class="col-6">
             <el-form-item label="Ngày chiếu" prop="ngayChieu">
-              <el-date-picker
-                v-model="form.ngayChieu"
-                type="date"
-                class="w-100"
-                placeholder="Chọn ngày"
-                value-format="YYYY-MM-DD"
-              />
+              <el-date-picker v-model="form.ngayChieu" type="date" class="w-100" placeholder="Chọn ngày"
+                value-format="YYYY-MM-DD" />
             </el-form-item>
           </div>
         </div>
@@ -421,36 +253,31 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import {
-  Search,
-  Refresh,
-  ArrowLeft,
-  ArrowRight,
-} from "@element-plus/icons-vue";
+import { Search, Refresh } from "@element-plus/icons-vue";
 import { suatChieuService } from "@/services/api/admin/suatChieuService";
 import notification from "@/utils/notifications";
 import confirmDialog from "@/utils/confirm";
 import dayjs from "dayjs";
 import debounce from "lodash/debounce";
 
-import AdminTableLayout from "@/components/AdminTableLayout.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import BaseTable from "@/components/common/BaseTable.vue";
 import ScheduleVisual from "./ScheduleVisual.vue";
 
-const activeTab = ref("visual");
+const activeTab = ref("list");
 const loading = ref(false);
 const saving = ref(false);
 const dialogVisible = ref(false);
-const detailVisible = ref(false);
+const seatMapVisible = ref(false);
+const loadingSeats = ref(false);
+const currentSeats = ref([]);
 const selectedShowtime = ref(null);
-const editingId = ref(null);
 const formRef = ref(null);
 
 const showtimes = ref([]);
 const phongChieuList = ref([]);
 const phimList = ref([]);
-const allKhungGio = ref([]); 
+const allKhungGio = ref([]);
 
 const searchQuery = ref("");
 const filterDate = ref(null);
@@ -460,12 +287,11 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 
 const listColumns = [
-  { label: "STT", key: "stt", width: "60px" },
-  { label: "Phòng chiếu", key: "phong", minWidth: "150px" },
-  { label: "Ngày chiếu", key: "ngay", width: "130px" },
-  { label: "Giờ chiếu", key: "gio", width: "200px" },
-  { label: "Ghế trống", key: "ghe", width: "120px" },
-  { label: "Trạng thái", key: "status", width: "130px" },
+  { label: "STT", key: "stt", width: "60px", align: "center" },
+  { label: "Giai đoạn chiếu", key: "giaiDoan", width: "200px", align: "center" },
+  { label: "Tổng suất chiếu", key: "tongSuat", width: "120px", align: "center" },
+  { label: "Phòng áp dụng", key: "phongs", width: "180px" ,align: "center"},
+  { label: "Trạng thái", key: "status", width: "130px", align: "center" },
 ];
 
 const form = ref({
@@ -500,7 +326,15 @@ async function fetchShowtimes() {
   loading.value = true;
   try {
     const res = await suatChieuService.getShowtimes();
-    showtimes.value = res.data?.data || [];
+    const data = res.data?.data || [];
+
+    showtimes.value = data.map(s => {
+      const room = phongChieuList.value.find(r => r.id === (s.idPhongChieu ?? s.id_phong_chieu));
+      return {
+        ...s,
+        tongGhe: s.tongGhe ?? s.tong_ghe ?? room?.tongGhe ?? 0
+      }
+    });
   } catch {
     notification.error("Không thể tải danh sách lịch chiếu");
   } finally {
@@ -509,50 +343,28 @@ async function fetchShowtimes() {
 }
 
 // ── Computed: list tab ─────────────────────────────────────────────────────
-const filteredShowtimes = computed(() =>
-  showtimes.value.filter((s) => {
-    const roomId = s.idPhongChieu ?? s.id_phong_chieu;
-    const status = s.trangThai ?? s.trang_thai;
-    const date = s.ngayChieu ?? s.ngay_chieu;
-    const tenPhim = s.tenPhim ?? s.ten_phim ?? "";
-    const matchRoom = !filterRoomId.value || roomId === filterRoomId.value;
-    const matchStatus =
-      filterStatus.value === "" || status === filterStatus.value;
-    const matchDate = !filterDate.value || date === filterDate.value;
-    const matchSearch =
-      !searchQuery.value ||
-      tenPhim.toLowerCase().includes(searchQuery.value.toLowerCase());
-    return matchRoom && matchStatus && matchDate && matchSearch;
-  }),
-);
-
-const totalPages = computed(
-  () => Math.ceil(filteredShowtimes.value.length / pageSize.value) || 1,
-);
-
-const pagesToShow = computed(() => {
-  const total = totalPages.value,
-    current = currentPage.value;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  let start = Math.max(1, current - 2),
-    end = Math.min(total, start + 4);
-  if (end === total) start = Math.max(1, end - 4);
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+const filteredSchedules = computed(() => {
+  return phimList.value.map(phim => {
+    const movieShowtimes = showtimes.value.filter(s => (s.idPhim ?? s.id_phim) === phim.id);
+    const rooms = [...new Set(movieShowtimes.map(s => s.tenPhongChieu || s.ten_phong_chieu))].filter(Boolean);
+    
+    return {
+      ...phim,
+      giaiDoan: phim.ngayKhoiChieu && phim.ngayKetThuc 
+        ? `${dayjs(phim.ngayKhoiChieu).format('DD/MM/YYYY')} - ${dayjs(phim.ngayKetThuc).format('DD/MM/YYYY')}`
+        : 'Chưa xác định',
+      tongSuat: movieShowtimes.length,
+      phongs: rooms.join(', ') || '—'
+    };
+  }).filter(m => {
+    if (!searchQuery.value) return true;
+    return m.tenPhim?.toLowerCase().includes(searchQuery.value.toLowerCase());
+  });
 });
 
-const startRecord = computed(() =>
-  filteredShowtimes.value.length === 0
-    ? 0
-    : (currentPage.value - 1) * pageSize.value + 1,
-);
-
-const endRecord = computed(() =>
-  Math.min(currentPage.value * pageSize.value, filteredShowtimes.value.length),
-);
-
-const paginatedShowtimes = computed(() => {
+const paginatedSchedules = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
-  return filteredShowtimes.value.slice(start, start + pageSize.value);
+  return filteredSchedules.value.slice(start, start + pageSize.value);
 });
 
 // ── Handlers ───────────────────────────────────────────────────────────────
@@ -569,67 +381,102 @@ const resetFilter = () => {
   fetchShowtimes();
 };
 
-const handleView = (row) => {
+const editingId = ref(null);
+
+const openSeatMap = async (row) => {
   selectedShowtime.value = row;
-  detailVisible.value = true;
+  seatMapVisible.value = true;
+  loadingSeats.value = true;
+  try {
+    const res = await suatChieuService.getGheStatus(row.id);
+    currentSeats.value = res.data?.data || [];
+  } catch (err) {
+    notification.error('Không thể tải sơ đồ ghế');
+  } finally {
+    loadingSeats.value = false;
+  }
 };
+
+const groupedSeats = computed(() => {
+  const groups = {};
+  currentSeats.value.forEach(s => {
+    if (!groups[s.hang]) groups[s.hang] = [];
+    groups[s.hang].push(s);
+  });
+  Object.keys(groups).forEach(key => {
+    groups[key].sort((a, b) => a.cot - b.cot);
+  });
+  return groups;
+});
 
 const openDialog = (row = null) => {
   editingId.value = row?.id || null;
   form.value = row
     ? {
-        idPhim: row.idPhim || row.id_phim,
-        idPhongChieu: row.idPhongChieu || row.id_phong_chieu,
-        idKhungGio: row.idKhungGio || row.id_khung_gio,
-        ngayChieu: row.ngayChieu || row.ngay_chieu,
-        trangThai: row.trangThai ?? row.trang_thai ?? 1,
-      }
+      idPhim: row.idPhim || row.id_phim,
+      idPhongChieu: row.idPhongChieu || row.id_phong_chieu,
+      idKhungGio: row.idKhungGio || row.id_khung_gio,
+      ngayChieu: row.ngayChieu || row.ngay_chieu,
+      trangThai: row.trangThai ?? row.trang_thai ?? 1,
+    }
     : {
-        idPhim: "",
-        idPhongChieu: "",
-        idKhungGio: "",
-        ngayChieu: null,
-        trangThai: 1,
-      };
+      idPhim: "",
+      idPhongChieu: "",
+      idKhungGio: "",
+      ngayChieu: null,
+      trangThai: 1,
+    };
   dialogVisible.value = true;
 };
 
-const handleAddShowtime = ({ phimId, roomId, khungId, date }) => {
-  openDialog(null);
-  form.value.idPhim = phimId;
-  form.value.idPhongChieu = roomId;
-  form.value.idKhungGio = khungId;
-  form.value.ngayChieu = date;
-};
+const handleAddShowtime = async ({ phimId, roomId, khungId, date }) => {
+  const phim = phimList.value.find((p) => p.id === phimId);
+  const phong = phongChieuList.value.find((r) => r.id === roomId);
+  const khung = allKhungGio.value.find((k) => k.id === khungId);
 
-const handleUpdateStatus = (row) => {
-  const cur = row.trangThai ?? row.trang_thai;
-  const newStatus = cur === 0 ? 1 : 0;
-  if (newStatus === cur) return;
-  confirmDialog
-    .custom(
-      `Đổi trạng thái sang <b>${getStatusLabel(newStatus).toLowerCase()}</b>?`,
-      "Xác nhận",
-    )
-    .then(async () => {
-      try {
-        await suatChieuService.updateShowtime(row.id, {
-          ...row,
-          trangThai: newStatus,
-        });
-        notification.success("Cập nhật trạng thái thành công");
-        fetchShowtimes();
-      } catch {
-        notification.error("Cập nhật thất bại");
-      }
-    })
-    .catch(() => {});
+  const timeStr = khung
+    ? `${khung.gioBatDau || khung.gio_bat_dau}`.substring(0, 5)
+    : "";
+  const dateStr = dayjs(date).format("DD/MM/YYYY");
+
+  const confirmed = await confirmDialog.confirm(
+    "Xác nhận thêm lịch chiếu?",
+    `Bạn có muốn thêm lịch chiếu phim "<strong>${phim?.tenPhim}</strong>" tại <strong>${phong?.tenPhong}</strong> lúc <strong>${timeStr}</strong> ngày <strong>${dateStr}</strong> không?`,
+  );
+
+  if (confirmed) {
+    saving.value = true;
+    try {
+      await suatChieuService.createShowtime({
+        idPhim: phimId,
+        idPhongChieu: roomId,
+        idKhungGio: khungId,
+        ngayChieu: date,
+        trangThai: 1,
+      });
+      notification.addSuccess("lịch chiếu");
+      await fetchShowtimes();
+    } catch (e) {
+      notification.error(e.response?.data?.message || "Có lỗi xảy ra");
+    } finally {
+      saving.value = false;
+    }
+  }
 };
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
+
+    try {
+      if (editingId.value) {
+        await confirmDialog.update('lịch chiếu');
+      } else {
+        await confirmDialog.add('lịch chiếu');
+      }
+    } catch { return; }
+
     saving.value = true;
     try {
       if (editingId.value) {
@@ -669,7 +516,7 @@ onMounted(async () => {
   try {
     const [phongRes, phimRes, khungRes] = await Promise.all([
       suatChieuService.getPhongChieuDropdown(),
-      suatChieuService.getPhimDropdown(), 
+      suatChieuService.getPhimDropdown(),
       suatChieuService.getKhungGioDropdown(),
     ]);
 
@@ -686,7 +533,7 @@ onMounted(async () => {
       id: p.id,
       tenPhim: p.tenPhim ?? p.ten_phim,
       thoiLuong: p.thoiLuong ?? p.thoi_luong ?? 0,
-      ngayKhoiChieu: p.ngayKhoiChieu ?? p.ngay_khoi_chieu ?? null,
+      ngayKhoiChieu: p.ngayKhoiChieu ?? p.ngay_chieu ?? null,
       loaiPhim: p.loaiPhim ?? p.loai_phim ?? "2D",
       poster: p.poster ?? "",
       trangThai: p.trangThai ?? p.trang_thai ?? null,
@@ -709,34 +556,115 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.admin-schedule-page {
-  height: 100%;
+/* ──────────────────────────────────────────────────
+   STYLE: Seat Map (Consistent Light Theme)
+   ────────────────────────────────────────────────── */
+.bg-light-map {
+  background: #ffffff;
+  border-radius: 0 0 16px 16px;
+  min-height: 480px;
+  border: 1px solid #f1f5f9;
 }
 
-.premium-tabs-toggle :deep(.el-radio-button__inner) {
-  border-radius: 0 !important;
+.screen-container {
+  width: 100%;
+  padding: 0 15%;
 }
 
-.btn-action-icon {
-  width: 32px;
-  height: 32px;
+.screen-line {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 20px;
+}
+
+.row-label {
+  width: 35px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0;
-  border: 1px solid #e2e8f0;
-  background: white;
-  transition: all 0.2s;
+  font-weight: 800;
+  font-size: 14px;
 }
 
-.btn-action-icon:hover {
-  background: #f1f5f9;
+.admin-seat {
+  width: 42px;
+  height: 42px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  cursor: default;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.action-view:hover { color: #3b82f6; border-color: #3b82f6; }
-.action-edit:hover { color: #10b981; border-color: #10b981; }
+.admin-seat.sm {
+  width: 22px;
+  height: 22px;
+  font-size: 0;
+  pointer-events: none;
+  border-width: 1px;
+}
 
-.schedule-pagination {
-  background: white;
+.admin-seat.available {
+  border-color: #cbd5e1;
+}
+
+.admin-seat.available:hover {
+  transform: translateY(-3px);
+  border-color: #3b82f6;
+  color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.admin-seat.sold {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #cbd5e1 !important;
+  position: relative;
+}
+
+.admin-seat.sold::after {
+  content: '✕';
+  position: absolute;
+  font-size: 18px;
+  opacity: 0.4;
+}
+
+.admin-seat.vip.available {
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.admin-seat.vip.available:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.admin-seat.couple.available {
+  border-color: #ec4899;
+  color: #be185d;
+  width: 92px;
+}
+
+.admin-seat.couple.available:hover {
+  border-color: #ec4899;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);
+}
+
+.bg-light-subtle {
+  background-color: #f8fafc !important;
+}
+
+.btn-action-icon.action-seat {
+  color: #6366f1;
+}
+
+.btn-action-icon.action-seat:hover {
+  background: #e0e7ff;
 }
 </style>

@@ -1,75 +1,316 @@
 /**
- * ADMIN TABLES - Shared Typography & Table Styles
+ * ADMIN TABLES - Unified Global Styles
  * ================================================
- * File này ép font chữ đồng nhất và tạo sự KHÁC BIỆT HOÀN TOÀN
- * giữa Tiêu đề và Nội dung.
+ * This file manages all table layouts, premium card systems, 
+ * and standardized typography for the admin dashboard.
  */
 
-/* 1. TIÊU ĐỀ CỘT (HEADER) - Professional & Bold */
-.base-table-container thead th,
-.base-table-container thead th *,
-.el-table__header th.el-table__cell .cell,
-.el-table__header th.el-table__cell .cell * {
-  font-size: 18px !important; 
-  font-weight: 700 !important; 
-  color: #1e293b !important;  
-  text-transform: none !important; 
-  letter-spacing: 0.01em !important;
-  line-height: 1.5 !important;
+/* 1. Base Layout & Container */
+.base-table-container {
+  background-color: #ffffff !important;
+  min-height: 100vh;
 }
 
-/* 2. NỘI DUNG BẢNG (BODY) - Clean & Readable */
-.base-table-container tbody td,
-.base-table-container tbody td *,
-.el-table__body td.el-table__cell .cell,
-.el-table__body td.el-table__cell .cell * {
-  font-size: 18px !important; 
-  font-weight: 500 !important; 
-  color: #475569 !important;
-  line-height: 1.6 !important;
-  text-decoration: none !important;
+/* 4-Card System for Admin Pages - Minimalist Look */
+.premium-card, .form-card-premium {
+  background: white;
+  border-radius: 4px;
+  border: none;
+  border-bottom: 2px solid #f8fafc;
+  box-shadow: none !important;
+  margin-bottom: 2rem !important;
 }
 
-/* 3. TAGS & BADGES */
-.el-table .el-tag, 
-.base-table-container .el-tag,
-.badge, .small, small, .extra-small {
-  font-size: 16px !important;
+/* 2. Global Form Header (Shared across Staff, Movie, Voucher forms) */
+.form-page-container {
+  background-color: #ffffff !important;
+  padding: 2rem 3rem !important;
+  min-height: 100vh;
+}
+
+.form-header-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 1.5rem;
+}
+
+.form-header-back-btn {
+  font-size: 14px !important;
   font-weight: 600 !important;
-  padding: 4px 10px !important;
-  height: auto !important;
+  color: #64748b !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  margin-bottom: 12px !important;
+  transition: all 0.2s !important;
 }
 
-/* 4. ĐỘ CAO HÀNG - Premium and Spacious */
-.el-table__header th.el-table__cell,
-.base-table-container thead th {
-  padding: 16px 12px !important;
-  background-color: #f8fafc !important;
+.form-header-back-btn:hover {
+  color: var(--brand-red) !important;
+  transform: translateX(-4px);
 }
 
-.el-table__body td.el-table__cell,
-.base-table-container tbody td {
-  padding: 22px 12px !important;
+.form-header-title {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #1e293b !important;
+  margin: 0 !important;
+  letter-spacing: -0.5px;
 }
 
-/* 5. PHÂN TRANG */
-.pagination-footer .text-dark.fw-bold {
-  font-size: 16px !important;
+/* 2. Title Section Styling */
+.title-accent {
+  width: 4px;
+  height: 24px;
+  background-color: var(--brand-red);
+  border-radius: 2px;
 }
-.el-pagination * {
-  font-size: 15px !important;
+.premium-page-title {
+  color: var(--brand-red);
+  font-size: 1rem; /* Reduced from 1.125rem */
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* 6. OVERFLOW CONTROL - Prevent Horizontal Scroll */
-.table-content-wrapper {
-  overflow-x: hidden !important;
+/* 3. Global Table Typography (Cine Premium Table) */
+.cine-premium-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
 }
 
-.table-cell-sticky-stt,
-.td-sticky-actions,
-.sticky-col-stt,
-.sticky-col-actions,
-.el-tag,
-.badge {
-  white-space: nowrap !important;
+/* Headers - Standardized across all tables */
+.cine-premium-table thead th,
+.el-table__header th.el-table__cell .cell {
+  background: #f8fafc !important; /* Neutral light background */
+  color: #475569 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  padding: 12px 15px !important;
+  border: none !important; /* Remove all header lines */
+  border-bottom: 1px solid #edf2f7 !important;
+}
+
+/* Data Cells - Simplified to remove clutter */
+.cine-premium-table tbody td,
+.el-table__body td.el-table__cell .cell {
+  padding: 12px 15px !important;
+  border: none !important;
+  border-bottom: 1px solid #f8fafc !important; /* Extremely faint line */
+  font-size: 13px !important;
+  color: #334155 !important;
+}
+
+.cine-premium-table tbody tr:hover {
+  background-color: var(--color-gray-100);
+}
+
+/* Sticky Column Support */
+.sticky-col { position: sticky !important; left: 0; z-index: 5; background-color: inherit; }
+.sticky-col-actions { position: sticky !important; right: 0; z-index: 5; background-color: inherit; border-left: 1px solid var(--border-color-light); }
+
+/* 4. Action Buttons (Universal) */
+.btn-cine-action {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  background: white;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  color: var(--color-gray-600);
+}
+
+/* Premium Refresh Button (Matching Image 3 but Red) */
+.btn-cine-refresh-icon {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #fee2e2 !important;
+  background: #fef2f2 !important;
+  border-radius: 10px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  color: #ef4444 !important;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05);
+}
+
+.btn-cine-refresh-icon:hover {
+  background-color: #ef4444 !important;
+  color: white !important;
+  border-color: #ebedef !important; /* Slight white border effect */
+  transform: rotate(45deg) scale(1.1);
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.25);
+}
+
+
+.btn-cine-refresh-icon:hover .el-icon {
+  transform: rotate(-45deg); /* Keeping the icon level while the card tilts */
+  animation: spin-once 0.6s ease-in-out;
+}
+
+@keyframes spin-once {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.action-view:hover { color: var(--color-info); border-color: var(--color-info); background: #ebf5ff; }
+.action-edit:hover { color: var(--color-success); border-color: var(--color-success); background: #ecfdf5; }
+.action-delete:hover { color: var(--color-error); border-color: var(--color-error); background: #fef2f2; }
+
+/* Main Feature Button (e.g., Add New) and Header Actions */
+.btn-premium-action-main,
+.el-main .base-table-container .el-button {
+  height: 40px !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-premium-action-main {
+  background-color: #E31E24 !important; /* Cine Red */
+  border: none !important;
+  padding: 0 20px !important;
+  color: white !important;
+  box-shadow: 0 4px 10px rgba(227, 30, 36, 0.15) !important;
+}
+.btn-premium-action-main:hover { 
+  background-color: #cc1b20 !important; 
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(227, 30, 36, 0.25) !important;
+}
+
+/* Clean UI Overrides for Element Plus Switch and Checkbox */
+.status-switch.el-switch {
+  height: 24px;
+}
+.status-switch .el-switch__core {
+  background-color: #e2e8f0 !important;
+  border-color: #e2e8f0 !important;
+  height: 20px;
+  min-width: 38px;
+}
+.status-switch.is-checked .el-switch__core {
+  background-color: #E31E24 !important; /* Premium Cine Red */
+  border-color: #E31E24 !important;
+}
+.status-switch .el-switch__core .el-switch__action {
+  width: 15px;
+  height: 15px;
+  background-color: #ffffff !important;
+}
+
+/* Premium Custom Checkbox - Precise sizing */
+.form-check-input {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 4px !important;
+  border: 1px solid #cbd5e1 !important;
+  margin-top: 0 !important;
+  cursor: pointer;
+}
+.form-check-input:checked {
+  background-color: #E31E24 !important;
+  border-color: #E31E24 !important;
+  box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1);
+}
+.form-check-input:focus {
+  box-shadow: none !important;
+  border-color: #E31E24 !important;
+}
+
+
+/* 5. Pagination UI - Balanced Layout */
+.footer-pagination-only-card {
+  margin-top: 1rem !important;
+}
+
+.pagination-left-info {
+  white-space: nowrap;
+}
+
+.btn-cine-page {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  color: #475569;
+}
+
+.btn-cine-page.active {
+  background-color: #E31E24;
+  color: white;
+  border-color: #E31E24;
+  box-shadow: 0 4px 8px rgba(227, 30, 36, 0.2);
+}
+
+.btn-cine-page:hover:not(:disabled):not(.active) {
+  background-color: #f8fafc;
+  color: #E31E24;
+  border-color: #E31E24;
+}
+
+.btn-cine-page:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Page Size Selector Premium */
+.premium-page-size-select :deep(.el-input__wrapper) {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 4px 8px !important;
+}
+
+.premium-page-size-select :deep(.el-input.is-focus .el-input__wrapper) {
+  border-color: #E31E24 !important;
+}
+
+/* 6. Utility & Misc */
+.spinner-premium {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-color-light);
+  border-top: 2px solid var(--brand-red);
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin-cine 0.8s linear infinite;
+}
+@keyframes spin-cine { 100% { transform: rotate(360deg); } }
+
+/* Shared Scrollbar for Tables */
+.table-scroll-area::-webkit-scrollbar,
+.el-table__body-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.table-scroll-area::-webkit-scrollbar-thumb,
+.el-table__body-wrapper::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 10px;
 }

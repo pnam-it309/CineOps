@@ -189,17 +189,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="movie-form-page p-4">
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+  <div class="form-page-container">
+    <div class="form-header-modern">
       <div>
-        <el-button :icon="ArrowLeft" link @click="router.back()" class="mb-2">Quay lại</el-button>
-        <h3 class="fw-bold text-dark mb-0">
+        <el-button :icon="ArrowLeft" link @click="router.back()" class="form-header-back-btn">
+          Quay lại danh sách
+        </el-button>
+        <h1 class="form-header-title">
           {{ isEdit ? 'Chỉnh sửa phim: ' + movieForm.tenPhim : 'Thêm phim mới' }}
-        </h3>
+        </h1>
       </div>
-      <div class="d-flex gap-2">
-        <el-button @click="router.back()">Hủy bỏ</el-button>
-        <el-button type="primary" :icon="Check" @click="handleSave" :loading="loading">
+      <div class="d-flex gap-3">
+        <el-button @click="router.back()" class="btn-cine-action-outline">Hủy bỏ</el-button>
+        <el-button type="primary" :icon="Check" @click="handleSave" :loading="loading" class="btn-premium-action-main px-4">
           {{ isEdit ? 'Lưu thay đổi' : 'Tạo phim mới' }}
         </el-button>
       </div>
@@ -207,10 +209,10 @@ onMounted(() => {
 
     <div class="row g-4">
       <div class="col-lg-8">
-        <el-card shadow="never" class="rounded-4 border-0 shadow-sm">
-          <template #header>
-            <div class="fw-bold"><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</div>
-          </template>
+        <div class="form-card-premium p-4 px-5">
+          <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
+            <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+          </div>
           <el-form :model="movieForm" label-position="top" class="premium-form">
             <div class="row g-3">
               <div class="col-md-8">
@@ -219,12 +221,8 @@ onMounted(() => {
                 </el-form-item>
               </div>
               <div class="col-md-4">
-                <el-form-item label="Mã phim">
-                  <el-input v-model="movieForm.maPhim" readonly :prefix-icon="Tickets" size="large">
-                    <template #append v-if="!isEdit">
-                      <el-button @click="movieForm.maPhim = generateMovieCode()">Tạo mới</el-button>
-                    </template>
-                  </el-input>
+                <el-form-item label="Mã phim (Hệ thống tự động)">
+                  <el-input v-model="movieForm.maPhim" readonly :prefix-icon="Tickets" size="large" />
                 </el-form-item>
               </div>
               <div class="col-12">
@@ -262,12 +260,12 @@ onMounted(() => {
               </div>
             </div>
           </el-form>
-        </el-card>
+        </div>
 
-        <el-card shadow="never" class="rounded-4 border-0 shadow-sm mt-4">
-          <template #header>
-            <div class="fw-bold"><i class="bi bi-calendar-event me-2"></i>Lịch chiếu & Thời gian</div>
-          </template>
+        <div class="form-card-premium p-4 px-5">
+          <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
+            <i class="bi bi-calendar-event me-2"></i>Lịch chiếu & Thời gian
+          </div>
           <div class="row g-3">
             <div class="col-md-6">
               <el-form-item label="Ngày khởi chiếu">
@@ -291,14 +289,14 @@ onMounted(() => {
               </div>
             </div>
           </div>
-        </el-card>
+        </div>
       </div>
 
       <div class="col-lg-4">
-        <el-card shadow="never" class="rounded-4 border-0 shadow-sm">
-          <template #header>
-            <div class="fw-bold"><i class="bi bi-gear-fill me-2"></i>Cấu hình & Phân loại</div>
-          </template>
+        <div class="form-card-premium p-4">
+          <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
+            <i class="bi bi-gear-fill me-2"></i>Cấu hình & Phân loại
+          </div>
           <el-form :model="movieForm" label-position="top">
 
             <el-form-item label="Giá phim (VNĐ)">
@@ -348,12 +346,12 @@ onMounted(() => {
               <el-checkbox v-model="movieForm.hienThiCanhBaoDoTuoi" label="Hiển thị cảnh báo độ tuổi trên giao diện khách hàng" />
             </el-form-item>
           </el-form>
-        </el-card>
+        </div>
 
-        <el-card shadow="never" class="rounded-4 border-0 shadow-sm mt-4">
-          <template #header>
-            <div class="fw-bold"><i class="bi bi-image me-2"></i>Hình ảnh & Media</div>
-          </template>
+        <div class="form-card-premium p-4 mt-4">
+          <div class="fw-bold fs-5 text-dark mb-4 pb-2 border-bottom">
+            <i class="bi bi-image me-2"></i>Hình ảnh & Media
+          </div>
           <el-form-item label="Link Poster">
             <el-input v-model="movieForm.poster" placeholder="https://..." size="large" />
             <div v-if="movieForm.poster" class="mt-3 text-center">
@@ -363,7 +361,7 @@ onMounted(() => {
           <el-form-item label="Link Trailer (YouTube)">
             <el-input v-model="movieForm.trailer" placeholder="https://..." size="large" />
           </el-form-item>
-        </el-card>
+        </div>
       </div>
     </div>
   </div>
@@ -379,35 +377,35 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.movie-form-page {
-  background-color: #f8fafc;
-  min-height: 100vh;
+.form-card-premium {
+  border-radius: 12px;
 }
-:deep(.el-card__header) {
-  border-bottom: 1px solid #f1f5f9;
-  background-color: #ffffff;
-}
+
 .movie-form-page :deep(.el-form-item) {
   margin-bottom: 24px;
 }
+
 .movie-form-page :deep(.el-select .el-select__tags) {
   padding: 6px 0;
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 4px;
 }
+
 .movie-form-page :deep(.el-select .el-tag) {
   margin: 0 !important;
   height: 28px;
   line-height: 26px;
   font-weight: 600;
 }
+
 .movie-form-page :deep(.el-form-item__label) {
   font-weight: 700 !important;
   color: #1e293b !important;
   margin-bottom: 8px !important;
   line-height: 1.2 !important;
 }
+
 .movie-form-page :deep(.el-select__wrapper) {
   min-height: 45px;
   height: auto !important;

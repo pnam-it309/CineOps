@@ -1,9 +1,6 @@
-
 <script setup>
 import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { Search, Plus, Edit, Delete, View, Filter, Message, User, Phone } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
-import AdminTableLayout from '@/components/AdminTableLayout.vue';
 
 import BaseTable from '@/components/common/BaseTable.vue';
 import CCCDScanner from '@/components/common/CCCDScanner.vue'; // <-- Integrate Scanner
@@ -13,16 +10,22 @@ import confirmDialog from '@/utils/confirm';
 import BaseModal from '@/components/common/BaseModal.vue';
 import ExcelActions from '@/components/common/ExcelActions.vue';
 import { addressService } from '@/services/api/common/addressService';
+import { hoaDonService } from '@/services/api/admin/hoaDonService';
 
 // --- State ---
 const customers = ref([]);
 const loading = ref(false);
 const searchQuery = ref('');
-const filterTrangThai = ref(''); 
+const filterTrangThai = ref('');
 const filterGioiTinh = ref('');
 const totalElements = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(5);
+
+// Invoice history states
+const activeDetailTab = ref('info');
+const customerInvoices = ref([]);
+const loadingInvoices = ref(false);
 
 const customerColumns = [
   { label: 'STT', key: 'stt', width: '60px' },
@@ -62,41 +65,41 @@ const districts = ref([]);
 const wards = ref([]);
 
 const fetchProvinces = async () => {
-    try {
-        const res = await addressService.getProvinces();
-        provinces.value = res.data;
-    } catch (err) { console.error(err); }
+  try {
+    const res = await addressService.getProvinces();
+    provinces.value = res.data;
+  } catch (err) { console.error(err); }
 };
 
 const handleProvinceChange = async (val) => {
-    form.quanHuyen = '';
-    form.phuongXa = '';
-    districts.value = [];
-    wards.value = [];
-    if (!val) return;
-    
-    const p = provinces.value.find(x => x.name === val);
-    if (p) {
-        // Lấy toàn bộ quận huyện và phường xã của tỉnh đó (depth=3)
-        // Lưu ý: Người dùng yêu cầu không còn Huyện, nên ta gộp hết Xã vào 1 danh sách
-        const res = await addressService.getDistricts(p.code); // districts.value will be populated
-        const provinceDetail = res.data;
-        if (provinceDetail && provinceDetail.districts) {
-            let allWards = [];
-            for (const d of provinceDetail.districts) {
-                // Fetch wards for each district
-                const wRes = await addressService.getWards(d.code);
-                if (wRes.data && wRes.data.wards) {
-                    allWards = [...allWards, ...wRes.data.wards.map(w => ({ ...w, districtName: d.name }))];
-                }
-            }
-            wards.value = allWards;
+  form.quanHuyen = '';
+  form.phuongXa = '';
+  districts.value = [];
+  wards.value = [];
+  if (!val) return;
+
+  const p = provinces.value.find(x => x.name === val);
+  if (p) {
+    // Lấy toàn bộ quận huyện và phường xã của tỉnh đó (depth=3)
+    // Lưu ý: Người dùng yêu cầu không còn Huyện, nên ta gộp hết Xã vào 1 danh sách
+    const res = await addressService.getDistricts(p.code); // districts.value will be populated
+    const provinceDetail = res.data;
+    if (provinceDetail && provinceDetail.districts) {
+      let allWards = [];
+      for (const d of provinceDetail.districts) {
+        // Fetch wards for each district
+        const wRes = await addressService.getWards(d.code);
+        if (wRes.data && wRes.data.wards) {
+          allWards = [...allWards, ...wRes.data.wards.map(w => ({ ...w, districtName: d.name }))];
         }
+      }
+      wards.value = allWards;
     }
+  }
 };
 
 const handleDistrictChange = async (val) => {
-    // Không dùng nữa vì bỏ Huyện
+  // Không dùng nữa vì bỏ Huyện
 };
 
 // Rules validation cơ bản cho form
@@ -114,23 +117,23 @@ const fetchCustomers = async () => {
   loading.value = true;
   try {
     const res = await khachHangService.getAll(
-      searchQuery.value || null, 
+      searchQuery.value || null,
       filterTrangThai.value === '' ? null : filterTrangThai.value,
       filterGioiTinh.value === '' ? null : filterGioiTinh.value,
-      currentPage.value - 1, 
+      currentPage.value - 1,
       pageSize.value
     );
-    
+
     const apiRes = res.data;
     if (apiRes && apiRes.data) {
-       // Backend trả về Page object
-       if (apiRes.data.content) {
-         customers.value = apiRes.data.content;
-         totalElements.value = apiRes.data.totalElements;
-       } else {
-         customers.value = Array.isArray(apiRes.data) ? apiRes.data : [];
-         totalElements.value = customers.value.length;
-       }
+      // Backend trả về Page object
+      if (apiRes.data.content) {
+        customers.value = apiRes.data.content;
+        totalElements.value = apiRes.data.totalElements;
+      } else {
+        customers.value = Array.isArray(apiRes.data) ? apiRes.data : [];
+        totalElements.value = customers.value.length;
+      }
     } else {
       customers.value = [];
       totalElements.value = 0;
@@ -143,8 +146,8 @@ const fetchCustomers = async () => {
 };
 
 onMounted(() => {
-    fetchCustomers();
-    fetchProvinces();
+  fetchCustomers();
+  fetchProvinces();
 });
 
 // --- Logic xử lý Modal (Thêm & Sửa) ---
@@ -186,15 +189,15 @@ const handleEdit = (row) => {
     diaChiChiTiet: row.diaChiChiTiet || '',
     trangThai: row.trangThai
   });
-  
+
   if (form.thanhPhoTinh) {
-      handleProvinceChange(form.thanhPhoTinh).then(() => {
-          if (form.quanHuyen) {
-              handleDistrictChange(form.quanHuyen);
-          }
-      });
+    handleProvinceChange(form.thanhPhoTinh).then(() => {
+      if (form.quanHuyen) {
+        handleDistrictChange(form.quanHuyen);
+      }
+    });
   }
-  
+
   dialogVisible.value = true;
 };
 
@@ -202,27 +205,47 @@ const detailVisible = ref(false);
 const selectedItem = ref(null);
 const handleView = (row) => {
   selectedItem.value = row;
+  activeDetailTab.value = 'info';
   detailVisible.value = true;
+  fetchCustomerInvoices(row.id);
 };
+
+const fetchCustomerInvoices = async (customerId) => {
+  loadingInvoices.value = true;
+  customerInvoices.value = [];
+  try {
+    const res = await hoaDonService.getInvoices({ idKhachHang: customerId, size: 50 });
+    if (res.data && res.data.data) {
+      customerInvoices.value = res.data.data.content || res.data.data;
+    }
+  } catch (err) {
+    console.error('Error fetching invoices:', err);
+  } finally {
+    loadingInvoices.value = false;
+  }
+};
+
+const getInvoiceStatusLabel = (s) => ({ 1: 'Hoàn thành', 0: 'Hủy', 2: 'Chờ' }[s] || 'Khác');
+const getInvoiceStatusTag = (s) => ({ 1: 'success', 0: 'danger', 2: 'warning' }[s] || 'info');
 
 // Handle data returned from Scanner
 const handleCCCDScanned = (data) => {
   if (data.name) form.tenKhachHang = data.name;
   if (data.dob) form.ngaySinh = data.dob;
-  
+
   // Mapping địa chỉ Tỉnh / Xã (BỎ QUA HUYỆN)
   if (data.province) {
-    const provinceMatch = provinces.value.find(p => 
-      p.name.toLowerCase().includes(data.province.toLowerCase()) || 
+    const provinceMatch = provinces.value.find(p =>
+      p.name.toLowerCase().includes(data.province.toLowerCase()) ||
       data.province.toLowerCase().includes(p.name.toLowerCase())
     );
-    
+
     if (provinceMatch) {
       form.thanhPhoTinh = provinceMatch.name;
       handleProvinceChange(provinceMatch.name).then(() => {
         if (data.ward) {
-          const wardMatch = wards.value.find(w => 
-            w.name.toLowerCase().includes(data.ward.toLowerCase()) || 
+          const wardMatch = wards.value.find(w =>
+            w.name.toLowerCase().includes(data.ward.toLowerCase()) ||
             data.ward.toLowerCase().includes(w.name.toLowerCase())
           );
           if (wardMatch) form.phuongXa = wardMatch.name;
@@ -230,10 +253,10 @@ const handleCCCDScanned = (data) => {
       });
     }
   }
-  
+
   // Theo yêu cầu khách hàng: Không cần địa chỉ chi tiết và Huyện
   form.quanHuyen = '';
-  form.diaChiChiTiet = ''; 
+  form.diaChiChiTiet = '';
 };
 
 // --- Logic Lưu Dữ Liệu ---
@@ -272,7 +295,7 @@ const handleUpdateStatus = (row, status = null) => {
   const isInactive = row.trangThai === 0;
   const newStatus = status !== null ? status : (isInactive ? 1 : 0);
   const label = newStatus === 1 ? 'kích hoạt' : 'vô hiệu hóa';
-  
+
   if (newStatus === row.trangThai) return;
 
   confirmDialog.custom(
@@ -287,7 +310,7 @@ const handleUpdateStatus = (row, status = null) => {
     } catch (error) {
       notification.error('Cập nhật thất bại');
     }
-  }).catch(() => {});
+  }).catch(() => { });
 };
 
 // --- Các hàm hỗ trợ khác ---
@@ -320,132 +343,103 @@ watch([currentPage, pageSize], fetchCustomers);
 </script>
 
 <template>
-  <div class="admin-customers-page">
-    <AdminTableLayout
-        title="Quản lý khách hàng"
-        titleIcon="bi bi-people-fill"
-        addButtonLabel="Thêm khách hàng"
-        :data="customers"
-        :loading="loading"
-        :total="totalElements"
-        v-model:currentPage="currentPage"
-        v-model:pageSize="pageSize"
-        @add-click="handleAdd"
-        @reset-filter="resetFilter"
-    >
-
-
-  
+  <div class="d-flex flex-column flex-grow-1 h-100 overflow-hidden">
+    <BaseTable title="Quản lý khách hàng" titleIcon="bi bi-people-fill" addButtonLabel="Thêm khách hàng"
+      :data="customers" :columns="customerColumns" :loading="loading" :total="totalElements"
+      v-model:currentPage="currentPage" v-model:pageSize="pageSize" @add-click="handleAdd" @reset-filter="resetFilter"
+      @edit="handleEdit" @delete="handleUpdateStatus">
       <template #header-actions-left>
         <ExcelActions module="khach-hang" @import-success="fetchCustomers" />
       </template>
 
+      <!-- Optimized Filters -->
       <template #filters>
-        <div class="filter-item search-input-wrapper">
-          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable @input="fetchCustomers" style="width: 250px;" />
+        <div class="me-2 mb-2 mb-md-0" style="min-width: 240px;">
+          <el-input v-model="searchQuery" placeholder="Tên, email, SĐT..." :prefix-icon="Search" clearable
+            @input="fetchCustomers" />
         </div>
 
-        <div class="filter-item">
-          <el-select v-model="filterTrangThai" placeholder="Chọn trạng thái" style="width: 180px;" clearable @change="fetchCustomers">
-            <el-option label="Tất cả trạng thái" value="" />
+        <div class="me-2 mb-2 mb-md-0">
+          <el-select v-model="filterTrangThai" placeholder="Trạng thái" style="width: 170px;" clearable
+            @change="fetchCustomers">
             <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
           </el-select>
         </div>
 
-        <div class="filter-item">
-          <el-select v-model="filterGioiTinh" placeholder="Chọn giới tính" style="width: 180px;" clearable @change="fetchCustomers">
-            <el-option label="Tất cả giới tính" value="" />
+        <div class="mb-2 mb-md-0">
+          <el-select v-model="filterGioiTinh" placeholder="Giới tính" style="width: 170px;" clearable
+            @change="fetchCustomers">
             <el-option label="Nam" :value="1" />
             <el-option label="Nữ" :value="0" />
           </el-select>
         </div>
       </template>
-  
-      <template #content>
-        <BaseTable
-          :data="customers"
-          :columns="customerColumns"
-          :loading="loading"
-          :total="totalElements"
-          v-model:currentPage="currentPage"
-          v-model:pageSize="pageSize"
-          :hide-pagination="true"
-          @edit="handleEdit"
-          @delete="handleUpdateStatus"
-        >
-          <template #cell-stt="{ index }">
-            <span class="small fw-bold text-secondary">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
-          </template>
 
-          <template #cell-maKhachHang="{ row }">
-            <span class="text-secondary small">{{ row.maKhachHang }}</span>
-          </template>
-
-          <template #cell-customer="{ row }">
-            <div class="fw-bold text-dark small">{{ row.tenKhachHang }}</div>
-          </template>
-
-          <template #cell-sdt="{ row }">
-            <div class="text-secondary small">{{ row.sdt || '—' }}</div>
-          </template>
-
-          <template #cell-email="{ row }">
-            <div class="text-secondary small">{{ row.email || '—' }}</div>
-          </template>
-
-          <template #cell-diaChi="{ row }">
-            <div class="text-secondary small text-truncate" style="max-width: 200px;" :title="row.diaChi">{{ row.diaChi || '—' }}</div>
-          </template>
-
-          <template #cell-loaiKhach="{ row }">
-            <el-tag size="small" :type="row.tenLoaiKhachHang?.toLowerCase().includes('vip') ? 'warning' : 'info'" effect="plain" round>
-              {{ row.tenLoaiKhachHang || 'Thường' }}
-            </el-tag>
-          </template>
-
-
-          <template #cell-trangThai="{ row }">
-            <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" round :class="{ 'cursor-pointer': row.trangThai === 1 }" @click="row.trangThai === 1 ? handleUpdateStatus(row, 0) : null">
-              {{ getStatusLabel(row.trangThai) }}
-            </el-tag>
-          </template>
-
-          <template #actions="{ row }">
-            <div class="d-flex gap-1 justify-content-center align-items-center">
-              <el-tooltip content="Xem chi tiết" placement="top">
-                <button class="btn-action-icon action-view" @click="handleView(row)">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </el-tooltip>
-              <el-tooltip content="Chỉnh sửa" placement="top">
-                <button class="btn-action-icon action-edit" :disabled="row.trangThai === 0" @click="handleEdit(row)">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </el-tooltip>
-              <el-switch
-                :model-value="row.trangThai === 1"
-                @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
-                class="status-switch mx-1"
-                active-color="#ff4949"
-                inactive-color="#ff4949"
-              />
-            </div>
-          </template>
-        </BaseTable>
+      <!-- Cell Templates -->
+      <template #cell-stt="{ index }">
+        <span class="text-secondary smaller">{{ (currentPage - 1) * pageSize + index + 1 }}</span>
       </template>
-    </AdminTableLayout>
-  
+
+      <template #cell-maKhachHang="{ row }">
+        <span class="text-primary smaller fw-bold">#{{ row.maKhachHang }}</span>
+      </template>
+
+      <template #cell-customer="{ row }">
+        <div class="fw-bold text-dark">{{ row.tenKhachHang }}</div>
+        <div class="smaller text-secondary">{{ getGenderText(row.gioiTinh) }}, {{ calculateAge(row.ngaySinh) }} tuổi
+        </div>
+      </template>
+
+      <template #cell-sdt="{ row }">
+        <span class="smaller text-dark fw-semibold">{{ row.sdt || '—' }}</span>
+      </template>
+
+      <template #cell-email="{ row }">
+        <span class="smaller text-secondary">{{ row.email || '—' }}</span>
+      </template>
+
+      <template #cell-diaChi="{ row }">
+        <div class="text-secondary smaller text-truncate" style="max-width: 250px;" :title="row.diaChi">{{ row.diaChi ||
+          '—' }}</div>
+      </template>
+
+      <template #cell-loaiKhach="{ row }">
+        <el-tag size="small" :type="row.tenLoaiKhachHang?.toLowerCase().includes('vip') ? 'warning' : 'info'"
+          effect="plain" class="fw-bold">
+          {{ row.tenLoaiKhachHang || 'Thường' }}
+        </el-tag>
+      </template>
+
+      <template #cell-trangThai="{ row }">
+        <el-tag :type="row.trangThai === 1 ? 'success' : 'info'" size="small" effect="dark" class="fw-bold">
+          {{ row.trangThai === 1 ? 'Hoạt động' : 'Tạm khóa' }}
+        </el-tag>
+      </template>
+
+      <template #actions="{ row }">
+        <div class="d-flex justify-content-center align-items-center gap-1">
+          <el-tooltip content="Xem chi tiết" placement="top">
+            <button class="btn-action-icon action-view" @click="handleView(row)">
+              <i class="bi bi-eye"></i>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="Chỉnh sửa" placement="top">
+            <button class="btn-action-icon action-edit" @click="handleEdit(row)">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </el-tooltip>
+          <el-switch :model-value="row.trangThai === 1" @change="(val) => handleUpdateStatus(row, val ? 1 : 0)"
+            class="status-switch mx-1" />
+        </div>
+      </template>
+    </BaseTable>
 
 
-    <BaseModal
-      v-model="dialogVisible"
-      :title="isEdit ? 'Cập nhật khách hàng' : 'Thêm khách hàng mới'"
-      :icon="isEdit ? 'bi bi-person-gear' : 'bi bi-person-plus'"
-      width="650px"
-      confirmText="XÁC NHẬN"
-      @confirm="submitForm"
-    >
+
+    <BaseModal v-model="dialogVisible" :title="isEdit ? 'Cập nhật khách hàng' : 'Thêm khách hàng mới'"
+      :icon="isEdit ? 'bi bi-person-gear' : 'bi bi-person-plus'" width="650px" confirmText="XÁC NHẬN"
+      @confirm="submitForm">
       <template #header-extra v-if="!isEdit">
         <CCCDScanner @scanned="handleCCCDScanned" />
       </template>
@@ -465,7 +459,8 @@ watch([currentPage, pageSize], fetchCustomers);
           </div>
           <div class="col-6">
             <el-form-item label="Ngày sinh">
-              <el-date-picker v-model="form.ngaySinh" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày sinh" style="width: 100%" />
+              <el-date-picker v-model="form.ngaySinh" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày sinh"
+                style="width: 100%" />
             </el-form-item>
           </div>
         </div>
@@ -473,16 +468,18 @@ watch([currentPage, pageSize], fetchCustomers);
         <div class="row g-2">
           <div class="col-6">
             <el-form-item label="Tỉnh/Thành phố">
-              <el-select v-model="form.thanhPhoTinh" placeholder="Chọn tỉnh" class="w-100" filterable @change="handleProvinceChange">
+              <el-select v-model="form.thanhPhoTinh" placeholder="Chọn tỉnh" class="w-100" filterable
+                @change="handleProvinceChange">
                 <el-option v-for="p in provinces" :key="p.code" :label="p.name" :value="p.name" />
               </el-select>
             </el-form-item>
           </div>
           <div class="col-6">
             <el-form-item label="Phường/Xã">
-              <el-select v-model="form.phuongXa" placeholder="Chọn xã" class="w-100" filterable :disabled="!form.thanhPhoTinh">
+              <el-select v-model="form.phuongXa" placeholder="Chọn xã" class="w-100" filterable
+                :disabled="!form.thanhPhoTinh">
                 <el-option v-for="w in wards" :key="w.code" :label="w.name" :value="w.name">
-                   <span>{{ w.name }}</span>
+                  <span>{{ w.name }}</span>
                 </el-option>
               </el-select>
             </el-form-item>
@@ -502,11 +499,11 @@ watch([currentPage, pageSize], fetchCustomers);
              </el-form-item>
           </div> -->
         </div>
-        
+
         <el-form-item label="Hình ảnh URL">
           <el-input v-model="form.hinhAnh" placeholder="https://..." :prefix-icon="View" />
         </el-form-item>
-        
+
         <el-form-item label="Ghi chú">
           <el-input v-model="form.ghiChu" type="textarea" :rows="2" placeholder="Nhập ghi chú khách hàng..." />
         </el-form-item>
@@ -525,12 +522,12 @@ watch([currentPage, pageSize], fetchCustomers);
       </el-form>
     </BaseModal>
 
-    <BaseModal v-model="detailVisible" title="Hồ sơ khách hàng" icon="bi bi-person-badge-fill" width="600px" isDetail onlyCancel>
-      <div v-if="selectedItem" class="p-0">
-        <!-- Profile Header (Colorless) -->
+    <BaseModal v-model="detailVisible" title="Hồ sơ khách hàng" icon="bi bi-person-badge-fill" width="850px" isDetail
+      onlyCancel>
+      <div v-if="selectedItem" class="customer-profile-container">
+        <!-- Profile Header -->
         <div class="p-4 border-bottom bg-white d-flex align-items-center gap-4">
-          <div class="shadow-sm border d-flex align-items-center justify-content-center bg-light text-secondary" 
-               style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
+          <div class="profile-avatar shadow-sm border d-flex align-items-center justify-content-center bg-light text-secondary">
             {{ selectedItem.tenKhachHang?.charAt(0).toUpperCase() }}
           </div>
           <div class="flex-grow-1">
@@ -539,7 +536,8 @@ watch([currentPage, pageSize], fetchCustomers);
               <span class="text-secondary small fw-bold">#{{ selectedItem.maKhachHang }}</span>
             </div>
             <div class="d-flex align-items-center gap-2">
-              <el-tag :type="selectedItem.tenLoaiKhachHang?.toLowerCase().includes('vip') ? 'info' : 'plain'" effect="plain" round size="small">
+              <el-tag :type="selectedItem.tenLoaiKhachHang?.toLowerCase().includes('vip') ? 'warning' : 'info'"
+                effect="plain" round size="small" class="fw-bold">
                 {{ selectedItem.tenLoaiKhachHang?.toUpperCase() || 'THÀNH VIÊN' }}
               </el-tag>
               <div class="small text-secondary"><i class="bi bi-envelope me-1"></i>{{ selectedItem.email || '—' }}</div>
@@ -547,102 +545,162 @@ watch([currentPage, pageSize], fetchCustomers);
           </div>
         </div>
 
-        <!-- Details Body (Colorless) -->
-        <div class="p-4 bg-white">
-          <div class="row g-4">
-            <div class="col-12">
-              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Thông số tài chính</h6>
-              <div class="row g-3">
-                <div class="col-6">
-                  <div class="p-3 border bg-white">
-                    <div class="text-secondary small mb-1">TỔNG CHI TIÊU</div>
-                    <div class="fw-bold fs-4 text-dark">{{ formatCurrency(selectedItem.tongChiTieu || 0) }}</div>
+        <!-- Detail Tabs -->
+        <el-tabs v-model="activeDetailTab" class="customer-tabs">
+          <el-tab-pane label="THÔNG TIN CÁ NHÂN" name="info">
+            <div class="p-4 bg-white">
+              <div class="row g-4">
+                <div class="col-12">
+                  <h6 class="text-uppercase small fw-bold text-secondary mb-3 border-start border-3 border-primary ps-2">Thông số tài chính</h6>
+                  <div class="row g-3">
+                    <div class="col-6">
+                      <div class="stat-card p-3 border bg-light-subtle rounded">
+                        <div class="text-secondary small mb-1">TỔNG CHI TIÊU</div>
+                        <div class="fw-bold fs-4 text-primary">{{ formatCurrency(selectedItem.tongChiTieu || 0) }}</div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="stat-card p-3 border bg-light-subtle rounded">
+                        <div class="text-secondary small mb-1">ĐIỂM TÍCH LŨY</div>
+                        <div class="fw-bold fs-4 text-warning">{{ selectedItem.diemTichLuy || 0 }} PTS</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="col-6">
-                  <div class="p-3 border bg-white">
-                    <div class="text-secondary small mb-1">ĐIỂM TÍCH LŨY</div>
-                    <div class="fw-bold fs-4 text-dark">{{ selectedItem.diemTichLuy || 0 }} PTS</div>
+
+                <div class="col-md-6">
+                  <h6 class="text-uppercase small fw-bold text-secondary mb-3 border-start border-3 border-success ps-2">Liên hệ</h6>
+                  <div class="p-3 border bg-white rounded h-100">
+                    <div class="mb-3">
+                      <label class="text-secondary small d-block mb-1">SỐ ĐIỆN THOẠI</label>
+                      <div class="fw-bold text-dark">{{ selectedItem.sdt || '—' }}</div>
+                    </div>
+                    <div>
+                      <label class="text-secondary small d-block mb-1">ĐỊA CHỈ</label>
+                      <div class="text-dark small lh-sm">{{ selectedItem.diaChi || 'Chưa cập nhật' }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <h6 class="text-uppercase small fw-bold text-secondary mb-3 border-start border-3 border-info ps-2">Cá nhân</h6>
+                  <div class="p-3 border bg-white rounded h-100">
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <label class="text-secondary small d-block mb-1">GIỚI TÍNH</label>
+                        <div class="fw-bold text-dark">{{ getGenderText(selectedItem.gioiTinh) }}</div>
+                      </div>
+                      <div class="col-6">
+                        <label class="text-secondary small d-block mb-1">ĐỘ TUỔI</label>
+                        <div class="fw-bold text-dark">{{ calculateAge(selectedItem.ngaySinh) }} tuổi</div>
+                      </div>
+                      <div class="col-12 border-top pt-2">
+                        <label class="text-secondary small d-block mb-1">TỔNG VÉ ĐÃ MUA</label>
+                        <div class="fw-bold text-dark fs-5">{{ selectedItem.tongVe || 0 }} vé</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="selectedItem.ghiChu" class="col-12">
+                  <div class="p-3 border bg-light rounded italic">
+                    <h6 class="text-uppercase small fw-bold text-secondary mb-1">GHI CHÚ QUẢN TRỊ</h6>
+                    <p class="text-muted mb-0 small">"{{ selectedItem.ghiChu }}"</p>
                   </div>
                 </div>
               </div>
             </div>
+          </el-tab-pane>
 
-            <div class="col-md-6">
-              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Liên hệ</h6>
-              <div class="p-3 border bg-white h-100">
-                <div class="mb-3">
-                  <label class="text-secondary small d-block">SỐ ĐIỆN THOẠI</label>
-                  <div class="fw-bold text-dark">{{ selectedItem.sdt || '—' }}</div>
-                </div>
-                <div>
-                  <label class="text-secondary small d-block">ĐỊA CHỈ</label>
-                  <div class="text-dark small lh-sm">{{ selectedItem.diaChi || 'Chưa cập nhật' }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <h6 class="text-uppercase small fw-bold text-secondary mb-3">Thông tin cá nhân</h6>
-              <div class="p-3 border bg-white h-100">
-                <div class="row g-3">
-                  <div class="col-6">
-                    <label class="text-secondary small d-block">GIỚI TÍNH</label>
-                    <div class="fw-bold text-dark">{{ getGenderText(selectedItem.gioiTinh) }}</div>
-                  </div>
-                  <div class="col-6">
-                    <label class="text-secondary small d-block">ĐỘ TUỔI</label>
-                    <div class="fw-bold text-dark">{{ calculateAge(selectedItem.ngaySinh) }} tuổi</div>
-                  </div>
-                  <div class="col-12">
-                    <label class="text-secondary small d-block">VÉ ĐÃ MUA</label>
-                    <div class="fw-bold text-dark">{{ selectedItem.tongVe || 0 }} vé</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="selectedItem.ghiChu" class="col-12">
-               <div class="p-3 border bg-light">
-                 <h6 class="text-uppercase small fw-bold text-secondary mb-1">GHI CHÚ QUẢN TRỊ</h6>
-                 <p class="text-dark mb-0 small italic">"{{ selectedItem.ghiChu }}"</p>
+          <el-tab-pane label="LỊCH SỬ GIAO DỊCH" name="history">
+            <div class="p-4 bg-white min-h-300">
+               <el-table :data="customerInvoices" v-loading="loadingInvoices" border stripe style="width: 100%" size="small" max-height="350">
+                  <el-table-column label="Mã HĐ" prop="maHoaDon" width="110">
+                    <template #default="{row}">
+                      <span class="fw-bold text-primary">#{{ row.maHoaDon }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="Ngày mua" width="160">
+                    <template #default="{row}">
+                      {{ row.ngayTao }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="Tổng tiền">
+                    <template #default="{row}">
+                      <span class="fw-bold text-danger">{{ formatCurrency(row.tongTienThanhToan) }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="Kênh" width="100">
+                    <template #default="{row}">
+                      <el-tag size="small" :type="row.kenhBanHang === 0 ? 'success' : 'info'">
+                        {{ row.kenhBanHang === 0 ? 'Tại quầy' : 'Online' }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="Trạng thái" width="120">
+                    <template #default="{row}">
+                      <el-tag size="small" :type="getInvoiceStatusTag(row.trangThai)">
+                        {{ getInvoiceStatusLabel(row.trangThai) }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+               </el-table>
+               <div v-if="!customerInvoices.length && !loadingInvoices" class="text-center py-5">
+                 <el-empty description="Khách hàng chưa có giao dịch nào" :image-size="80" />
                </div>
             </div>
-            
-            <div class="col-12">
-              <div class="system-stats p-3 border d-flex justify-content-between text-secondary small bg-light">
-                 <div> Ngày gia nhập: {{ selectedItem.ngayTao || '—' }}</div>
-                 <div> Lần cuối cập nhật: {{ selectedItem.ngayCapNhat || '—' }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+          </el-tab-pane>
+        </el-tabs>
       </div>
     </BaseModal>
   </div>
 </template>
 
 <style scoped>
-.customer-profile-container { margin: -20px; }
-.profile-header { position: relative; }
-.header-banner { position: absolute; top: 0; left: 0; right: 0; height: 100px; z-index: 0; }
-.avatar-wrapper { width: 90px; height: 90px; border-radius: 25px; border: 4px solid #fff; position: relative; z-index: 1; overflow: visible; background: #fff; }
-.avatar-circle { width: 100%; height: 100%; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
-.vip-badge { position: absolute; width: 28px; height: 28px; background: #ffc107; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 3px solid #fff; }
-.customer-name { letter-spacing: -0.5px; }
-.section-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 15px; }
-.tiny-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
-.info-card-premium { transition: all 0.2s ease; }
-.info-card-premium:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; border-color: var(--el-color-primary-light-7) !important; }
-.border-end-v { border-right: 1px solid #f1f5f9; }
-.note-box { background: #f8fafc; border-left: 4px solid #cbd5e1; }
-.pulse-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 rgba(25, 135, 84, 0.4); animation: pulse 2s infinite; }
-@keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(25, 135, 84, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); } 100% { box-shadow: 0 0 0 0px rgba(25, 135, 84, 0); } }
+/* Zen scoped CSS: purely functional */
+.status-switch :deep(.el-switch__label) {
+  display: none !important;
+}
 
-.metric-card-minimal { transition: all 0.2s; }
-.metric-card-minimal:hover { border-color: var(--el-color-primary) !important; transform: translateY(-2px); }
-.bg-gradient-tier { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-.tier-decoration { position: absolute; right: -20px; bottom: -20px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.1); z-index: 0; }
-.progress-fill { transition: width 1s ease-out; }
-.shadow-inner { box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+.customer-profile-container {
+  overflow: hidden;
+}
+
+.profile-avatar {
+  width: 100px; 
+  height: 100px; 
+  font-size: 2.5rem; 
+  font-weight: bold;
+  border-radius: 12px;
+}
+
+.stat-card {
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.customer-tabs :deep(.el-tabs__header) {
+  margin: 0;
+  padding: 0 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.customer-tabs :deep(.el-tabs__nav-wrap::after) {
+  display: none;
+}
+
+.customer-tabs :deep(.el-tabs__item) {
+  font-weight: 700;
+  font-size: 12px;
+  height: 50px;
+}
+
+.min-h-300 {
+  min-height: 300px;
+}
 </style>

@@ -1,6 +1,6 @@
 import { ROUTES_CONSTANTS } from "@/constants/routeConstants";
 
-const AdminLayout = () => import('@/layout/AdminLayout.vue');
+const AdminLayout = () => import('@/layouts/AdminLayout.vue');
 export const printRoutes = {
     path: '/print/invoice',
     name: 'InvoicePrintStandalone', 
@@ -117,6 +117,18 @@ export const adminRoutes = {
             name: ROUTES_CONSTANTS.ADMIN.children.FOOD.name,
             component: () => import('@/pages/admin/sanphamdikem/AdminFood.vue'),
             meta: { title: 'Sản phẩm & Combo' }
+        },
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.FOOD_ADD.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.FOOD_ADD.name,
+            component: () => import('@/pages/admin/sanphamdikem/AdminFoodForm.vue'),
+            meta: { title: 'Thêm sản phẩm mới' }
+        },
+        {
+            path: ROUTES_CONSTANTS.ADMIN.children.FOOD_EDIT.path,
+            name: ROUTES_CONSTANTS.ADMIN.children.FOOD_EDIT.name,
+            component: () => import('@/pages/admin/sanphamdikem/AdminFoodForm.vue'),
+            meta: { title: 'Chỉnh sửa sản phẩm' }
         },
         {
             path: ROUTES_CONSTANTS.ADMIN.children.VOUCHERS.path,

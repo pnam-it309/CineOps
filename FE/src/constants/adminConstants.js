@@ -67,6 +67,8 @@ export const ADMIN_ROUTES = {
       }
     },
     FOOD: { path: 'food', name: 'AdminFood' },
+    FOOD_ADD: { path: 'food/add', name: 'AdminFoodAdd' },
+    FOOD_EDIT: { path: 'food/edit/:id', name: 'AdminFoodEdit' },
     VOUCHERS: { path: 'vouchers', name: 'AdminVouchers' },
     VOUCHERS_ADD: { path: 'vouchers/add', name: 'AdminVouchersAdd' },
     VOUCHERS_EDIT: { path: 'vouchers/edit/:id', name: 'AdminVouchersEdit' },
