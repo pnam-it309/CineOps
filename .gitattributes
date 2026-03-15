@@ -1,0 +1,8 @@
+# Handle line endings for Windows users
+# Force LF for shell scripts and gradlew to avoid execution issues in Linux/Docker
+* text=auto eol=lf
+
+# Explicitly ensure gradlew and other scripts use LF
+**/gradlew text eol=lf
+**/*.sh text eol=lf
+**/*.bat text eol=crlf

@@ -1,26 +1,26 @@
 services:
   backend:
     build:
-      target: build # Dev mode stops at dependency stage
+      target: build
     environment:
       - SPRING_DEVTOOLS_RESTART_ENABLED=true
       - SPRING_DEVTOOLS_RESTART_POLL_INTERVAL=2000
       - SPRING_DEVTOOLS_RESTART_QUIET_PERIOD=1000
     volumes:
-      - ../BE:/app           # High-speed Hot Reload
+      - ../BE:/app
       - gradle-cache:/home/gradle/.gradle
-    entrypoint: []
-    command: ./gradlew bootRun
+    user: root
+    command: sh -c "dos2unix gradlew && chmod +x gradlew && sh gradlew bootRun"
     ports:
       - "${BE_PORT}:8888"
       - "${BE_DEBUG_PORT}:5005"
 
   frontend:
     build:
-      target: build-stage # Dev mode stops at Node stage
+      target: build-stage
     volumes:
       - ../FE:/app
-      - /app/node_modules    # Prevent local node_modules collision
+      - /app/node_modules
     ports:
       - "${FE_PORT}:${FE_PORT}"
     entrypoint: []

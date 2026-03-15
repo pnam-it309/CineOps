@@ -2,7 +2,7 @@
   <MainLayout>
     <el-container class="vh-100 overflow-hidden admin-staff-layout">
       <!-- Sidebar -->
-      <el-aside :width="isCollapse ? '64px' : '240px'" class="bg-white shadow transition-width overflow-hidden">
+      <el-aside :width="isCollapse ? '64px' : '300px'" class="bg-white shadow transition-width overflow-hidden">
         <StaffSidebar :is-collapse="isCollapse" />
       </el-aside>
 

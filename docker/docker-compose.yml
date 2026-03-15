@@ -45,6 +45,11 @@ services:
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
     networks:
       - cineops-net
 
@@ -65,4 +70,7 @@ networks:
 
 volumes:
   cineops-mysql-data:
+    driver: local
+
+  gradle-cache:
     driver: local

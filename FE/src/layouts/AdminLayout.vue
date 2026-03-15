@@ -2,7 +2,7 @@
   <MainLayout>
     <el-container class="admin-staff-layout" style="height: 100vh; overflow: hidden;">
       <!-- Sidebar -->
-      <el-aside :width="uiStore.sidebarCollapsed ? '80px' : '250px'" class="bg-white transition-width"
+      <el-aside :width="uiStore.sidebarCollapsed ? '80px' : '300px'" class="bg-white transition-width"
         style="border-right: 1px solid #cbd5e1 !important; overflow: visible;">
         <AdminSidebar :is-collapse="uiStore.sidebarCollapsed" />
       </el-aside>

@@ -212,7 +212,7 @@ const pageSizeLocal = computed({
     <div class="premium-card flex-grow-1 d-flex flex-column overflow-hidden" :class="{ 'mb-3': !noPadding }">
       <!-- Moved Actions to Table Header -->
       <div v-if="!hideHeader" class="p-3 px-5 border-bottom d-flex align-items-center justify-content-between bg-white sticky-top z-3">
-        <h2 class="m-0 text-dark fw-bold text-uppercase smaller letter-spacing-1" style="font-size: 11px; opacity: 0.6;">Dữ liệu bảng</h2>
+        <h2 class="m-0 text-dark fw-bold letter-spacing-1" style="font-size: 13px; opacity: 0.7;">Dữ liệu bảng</h2>
         <div class="d-flex align-items-center gap-2">
           <slot name="header-actions-left"></slot>
           <slot name="header-actions"></slot>

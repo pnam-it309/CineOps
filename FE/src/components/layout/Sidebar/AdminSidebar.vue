@@ -203,11 +203,13 @@ const handleCommand = async (command) => {
 :deep(.el-sub-menu__title) {
   margin: 0 !important;
   border-radius: 0 !important;
-  height: 45px !important;
-  line-height: 45px !important;
+  height: 54px !important;
+  line-height: 54px !important;
   transition: background-color 0.3s !important;
   display: flex !important;
   align-items: center !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
 }
 
 :deep(.el-menu-item span),
@@ -228,9 +230,9 @@ const handleCommand = async (command) => {
 
 :deep(.el-menu-item .el-icon),
 :deep(.el-sub-menu__title .el-icon) {
-  font-size: 22px !important;
-  margin-right: 12px !important;
-  min-width: 32px;
+  font-size: 24px !important;
+  margin-right: 14px !important;
+  min-width: 36px;
   flex-shrink: 0;
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
@@ -246,9 +248,9 @@ const handleCommand = async (command) => {
 }
 
 :deep(.el-menu--collapse .el-menu-item),
-:deep(.el-menu--collapse .el-sub-menu__title) {
+:deep(.el-sub-menu__title) {
   justify-content: center !important;
-  padding: 0 !important;
+  padding: 0 15px !important;
 }
 
 :deep(.el-menu-item:hover .el-icon),
@@ -325,17 +327,23 @@ const handleCommand = async (command) => {
   width: auto;
   height: auto;
   max-width: 90%;
-  max-height: 110px;
+  max-height: 140px;
   object-fit: contain;
   mix-blend-mode: multiply;
   filter: brightness(1.08) contrast(1.1);
   transition: all 0.3s;
-  transform: scale(1.4);
+  transform: scale(1.8);
 }
 
 .brand-logo.is-collapsed {
-  max-height: 50px;
+  max-height: 60px;
   width: auto;
-  transform: scale(1.6);
+  transform: scale(2.0);
+}
+
+:deep(.el-menu-item span),
+:deep(.el-sub-menu span) {
+  white-space: normal;
+  line-height: 1.2;
 }
 </style>

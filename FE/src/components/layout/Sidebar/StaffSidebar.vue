@@ -106,11 +106,18 @@ const handleCommand = async (command) => {
 </script>
 
 <style scoped>
+:deep(.el-menu-item) {
+  height: 54px !important;
+  line-height: 54px !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+
 /* CSS cho icon to hơn và cân đối */
 :deep(.el-menu-item .el-icon) {
-  font-size: 1.3rem !important; /* ~21px */
-  margin-right: 12px !important;
-  width: 24px !important;
+  font-size: 1.4rem !important; /* ~22px */
+  margin-right: 14px !important;
+  width: 28px !important;
   display: inline-flex !important;
   justify-content: center !important;
 }
@@ -171,18 +178,18 @@ const handleCommand = async (command) => {
 }
 
 .sidebar-logo {
-  width: 130%; /* Phóng to ra ngoài khung để loại bỏ khoảng trắng dư của ảnh */
-  height: 130%;
+  width: 140%; /* Phóng to ra ngoài khung để loại bỏ khoảng trắng dư của ảnh */
+  height: 140%;
   object-fit: contain;
   mix-blend-mode: multiply;
   filter: contrast(1.1) brightness(1.1);
   transition: all 0.3s;
-  transform: scale(1.3); /* Phóng đại thêm để logo to nhất có thể */
+  transform: scale(1.8); /* Phóng đại thêm để logo to nhất có thể */
 }
 
 .sidebar-logo.logo-collapse {
   width: 100%;
   height: 100%;
-  transform: scale(1);
+  transform: scale(1.5);
 }
 </style>

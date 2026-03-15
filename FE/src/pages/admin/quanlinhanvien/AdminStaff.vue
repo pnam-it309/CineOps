@@ -22,9 +22,8 @@ const searchQuery = ref('');
 const staffColumns = [
   { label: 'STT', key: 'stt', width: '60px', align: 'center' },
   { label: 'Mã NV', key: 'maNhanVien', width: '100px', align: 'center' },
-  { label: 'Nhân viên', key: 'staff', width: '180px', align: 'center' },
-  { label: 'Số điện thoại', key: 'soDienThoai', width: '170px', align: 'center' },
-  { label: 'Email', key: 'email', width: '280px', align: 'center' },
+  { label: 'Nhân viên', key: 'staff', width: '220px', align: 'center' },
+  { label: 'Liên hệ', key: 'soDienThoai', width: '220px', align: 'center' },
   { label: 'Vai trò', key: 'role', width: '130px', align: 'center' },
   { label: 'Địa chỉ', key: 'diaChi', width: '200px', align: 'center' },
   { label: 'Trạng thái', key: 'trangThai', width: '140px', align: 'center' },
@@ -309,9 +308,11 @@ watch([filterRole, filterStatus, filterGender, currentPage, pageSize], fetchStaf
       </template>
 
       <template #cell-staff="{ row }">
-        <div class="d-flex flex-column align-items-center">
-          <div class="fw-bold text-dark">{{ row.tenNhanVien }}</div>
-          <div class="smaller text-secondary">{{ row.email || '—' }}</div>
+        <div class="d-flex justify-content-center w-100">
+          <div class="text-start" style="min-width: 200px;">
+            <div class="fw-bold text-dark">{{ row.tenNhanVien }}</div>
+            <div class="smaller text-secondary" style="word-break: break-word;">{{ row.email || '—' }}</div>
+          </div>
         </div>
       </template>
 
@@ -327,7 +328,12 @@ watch([filterRole, filterStatus, filterGender, currentPage, pageSize], fetchStaf
       </template>
 
       <template #cell-soDienThoai="{ row }">
-        <span class="fw-bold text-dark" style="white-space: nowrap;">{{ row.soDienThoai || '—' }}</span>
+        <div class="d-flex justify-content-center w-100">
+          <div class="text-start" style="min-width: 200px;">
+            <div class="fw-bold text-dark">{{ row.soDienThoai || '—' }}</div>
+            <div class="smaller text-secondary" style="word-break: break-word;">{{ row.email || '—' }}</div>
+          </div>
+        </div>
       </template>
       <template #cell-diaChi="{ row }">
         <div class="text-secondary smaller text-center mx-auto" :title="row.diaChi">{{ row.diaChi ||

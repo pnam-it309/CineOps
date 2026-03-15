@@ -1,5 +1,6 @@
 package service.cinema.be.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -33,9 +34,11 @@ public class LoaiKhachHang extends PrimaryEntity {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "loaiKhachHang")
     private List<KhachHang> khachHangs = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "loaiKhachHang")
     private List<Ve> ves = new ArrayList<>();
 }

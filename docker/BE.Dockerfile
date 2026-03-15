@@ -1,45 +1,46 @@
-# Stage 1: Preparation stage
-# Sử dụng bản JDK 17 trên nền Ubuntu Jammy để đảm bảo đầy đủ glibc
+# Stage 1: Build & Cache Dependencies
 FROM gradle:7.6-jdk17 AS build
 WORKDIR /app
 
-# Switch sang root để cài đặt thư viện hệ thống
+# Cài đặt dos2unix để xử lý file gradlew trên Windows
 USER root
+RUN apt-get update && apt-get install -y dos2unix && rm -rf /var/lib/apt/lists/*
 
-# Cài đặt các thư viện hệ thống cần thiết cho OpenCV (đầy đủ hơn)
-RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Trở lại user gradle để bảo mật (nếu cần) nhưng vẫn giữ quyền chạy bootRun
-# Lưu ý: Trong dev mode, mount volume đôi khi cần quyền root để tránh lỗi permission
-# USER gradle
-
-# Copy gradle files only to download dependencies
+# Copy gradle files trước để có thể chown
 COPY --chown=gradle:gradle gradlew build.gradle settings.gradle ./
 COPY --chown=gradle:gradle gradle/ ./gradle/
 
-# Grant execute permission
-RUN chmod +x gradlew
+# Đảm bảo user gradle có quyền trên toàn bộ thư mục app
+RUN chown -R gradle:gradle /app
+
+# Normalize line endings và cấp quyền thực thi
+RUN dos2unix gradlew && chmod +x gradlew
 
 # Download dependencies (Cache layer)
-RUN ./gradlew dependencies --no-daemon
+# Chạy với user gradle để bảo mật
+USER gradle
+RUN sh ./gradlew dependencies --no-daemon
 
-# Stage 2: Production Build stage
+# Stage 2: Production Build
 FROM build AS build-production
+USER gradle
 COPY --chown=gradle:gradle src/ ./src/
-RUN ./gradlew build -x test --no-daemon
+# Build -x test để bỏ qua unit test giúp build nhanh hơn
+RUN sh ./gradlew build -x test --no-daemon
 
-# Stage 3: Runtime image
-FROM eclipse-temurin:17-jdk-jammy
+# Stage 3: Extract Layers (Tách JAR thành các lớp để tối ưu Docker Cache)
+FROM eclipse-temurin:17-jre-jammy AS extractor
+WORKDIR /app
+COPY --from=build-production /app/build/libs/*.jar app.jar
+RUN java -Djarmode=layertools -jar app.jar extract
+
+# Stage 4: Runtime image (Sử dụng JRE để giảm dung lượng và tăng tốc startup)
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
-# Cài đặt thư viện đồ họa tương tự ở bản Runtime
+# Cài đặt các thư viện hệ thống cần thiết cho OpenCV / Graphics
 RUN apt-get update && apt-get install -y \
+    dos2unix \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
@@ -47,9 +48,19 @@ RUN apt-get update && apt-get install -y \
     libxrender1 \
     && rm -rf /var/lib/apt/lists/*
 
+# Tạo user hệ thống để chạy app (bảo mật)
 RUN addgroup --system cineops && adduser --system --group cineops
 USER cineops
-COPY --from=build-production /app/build/libs/*.jar ./app.jar
+
+# Copy từng layer từ extractor stage
+# Thứ tự copy từ ít thay đổi nhất đến nhiều thay đổi nhất
+COPY --from=extractor /app/dependencies/ ./
+COPY --from=extractor /app/spring-boot-loader/ ./
+COPY --from=extractor /app/snapshot-dependencies/ ./
+COPY --from=extractor /app/application/ ./
 
 EXPOSE 8888
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Sử dụng JarLauncher để tối ưu hóa việc load các lớp đã tách
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+

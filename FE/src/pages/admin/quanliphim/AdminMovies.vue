@@ -60,7 +60,7 @@ const tableColumns = [
   { label: 'Poster', key: 'poster', width: '80px', align: 'center' },
   { label: 'Tên phim', key: 'tenPhim', width: '180px', align: 'center' },
   { label: 'Độ tuổi', key: 'doTuoi', width: '90px', align: 'center' },
-  { label: 'Thời lượng', key: 'thoiLuong', width: '130px', align: 'center' },
+  { label: 'Thời lượng', key: 'thoiLuong', width: '150px', align: 'center' },
   { label: 'Thể loại', key: 'theLoais', width: '160px', align: 'center' },
   { label: 'Phát hành', key: 'ngayKhoiChieu', width: '130px', align: 'center' },
   { label: 'Giá gốc', key: 'giaPhim', width: '110px', align: 'center' },

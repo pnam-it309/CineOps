@@ -11,24 +11,35 @@
       :total="filteredSeats.length"
       v-model:currentPage="currentPage" 
       v-model:pageSize="pageSize" 
-      @add-click="openDialog" 
+      @add-click="openDialog()" 
       @reset-filter="resetFilter"
       @selection-change="handleSelectionChange" 
       :hidePagination="false"
       @fetch="fetchSeats"
     >
       <template #header-actions-left>
-        <el-tooltip v-if="selectedSeats.length" :content="`Đổi trạng thái cho ${selectedSeats.length} ghế`" placement="top">
+        <div class="d-flex align-items-center gap-2">
+          <el-tooltip v-if="selectedSeats.length" :content="`Đổi trạng thái cho ${selectedSeats.length} ghế`" placement="top">
+            <el-button 
+              type="warning" 
+              class="fw-bold" 
+              :icon="Refresh"
+              @click="handleBulkToggleStatus"
+              style="border-radius: 8px;"
+            >
+              Cập nhật ({{ selectedSeats.length }})
+            </el-button>
+          </el-tooltip>
           <el-button 
-            type="warning" 
-            class="fw-bold" 
-            :icon="Refresh"
-            @click="handleBulkToggleStatus"
-            style="border-radius: 8px;"
+            type="primary" 
+            class="fw-bold px-4" 
+            :icon="Plus"
+            @click="openQuickGenDialog"
+            style="border-radius: 10px; background-color: #6366f1; border-color: #6366f1;"
           >
-            Cập nhật ({{ selectedSeats.length }})
+            Tạo sơ đồ ghế nhanh
           </el-button>
-        </el-tooltip>
+        </div>
       </template>
 
       <!-- Optimized Filters (Matching Image 1: Labels above inputs) -->
@@ -115,33 +126,40 @@
 
     <!-- Unified Dialog -->
     <BaseModal v-model="dialogVisible"
-      :title="isBulkMode ? `Cập nhật ${selectedSeats.length} ghế` : (editingId ? 'Chỉnh sửa Ghế' : 'Thêm Ghế mới')"
-      :icon="isBulkMode ? 'bi bi-collection' : (editingId ? 'bi bi-pencil-square' : 'bi bi-plus-lg')" width="460px"
-      :confirmText="isBulkMode ? 'Cập nhật hàng loạt' : (editingId ? 'Lưu thay đổi' : 'Thêm ghế')" :loading="saving"
+      :title="isBulkMode ? `Cập nhật ${selectedSeats.length} ghế` : (editingId ? 'Chỉnh sửa Ghế' : (isQuickGen ? 'Tạo sơ đồ ghế nhanh' : 'Thêm Ghế mới'))"
+      :icon="isBulkMode ? 'bi bi-collection' : (editingId ? 'bi bi-pencil-square' : 'bi bi-plus-lg')" width="600px"
+      :confirmText="isBulkMode ? 'Cập nhật hàng loạt' : (editingId ? 'Lưu thay đổi' : (isQuickGen ? 'Tạo sơ đồ' : 'Thêm ghế'))" :loading="saving"
       @confirm="handleSubmit">
       <el-form :model="form" :rules="dialogRules" ref="formRef" label-position="top" class="premium-form">
-        <div class="row g-2">
+        <div class="row g-3">
+          <div class="col-12" v-if="isQuickGen">
+            <el-alert title="Cảnh báo: Thao tác này sẽ XÓA TOÀN BỘ ghế cũ của phòng này để tạo bộ mới." type="warning" show-icon :closable="false" class="mb-3" />
+          </div>
+
           <div class="col-12" v-if="isBulkMode">
             <p class="text-secondary small mb-3">
               <i class="bi bi-info-circle me-1"></i>
               Các trường để trống sẽ không được cập nhật.
             </p>
           </div>
-          <div class="col-6" v-if="!isBulkMode">
+          
+          <div class="col-md-6">
             <el-form-item label="Phòng chiếu" prop="idPhongChieu">
               <el-select v-model="form.idPhongChieu" class="w-100" placeholder="Chọn phòng" :disabled="!!editingId">
                 <el-option v-for="pc in phongChieuList" :key="pc.id" :label="pc.tenPhong" :value="pc.id" />
               </el-select>
             </el-form-item>
           </div>
-          <div :class="isBulkMode ? 'col-12' : 'col-6'">
-            <el-form-item label="Loại ghế" prop="idLoaiGhe">
+
+          <div class="col-md-6">
+            <el-form-item :label="isQuickGen ? 'Loại ghế mặc định' : 'Loại ghế'" prop="idLoaiGhe">
               <el-select v-model="form.idLoaiGhe" class="w-100" placeholder="Chọn loại" :clearable="isBulkMode">
                 <el-option v-for="lg in loaiGheList" :key="lg.id" :label="lg.tenLoai" :value="lg.id" />
               </el-select>
             </el-form-item>
           </div>
-          <template v-if="!isBulkMode">
+
+          <template v-if="!isBulkMode && !isQuickGen">
             <div class="col-4">
               <el-form-item label="Số ghế" prop="soGhe">
                 <el-input v-model="form.soGhe" placeholder="Tự động" disabled :prefix-icon="Monitor" />
@@ -158,6 +176,19 @@
               </el-form-item>
             </div>
           </template>
+
+          <template v-if="isQuickGen">
+            <div class="col-6">
+              <el-form-item label="Số hàng (A, B, C...)" prop="rows">
+                <el-input-number v-model="form.rows" :min="1" :max="26" class="w-100" controls-position="right" />
+              </el-form-item>
+            </div>
+            <div class="col-6">
+              <el-form-item label="Số mỗi hàng" prop="cols">
+                <el-input-number v-model="form.cols" :min="1" :max="30" class="w-100" controls-position="right" />
+              </el-form-item>
+            </div>
+          </template>
         </div>
       </el-form>
     </BaseModal>
@@ -171,7 +202,7 @@ import BaseModal from '@/components/common/BaseModal.vue';
 import { gheService } from '@/services/api/admin/gheService';
 import notification from '@/utils/notifications';
 import confirmDialog from '@/utils/confirm';
-import { Search, Monitor, Refresh } from '@element-plus/icons-vue';
+import { Search, Monitor, Refresh, Plus } from '@element-plus/icons-vue';
 
 // =================== UTILS ===================
 const getSeatTypeTag = (tenLoai) => {
@@ -209,6 +240,7 @@ const dialogVisible = ref(false);
 const formRef = ref(null);
 const editingId = ref(null);
 const isBulkMode = ref(false);
+const isQuickGen = ref(false);
 
 const seats = ref([]);
 const loaiGheList = ref([]);
@@ -221,7 +253,9 @@ const form = ref({
   soGhe: '',
   soHang: '',
   soCot: 1,
-  trangThai: 1
+  trangThai: 1,
+  rows: 5,
+  cols: 10
 });
 
 // =================== COMPUTED ===================
@@ -244,6 +278,12 @@ const paginatedSeats = computed(() => {
 
 const dialogRules = computed(() => {
   if (isBulkMode.value) return {};
+  if (isQuickGen.value) {
+    return {
+      idPhongChieu: [{ required: true, message: 'Vui lòng chọn phòng chiếu', trigger: 'change' }],
+      idLoaiGhe: [{ required: true, message: 'Vui lòng chọn loại ghế', trigger: 'change' }],
+    };
+  }
   return {
     idPhongChieu: [{ required: true, message: 'Vui lòng chọn phòng chiếu', trigger: 'change' }],
     idLoaiGhe: [{ required: true, message: 'Vui lòng chọn loại ghế', trigger: 'change' }],
@@ -298,6 +338,7 @@ const resetFilter = () => {
 const openDialog = (row = null) => {
   editingId.value = row?.id || null;
   isBulkMode.value = false;
+  isQuickGen.value = false;
 
   if (row) {
     form.value = { ...row };
@@ -308,9 +349,25 @@ const openDialog = (row = null) => {
       soGhe: '',
       soHang: '',
       soCot: 1,
-      trangThai: 1
+      trangThai: 1,
+      rows: 5,
+      cols: 10
     };
   }
+  dialogVisible.value = true;
+};
+
+const openQuickGenDialog = () => {
+  editingId.value = null;
+  isBulkMode.value = false;
+  isQuickGen.value = true;
+  form.value = {
+    idPhongChieu: selectedRoom.value || phongChieuList.value[0]?.id || '',
+    idLoaiGhe: loaiGheList.value[0]?.id || '',
+    trangThai: 1,
+    rows: 8,
+    cols: 12
+  };
   dialogVisible.value = true;
 };
 
@@ -329,7 +386,13 @@ const handleSubmit = async () => {
     if (!valid) return;
 
     try {
-      if (isBulkMode.value) {
+      if (isQuickGen.value) {
+        await confirmDialog.custom(
+          `Cảnh báo: Thao tác này sẽ XÓA TOÀN BỘ ghế hiện tại của phòng này để tạo sơ đồ mới với ${form.value.rows} hàng và ${form.value.cols} cột. Bạn có chắc chắn?`,
+          'Xác nhận tạo sơ đồ hàng loạt',
+          'Tôi đã hiểu, hãy tạo mới'
+        );
+      } else if (isBulkMode.value) {
         await confirmDialog.custom(
           `Bạn có chắc muốn cập nhật cho ${selectedSeats.value.length} ghế?`,
           'Xác nhận cập nhật hàng loạt',
@@ -344,7 +407,15 @@ const handleSubmit = async () => {
 
     saving.value = true;
     try {
-      if (isBulkMode.value) {
+      if (isQuickGen.value) {
+        await gheService.generateSeats({
+          idPhongChieu: form.value.idPhongChieu,
+          idLoaiGheDefault: form.value.idLoaiGhe,
+          rows: form.value.rows,
+          cols: form.value.cols
+        });
+        notification.success('Tạo sơ đồ ghế thành công!');
+      } else if (isBulkMode.value) {
         await gheService.updateBulkSeats({
           ids: selectedSeats.value.map(s => s.id),
           idLoaiGhe: form.value.idLoaiGhe || null,

@@ -65,7 +65,6 @@
             <el-option label="Tất cả" value="" />
             <el-option label="Hoạt động" :value="1" />
             <el-option label="Ngừng hoạt động" :value="0" />
-            <el-option label="Đã kết thúc" :value="2" />
           </el-select>
         </div>
       </template>
@@ -98,19 +97,23 @@
       </template>
 
       <template #cell-detail="{ row }">
-        <div class="text-center py-1">
-          <el-tag :type="row.loaiPhieu === 0 ? 'danger' : 'success'" effect="light" size="small" class="fw-bold mb-1">
-            {{ row.loaiPhieu === 0 ? `Giảm ${row.phanTramGiamGia}%` : `Giảm -${formatCurrency(row.soTienGiam)}` }}
-          </el-tag>
-          <div class="smaller text-secondary">Tối đa: {{ row.loaiPhieu === 0 ? formatCurrency(row.giamToiDa) : '—' }}</div>
-          <div class="smaller text-secondary">Đơn tối thiểu: {{ formatCurrency(row.giaTriHoaDonToiThieu) }}</div>
+        <div class="d-flex justify-content-center py-1">
+          <div class="text-start" style="min-width: 140px;">
+            <el-tag :type="row.loaiPhieu === 0 ? 'danger' : 'success'" effect="light" size="small" class="fw-bold mb-1">
+              {{ row.loaiPhieu === 0 ? `Giảm ${row.phanTramGiamGia}%` : `Giảm -${formatCurrency(row.soTienGiam)}` }}
+            </el-tag>
+            <div class="smaller text-secondary">Tối đa: {{ row.loaiPhieu === 0 ? formatCurrency(row.giamToiDa) : '—' }}</div>
+            <div class="smaller text-secondary">Đơn tối thiểu: {{ formatCurrency(row.giaTriHoaDonToiThieu) }}</div>
+          </div>
         </div>
       </template>
 
       <template #cell-time="{ row }">
-        <div class="smaller text-secondary lh-sm">
-          <div><span class="opacity-50">Từ:</span> {{ formatFullDate(row.ngayBatDau) }}</div>
-          <div><span class="opacity-50">Đến:</span> {{ formatFullDate(row.ngayKetThuc) }}</div>
+        <div class="d-flex justify-content-center">
+          <div class="text-start smaller text-secondary lh-sm" style="white-space: nowrap;">
+            <div><span class="opacity-50 d-inline-block" style="min-width: 32px;">Từ:</span> {{ formatFullDate(row.ngayBatDau) }}</div>
+            <div><span class="opacity-50 d-inline-block" style="min-width: 32px;">Đến:</span> {{ formatFullDate(row.ngayKetThuc) }}</div>
+          </div>
         </div>
       </template>
 

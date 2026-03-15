@@ -73,7 +73,7 @@
   color: var(--brand-red);
   font-size: 1rem; /* Reduced from 1.125rem */
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.5px;
 }
 
@@ -91,7 +91,7 @@
   color: #475569 !important;
   font-size: 13px !important;
   font-weight: 700 !important;
-  text-transform: uppercase !important;
+  text-transform: none !important;
   padding: 12px 15px !important;
   border: none !important; /* Remove all header lines */
   border-bottom: 1px solid #edf2f7 !important;
